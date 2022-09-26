@@ -1,0 +1,17 @@
+name: core-cov-env
+
+channels:
+  - bioconda
+  - conda-forge
+
+dependencies:
+  - python=3.*
+  - samtools
+  - bwa
+  - mafft
+  - orthofinder
+  - biopython
+  - r-base=3.5.1
+  - r-plyr=1.8.6
+  - r-segmented=1.1_0
+  - r-cairo

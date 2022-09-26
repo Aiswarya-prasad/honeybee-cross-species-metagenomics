@@ -1,0 +1,110 @@
+#!/usr/bin/env python3
+import os
+import sys
+from Bio.Seq import Seq
+from Bio.SeqRecord import SeqRecord
+from Bio import SeqIO
+import argparse
+
+#Usage: python3 extract_orthologs.py firm5_single_ortho.txt
+
+def genome_count_line(seq_ids):
+    genomes = dict()
+    for seq_id in seq_ids:
+        split_id = seq_id.split('_')
+        genome_id = "_".join(split_id[:-1])
+        genomes[genome_id] = genomes.get(genome_id,0) + 1
+    return(genomes)
+
+def get_seq_objects(filename):
+    seq_record_dict = dict()
+    for seq_record in SeqIO.parse(filename, "fasta"):
+        if (seq_record.seq[-1] == '*'):  #Sometimes, stop-codons are indicated with an asterisk for amino acid gene sequences, which in turn generates warnings when using "muscle" for alignments. This block of code remove the trailing asterisk when present.
+            seq_string = str(seq_record.seq)
+            seq_chomp = seq_string[:-1]
+            new_record =  SeqRecord(
+                Seq(seq_chomp),
+                id=seq_record.id,
+                name="",
+                description=""
+                )
+            seq_record_dict[seq_record.id] = new_record
+        else:
+            seq_record_dict[seq_record.id] = seq_record
+    return(seq_record_dict)
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--orthofile', action='store', help='*_ single_ortho.txt as input')
+parser.add_argument('--outdir', action='store', help='name of directory to write outputs to')
+parser.add_argument('--faaffndir', action='store', help='name of directory where annotation output directories are')
+args = parser.parse_args()
+
+ortho_single = args.orthofile
+faaffndir = args.faaffndir
+ortho_seq_dir = args.outdir
+
+#Open the ortholog file
+try:
+    fh_ortho_in = open(ortho_single)
+    # fh_ortho_in = open(snakemake.input.ortho_single)
+except:
+    print('working from directory' + os.getcwd())
+    print('tried to open', ortho_single)
+    # print('tried to open', snakemake.input.ortho_single)
+    print('Input ortho-file not found. Exiting script')
+    exit()
+
+
+#Get all the genome-ids present in the ortholog-file, and all the gene-ids associated with each gene-family
+print('reading single_ortho file')
+genome_ids = dict()
+OG_fams = dict()
+for line in fh_ortho_in:
+    line = line.strip()
+    split_line = line.split()
+    OG_id = split_line.pop(0)[:-1]
+    OG_fams[OG_id] = split_line
+    genome_count = genome_count_line(split_line)
+    for genome in genome_count:
+        genome_ids[genome] = 1
+fh_ortho_in.close()
+
+#Construct dictionaries of gene-sequences
+
+ffn_seq_objects = dict()
+faa_seq_objects = dict()
+for genome in genome_ids.keys():
+    ffn_file = os.path.join(faaffndir, genome, genome + '.ffn')
+    # ffn_file = os.path.join(snakemake.params.faa_ffn_dir, genome, genome + '.ffn')
+    faa_file = os.path.join(faaffndir, genome, genome + '.faa')
+    # faa_file = os.path.join(snakemake.params.faa_ffn_dir, genome, genome + '.faa')
+    try:
+        fh_ffn_file = open(ffn_file)
+        fh_faa_file = open(faa_file)
+    except:
+        print('One or both of these files are missing: ')
+        print(ffn_file)
+        print(faa_file)
+        print('Exiting script')
+        exit()
+    genome_ffn_seq_objects = get_seq_objects(ffn_file)
+    ffn_seq_objects.update(genome_ffn_seq_objects)
+    genome_faa_seq_objects = get_seq_objects(faa_file)
+    faa_seq_objects.update(genome_faa_seq_objects)
+
+#Create the output directory, and move into it
+output_dir = ortho_seq_dir
+# output_dir = snakemake.output.ortho_seq_dir
+if not os.path.isdir(output_dir):
+    os.mkdir(output_dir)
+os.chdir(output_dir)
+
+#Print multi-fasta files corresponding to each gene-family in the output dir
+for OG in OG_fams.keys():
+    OG_seq_ids = OG_fams[OG]
+    OG_ffn_seq_obj = [ffn_seq_objects[x] for x in OG_seq_ids]
+    OG_faa_seq_obj = [faa_seq_objects[x] for x in OG_seq_ids]
+    ffn_outfile = OG + '.ffn'
+    faa_outfile = OG + '.faa'
+    SeqIO.write(OG_ffn_seq_obj,ffn_outfile,"fasta")
+    SeqIO.write(OG_faa_seq_obj,faa_outfile,"fasta")

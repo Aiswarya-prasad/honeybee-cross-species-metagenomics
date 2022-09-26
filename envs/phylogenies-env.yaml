@@ -1,0 +1,14 @@
+name: phylogenies-env
+
+channels:
+ - bioconda
+ - conda-forge
+
+dependencies:
+ - python=3.*
+ - iqtree
+ - mafft
+ - prokka>=1.14
+ - orthofinder
+ - biopython
+ - bioconductor-biostrings

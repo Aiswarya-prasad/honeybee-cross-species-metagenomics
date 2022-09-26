@@ -1,0 +1,33 @@
+name: rmd-env
+
+channels:
+  - bioconda
+  - conda-forge
+  - pwwang
+
+dependencies:
+  - r-base
+  - r-rmarkdown
+  - r-ggplot2
+  - r-kableExtra
+  - r-codetools
+  - r-tidyverse
+  - r-prettydoc
+  - r-viridis
+  - r-hrbrthemes
+  - r-ggthemes
+  - r-RColorBrewer
+  - r-scales
+  - r-segmented
+  - r-dplyr
+  - r-xlsx
+  - r-rmdformats
+  - r-plotly
+  - r-gridExtra
+  - r-ape
+  - r-vegan
+  - r-ggvenndiagram
+  - r-venndiagram
+  - r-ggforce
+  - bioconductor-phyloseq
+  - bioconductor-biostrings

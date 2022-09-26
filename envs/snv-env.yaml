@@ -1,0 +1,12 @@
+name: snv-env
+
+channels:
+  - bioconda
+  - conda-forge
+  - hcc
+
+dependencies:
+  - freebayes
+  - vcftools
+  - vcflib
+  - metapop
