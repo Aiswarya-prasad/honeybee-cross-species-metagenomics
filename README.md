@@ -1,339 +1,291 @@
----
-title: "Medgenome India cross-species data"
-author: Aiswarya Prasad
-date: "`r format(Sys.time(), '%d %B, %Y')`"
-output:
-  prettydoc::html_pretty:
-    theme: cayman
-    <!-- other fun themes: architect leonids hpstr cayman -->
-    highlight: github
-    math: katex
-    number_sections: true
-    df_print: paged
-    cold-folding: hide
-    toc: true
-  github_document: default
----
-<!-- comment out for pdf compiling -->
-<!-- some css for formatting html -->
-<!-- <style>
-    h1.title {
-        font-size: 40px;
-        font-family: Serif;
-        text-align: center;
-        font-weight: normal;
-        /* color: DarkRed; */
-    }
-    h1 {
-        font-size: 24px;
-        font-family: Serif;
-        font-weight: bold;
-        /* font-weight: bold; */
-        /* text-align: center; */
-        /* color: DarkRed; */
-    }
-    h2 {
-        font-size: 22px;
-        font-family: Serif;
-        font-weight: bold;
-        /* text-align: center; */
-        /* color: DarkRed; */
-    }
-    h3 {
-        font-size: 20px;
-        font-family: Serif;
-        font-weight: bold;
-        /* text-align: center; */
-        /* color: DarkRed; */
-    }
-    body .main-container {
-        /* max-width: 1000px; */
-        font-size: 18px;
-        font-family: Serif;
-    }
-</style> -->
+# Summary of contents
 
-```{css echo=FALSE, warning=FALSE}
-/* To make hoverable links. (does not have to be called hint) Usage: */
-/* [Message to show on hover]{.hint} */
-.hint {
-  visibility: hidden;
-}
+# Directory organization
 
-.hint::before {
-  visibility: visible;
-  content: "Hint";
-  color: blue;
-}
+The chunk below describes
 
-.hint:hover {
-  visibility: visible;
-  font-weight: bold;
-}
-
-.hint:hover::before {
-  display: none;
-}
+```{bash}
+├── [ 237G]  00_RawData
+│   ├── [ 1.8G]  ${SAMPLE}_R1.fastq.gz
+│   └── [ 1.8G]  ${SAMPLE}_R2.fastq.gz
+├── [ 210G]  01_Trimmed
+│   ├── [ 1.6G]  ${SAMPLE}_R1_trim.fastq.gz
+│   └── [ 1.6G]  ${SAMPLE}_R2_trim.fastq.gz
+├── [ 1.7T]  02_HostMapping
+│   ├── [ 6.6K]  ${SAMPLE}_coverage_histogram.txt
+│   ├── [  425]  ${SAMPLE}_coverage.tsv
+│   ├── [  541]  ${SAMPLE}_flagstat.tsv
+│   ├── [ 3.3G]  ${SAMPLE}_R1_host_unmapped.fastq
+│   └── [ 3.2G]  ${SAMPLE}_R2_host_unmapped.fastq
+├── [ 150G]  03_MicrobiomeMapping
+│   ├── [  541]  ${SAMPLE}_flagstat.tsv
+│   ├── [ 3.1G]  ${SAMPLE}_R1_microbiome_mapped.fastq
+│   └── [ 3.1G]  ${SAMPLE}_R2_microbiome_mapped.fastq
+├── [  30K]  04_MicrobiomeMappingDirect
+│   └── [  542]  ${SAMPLE}_flagstat.tsv
+├── [  62G]  05_Assembly
+│   └── [  62G]  host_unmapped
+│       ├── [  88M]  ${SAMPLE}_assembly_graph.fastg
+│       ├── [  90M]  ${SAMPLE}_graph.fastg
+│       ├── [  34M]  ${SAMPLE}_scaffolds.fasta
+│       ├── [ 8.6K]  ${SAMPLE}_scaffolds.fasta.amb
+│       ├── [ 223K]  ${SAMPLE}_scaffolds.fasta.ann
+│       ├── [  34M]  ${SAMPLE}_scaffolds.fasta.bwt
+│       ├── [ 8.4M]  ${SAMPLE}_scaffolds.fasta.pac
+│       ├── [  17M]  ${SAMPLE}_scaffolds.fasta.sa
+│       ├── [  42M]  ${SAMPLE}_scaffolds_unparsed.fasta
+│       ├── [ 168K]  ${SAMPLE}_spades.log
+│       ├── [  35G]  check_assembly
+│       │   ├── [  670]  Assembly_mapped_counts.txt
+│       │   ├── [ 3.5K]  Assembly_mapping_summary.csv
+│       │   ├── [ 5.0G]  ${SAMPLE}_assembly.bam
+│       │   ├── [   14]  ${SAMPLE}_assembly_mapped_counts.txt
+│       │   ├── [  30G]  ${SAMPLE}_assembly.sam
+│       ├── [  97M]  ${SAMPLE}_assembly_graph.fastg
+│       ├── [  34M]  ${SAMPLE}_scaffolds.fasta
+│       ├── [ 8.5K]  ${SAMPLE}_scaffolds.fasta.amb
+│       ├── [ 329K]  ${SAMPLE}_scaffolds.fasta.ann
+│       ├── [  34M]  ${SAMPLE}_scaffolds.fasta.bwt
+│       ├── [ 8.4M]  ${SAMPLE}_scaffolds.fasta.pac
+│       ├── [  17M]  ${SAMPLE}_scaffolds.fasta.sa
+│       ├── [  45M]  ${SAMPLE}_scaffolds_unparsed.fasta
+│       └── [ 174K]  ${SAMPLE}_spades.log
+├── [  10G]  06_MAG_binning
+│   ├── [ 181K]  all_GenomeInfo_auto.tsv
+│   ├── [ 2.2G]  backmapping
+│   │   └── [  18M]  M1.5
+│   │       ├── [ 304K]  ${SAMPLE}_mapped_to_${SAMPLE}.depth
+│   │       ├── [ 304K]  ${OTHER_SAMPLE}_mapped_to_${SAMPLE}.depth
+│   │       └── [ 3.1M]  ${SAMPLE}_merged.depth
+│   ├── [ 1.6G]  bins
+│   │   └── [  22M]  ${SAMPLE}-metabat2
+│   │       ├── [ 2.6M]  MAG.10.fa
+│   │       └── [ 858K]  MAG.9.fa
+│   ├── [ 1.6G]  bins_renamed
+│   │   └── [  22M]  ${SAMPLE}
+│   │       ├── [ 2.6M]  MAG_${SAMPLE}_10.fa
+│   │       └── [ 858K]  MAG_${SAMPLE}_9.fa
+│   ├── [ 2.5G]  contig_fates
+│   │   ├── [ 1.9G]  backmapping_coverages
+│   │   │   └── [  15M]  ${SAMPLE}_contig_coverages.csv
+│   │   └── [ 2.1M]  ${SAMPLE}_contig_fates.csv
+│   ├── [  30M]  drep_results
+│   │   ├── [ 8.0K]  data
+│   │   │   └── [ 4.0K]  Clustering_files
+│   │   ├── [  30M]  data_tables
+│   │   │   ├── [ 102K]  Bdb.csv
+│   │   │   ├── [  33K]  genomeInfo.csv
+│   │   │   ├── [  29M]  Mdb.csv
+│   │   │   ├── [ 599K]  Ndb.csv
+│   │   │   ├── [  28K]  Sdb.csv
+│   │   │   └── [  20K]  Widb.csv
+│   │   ├── [ 4.0K]  dereplicated_genomes
+│   │   ├── [ 4.0K]  figures
+│   │   └── [  92K]  log
+│   │       └── [  88K]  logger.log
+│   ├── [ 2.4G]  evaluate_bins
+│   │   ├── [  38M]  ${SAMPLE}
+│   │   │   ├── [  35M]  bins
+│   │   │   │   ├── [ 3.8M]  MAG_${SAMPLE}_11
+│   │   │   │   │   ├── [ 888K]  genes.faa
+│   │   │   │   │   ├── [ 535K]  genes.gff
+│   │   │   │   │   ├── [ 2.3M]  hmmer.analyze.txt
+│   │   │   │   │   └── [  15K]  hmmer.tree.txt
+│   │   │   ├── [ 2.7K]  checkm.log
+│   │   │   ├── [1000K]  lineage.ms
+│   │   │   └── [ 1.7M]  storage
+│   │   │       ├── [  72K]  aai_qa
+│   │   │       │   └── [ 4.7K]  MAG_${SAMPLE}_9
+│   │   │       │       └── [  695]  PF01121.15.masked.faa
+│   │   │       ├── [ 6.7K]  bin_stats.analyze.tsv
+│   │   │       ├── [  54K]  bin_stats_ext.tsv
+│   │   │       ├── [ 6.7K]  bin_stats.tree.tsv
+│   │   │       ├── [ 621K]  checkm_hmm_info.pkl.gz
+│   │   │       ├── [ 184K]  marker_gene_stats.tsv
+│   │   │       ├── [ 4.6K]  phylo_hmm_info.pkl.gz
+│   │   │       └── [ 761K]  tree
+│   │   │           ├── [  96K]  concatenated.fasta
+│   │   │           ├── [ 327K]  concatenated.pplacer.json
+│   │   │           ├── [ 265K]  concatenated.tre
+│   │   │           ├── [  699]  PF00164.20.masked.faa
+│   │   │           ├── [ 1.0K]  pplacer.out
+│   │   └── [ 1.3K]  ${SAMPLE}_checkm.summary
+│   ├── [ 126K]  ForTree_GenomeInfo_auto.tsv
+│   └── [ 2.0M]  gtdbtk_out_dir
+│       └── [ 2.0M]  classify
+│           └── [ 2.0M]  gtdbtk.bac120.summary.tsv
+# examples of ${GENOME}: ESL0304.fa, MAG_M1.3_4.fa
+├── [  24G]  07_Phylogenies
+│   ├── [ 1.4G]  00_genomes
+│   │   ├── [ 2.4M]  ${GENOME}.fa
+│   ├── [  15G]  01_prokka
+│   │   ├── [  26M]  ${GENOME}
+│   │   │   ├── [ 203K]  ${GENOME}.err
+│   │   │   ├── [ 766K]  ${GENOME}.faa
+│   │   │   ├── [ 2.1M]  ${GENOME}.ffn
+│   │   │   ├── [ 2.4M]  ${GENOME}.fna
+│   │   │   ├── [ 2.4M]  ${GENOME}.fsa
+│   │   │   ├── [ 5.1M]  ${GENOME}.gbk
+│   │   │   ├── [ 3.2M]  ${GENOME}.gff
+│   │   │   ├── [  32K]  ${GENOME}.log
+│   │   │   ├── [ 8.7M]  ${GENOME}.sqn
+│   │   │   ├── [ 621K]  ${GENOME}.tbl
+│   │   │   ├── [ 200K]  ${GENOME}.tsv
+│   │   │   └── [  105]  ${GENOME}.txt
+# examples of ${GROUP}: g__Lactobacillus, g__Apibacter
+│   ├── [ 6.9G]  02_orthofinder
+│   │   ├── [ 249M]  ${GROUP}
+│   │   │   ├── [ 805K]  ${GENOME}.faa
+│   │   │   ├── [ 177M]  OrthoFinder
+│   │   │   │   ├── [ 215K]  ${GROUP}_single_ortho_MAGs.txt
+│   │   │   │   ├── [ 587K]  ${GROUP}_single_ortho.txt
+│   │   │   │   └── [ 176M]  Results_${GROUP}
+│   │   │   │       ├── [ 2.5K]  Citation.txt
+│   │   │   │       ├── [  25K]  Comparative_Genomics_Statistics
+│   │   │   │       │   ├── [ 6.0K]  Orthogroups_SpeciesOverlaps.tsv
+│   │   │   │       │   ├── [ 1.6K]  Statistics_Overall.tsv
+│   │   │   │       │   └── [  14K]  Statistics_PerSpecies.tsv
+│   │   │   │       ├── [ 1.2K]  Log.txt
+│   │   │   │       ├── [ 2.6M]  Orthogroups
+│   │   │   │       │   ├── [ 261K]  Orthogroups.GeneCount.tsv
+│   │   │   │       │   ├── [ 3.2K]  Orthogroups_SingleCopyOrthologues.txt
+│   │   │   │       │   ├── [ 1.1M]  Orthogroups.tsv
+│   │   │   │       │   ├── [ 1.1M]  Orthogroups.txt
+│   │   │   │       │   └── [  79K]  Orthogroups_UnassignedGenes.tsv
+│   │   │   │       └── [  23M]  Orthogroup_Sequences
+│   │   │   │           └── [  13K]  OG0000184.fa
+│   │   │   └── [    0]  single_ortholog_sequences.done
+│   │   └── [ 147K]  ${GROUP}_Orthogroups_summary.csv
+│   ├── [ 506M]  03_aligned_orthogroups
+│   │   ├── [  21M]  ${GROUP}
+│   │   │   ├── [  10M]  CoreGeneAlignment.fasta
+│   │   │   ├── [  31K]  OG0000184_aligned_pruned.fasta
+│   └── [ 1.8M]  05_IQTree
+│       ├── [ 325K]  ${GROUP}
+│       │   ├── [ 4.1K]  ${GROUP}_Phylogeny.bionj
+│       │   ├── [  92K]  ${GROUP}_Phylogeny.ckp.gz
+│       │   ├── [ 4.3K]  ${GROUP}_Phylogeny.contree
+│       │   ├── [  48K]  ${GROUP}_Phylogeny.iqtree
+│       │   ├── [  30K]  ${GROUP}_Phylogeny.log
+│       │   ├── [ 122K]  ${GROUP}_Phylogeny.mldist
+│       │   ├── [ 5.2K]  ${GROUP}_Phylogeny.model.gz
+│       │   ├── [  11K]  ${GROUP}_Phylogeny.splits.nex
+│       │   └── [ 4.3K]  ${GROUP}_Phylogeny.treefile
+├── [  23M]  08_motus_profile
+│   └── [  23M]  samples_merged.motus
+├── [  59G]  09_MapToAssembly
+│   └── [ 1.0G]  ${SAMPLE}.bam
+├── [ 172K]  211018_Medgenome_india_samples_Report.Rmd
+├── [ 419M]  assembly_summary_genbank.txt
+├── [ 155K]  config
+│   ├── [ 4.8K]  config.yaml
+│   ├── [  34K]  initialize_project-211018_Medgenome_india_samples.sh
+│   ├── [  32K]  IsolateGenomeInfo.csv
+│   ├── [  31K]  Metadata_211018_Medgenome_india_samples.csv
+│   └── [  51K]  reinitialize_project-211018_Medgenome_india_samples.sh
+├── [ 3.5G]  database
+│   ├── [ 869M]  4_host_db
+│   ├── [ 1.1M]  4_host_db.amb
+│   ├── [  298]  4_host_db.ann
+│   ├── [ 869M]  4_host_db.bwt
+│   ├── [  163]  4_host_db_list.txt
+│   ├── [ 217M]  4_host_db.pac
+│   ├── [ 435M]  4_host_db.sa
+│   ├── [ 448M]  genome_db_220315_AP
+│   ├── [10.0K]  genome_db_220315_AP.amb
+│   ├── [ 7.0K]  genome_db_220315_AP.ann
+│   ├── [ 441M]  genome_db_220315_AP.bwt
+│   ├── [ 6.0K]  genome_db_220315_AP.fai
+│   ├── [ 1.4K]  genome_db_220315_AP_list.txt
+│   ├── [ 8.8K]  genome_db_220315_AP_metafile.txt
+│   ├── [ 110M]  genome_db_220315_AP.pac
+│   ├── [ 220M]  genome_db_220315_AP.sa
+├── [ 6.2K]  envs
+│   ├── [  218]  core-cov-env.yaml
+│   ├── [   95]  gtdb-env.yaml
+│   ├── [  135]  mags-env.yaml
+│   ├── [  249]  mapping-env.yaml
+│   ├── [   68]  motus-env.yaml
+│   ├── [  179]  phylogenies-env.yaml
+│   ├── [  274]  popcogent-env.yaml
+│   ├── [  477]  rmd-env.yaml
+│   ├── [  153]  scripts-env.yaml
+│   ├── [  127]  snv-env.yaml
+│   ├── [  162]  spades-env.yaml
+│   └── [  129]  trim-qc-env.yaml
+├── [ 275M]  fastqc
+│   ├── [ 130M]  raw
+│   │   ├── [ 562K]  ${SAMPLE}_R1_fastqc.html
+│   │   ├── [ 765K]  ${SAMPLE}_R1_fastqc.zip
+│   │   ├── [ 566K]  ${SAMPLE}_R2_fastqc.html
+│   │   └── [ 772K]  ${SAMPLE}_R2_fastqc.zip
+│   └── [ 145M]  trim
+│       ├── [ 602K]  ${SAMPLE}_R1_trim_fastqc.html
+│       ├── [ 753K]  ${SAMPLE}_R1_trim_fastqc.zip
+│       ├── [ 606K]  ${SAMPLE}_R2_trim_fastqc.html
+│       └── [ 758K]  ${SAMPLE}_R2_trim_fastqc.zip
+├── [  15M]  Figures
+│   ├── [ 6.0K]  00a-Total_reads_trimming.pdf
+│   ├── [ 5.6K]  00b-Total_reads_species_after_trimming.pdf
+│   ├── [ 6.6K]  00c-Mapped_Unmapped_reads_prop.pdf
+├── [ 620M]  logs
+├── [ 172K]  README.md
+├── [ 190K]  scripts
+│   ├── [ 1.7K]  aln_aa_to_dna_phylo.py
+│   ├── [ 1.7K]  aln_aa_to_dna.py
+│   ├── [  795]  aln_calc.sh
+│   ├── [  878]  calc_assembly_length.pl
+│   ├── [ 1.9K]  calc_filt_core_length.py
+│   ├── [ 3.7K]  calc_jaccard.pl
+│   ├── [ 4.3K]  calc_perc_id_orthologs_phylo.py
+│   ├── [ 3.9K]  calc_shared_SNV_fraction.pl
+│   ├── [  26K]  copy_faa_files.sh
+│   ├── [ 1.3K]  copy_raw_data.sh
+│   ├── [ 9.5K]  core_cov.py
+│   ├── [ 8.1K]  core_cov.R
+│   ├── [ 2.0K]  corecov_split_by_sdp.py
+│   ├── [  749]  csv_to_tsv.py
+│   ├── [ 3.7K]  cum_curve_SNVs_host.pl
+│   ├── [ 8.7K]  cum_curve_SNVs_host.py
+│   ├── [ 1.3K]  distance_matrix.R
+│   ├── [ 4.5K]  download_data.py
+│   ├── [ 3.9K]  extract_orthologs_phylo.py
+│   ├── [ 2.7K]  fasta_generate_regions.py
+│   ├── [ 3.0K]  filt_core_bed.py
+│   ├── [ 2.1K]  filter_bam.py
+│   ├── [ 2.5K]  filter_orthologs_phylo.py
+│   ├── [ 1.8K]  filter_orthologs.py
+│   ├── [  965]  filter_sam_aln_length.pl
+│   ├── [ 1.2K]  filter_sam_aln_length_unmapped.pl
+│   ├── [ 3.8K]  filter_snvs.pl
+│   ├── [ 4.3K]  filter_snvs.py
+│   ├── [ 3.0K]  filt_vcf_samples.pl
+│   ├── [ 1.4K]  filt_vcf_samples.py
+│   ├── [ 1.4K]  filt_vcf_samples.py
+│   ├── [ 3.6K]  get_single_ortho_phylo.py
+│   ├── [ 1.5K]  get_single_ortho.py
+│   ├── [ 2.1K]  KEs_trim_aln.py
+│   ├── [ 4.0K]  Make_metadata.R
+│   ├── [  10K]  make_phylo_table.R
+│   ├── [ 1.4K]  merge_depths.pl
+│   ├── [ 8.2K]  my_core_cov.R
+│   ├── [ 2.8K]  parse_core_cov.py
+│   ├── [ 1.1K]  parse_spades_metagenome.pl
+│   ├── [ 1.6K]  parse_spades_metagenome.py
+│   ├── [ 7.5K]  prune_and_concat_alns.py
+│   ├── [  976]  rearange_faa.py
+│   ├── [ 3.8K]  subset_metagenome_db.py
+│   ├── [ 3.3K]  subset_orthofile.py
+│   ├── [  973]  summarise_filter_snvs.py
+│   ├── [ 6.6K]  summarise_orthogroups.py
+│   ├── [ 4.7K]  summarise_snps.pl
+│   ├── [ 2.1K]  trim_aln_phylo.py
+│   ├── [ 2.1K]  trim_aln.py
+│   ├── [ 1.2K]  vcf_split_by_sdp.py
+│   └── [ 1011]  write_adapters.py
+├── [  75K]  Snakefile
 ```
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(engine.opts = list(bash = "-l"))
-knitr::opts_chunk$set(cache=FALSE)
-knitr::opts_chunk$set(echo=FALSE, message=FALSE, error=FALSE, warning=FALSE, results='hide', fig.show='hide')
-# load libraries
-library(ggplot2)
-library(kableExtra)
-library(knitr)
-library(tidyverse)
-library(viridis)
-library(hrbrthemes)
-library(ggthemes)
-library(RColorBrewer)
-library(scales)
-library(dplyr)
-library(gridExtra)
-library(ggVennDiagram)
-library(vegan)
-library(ape)
-# useful function(s)
-make_theme <- function(theme_name=theme_classic() ,max_colors=0, palettefill="Pastel1", palettecolor="Dark2",
-                        setFill=TRUE, setCol=TRUE,
-                        guide_nrow=2, guide_nrow_byrow=TRUE, leg_pos="top", leg_size=12,
-                        x_angle=0 ,x_vj=0, x_hj=0, x_size=12,
-                        y_angle=0 ,y_vj=0, y_hj=0, y_size=12){
-  n_11 = c("BrBG", "PiYG", "PRGn", "PuOr", "RdBu", "RdGy", "RdYlBu", "RdYlGn", "Spectral")
-  n_12 = c("Paired", "Set3")
-  n_8 = c("Accent", "Dark2", "Pastel2", "Set2")
-  if (palettefill %in% n_12) {
-    n_f = 12
-  } else {
-    if (palettefill %in% n_11) {
-      n_f = 11
-    } else {
-      if (palettefill %in% n_8) {
-        n_f  = 8
-      } else {
-        n_f = 9
-      }
-    }
-  }
-  if (palettecolor %in% n_12) {
-    n_c = 12
-  } else {
-    if (palettecolor %in% n_11) {
-      n_c = 11
-    } else {
-      if (palettecolor %in% n_8) {
-        n_c  = 8
-      } else {
-        n_c = 9
-      }
-    }
-  }
-  getFill = colorRampPalette(brewer.pal(n_f, palettefill))
-  getColor = colorRampPalette(brewer.pal(n_c, palettecolor))
-  theme_params <- theme(axis.text.x = element_text(angle = x_angle,
-    vjust = x_vj, hjust=x_hj,
-    size = x_size),
-    axis.text.y = element_text(angle = y_angle,
-      vjust = y_vj, hjust=y_hj,
-      size = y_size),
-      # axis.title.x = element_text(margin=margin(t=5)),
-      # axis.title.y = element_text(margin=margin(r=10)),
-      legend.position=leg_pos,
-      legend.text = element_text(size=leg_size)
-    )
-  guide_params <- guides(fill = guide_legend(
-                                  nrow=guide_nrow,
-                                  byrow=guide_nrow_byrow
-                                ),
-                        col = guide_legend(
-                                  nrow=guide_nrow,
-                                  byrow=guide_nrow_byrow
-                                )
-                  )
-  my_theme <- list(
-                theme_name,
-                theme_params,
-                guide_params
-              )
-
-  if(setFill) {
-    if (n_f < max_colors) {
-      my_theme <- list(
-                    my_theme,
-                    scale_fill_manual(values = getFill(max_colors), na.value="grey")
-                  )
-
-    } else {
-      my_theme <- list(
-                    my_theme,
-                    scale_fill_brewer(palette=palettefill, na.value="grey")
-                  )
-    }
-  }
-  if(setCol) {
-    if (n_c < max_colors) {
-      my_theme <- list(
-                    my_theme,
-                    scale_color_manual(values = getColor(max_colors), na.value="grey")
-                  )
-
-    } else {
-      my_theme <- list(
-                    my_theme,
-                    scale_color_brewer(palette=palettecolor, na.value="grey")
-                  )
-    }
-  }
-  return(my_theme)
-}
-
-get_phylotype <- function(SDP){
-  # only works if sdps are written in the right format
-  # phylotype_x (eg. firm5_1)
-  phy = strsplit(SDP, "_")[[1]][1]
-  return(phy)
-}
-get_host_from_colony <- function(colony_name){
-  # only works if sdps are written in the right format
-  # phylotype_x (eg. Am_xx)
-  host_name = strsplit(colony_name, "_")[[1]][1]
-  if (host_name == "Am"){
-    return("Apis mellifera")
-  }
-  if (host_name == "Ac"){
-    return("Apis cerana")
-  }
-  if (host_name == "Ad"){
-    return("Apis dorsata")
-  }
-  if (host_name == "Af"){
-    return("Apis florea")
-  }
-  return(NA)
-}
-
-get_sample_name <- function(magname){
-  if (startsWith(magname, "MAG_")){
-    paste0(head(strsplit(strsplit(magname, "MAG_")[[1]][2], "_")[[1]], -1), collapse="_")
-  } else {
-    strsplit(magname, "_MAG")[[1]][1]
-  }
-}
-
-get_host_name <- function(magname){
-  if (startsWith(magname, "MAG_")){
-    sample_name = strsplit(magname, "MAG_")[[1]][2]
-    if (grepl("Dr|Gr", sample_name)) {
-      return("Apis mellifera")
-    }
-    if (grepl("Am", sample_name)) {
-      return("Apis mellifera")
-    }
-    if (grepl("Ac", sample_name)) {
-      return("Apis cerana")
-    }
-    if (grepl("M1.|M2.|M3.", sample_name)) {
-      return("Apis mellifera")
-    }
-    if (grepl("C1.|C2.|C3.", sample_name)) {
-      return("Apis cerana")
-    }
-    if (grepl("D1.|D2.|D3.", sample_name)) {
-      return("Apis dorsata")
-    }
-    if (grepl("F1.|F2.|F3.", sample_name)) {
-      return("Apis florea")
-    }
-  }
-  else {
-    sample_name = strsplit(magname, "_MAG")[[1]][1]
-    if (grepl("Dr|Gr", sample_name)) {
-      return("Apis mellifera")
-    }
-    if (grepl("Am", sample_name)) {
-      return("Apis mellifera")
-    }
-    if (grepl("Ac", sample_name)) {
-      return("Apis cerana")
-    }
-    if (grepl("M1.|M2.|M3.", sample_name)) {
-      return("Apis mellifera")
-    }
-    if (grepl("C1.|C2.|C3.", sample_name)) {
-      return("Apis cerana")
-    }
-    if (grepl("D1.|D2.|D3.", sample_name)) {
-      return("Apis dorsata")
-    }
-    if (grepl("F1.|F2.|F3.", sample_name)) {
-      return("Apis florea")
-    }
-  }
-}
-
-get_origin_name <- function(magname){
-  if (startsWith(magname, "MAG_")){
-    sample_name = strsplit(magname, "MAG_")[[1]][2]
-    if (grepl("Dr|Gr", sample_name)) {
-      return("Switzerland, Engel apiary")
-    }
-    if (grepl("Am", sample_name)) {
-      return("Japan")
-    }
-    if (grepl("Ac", sample_name)) {
-      return("Japan")
-    }
-    if (grepl("M1.|M2.|M3.", sample_name)) {
-      return("India")
-    }
-    if (grepl("C1.|C2.|C3.", sample_name)) {
-      return("India")
-    }
-    if (grepl("D1.|D2.|D3.", sample_name)) {
-      return("India")
-    }
-    if (grepl("F1.|F2.|F3.", sample_name)) {
-      return("India")
-    }
-  }
-  else {
-    sample_name = strsplit(magname, "_MAG")[[1]][1]
-    if (grepl("Dr|Gr", sample_name)) {
-      return("Switzerland, Engel apiary")
-    }
-    if (grepl("Am", sample_name)) {
-      return("Japan")
-    }
-    if (grepl("Ac", sample_name)) {
-      return("Japan")
-    }
-    if (grepl("M1.|M2.|M3.", sample_name)) {
-      return("India")
-    }
-    if (grepl("C1.|C2.|C3.", sample_name)) {
-      return("India")
-    }
-    if (grepl("D1.|D2.|D3.", sample_name)) {
-      return("India")
-    }
-    if (grepl("F1.|F2.|F3.", sample_name)) {
-      return("India")
-    }
-  }
-}
-get_only_legend <- function(plot) {
-  # get tabular interpretation of plot
-  plot_table <- ggplot_gtable(ggplot_build(plot))
-  #  Mark only legend in plot
-  legend_plot <- which(sapply(plot_table$grobs, function(x) x$name) == "guide-box")
-  # extract legend
-  legend <- plot_table$grobs[[legend_plot]]
-  # return legend
-  return(legend)
-}
-```
 # Introduction
 
 The analysis is split into multiple parts.
@@ -377,2010 +329,11 @@ The samples used in this analysis are mentioned below.
 * "F3.1","F3.2","F3.3","F3.4","F3.5"
   * _Apis florea_ from India, colony number 3
 
-# Results
-
 ## Data summary
 
-56 samples were first mapped to a host database and then the unmapped reads to a microbiome database.
+50 samples were first mapped to a host database and then the unmapped reads to a microbiome database.
 
 The raw reads and trimmed reads were checked for quality using the tool [fastqc](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/). The report (html format) also summarises basic statistics including number of reads. The QC results can be found in their respective folders at `./fastqc/raw/{SAMPLE}_R*_fastqc.html` and `./fastqc/trim/{SAMPLE}_R*_trim_fastqc.html`.
-
-```{r predefined_vectors}
-samples <- c("M1.1", "M1.2", "M1.3", "M1.4", "M1.5",
-              "C1.1", "C1.2", "C1.3", "C1.4", "C1.5",
-              "C2.1", "C2.2", "C2.3", "C2.4", "C2.5",
-              "C3.1", "C3.2", "C3.3", "C3.4", "C3.5",
-              "D1.1","D1.2","D1.3","D1.4","D1.5",
-              "D2.1","D2.2","D2.3","D2.4","D2.5",
-              "D3.1","D3.2","D3.3","D3.4","D3.5",
-              "F1.1","F1.2","F1.3","F1.4","F1.5",
-              "F2.1","F2.2","F2.3","F2.4","F2.5",
-              "F3.1","F3.2","F3.3","F3.4","F3.5"
-            )
-india_samples <- c("M1.1", "M1.2", "M1.3", "M1.4", "M1.5",
-              "C1.1", "C1.2", "C1.3", "C1.4", "C1.5",
-              "C2.1", "C2.2", "C2.3", "C2.4", "C2.5",
-              "C3.1", "C3.2", "C3.3", "C3.4", "C3.5",
-              "D1.1","D1.2","D1.3","D1.4","D1.5",
-              "D2.1","D2.2","D2.3","D2.4","D2.5",
-              "D3.1","D3.2","D3.3","D3.4","D3.5",
-              "F1.1","F1.2","F1.3","F1.4","F1.5",
-              "F2.1","F2.2","F2.3","F2.4","F2.5",
-              "F3.1","F3.2","F3.3","F3.4","F3.5"
-            )
-colonies <- c("M_1", "M_1", "M_1", "M_1", "M_1",
-             "M_DrY2_F","M_DrY2_F","M_Ai","M_Iu",
-              "C_1", "C_1", "C_1", "C_1", "C_1",
-              "C_2", "C_2", "C_2", "C_2", "C_2",
-              "C_3", "C_3", "C_3", "C_3", "C_3",
-              "C_Ch","C_Kn",
-              "D_1","D_1","D_1","D_1","D_1",
-              "D_2","D_2","D_2","D_2","D_2",
-              "D_3","D_3","D_3","D_3","D_3",
-              "F_1","F_1","F_1","F_1","F_1",
-              "F_2","F_2","F_2","F_2","F_2",
-              "F_3","F_3","F_3","F_3","F_3")
-host_order <- c("Apis mellifera", "Apis cerana", "Apis dorsata", "Apis florea")
-host_order_color <- c("Apis mellifera" = brewer.pal(9, "Set1")[2], "Apis cerana" = brewer.pal(9, "Set1")[1], "Apis dorsata" = brewer.pal(9, "Set1")[4], "Apis florea" = brewer.pal(9, "Set1")[3])
-colony_order <- c("M_1", "M_Iu", "M_Ai", "M_DrY2_F", "C_1", "C_2", "C_3", "C_Kn", "C_Ch", "D_1", "D_2", "D_3", "F_1", "F_2", "F_3")
-location_order <- c("AIST_Am", "UT_Am", "Bee park, GKVK_Am","Les Droites_Am",
-                    "NCBS campus_Ac", "Bee park, GKVK_Ac", "Chiba_Ac", "Kanagawa_Ac",
-                    "Biological sciences building, IISc_Ad","House near NCBS_Ad","Naideli hostel_Ad",
-                    "Bangalore outskirts_Af")
-phylotypes <- c("firm4", "firm5", "api", "bifido", "bom", "com", "bapis", "fper", "lkun", "snod", "gilli")
-phylotypes_heatmap_order <- c("snod", "gilli", "firm4", "firm5", "bifido", "bapis", "fper", "api", "lkun", "bom", "com")
-sdps <- c('firm4_1', 'firm4_2',
-          'firm5_1', 'firm5_2', 'firm5_3', 'firm5_4', 'firm5_7', 'firm5_bombus',
-          # 'bifido_1', 'bifido_2', 'bifido_bombus',
-          'bifido_1.1', 'bifido_1.2', 'bifido_1.3', 'bifido_1.4', 'bifido_1.5', 'bifido_2', 'bifido_1_cerana', 'bifido_bombus',
-          'api_1', 'api_apis_dorsa', 'api_bombus',
-          'bom_1', 'bom_apis_melli', 'bom_bombus',
-          'com_1', 'com_drosophila', 'com_monarch',
-          'bapis',
-          'fper_1',
-          'lkun',
-          'snod_1', 'snod_2', 'snod_bombus',
-          'gilli_1', 'gilli_2', 'gilli_3', 'gilli_4', 'gilli_5', 'gilli_6',
-          'gilli_apis_andre', 'gilli_apis_dorsa', 'gilli_bombus')
-# Data_dir <- "04_CoreCov_211018_Medgenome_india_samples"
-
-#########################################################
-# Vector of colors for Phylotypes and SDPs and families
-#########################################################
-# Family colors
-# species <- c('s__Bombilactobacillus mellis', 's__Lactobacillus panisapium', 's__', 's__Gilliamella apicola_E', 's__Bombilactobacillus mellifer', 's__Lactobacillus apis', 's__Snodgrassella alvi', 's__Lactobacillus melliventris', 's__Lactobacillus helsingborgensis', 's__Frischella perrara', 's__Enterobacter hormaechei_A', 's__Apibacter sp002964915', 's__Snodgrassella alvi_E', 's__Frischella japonica', 's__Gilliamella apicola_F', 's__Spiroplasma melliferum', 's__Bartonella apis', 's__Apibacter adventoris', 's__Apilactobacillus kunkeei_A', 's__Hafnia paralvei', 's__Pantoea vagans', 's__Gilliamella apicola_K', 's__Gilliamella apicola', 's__Snodgrassella alvi_G', 's__Bifidobacterium indicum', 's__Gilliamella apicola_N', 's__Klebsiella variicola', 's__Commensalibacter sp003202795', 's__Gilliamella apicola_Q')
-# speciesColors
-genera <- c("g__Bombilactobacillus", "g__Lactobacillus", "g__Bifidobacterium", "g__Gilliamella", "g__Snodgrassella", "g__Bartonella", "g__Frischella", "g__Enterobacter", "g__", "g__Pectinatus", "g__Apibacter", "g__Dysgonomonas", "g__Spiroplasma", "g__Zymobacter", "g__Entomomonas", "g__Saezia", "g__Parolsenella", "g__WRHT01", "g__Commensalibacter", "g__Apilactobacillus", "g__Bombella")
-phy_group_dict = c("firm4" = "g__Bombilactobacillus",
-            "g__Bombilactobacillus_outgroup" = "g__Bombilactobacillus",
-            "firm5" = "g__Lactobacillus",
-            "lacto" = "g__Lactobacillus",
-            "g__Lactobacillus_outgroup" = "g__Lactobacillus",
-            "bifido" = "g__Bifidobacterium",
-            "g__Bifidobacterium_outgroup" = "g__Bifidobacterium",
-            "gilli" = "g__Gilliamella",
-            "entero" = "g__Gilliamella",
-            "g__Gilliamella_outgroup" = "g__Gilliamella",
-            "fper" = "g__Frischella",
-            "g__Frischella_outgroup" = "g__Frischella",
-            "snod" = "g__Snodgrassella",
-            "g__Snodgrassella_outgroup" = "g__Snodgrassella",
-            "bapis" = "g__Bartonella",
-            "g__Bartonella_outgroup" = "g__Bartonella",
-            # "" = "g__Enterobacter",
-            "g__Enterobacter_outgroup" = "g__Enterobacter",
-            # "" = "g__",
-            # "" = "g__Pectinatus",
-            "g__Pectinatus_outgroup" = "g__Pectinatus",
-            "api" = "g__Apibacter",
-            "g__Apibacter_outgroup" = "g__Apibacter",
-            # "" = "g__Dysgonomonas",
-            "g__Dysgonomonas_outgroup" = "g__Dysgonomonas",
-            # "" = "g__Spiroplasma",
-            "g__Spiroplasma_outgroup" = "g__Spiroplasma",
-            # "" = "g__Zymobacter",
-            "g__Zymobacter_outgroup" = "g__Zymobacter",
-            # "" = "g__Entomomonas",
-            "g__Entomomonas_outgroup" = "g__Entomomonas",
-            # "" = "g__Saezia",
-            "g__Saezia_outgroup" = "g__Saezia",
-            # "" = "g__Parolsenella",
-            "g__Parolsenella_outgroup" = "g__Parolsenella",
-            # "" = "g__WRHT01",
-            "g__WRHT01_outgroup" = "g__WRHT01",
-            "com" = "g__Commensalibacter",
-            "g__Commensalibacter_outgroup" = "g__Commensalibacter",
-            "lkun" = "g__Apilactobacillus",
-            "g__Apilactobacillus_outgroup" = "g__Apilactobacillus",
-            "bom" = "g__Bombella",
-            "g__Bombella_outgroup" = "g__Bombella"
-          )
-genusColors <- list("g__Bombilactobacillus" = head(colorRampPalette(c(brewer.pal(11, "Spectral")[1], "#FFFFFF"))(10), -1)[1],
-                    "g__Lactobacillus" = head(colorRampPalette(c(brewer.pal(11, "Spectral")[1], "#FFFFFF"))(10), -1)[4],
-                    "g__Bifidobacterium" = brewer.pal(11, "Spectral")[3],
-                    "g__Gilliamella" = brewer.pal(11, "Spectral")[11],
-                    "g__Frischella" = brewer.pal(11, "Spectral")[8],
-                    "g__Bartonella" = brewer.pal(11, "Spectral")[7],
-                    "g__Snodgrassella" = brewer.pal(11, "Spectral")[10],
-                    "g__Apibacter" = brewer.pal(11, "Spectral")[4],
-                    "g__Commensalibacter" = brewer.pal(11, "Spectral")[6],
-                    "g__Bombella" = brewer.pal(11, "Spectral")[5],
-                    "g__Apilactobacillus" = brewer.pal(11, "Spectral")[9],
-                    "g__Dysgonomonas" = brewer.pal(11, "Spectral")[2],
-                    "g__Spiroplasma" = brewer.pal(8, "Set1")[8],
-                    "g__WRHT01" = brewer.pal(8, "Dark2")[3],
-                    "g__Pectinatus" = brewer.pal(8, "Dark2")[1],
-                    "g__Enterobacter" = head(colorRampPalette(c(brewer.pal(11, "BrBG")[2], "#FFFFFF"))(10), -1)[1],
-                    "g__Zymobacter" = head(colorRampPalette(c(brewer.pal(11, "BrBG")[2], "#FFFFFF"))(10), -1)[2],
-                    "g__Entomomonas"= head(colorRampPalette(c(brewer.pal(11, "BrBG")[2], "#FFFFFF"))(10), -1)[4],
-                    "g__Saezia" = head(colorRampPalette(c(brewer.pal(11, "BrBG")[2], "#FFFFFF"))(10), -1)[6],
-                    "g__Parolsenella" = head(colorRampPalette(c(brewer.pal(11, "BrBG")[2], "#FFFFFF"))(10), -1)[8],
-                    "g__" = "#000000"
-)
-
-families <- c("f__Lactobacillaceae", "f__Bifidobacteriaceae", "f__Enterobacteriaceae", "f__Neisseriaceae", "f__Rhizobiaceae_A", "f__Selenomonadaceae", "f__Weeksellaceae", "f__Dysgonomonadaceae", "f__Mycoplasmataceae", "f__Halomonadaceae", "f__Pseudomonadaceae", "f__Burkholderiaceae", "f__Atopobiaceae", "f__Desulfovibrionaceae", "f__Acetobacteraceae", "f__", "f__Streptococcaceae")
-familyColors <- list(
-  "f__Lactobacillaceae" = brewer.pal(11, "Spectral")[1],
-  "f__Bifidobacteriaceae" = brewer.pal(11, "Spectral")[3],
-  "f__Enterobacteriaceae" = brewer.pal(11, "Spectral")[11],
-  "f__Neisseriaceae" = brewer.pal(11, "Spectral")[10],
-  "f__Rhizobiaceae_A" = brewer.pal(11, "Spectral")[7],
-  "f__Weeksellaceae" = brewer.pal(11, "Spectral")[4],
-  "f__Acetobacteraceae" = brewer.pal(11, "Spectral")[6],
-  "f__Dysgonomonadaceae" = brewer.pal(11, "Spectral")[2],
-  "f__Mycoplasmataceae" = brewer.pal(8, "Set1")[8],
-  "f__Desulfovibrionaceae" = brewer.pal(8, "Dark2")[3],
-  "f__Selenomonadaceae" = brewer.pal(8, "Dark2")[1],
-  "f__Halomonadaceae" = head(colorRampPalette(c(brewer.pal(11, "BrBG")[2], "#FFFFFF"))(10), -1)[2],
-  "f__Pseudomonadaceae" = head(colorRampPalette(c(brewer.pal(11, "BrBG")[2], "#FFFFFF"))(10), -1)[4],
-  "f__Burkholderiaceae" = head(colorRampPalette(c(brewer.pal(11, "BrBG")[2], "#FFFFFF"))(10), -1)[6],
-  "f__Atopobiaceae" = head(colorRampPalette(c(brewer.pal(11, "BrBG")[2], "#FFFFFF"))(10), -1)[8],
-  "f__Streptococcaceae" = head(colorRampPalette(c(brewer.pal(11, "BrBG")[2], "#FFFFFF"))(10), -1)[9],
-  "f__" = "#000000"
-)
-#
-motus <- c("Lactobacillus", "Bifidobacterium", "Gilliamella", "Frischella", "Snodgrassella", "Bartonella", "Bombella", "Acetobacteraceae", "Dysgonomonadaceae", "Spiroplasma", "Flavobacteriaceae", "Fructobacillus", "unassigned")
-motuColors <- list(
-  "Lactobacillus" = brewer.pal(11, "Spectral")[1],
-  "Bifidobacterium" = brewer.pal(11, "Spectral")[3],
-  "Flavobacteriaceae" = brewer.pal(11, "Spectral")[4],
-  "Bombella" = brewer.pal(11, "Spectral")[5],
-  "Acetobacteraceae" = brewer.pal(11, "Spectral")[6],
-  "Bartonella" = brewer.pal(11, "Spectral")[7],
-  "Frischella" = brewer.pal(11, "Spectral")[8],
-  "Gilliamella" = brewer.pal(11, "Spectral")[11],
-  "Snodgrassella" = brewer.pal(11, "Spectral")[10],
-  "Dysgonomonadaceae" = brewer.pal(11, "Spectral")[2],
-  "Fructobacillus" = brewer.pal(11, "Spectral")[9],
-  "Spiroplasma" = head(colorRampPalette(c(brewer.pal(11, "Spectral")[2], "#FFFFFF"))(10), -1)[8],
-  "unassigned" = "black"
-)
-#
-PhylotypeColors <- brewer.pal(11,"Spectral")
-names(PhylotypeColors) <- phylotypes
-# each color from the Spectral palatte corresponds to a phylotype
-# each SDP of the phylotype gets a color made by colorRampPalette
-# it falls in the sange from the color of the phylotype to #FFFFFF (white)
-SDPColors <- c()
-# 'firm4'
-# 'firm4_1''firm4_2':2
-SDPColors <- c(SDPColors, head(colorRampPalette(c(brewer.pal(11, "Spectral")[1], "#FFFFFF"))(3), -1))
-# show_col(head(colorRampPalette(c(brewer.pal(11, "Spectral")[1], "#FFFFFF"))(3), -1))
-# 'firm5'
-# 'firm5_1''firm5_2''firm5_3''firm5_4''firm5_7''firm5_bombus':6
-SDPColors <- c(SDPColors, head(colorRampPalette(c(brewer.pal(11, "Spectral")[2], "#FFFFFF"))(7), -1))
-# show_col(head(colorRampPalette(c(brewer.pal(11, "Spectral")[2], "#FFFFFF"))(7), -1))
-# 'bifido'
-# # 'bifido_1''bifido_2''bifido_bombus':3 - no
-# 'bifido_1.1', 'bifido_1.2', 'bifido_1.3', 'bifido_1.4', 'bifido_1.5', 'bifido_2', 'bifido_1_cerana' 'bifido_bombus': 8
-SDPColors <- c(SDPColors, head(colorRampPalette(c(brewer.pal(11, "Spectral")[3], "#FFFFFF"))(9), -1))
-# show_col(head(colorRampPalette(c(brewer.pal(11, "Spectral")[3], "#FFFFFF"))(4), -1))
-# 'api'
-# 'api_1''api_apis_dorsa''api_bombus':3
-SDPColors <- c(SDPColors, head(colorRampPalette(c(brewer.pal(11, "Spectral")[4], "#FFFFFF"))(4), -1))
-# show_col(head(colorRampPalette(c(brewer.pal(11, "Spectral")[4], "#FFFFFF"))(4), -1))
-# 'bom''bom_apis_melli''bom_bombus':3
-SDPColors <- c(SDPColors, head(colorRampPalette(c(brewer.pal(11, "Spectral")[5], "#FFFFFF"))(4), -1))
-# show_col(head(colorRampPalette(c(brewer.pal(11, "Spectral")[5], "#FFFFFF"))(4), -1))
-# 'com'
-# 'com_1''com_drosophila''com_monarch':3
-SDPColors <- c(SDPColors, head(colorRampPalette(c(brewer.pal(11, "Spectral")[6], "#FFFFFF"))(4), -1))
-# show_col(head(colorRampPalette(c(brewer.pal(11, "Spectral")[6], "#FFFFFF"))(4), -1))
-# 'bapis'
-# 'bapis':1
-SDPColors <- c(SDPColors, head(colorRampPalette(c(brewer.pal(11, "Spectral")[7], "#FFFFFF"))(2), -1))
-# show_col(head(colorRampPalette(c(brewer.pal(11, "Spectral")[7], "#FFFFFF"))(2), -1))
-# 'fper'
-# 'fper_1':1
-SDPColors <- c(SDPColors, head(colorRampPalette(c(brewer.pal(11, "Spectral")[8], "#FFFFFF"))(2), -1))
-# show_col(head(colorRampPalette(c(brewer.pal(11, "Spectral")[8], "#FFFFFF"))(2), -1))
-# 'lkun'
-# 'lkun':1
-SDPColors <- c(SDPColors, head(colorRampPalette(c(brewer.pal(11, "Spectral")[9], "#FFFFFF"))(2), -1))
-# show_col(head(colorRampPalette(c(brewer.pal(11, "Spectral")[9], "#FFFFFF"))(2), -1))
-# 'snod'
-# 'snod_1''snod_2''snod_bombus':3
-SDPColors <- c(SDPColors, head(colorRampPalette(c(brewer.pal(11, "Spectral")[10], "#FFFFFF"))(4), -1))
-# show_col(head(colorRampPalette(c(brewer.pal(11, "Spectral")[10], "#FFFFFF"))(4), -1))
-# 'gilli'
-# 'gilli_1''gilli_2''gilli_3''gilli_4''gilli_5''gilli_6''gilli_apis_andre''gilli_apis_dorsa''gilli_bombus':9
-SDPColors <- c(SDPColors, head(colorRampPalette(c(brewer.pal(11, "Spectral")[11], "#FFFFFF"))(10), -1))
-# show_col(head(colorRampPalette(c(brewer.pal(11, "Spectral")[11], "#FFFFFF"))(10), -1))
-names(SDPColors) <- sdps
-```
-
-```{r read_mapping_data, results='hold'}
-# setwd("/Volumes/Storage/Work/Temp-from-NAS/cross-species-analysis-india")
-df_reads <- data.frame()
-for (sample in samples) {
-  number_raw_R1 <- read.csv(unz(paste0("fastqc/raw/", sample, "_R1_fastqc.zip"), paste0(sample, "_R1_fastqc/fastqc_data.txt")), sep = "\t") %>%
-                filter(.[[1]] == "Total Sequences") %>%
-                  pull() %>%
-                    as.integer()
-  number_raw_R2 <- read.csv(unz(paste0("fastqc/raw/", sample, "_R2_fastqc.zip"), paste0(sample, "_R2_fastqc/fastqc_data.txt")), sep = "\t") %>%
-                filter(.[[1]] == "Total Sequences") %>%
-                  pull() %>%
-                    as.integer()
-  number_trimmed_R1 <- read.csv(unz(paste0("fastqc/trim/", sample, "_R1_trim_fastqc.zip"), paste0(sample, "_R1_trim_fastqc/fastqc_data.txt")), sep = "\t") %>%
-                filter(.[[1]] == "Total Sequences") %>%
-                  pull() %>%
-                    as.integer()
-  number_trimmed_R2 <- read.csv(unz(paste0("fastqc/trim/", sample, "_R2_trim_fastqc.zip"), paste0(sample, "_R2_trim_fastqc/fastqc_data.txt")), sep = "\t") %>%
-                filter(.[[1]] == "Total Sequences") %>%
-                  pull() %>%
-                    as.integer()
-  raw_reads <- number_raw_R1 + number_raw_R2
-  trimmed <- number_trimmed_R1 + number_trimmed_R2
-  mapped_host_db <- read.csv(paste0("02_HostMapping/", sample, "_flagstat.tsv"), sep = "\t") %>%
-                      filter(.[[3]] == "with itself and mate mapped") %>%
-                        pull(1) %>%
-                          as.integer()
-  unmapped_host_db <- trimmed - mapped_host_db
-  mapped_mic_db <- read.csv(paste0("04_MicrobiomeMappingDirect/", sample, "_flagstat.tsv"), sep = "\t") %>%
-                      filter(.[[3]] == "with itself and mate mapped") %>%
-                        pull(1) %>%
-                          as.integer()
-  unmapped_mic_db <- trimmed - mapped_mic_db
-  mapped_mic_db_host_filtered <- read.csv(paste0("03_MicrobiomeMapping/", sample, "_flagstat.tsv"), sep = "\t") %>%
-                      filter(.[[3]] == "with itself and mate mapped") %>%
-                        pull(1) %>%
-                          as.integer()
-  unmapped_sequential <- unmapped_host_db - mapped_mic_db_host_filtered
-  values_to_bind <- c(sample, as.integer(c(raw_reads, trimmed, mapped_host_db, unmapped_host_db, mapped_mic_db, unmapped_mic_db, mapped_mic_db_host_filtered, unmapped_sequential)))
-  df_reads <- rbind(df_reads, values_to_bind)
-}
-# parse this later
-# read.csv(paste0("02_HostMapping/", sample, "_coverage.tsv"), sep = "\t")
-df_colnames <- c("Sample", "Raw", "Trimmed", "Mapped_host", "Unmapped_host", "Mapped_microbiome", "Unmapped_microbiome", "Mapped_microbiome_filtered", "Unmapped_filtered")
-colnames(df_reads) <- df_colnames
-df_reads <- df_reads %>%
-              mutate(across(!c("Sample"), as.integer))
-df_meta <- read.csv("Metadata_211018_Medgenome_india_samples.csv", sep = ',')
-colnames(df_meta)[which(colnames(df_meta) == "ID")] <- "Sample"
-df_meta$SpeciesID <- recode(df_meta$SpeciesID, "Am" = "Apis mellifera", "Ac" = "Apis cerana", "Af" = "Apis florea", "Ad" = "Apis dorsata")
-df_meta <- df_meta %>%
-        arrange(match(Sample, samples))
-df_meta %>% group_by(SpeciesID) %>% tally()
-df_meta %>% group_by(SpeciesID, Country) %>% tally()
-df_meta %>% group_by(SpeciesID, Country, Colony) %>% tally()
-df_plot_reads <- pivot_longer(df_reads, !Sample, values_to = "Number", names_to = "Type") %>%
-                  merge(select(df_meta, Sample, SpeciesID), by="Sample")
-df_plot_reads$Number <- as.integer(df_plot_reads$Number)
-```
-
-## Total number of reads before and after trimming
-
-```{r plots_total_species}
-Total_reads <- ggplot(filter(df_plot_reads, Type %in% c("Raw", "Trimmed")), aes(y=factor(Sample, levels = samples), x=Number, fill = Type)) +
-                        geom_bar(stat="identity", position = "dodge") +
-                          # ggtitle("Total reads per sample") +
-                            ylab("Sample") +
-                            xlab("Number of reads (paired end)") +
-                            geom_hline(yintercept = 5.5, linetype="solid") +
-                            geom_hline(yintercept = 20.5, linetype="solid") +
-                            geom_hline(yintercept = 35.5, linetype="solid") +
-                            geom_vline(xintercept = 50e+6, linetype="dotted") +
-                              make_theme(theme_name=theme_few(), leg_pos="right",
-                                         x_angle=0 ,x_vj=0, x_hj=0, x_size=12,
-                                         y_angle=0 ,y_vj=0, y_hj=0, y_size=7) +
-                                scale_x_continuous(labels=unit_format(unit = "M", scale = 1e-6))
-                                  ggsave("Figures/00a-Total_reads_trimming.pdf")
-```
-
-```{r show_plots_total_species, dev = 'pdf', results='hold', fig.show = 'hold', out.width = '100%', fig.align = 'center', fig.cap = 'Total reads by species'}
-Total_reads
-# knitr::include_graphics("Figures/Total_reads_species.pdf")
-```
-
-## Total number of reads per species after trimming
-
-```{r plots_total_species}
-Total_reads_species <- ggplot(filter(df_plot_reads, Type %in% c("Trimmed")), aes(y=factor(Sample, levels = samples), x=Number, fill = SpeciesID)) +
-                        geom_bar(stat="identity", position = "dodge") +
-                          # ggtitle("Total reads per sample") +
-                            ylab("Sample") +
-                            xlab("Number of reads (paired end)") +
-                            geom_hline(yintercept = 5.5, linetype="solid") +
-                            geom_hline(yintercept = 20.5, linetype="solid") +
-                            geom_hline(yintercept = 35.5, linetype="solid") +
-                              make_theme(theme_name=theme_few(), leg_pos="right",
-                                         setFill = F,
-                                         x_angle=0 ,x_vj=0, x_hj=0, x_size=12,
-                                         y_angle=0 ,y_vj=0, y_hj=0, y_size=7) +
-                                scale_x_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
-                                scale_fill_manual(values=host_order_color)
-                                  ggsave("Figures/00b-Total_reads_species_after_trimming.pdf")
-```
-
-```{r show_plots_total_species, dev = 'pdf', results='hold', fig.show = 'hold', out.width = '100%', fig.align = 'center', fig.cap = 'Total reads by species'}
-Total_reads_species
-# knitr::include_graphics("Figures/Total_reads_species.pdf")
-```
-
-## Proportion of reads mapping to host and microbiome database
-
-```{r plots_num_mapped_mic}
-df_plot_reads_prop <- select(df_reads, Sample, Trimmed, Mapped_host, Mapped_microbiome_filtered, Unmapped_filtered) %>%
-  summarise(Sample, "None" = Unmapped_filtered/Trimmed*100,
-            "Host" = Mapped_host/Trimmed*100,
-            "Microbiome" = Mapped_microbiome_filtered/Trimmed*100) %>%
-              pivot_longer(!Sample, names_to = "Type", values_to = "Number")
-Mapped_Unmapped_reads_prop <- ggplot(df_plot_reads_prop, aes(y=factor(Sample, levels = samples),
-                                                            x=Number,
-                                                            fill=factor(Type, levels = c("None", "Host", "Microbiome")))) +
-                        geom_bar(stat="identity", position = "stack") +
-                          # ggtitle("Total reads per sample") +
-                            labs(y = "Sample",
-                                 x = "Percentage of reads (paired end)",
-                                 fill = "Mapped to") +
-                            geom_hline(yintercept = 5.5, linetype="solid") +
-                            geom_hline(yintercept = 20.5, linetype="solid") +
-                            geom_hline(yintercept = 35.5, linetype="solid") +
-                              make_theme(theme_name=theme_few(), leg_pos="right",
-                                         guide_nrow = 3,
-                                         x_angle=0 ,x_vj=0, x_hj=0, x_size=12,
-                                         y_angle=0 ,y_vj=0, y_hj=0, y_size=7)
-                                      ggsave("Figures/00c-Mapped_Unmapped_reads_prop.pdf")
-```
-
-```{r show_plots_num_mapped_mic, dev = 'pdf', results='hold', fig.show = 'hold', out.width = '100%', fig.align = 'center', fig.cap = 'Proportion of reads mapped to the microbiome database and host database'}
-Mapped_Unmapped_reads_prop
-# knitr::include_graphics("Figures/Mapped_Unmapped_reads_prop.pdf")
-```
-
-## Micorbiome reads lost by non_specific mapping to host
-
-```{r plots_prop_mapped_mic}
-df_plot_reads_non_specific <- df_reads %>%
-  mutate(Unmapped_microbiome_filtered = Mapped_host + Unmapped_filtered) %>%
-    select(Sample, Mapped_microbiome, Unmapped_microbiome, Mapped_microbiome_filtered, Unmapped_microbiome_filtered) %>%
-              pivot_longer(!Sample, names_to = "Type", values_to = "Number") %>%
-                mutate(Host_filtered = ifelse(Type %in% c("Mapped_microbiome", "Unmapped_microbiome"), "Direct mapping", "Host filtered")) %>%
-                  mutate(Type = ifelse(Type %in% c("Mapped_microbiome", "Mapped_microbiome_filtered"), "Mapped", "Unmapped"))
-
-
-Non_specific_reads <- ggplot(df_plot_reads_non_specific, aes(y=interaction(Host_filtered, factor(Sample, levels = samples)),
-                                                            x=Number,
-                                                            fill=factor(Type))) +
-                        geom_bar(stat="identity", position = "stack") +
-                          # ggtitle("Total reads per sample") +
-                            labs(y = "Sample",
-                                 x = "Percentage of reads (paired end)",
-                                 fill = "Mapped to") +
-                            geom_hline(yintercept = 11, linetype="solid") +
-                            geom_hline(yintercept = 41, linetype="solid") +
-                            geom_hline(yintercept = 71, linetype="solid") +
-                              # facet_wrap(~Host_filtered) +
-                              scale_x_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
-                              make_theme(theme_name=theme_few(), leg_pos="right",
-                                         x_angle=0 ,x_vj=0, x_hj=0, x_size=12,
-                                         y_angle=0 ,y_vj=0, y_hj=1, y_size=5)
-                                      ggsave("Figures/00d-Mapping_non_specific.pdf")
-```
-
-```{r show_plots_prop_mapped_mic, dev = 'pdf', results='hold', fig.show = 'hold', out.width = '100%', fig.align = 'center', fig.cap = 'Proportion of reads mapped to the microbiome database and host database'}
-Non_specific_reads
-# knitr::include_graphics("Figures/Mapped_Unmapped_reads_prop.pdf")
-```
-
-## Community profiling with mOTUs
-
-```{r motus_summary}
-df_motus_raw <- read.csv("08_motus_profile/samples_merged.motus", sep = "\t", skip = 2, stringsAsFactors=FALSE)
-colnames(df_motus_raw)[1] <- "taxonomy"
-df_motus_raw <- df_motus_raw %>%
-              mutate(across(!c("taxonomy"), as.numeric)) %>%
-              mutate(sum_ab = rowSums(across(where(is.numeric)))) %>%
-                filter(sum_ab > 0) %>%
-                  select(!sum_ab) %>%
-                    column_to_rownames("taxonomy")
-
-df_motus <- as.data.frame(t(df_motus_raw)) %>%
-              rownames_to_column("Sample") %>%
-              pivot_longer(!Sample, names_to = "motu", values_to = "rel_ab") %>%
-                group_by(Sample, motu) %>%
-                  mutate(Present = ifelse(rel_ab > 0, 1, 0)) %>%
-                    group_by(motu) %>%
-                     mutate(Prevalence_num = sum(Present)) %>%
-                      mutate(Prevalence = mean(Present))
-
-condense_motu <- function(motu){
-  motu_condensed = strsplit(motu, " ")[[1]][1]
-  return(motu_condensed)
-}
-
-df_motus_combined <- left_join(df_motus, df_meta)  %>%
-                      group_by(SpeciesID, motu) %>%
-                        mutate(Present_host = ifelse(rel_ab > 0, 1, 0)) %>%
-                          group_by(SpeciesID, motu) %>%
-                            mutate(Prevalence_num_host = sum(Present_host)) %>%
-                            mutate(Prevalence_host = mean(Present_host)) %>%
-                              mutate(mean_rel_ab_host = mean(rel_ab)) %>%
-                              group_by(Sample) %>%
-                              mutate(mean_rel_ab = mean(rel_ab)) %>%
-                                mutate(motu_condensed = Vectorize(condense_motu)(motu))
-
-motu_list <- df_motus_combined %>%
-              pull(motu) %>% unique
-
-high_motu_list <- df_motus_combined %>%
-                        filter(Prevalence_host >= 0.5) %>%
-                          pull(motu_condensed) %>% unique
-
-df_assigned_plot <- df_motus_combined %>%
-                      group_by(Sample) %>%
-                        mutate(sum = sum(rel_ab)) %>%
-                          mutate(unassigned = rel_ab[motu == "unassigned"]) %>%
-                            mutate("assigned" = sum - unassigned) %>%
-                              select(Sample, assigned, unassigned) %>%
-                                pivot_longer(!Sample, values_to = "proportion", names_to = "Type")
-
-assigned_plot <- ggplot(df_assigned_plot, aes(y = factor(Sample, samples), x = proportion, fill = factor(Type, levels = c("unassigned", "assigned")))) +
-                  geom_bar(position = "stack", stat = "identity") +
-                  labs(fill = "Type", x = "Proportion", y = "Sample") +
-                    make_theme(leg_pos = "right", guide_nrow = 20, leg_size = 7,
-                               y_size = 8, y_hj = 1, y_vj = 0.5
-                    )
-                    # ggsave("Figures/04-motus_unassigned.pdf")
-
-extend_colors_motus <- function(names_vec){
-  final_list <- list()
-  for (a_name in names_vec) {
-    if (a_name %in% names(motuColors)) {
-      final_list[a_name] = motuColors[a_name]
-    } else {
-      final_list[a_name] = "grey"
-    }
-  }
-  return(final_list)
-}
-
-plot_motus_high_prev <- ggplot(df_motus_combined, aes(y = factor(Sample, samples), x = rel_ab, fill = factor(motu_condensed, motus))) +
-                geom_bar(position = "stack", stat = "identity") +
-                labs(fill = "mOTU", x = "mOTUs2 Relative abundance", y = "Sample") +
-                  make_theme(max_colors = length(unique(motus)),
-                             setFill = F,
-                             leg_pos = "right",
-                             guide_nrow = 16,
-                             leg_size = 7,
-                             y_size = 8, y_hj = 1
-                  ) +
-                  scale_fill_manual(values=motuColors)
-
-df_motus_filt <- filter(df_motus_combined, Prevalence_num >= 1 & rel_ab > 0.01)
-plot_motus_filt <- ggplot(df_motus_filt, aes(y = factor(Sample, samples), x = rel_ab, fill = factor(motu_condensed))) +
-                geom_bar(position = "stack", stat = "identity") +
-                labs(fill = "mOTU", x = "mOTUs2 Relative abundance", y = "Sample") +
-                  make_theme(max_colors = length(unique(df_motus_filt$motu_condensed)),
-                             palettefill = "Set1",
-                             leg_pos = "right",
-                             guide_nrow = 20,
-                             leg_size = 7,
-                             y_size = 8, y_hj = 1,
-                  )
-                  ggsave("Figures/04b-motus_filt.pdf")
-```
-
-```{r motus_summary_plots,  dev = 'pdf', results='hold', fig.show = 'hold', out.width = '100%', fig.align = 'center', fig.cap = 'mOTUs Summary'}
-g <- grid.arrange(arrangeGrob(assigned_plot, ncol = 2, widths = c(4, 2)), plot_motus_high_prev, nrow = 2, heights = c(1.2, 2))
-  ggsave("Figures/04a-motus.pdf", g)
-g
-plot_motus_filt
-```
-
-# MAG analysis
-
-```{r more_imports}
-# setwd("/Volumes/Storage/Work/Temp-From-NAS/cross-species-analysis-india")
-df_evaluate <- read.csv("06_MAG_binning/all_genomes.csv", sep = "\t")
-df_gtdbk_bac <- read.csv("06_MAG_binning/gtdbtk_out_dir/classify/gtdbtk.bac120.summary.tsv", sep = "\t")
-drep_Bdb <- read.csv("06_MAG_binning/drep_results/data_tables/Bdb.csv", sep = ",")
-drep_Cdb <- read.csv("06_MAG_binning/drep_results/data_tables/Cdb.csv", sep = ",")
-# drep_Mdb <- read.csv("06_MAG_binning/drep_results/data_tables/Mdb.csv", sep = ",")
-# drep_Ndb <- read.csv("06_MAG_binning/drep_results/data_tables/Ndb.csv", sep = ",")
-# drep_Sdb <- read.csv("06_MAG_binning/drep_results/data_tables/Sdb.csv", sep = ",")
-# drep_Wdb <- read.csv("06_MAG_binning/drep_results/data_tables/Wdb.csv", sep = ",")
-# drep_Widb <- read.csv("06_MAG_binning/drep_results/data_tables/Widb.csv", sep = ",")
-drep_gInfo <- read.csv("06_MAG_binning/drep_results/data_tables/genomeInfo.csv", sep = ",")
-drep_gInformation <- read.csv("06_MAG_binning/drep_results/data_tables/genomeInformation.csv", sep = ",")
-df_assembly <- read.csv("05_Assembly/host_unmapped/check_assembly/Assembly_mapping_summary.csv", sep = ',')
-df_assembly <- merge(df_assembly, df_meta, by="Sample")
-df_assembly$SpeciesID <- recode(df_assembly$SpeciesID, "Am" = "Apis mellifera", "Ac" = "Apis cerana", "Af" = "Apis florea", "Ad" = "Apis dorsata", .default = "Apis")
-```
-
-```{r mag_summary_stats}
-phy_group_dict = c("firm4" = 'g__Bombilactobacillus',
-            "g__Bombilactobacillus_outgroup" = 'g__Bombilactobacillus',
-            "firm5" = 'g__Lactobacillus',
-            "lacto" = 'g__Lactobacillus',
-            "g__Lactobacillus_outgroup" = 'g__Lactobacillus',
-            "bifido" = 'g__Bifidobacterium',
-            "g__Bifidobacterium_outgroup" = 'g__Bifidobacterium',
-            "gilli" = 'g__Gilliamella',
-            "entero" = 'g__Gilliamella',
-            "g__Gilliamella_outgroup" = 'g__Gilliamella',
-            "fper" = 'g__Frischella',
-            "g__Frischella_outgroup" = 'g__Frischella',
-            "snod" = 'g__Snodgrassella',
-            "g__Snodgrassella_outgroup" = 'g__Snodgrassella',
-            "bapis" = 'g__Bartonella',
-            "g__Bartonella_outgroup" = 'g__Bartonella',
-            # "" = 'g__Enterobacter',
-            "g__Enterobacter_outgroup" = 'g__Enterobacter',
-            # "" = 'g__',
-            # "" = 'g__Pectinatus',
-            "g__Pectinatus_outgroup" = 'g__Pectinatus',
-            "api" = 'g__Apibacter',
-            "g__Apibacter_outgroup" = 'g__Apibacter',
-            # "" = 'g__Dysgonomonas',
-            "g__Dysgonomonas_outgroup" = 'g__Dysgonomonas',
-            # "" = 'g__Spiroplasma',
-            "g__Spiroplasma_outgroup" = 'g__Spiroplasma',
-            # "" = 'g__Zymobacter',
-            "g__Zymobacter_outgroup" = 'g__Zymobacter',
-            # "" = 'g__Entomomonas',
-            "g__Entomomonas_outgroup" = 'g__Entomomonas',
-            # "" = 'g__Saezia',
-            "g__Saezia_outgroup" = 'g__Saezia',
-            # "" = 'g__Parolsenella',
-            "g__Parolsenella_outgroup" = 'g__Parolsenella',
-            # "" = 'g__WRHT01',
-            "g__WRHT01_outgroup" = 'g__WRHT01',
-            "com" = 'g__Commensalibacter',
-            "g__Commensalibacter_outgroup" = 'g__Commensalibacter',
-            "lkun" = 'g__Apilactobacillus',
-            "g__Apilactobacillus_outgroup" = 'g__Apilactobacillus',
-            "bom" = 'g__Bombella',
-            "g__Bombella_outgroup" = 'g__Bombella'
-          )
-get_group_phy <- function(phy){
-  return(c(phy_group_dict[phy][[1]]))
-}
-
-MAG_taxonomy_info <- read.csv("06_MAG_binning/gtdbtk_out_dir/classify/gtdbtk.bac120.summary.tsv", sep = "\t")
-MAG_info <- read.csv("06_MAG_binning/all_genomes.csv", sep = "\t")
-representative_MAGs <- read.csv("06_MAG_binning/all_cluster_rep_genomes.csv", sep = ",", header = F)[ ,1]
-# includes outgroups now and updated SDP values -
-# check directory /Volumes/Storage/Work/Temp-From-NAS/220518-GenomesForPhylogenies
-isolates <- read.csv("IsolateGenomeInfo.csv")
-# isolates <- read.csv("all_combined.csv")
-# isolates <- isolates %>%
-#               filter(DB == "KE_2021_expandedGBR")
-MAG_clusters_info <- read.csv("06_MAG_binning/drep_results/data_tables/Cdb.csv")
-format_name <- function(genome){
-  MAG = strsplit(genome, ".fa")[[1]]
-  return(MAG)
-}
-MAG_clusters_info <- MAG_clusters_info %>% mutate(genome = Vectorize(format_name)(genome))
-clusters <- MAG_clusters_info %>%
-              select(genome, secondary_cluster)
-genomes_info <- MAG_info %>%
-                  select(Bin.Id, Completeness, Contamination)
-colnames(genomes_info) = c("Genome", "Completeness", "Contamination")
-taxonomy <- MAG_taxonomy_info %>%
-              select(user_genome, classification) %>%
-                separate(classification, c("domain","phylum","class","order","family","genus","species"), sep = ";")
-
-MAGs_collated <- left_join(clusters, taxonomy, by = c("genome"="user_genome"))
-MAGs_collated <- left_join(genomes_info, MAGs_collated, by = c("Genome"="genome"))
-
-MAGs_collated_high <- MAGs_collated %>%
-                        filter(Completeness > 95, Contamination < 5)
-
-final_genome_info <- data.frame("ID" = isolates$Locus_tag,
-                                 "Accession" = isolates$Accession,
-                                 "Locus_tag" = isolates$Locus_tag,
-                                 "Strain_name" = isolates$Strain_name,
-                                 "Phylotype" = isolates$Phylotype,
-                                 "SDP" = isolates$SDP,
-                                 "Species" = isolates$Species,
-                                 "Host" = isolates$Host,
-                                 "Study" = isolates$Study,
-                                 "Origin" = isolates$Origin,
-                                 "Source_database" = isolates$Source_database,
-                                 "Cluster" = isolates$SDP,
-                                 "Group" = isolates$Group,
-                                 "Genus" = rep(NA, length(isolates$Locus_tag)),
-                                 "Family" = rep(NA, length(isolates$Locus_tag)),
-                                 "Order" = rep(NA, length(isolates$Locus_tag)),
-                                 "Class" = rep(NA, length(isolates$Locus_tag)),
-                                 "Sample" = rep(NA, length(isolates$Locus_tag)),
-                                 "Group_auto" = rep("EMPTY", length(isolates$Locus_tag)))
-
-
-final_genome_info <- final_genome_info %>%
-                      mutate("Group_auto" = Vectorize(get_group_phy)(Phylotype))
-final_genome_info$Group_auto <- as.character(final_genome_info$Group_auto)
-
-MAGs_collated_high <- data.frame("ID" = MAGs_collated_high$Genome,
-                                 "Accession" = rep(NA, length(MAGs_collated_high$Genome)),
-                                 "Locus_tag" = rep(NA, length(MAGs_collated_high$Genome)),
-                                 "Strain_name" = MAGs_collated_high$Genome,
-                                 "Phylotype" = rep(NA, length(MAGs_collated_high$Genome)),
-                                 "SDP" = rep(NA, length(MAGs_collated_high$Genome)),
-                                 "Species" = MAGs_collated_high$species,
-                                 "Host" = rep("EMPTY", length(MAGs_collated_high$Genome)),
-                                 "Study" = rep(NA, length(MAGs_collated_high$Genome)),
-                                 "Origin" = rep("EMPTY", length(MAGs_collated_high$Genome)),
-                                 "Source_database" = rep("MAGs", length(MAGs_collated_high$Genome)),
-                                 "Cluster" = MAGs_collated_high$secondary_cluster,
-                                 "Group" = rep("EMPTY", length(MAGs_collated_high$Genome)),
-                                 "Genus" = MAGs_collated_high$genus,
-                                 "Family" = MAGs_collated_high$family,
-                                 "Order" = MAGs_collated_high$order,
-                                 "Class" = MAGs_collated_high$class,
-                                 "Sample" = rep("EMPTY", length(MAGs_collated_high$Genome)))
-MAGs_collated <- data.frame("ID" = MAGs_collated$Genome,
-                                 "Accession" = rep(NA, length(MAGs_collated$Genome)),
-                                 "Locus_tag" = rep(NA, length(MAGs_collated$Genome)),
-                                 "Strain_name" = MAGs_collated$Genome,
-                                 "Phylotype" = rep(NA, length(MAGs_collated$Genome)),
-                                 "SDP" = rep(NA, length(MAGs_collated$Genome)),
-                                 "Species" = MAGs_collated$species,
-                                 "Host" = rep("EMPTY", length(MAGs_collated$Genome)),
-                                 "Study" = rep(NA, length(MAGs_collated$Genome)),
-                                 "Origin" = rep("EMPTY", length(MAGs_collated$Genome)),
-                                 "Source_database" = rep("MAGs", length(MAGs_collated$Genome)),
-                                 "Cluster" = MAGs_collated$secondary_cluster,
-                                 "Group" = rep("EMPTY", length(MAGs_collated$Genome)),
-                                 "Genus" = MAGs_collated$genus,
-                                 "Family" = MAGs_collated$family,
-                                 "Order" = MAGs_collated$order,
-                                 "Class" = MAGs_collated$class,
-                                 "Sample" = rep("EMPTY", length(MAGs_collated$Genome)))
-
-MAGs_collated <- MAGs_collated %>%
-  mutate(Group_auto = Family) %>%
-    mutate(Host = Vectorize(get_host_name)(ID)) %>%
-      mutate(Origin = Vectorize(get_origin_name)(ID)) %>%
-        mutate(Sample = Vectorize(get_sample_name)(ID))
-
-MAGs_collated_high <- MAGs_collated_high %>%
-  mutate("Group_auto" = Family) %>%
-    mutate("Host" = Vectorize(get_host_name)(ID)) %>%
-      mutate(Origin = Vectorize(get_origin_name)(ID)) %>%
-        mutate(Sample = Vectorize(get_sample_name)(ID))
-
-MAGs_representative <- MAGs_collated %>%
-                        filter(ID %in% representative_MAGs)
-
-# make sure that number per cluster is 1 for all
-MAGs_collated_info <- left_join(MAGs_collated, mutate(drep_gInformation, genome = Vectorize(format_name)(genome)), by = c("ID"="genome"))
-# Number of MAGs coming from each host species
-MAGs_collated_high %>%
-  mutate(host = Vectorize(get_host_name)(ID)) %>%
-    pull(host) %>%
-      table()
-# Number of MAGs coming from each sample
-MAGs_collated_high %>%
-  mutate(sample = Vectorize(get_sample_name)(ID)) %>%
-    pull(sample) %>%
-      table()
-
-
-get_sdp <- function(cluster){
-  if (is.na(clusters_sdp[cluster])) {
-    return(cluster)
-  } else{
-    return(clusters_sdp[cluster])
-  }
-}
-
-vis_magOTUs_df_all <- MAGs_collated_info %>%
-                        group_by(Sample) %>%
-                            mutate(all_quality = ifelse(completeness > 70 & contamination < 5 & N50 > 10000, "Pass", "Fail")) %>%
-                            mutate(Completeness_quality = cut(completeness ,breaks=c(-1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 95, 100, 110),
-                                                            labels = c("<10", "10-20", "20-30", "30-40", "40-50", "50-60", "60-70", "70-80", "80-90", "90-95", "95-100", "100"))
-                                                          ) %>%
-                              mutate(Contamination_quality = cut(contamination ,breaks=c(-1, 0, 5, 10, 100),
-                                                              labels = c("0", "0-5", "5-10", ">10"))
-                                                          ) %>%
-                              mutate(N50_quality = cut(N50 ,breaks=c(0, 10000, 50000, 100000, 200000, 500000, 1000000, 2000000, Inf), labels = c("<10Kb", "10-50Kb", "50-100Kb", "100-200Kb", "200-500Kb", "0.5-1Mb", "1-2Mb", ">2Mb"))) %>%
-                                mutate(sample = Vectorize(get_sample_name)(ID)) %>%
-                                  mutate(Host = Vectorize(get_host_name)(ID)) # %>%
-                                    # mutate(num_contigs = Vectorize(get_num_contigs_per_bin)(ID))
-
-samples_am <- c(vis_magOTUs_df_all %>% filter(Host == "Apis mellifera") %>% pull(Sample) %>% unique %>% as.vector)
-samples_ac <- c(vis_magOTUs_df_all %>% filter(Host == "Apis cerana") %>% pull(Sample) %>% unique %>% as.vector)
-samples_ad <-c(vis_magOTUs_df_all %>% filter(Host == "Apis dorsata") %>% pull(Sample) %>% unique %>% as.vector)
-samples_af <-c(vis_magOTUs_df_all %>% filter(Host == "Apis florea") %>% pull(Sample) %>% unique %>% as.vector)
-contig_fates_df_am <- data.frame()
-for (sample in samples_am) {
-  contig_fates_df_am <- rbind(contig_fates_df_am, read.csv(paste0("06_MAG_binning/contig_fates/",sample,"_contig_fates.csv"), sep = ","))
-}
-contig_fates_df_am <- cbind(contig_fates_df_am, host = rep("Apis mellifera", dim(contig_fates_df_am)[[1]]))
-contig_fates_df_am_pf <- contig_fates_df_am %>%
-                              group_by(sample, passed_filter) %>%
-                                summarise(pass_fail_length = sum(length), pf_num = n(), .groups = "keep")
-contig_fates_df_am_bin <- contig_fates_df_am %>%
-                              group_by(sample, binned) %>%
-                                summarise(binned_length = sum(length), binned_num = n(), .groups = "keep")
-
-
-contig_fates_df_ac <- data.frame()
-for (sample in samples_ac) {
-  contig_fates_df_ac <- rbind(contig_fates_df_ac, read.csv(paste0("06_MAG_binning/contig_fates/",sample,"_contig_fates.csv"), sep = ","))
-}
-contig_fates_df_ac <- cbind(contig_fates_df_ac, host = rep("Apis cerana", dim(contig_fates_df_ac)[[1]]))
-contig_fates_df_ac_pf <- contig_fates_df_ac %>%
-                              group_by(sample, passed_filter) %>%
-                                summarise(pass_fail_length = sum(length), pf_num = n(), .groups = "keep")
-contig_fates_df_ac_bin <- contig_fates_df_ac %>%
-                              group_by(sample, binned) %>%
-                                summarise(binned_length = sum(length), binned_num = n(), .groups = "keep")
-
-contig_fates_df_ad <- data.frame()
-for (sample in samples_ad) {
-  contig_fates_df_ad <- rbind(contig_fates_df_ad, read.csv(paste0("06_MAG_binning/contig_fates/",sample,"_contig_fates.csv"), sep = ","))
-}
-contig_fates_df_ad <- cbind(contig_fates_df_ad, host = rep("Apis dorsata", dim(contig_fates_df_ad)[[1]]))
-contig_fates_df_ad_pf <- contig_fates_df_ad %>%
-                              group_by(sample, passed_filter) %>%
-                                summarise(pass_fail_length = sum(length), pf_num = n(), .groups = "keep")
-contig_fates_df_ad_bin <- contig_fates_df_ad %>%
-                              group_by(sample, binned) %>%
-                                summarise(binned_length = sum(length), binned_num = n(), .groups = "keep")
-
-contig_fates_df_af <- data.frame()
-for (sample in samples_af) {
-  contig_fates_df_af <- rbind(contig_fates_df_af, read.csv(paste0("06_MAG_binning/contig_fates/",sample,"_contig_fates.csv"), sep = ","))
-}
-contig_fates_df_af <- cbind(contig_fates_df_af, host = rep("Apis florea", dim(contig_fates_df_af)[[1]]))
-contig_fates_df_af_pf <- contig_fates_df_af %>%
-                              group_by(sample, passed_filter) %>%
-                                summarise(pass_fail_length = sum(length), pf_num = n(), .groups = "keep")
-contig_fates_df_af_bin <- contig_fates_df_af %>%
-                              group_by(sample, binned) %>%
-                                summarise(binned_length = sum(length), binned_num = n(), .groups = "keep")
-
-contigs_length_df <- rbind(
-                        summarise(group_by(contig_fates_df_am, sample), contig = contig_name, length = length, binned = binned, bin = bin_name, passed = passed_filter, .groups = "drop"),
-                        summarise(group_by(contig_fates_df_ac, sample), contig = contig_name, length = length, binned = binned, bin = bin_name, passed = passed_filter, .groups = "drop"),
-                        summarise(group_by(contig_fates_df_ad, sample), contig = contig_name, length = length, binned = binned, bin = bin_name, passed = passed_filter, .groups = "drop"),
-                        summarise(group_by(contig_fates_df_af, sample), contig = contig_name, length = length, binned = binned, bin = bin_name, passed = passed_filter, .groups = "drop")
-                  )
-
-length_bin_sum_df <- contigs_length_df %>%
-                    mutate(length_bin = cut(length ,breaks=c(0, 500, 1000, 10000, 50000, 100000, 200000, 500000, 1000000, Inf), labels = c("500", "0.5-1kb", "1-10Kb", "10-50Kb", "50-100Kb", "100-200Kb", "200-500Kb", "0.5-1Mb", ">1Mb"))) %>%
-                      group_by(sample, binned, length_bin) %>%
-                        summarise(length_bin_sum = sum(length), num_contigs = n())
-length_bin_sum_df_passed <- contigs_length_df %>%
-                    filter(passed == "P") %>%
-                    mutate(length_bin = cut(length ,breaks=c(0, 500, 1000, 10000, 50000, 100000, 200000, 500000, 1000000, Inf), labels = c("500", "0.5-1kb", "1-10Kb", "10-50Kb", "50-100Kb", "100-200Kb", "200-500Kb", "0.5-1Mb", ">1Mb"))) %>%
-                      group_by(sample, binned, length_bin) %>%
-                        summarise(length_bin_sum = sum(length), num_contigs = n())
-
-all_depths <- data.frame()
-for (sample in samples) {
-  sample_contig_depths <- read.csv(paste0("06_MAG_binning/backmapping/",sample,"/",sample,"_mapped_to_",sample,".depth"), sep = "\t")
-  depth_column <- paste0(sample,"_mapped_to_",sample,".bam")
-  all_depths <- rbind(all_depths, rename(select(sample_contig_depths, contigName, all_of(depth_column)), depth = depth_column))
-}
-contigs_depths_df <- left_join(filter(contigs_length_df, passed == "P"), all_depths, by = c("contig" = "contigName"))
-
-vis_magOTUs_df_all <- vis_magOTUs_df_all %>%
-                          group_by(Cluster) %>%
-                            mutate(Num_mags = n()) %>%
-                              mutate(Prevalence_overall = Num_mags/length(samples))
-
-vis_magOTUs_df_all <- vis_magOTUs_df_all %>%
-                          group_by(Cluster, Host) %>%
-                            mutate(Present = n()) %>%
-                            mutate(Prevalence = ifelse(Host=="Apis mellifera", Present/9, NA)) %>%
-                            mutate(Prevalence = ifelse(Host=="Apis cerana", Present/17, Prevalence)) %>%
-                            mutate(Prevalence = ifelse(Host=="Apis florea", Present/15, Prevalence)) %>%
-                            mutate(Prevalence = ifelse(Host=="Apis dorsata", Present/15, Prevalence)) %>%
-                              left_join(summarise(group_by(contigs_depths_df, bin), mean_coverage = mean(depth), .groups = "drop"), by = c("ID" = "bin")) %>%
-                                arrange(Genus)
-
-vis_magOTUs_df <- vis_magOTUs_df_all %>%
-                    filter(all_quality == "Pass")
-
-
-vis_magOTUs_df$Host <- as.factor(recode(vis_magOTUs_df$Host, Am="Apis mellifera", Ac="Apis cerana", Ad="Apis dorsata", Af="Apis florea"))
-vis_magOTUs_df$Cluster <- as.factor(vis_magOTUs_df$Cluster)
-vis_magOTUs_df$sample <- as.factor(vis_magOTUs_df$sample)
-vis_magOTUs_df$Family <- as.factor(vis_magOTUs_df$Family)
-vis_magOTUs_df$Genus <- as.factor(vis_magOTUs_df$Genus)
-vis_magOTUs_df <- vis_magOTUs_df[order(vis_magOTUs_df$Genus), ]
-MAGs_collated_info_plot
-vis_magOTUs_df_all
-```
-
-## Mapping to Assembly
-
-The host-filtered reads were assembled. The proportion of reads that mapped back to the assembly and some information about the assemblies such as assembly size, and information about contigs are shown below.
-
-```{r Assembly_mapping_summary}
-assembly_sizes <- ggplot(df_assembly, aes(y = factor(Sample, levels=samples), x = Assembly.size, fill = factor(SpeciesID, host_order))) +
-                    geom_bar(stat = "identity") +
-                    geom_vline(xintercept = 2000000) +
-                      labs(x = "Total Assembly Size", y = "Sample", fill = "Host Species") +
-                        scale_x_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
-                          make_theme(setFill = F, y_angle = 0, y_hj = 1, y_vj = 0, max_colors = length(unique(df_assembly$SpeciesID)), y_size = 7, guide_nrow = 1) +
-                            scale_fill_manual(values=host_order_color)
-                          # ggsave("Figures/03-AssemblySizes.pdf")
-
-df_assembly_plot <- df_assembly %>%
-  select(Sample, Number.of.reads, Number.mapped) %>%
-    mutate(Number.unmapped = Number.of.reads - Number.mapped) %>%
-    rename(Unmapped = Number.unmapped, Mapped = Number.mapped) %>%
-     pivot_longer(cols = 3:4, names_to ="Type", values_to = "Number")
-
-number_mapped_assembly <- ggplot(df_assembly, aes(y = factor(Sample, levels=samples), x = Number.mapped, fill = factor(SpeciesID, host_order))) +
-                            geom_bar(stat = "identity") +
-                            labs(x = "Number of reads mapped to assembly", y = "Sample", fill = "Type") +
-                            scale_x_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
-                              make_theme(setFill = F, x_angle = 60, x_hj = 1, x_vj = 1, max_colors = length(unique(df_assembly_plot$Type)), x_size = 7, guide_nrow = 1) +
-                                scale_fill_manual(values=host_order_color)
-                              # ggsave("Figures/03-NumberAssembled.pdf")
-
-df_assembly_plot <- df_assembly %>%
-  select(Sample, Number.of.reads, Number.mapped) %>%
-    mutate(Number.unmapped = Number.of.reads - Number.mapped) %>%
-    mutate(percent_mapped = Number.mapped/Number.of.reads*100) %>%
-    mutate(percent_unmapped = Number.unmapped/Number.of.reads*100) %>%
-    rename(Unmapped = percent_unmapped, Mapped = percent_mapped, Unmapped_number = Number.unmapped, Mapped_number = Number.mapped) %>%
-    select(Sample, Mapped, Unmapped) %>%
-     pivot_longer(cols = 2:3, names_to ="Type", values_to = "Percent")
-
-df_assembly_plot_number <- df_assembly %>%
-  select(Sample, Number.of.reads, Number.mapped) %>%
-    mutate(Number.unmapped = Number.of.reads - Number.mapped) %>%
-    mutate(percent_mapped = Number.mapped/Number.of.reads*100) %>%
-    mutate(percent_unmapped = Number.unmapped/Number.of.reads*100) %>%
-    rename(Unmapped = Number.unmapped, Mapped = Number.mapped) %>%
-    select(Sample, Mapped, Unmapped) %>%
-     pivot_longer(cols = 2:3, names_to ="Type", values_to = "Number")
-
-number_mapped_assembly <- ggplot(df_assembly_plot_number, aes(y = factor(Sample, levels=samples), x = Number, fill = factor(Type, levels = c("Unmapped", "Mapped")))) +
-                            geom_bar(stat = "identity") +
-                            labs(y = "Percentage of reads", x = "Sample", fill = "Type") +
-                            scale_x_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
-                              make_theme(x_angle = 60, x_hj = 1, x_vj = 1, max_colors = length(unique(df_assembly_plot$Type)), x_size = 7, guide_nrow = 1)
-                              # ggsave("Figures/03-NumberMappedtoAssembly.pdf")
-
-Number_contig_plot <- ggplot(df_assembly, aes(y = factor(Sample, levels=samples), x = Number.of.filtered.contigs, fill = factor(SpeciesID, levels = rev(host_order)))) +
-                            geom_bar(stat = "identity") +
-                            labs(y = "Sample", x = "Number of contigs", fill = "Host") +
-                            scale_x_continuous(labels=unit_format(unit = "K", scale = 1e-4)) +
-                            scale_fill_manual(values=host_order_color) +
-                              make_theme(setFill = F, x_angle = 60, x_hj = 1, x_vj = 1, x_size = 10, guide_nrow = 1)
-                              ggsave("Figures/03a-NumberOfFilteredcontigs.pdf")
-
-percent_mapped_assembly <- ggplot(df_assembly_plot, aes(y = factor(Sample, levels=samples), x = Percent, fill = factor(Type, levels = c("Unmapped", "Mapped")))) +
-                            geom_bar(stat = "identity") +
-                            labs(y = "Percentage of reads", x = "Sample", fill = "Type") +
-                              make_theme(x_angle = 60, x_hj = 1, x_vj = 1, max_colors = length(unique(df_assembly_plot$Type)), x_size = 7, guide_nrow = 1)
-                              # ggsave("Figures/03-ProportionMappedtoAssembly.pdf")
-Total_data_species <- ggplot(mutate(df, amount_data = Total..PE.reads.*2*150), aes(y=factor(Sample, levels = samples),
-                                      x=amount_data,
-                                      fill = SpeciesID)) +
-                        geom_bar(stat="identity") +
-                            ylab("Sample") +
-                            xlab("Number of reads (paired end)") +
-                              make_theme(setFill=F, leg_pos = "none") +
-                                scale_x_continuous(labels=unit_format(unit = "G", scale = 1e-9)) +
-                                scale_fill_manual(values=host_order_color)
-```
-
-```{r Assembly_plots,  dev = 'pdf', results='hold', fig.show = 'hold', out.width = '100%', fig.align = 'center'}
-Total_reads_species_temp <- ggplot(df, aes(y=factor(Sample, levels = samples),
-                                      x=Total..PE.reads.,
-                                      fill = SpeciesID)) +
-                        geom_bar(stat="identity") +
-                          # ggtitle("Total reads per sample") +
-                            ylab("Sample") +
-                            xlab("Number of reads (paired end)") +
-                              make_theme(setFill=F) +
-                                scale_x_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
-                                scale_fill_manual(values=host_order_color)
-g <- grid.arrange(
-      arrangeGrob(
-        assembly_sizes + make_theme(setFill = F, setCol = F, leg_size = 7, y_size = 5, y_hj = 1, y_vj = 1, x_size = 8, guide_nrow = 1, leg_pos = "none"),
-        number_mapped_assembly + make_theme(setFill = F, setCol = F, leg_size = 7, y_size = 5, y_hj = 1, y_vj = 1, x_size = 8, guide_nrow = 1, leg_pos = "none"),
-        nrow = 1
-      ),
-      get_only_legend(assembly_sizes),
-      arrangeGrob(
-        Total_data_species + make_theme(setFill = F, setCol = F, leg_size = 7, y_size = 5, y_hj = 1, y_vj = 1, x_size = 8, guide_nrow = 2, leg_pos = "none"),
-        Total_reads_species_temp + make_theme(setFill = F, setCol = F, leg_size = 7, y_size = 5, y_hj = 1, y_vj = 1, x_size = 8, guide_nrow = 1, leg_pos = "none"),
-        nrow = 1
-      ),
-      nrow = 3, heights = c(8,1,8)
- )
- g
- ggsave("Figures/03b-Assembly_summary.pdf", g)
-Number_contig_plot
-```
-
-## contig length and fate (binning outcome)
-
-```{r contig_binning_summary}
-contig_fates_df_pf <- rbind(contig_fates_df_am_pf,
-                            contig_fates_df_ac_pf,
-                            contig_fates_df_ad_pf,
-                            contig_fates_df_af_pf
-                      )
-amount_pass_fail <- ggplot(contig_fates_df_pf, aes(y = factor(sample, samples), x = pass_fail_length, fill = passed_filter)) +
-  geom_bar(stat = "identity") +
-  labs(y= "Sample", x = "Amount of data passed or failed") +
-  # scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6), limits = c(0, 6e+8)) +
-  scale_x_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
-  make_theme(palettefill = "Set1", leg_pos = "bottom", guide_nrow = 1)
-
-contig_fates_df_bin <- rbind(contig_fates_df_am_bin,
-                            contig_fates_df_ac_bin,
-                            contig_fates_df_ad_bin,
-                            contig_fates_df_af_bin
-                      )
-contigs_binned_length_plot <- ggplot(contig_fates_df_bin, aes(y = sample, x = binned_length, fill = binned)) +
-  geom_bar(stat = "identity") +
-    labs(x = "Sample", y = "Amount of data binned or unbinned") +
-    scale_x_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
-      make_theme(palettefill = "Set1", guide_nrow = 1)
-
-
-contig_fates_df_am_mag <- contig_fates_df_am %>%
-                            # filter(binned == "Y") %>%
-                            group_by(sample, bin_name) %>%
-                              summarise(num_contigs = n(), len_contigs = sum(length), .groups = "keep") %>%
-                                left_join(select(vis_magOTUs_df_all, ID, Host, Sample, Cluster, Family, Genus, N50, Prevalence), by = c("bin_name" = "ID"))
-contig_fates_df_ac_mag <- contig_fates_df_ac %>%
-                            # filter(binned == "Y") %>%
-                            group_by(sample, bin_name) %>%
-                              summarise(num_contigs = n(), len_contigs = sum(length), .groups = "keep") %>%
-                                left_join(select(vis_magOTUs_df_all, ID, Host, Sample, Cluster, Family, Genus, N50, Prevalence), by = c("bin_name" = "ID"))
-contig_fates_df_ad_mag <- contig_fates_df_ad %>%
-                            # filter(binned == "Y") %>%
-                            group_by(sample, bin_name) %>%
-                              summarise(num_contigs = n(), len_contigs = sum(length), .groups = "keep") %>%
-                                left_join(select(vis_magOTUs_df_all, ID, Host, Sample, Cluster, Family, Genus, N50, Prevalence), by = c("bin_name" = "ID"))
-contig_fates_df_af_mag <- contig_fates_df_af %>%
-                            # filter(binned == "Y") %>%
-                            group_by(sample, bin_name) %>%
-                              summarise(num_contigs = n(), len_contigs = sum(length), .groups = "keep") %>%
-                                left_join(select(vis_magOTUs_df_all, ID, Host, Sample, Cluster, Family, Genus, N50, Prevalence), by = c("bin_name" = "ID"))
-
-contigs_binned_length_am_plot_genus <- ggplot(contig_fates_df_am_mag, aes(x = sample, y = len_contigs, fill = factor(Genus, genera))) +
-                                  geom_bar(stat = "identity") +
-                                    labs(x = "Sample", y = "Sum of length of contigs in bin", fill = "Genus") +
-                                    # scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6), limits = c(0, 6e+8)) +
-                                    scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
-                                      make_theme(setFill = F,
-                                          leg_pos = "right", guide_nrow = 22,
-                                          x_angle = 30, x_hj = 1, x_vj = 1
-                                        ) +
-                                      scale_fill_manual(values=genusColors)
-                                      # ggsave("Figures/05-contigs_binned_unbinned_by_genus_am.pdf")
-
-contigs_binned_length_ac_plot_genus <- ggplot(contig_fates_df_ac_mag, aes(x = sample, y = len_contigs, fill = factor(Genus, genera))) +
-                                  geom_bar(stat = "identity") +
-                                    labs(x = "Sample", y = "Sum of length of contigs in bin", fill = "Genus") +
-                                    # scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6), limits = c(0, 6e+8)) +
-                                    scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
-                                      make_theme(setFill = F,
-                                          leg_pos = "right", guide_nrow = 22,
-                                          x_angle = 30, x_hj = 1, x_vj = 1
-                                        ) +
-                                      scale_fill_manual(values=genusColors)
-                                      # ggsave("Figures/05-contigs_binned_unbinned_by_genus_ac.pdf")
-
-contigs_binned_length_ad_plot_genus <- ggplot(contig_fates_df_ad_mag, aes(x = sample, y = len_contigs, fill = factor(Genus, genera))) +
-                                  geom_bar(stat = "identity") +
-                                    labs(x = "Sample", y = "Sum of length of contigs in bin", fill = "Genus") +
-                                    # scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6), limits = c(0, 6e+8)) +
-                                    scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
-                                      make_theme(setFill = F,
-                                          leg_pos = "right", guide_nrow = 22,
-                                          x_angle = 30, x_hj = 1, x_vj = 1
-                                        ) +
-                                      scale_fill_manual(values=genusColors)
-                                      # ggsave("Figures/05-contigs_binned_unbinned_by_genus_ad.pdf")
-
-contigs_binned_length_af_plot_genus <- ggplot(contig_fates_df_af_mag, aes(x = sample, y = len_contigs, fill = factor(Genus, genera))) +
-                                  geom_bar(stat = "identity") +
-                                    labs(x = "Sample", y = "Sum of length of contigs in bin", fill = "Genus") +
-                                    # scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6), limits = c(0, 6e+8)) +
-                                    scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
-                                      make_theme(setFill = F,
-                                          leg_pos = "right", guide_nrow = 22,
-                                          x_angle = 30, x_hj = 1, x_vj = 1
-                                        ) +
-                                      scale_fill_manual(values=genusColors)
-                                      # ggsave("Figures/05-contigs_binned_unbinned_by_genus_af.pdf")
-
-contig_fates_df_am_mag_binned <- contig_fates_df_am %>%
-                            filter(binned == "Y") %>%
-                            group_by(sample, bin_name) %>%
-                              summarise(num_contigs = n(), len_contigs = sum(length), .groups = "keep") %>%
-                                left_join(select(vis_magOTUs_df_all, ID, Host, Sample, Cluster, Family, Genus, N50, Prevalence), by = c("bin_name" = "ID"))
-contig_fates_df_ac_mag_binned <- contig_fates_df_ac %>%
-                            filter(binned == "Y") %>%
-                            group_by(sample, bin_name) %>%
-                              summarise(num_contigs = n(), len_contigs = sum(length), .groups = "keep") %>%
-                                left_join(select(vis_magOTUs_df_all, ID, Host, Sample, Cluster, Family, Genus, N50, Prevalence), by = c("bin_name" = "ID"))
-contig_fates_df_ad_mag_binned <- contig_fates_df_ad %>%
-                            filter(binned == "Y") %>%
-                            group_by(sample, bin_name) %>%
-                              summarise(num_contigs = n(), len_contigs = sum(length), .groups = "keep") %>%
-                                left_join(select(vis_magOTUs_df_all, ID, Host, Sample, Cluster, Family, Genus, N50, Prevalence), by = c("bin_name" = "ID"))
-contig_fates_df_af_mag_binned <- contig_fates_df_af %>%
-                            filter(binned == "Y") %>%
-                            group_by(sample, bin_name) %>%
-                              summarise(num_contigs = n(), len_contigs = sum(length), .groups = "keep") %>%
-                                left_join(select(vis_magOTUs_df_all, ID, Host, Sample, Cluster, Family, Genus, N50, Prevalence), by = c("bin_name" = "ID"))
-
-contigs_binned_length_am_plot_genus_binned <- ggplot(contig_fates_df_am_mag_binned, aes(x = sample, y = len_contigs, fill = factor(Genus, genera))) +
-                                  geom_bar(stat = "identity") +
-                                    labs(x = "Sample", y = "Sum of length of contigs in bin", fill = "Genus") +
-                                    # scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6), limits = c(0, 6e+8)) +
-                                    scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
-                                      make_theme(setFill = F,
-                                          leg_pos = "right", guide_nrow = 22,
-                                          x_angle = 30, x_hj = 1, x_vj = 1
-                                        ) +
-                                      scale_fill_manual(values=genusColors)
-                                      # ggsave("Figures/05-contigs_binned_unbinned_by_genus_am.pdf")
-
-contigs_binned_length_ac_plot_genus_binned <- ggplot(contig_fates_df_ac_mag_binned, aes(x = sample, y = len_contigs, fill = factor(Genus, genera))) +
-                                  geom_bar(stat = "identity") +
-                                    labs(x = "Sample", y = "Sum of length of contigs in bin", fill = "Genus") +
-                                    # scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6), limits = c(0, 6e+8)) +
-                                    scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
-                                      make_theme(setFill = F,
-                                          leg_pos = "right", guide_nrow = 22,
-                                          x_angle = 30, x_hj = 1, x_vj = 1
-                                        ) +
-                                      scale_fill_manual(values=genusColors)
-                                      # ggsave("Figures/05-contigs_binned_unbinned_by_genus_ac.pdf")
-
-contigs_binned_length_ad_plot_genus_binned <- ggplot(contig_fates_df_ad_mag_binned, aes(x = sample, y = len_contigs, fill = factor(Genus, genera))) +
-                                  geom_bar(stat = "identity") +
-                                    labs(x = "Sample", y = "Sum of length of contigs in bin", fill = "Genus") +
-                                    # scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6), limits = c(0, 6e+8)) +
-                                    scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
-                                      make_theme(setFill = F,
-                                          leg_pos = "right", guide_nrow = 22,
-                                          x_angle = 30, x_hj = 1, x_vj = 1
-                                        ) +
-                                      scale_fill_manual(values=genusColors)
-                                      # ggsave("Figures/05-contigs_binned_unbinned_by_genus_ad.pdf")
-
-contigs_binned_length_af_plot_genus_binned <- ggplot(contig_fates_df_af_mag_binned, aes(x = sample, y = len_contigs, fill = factor(Genus, genera))) +
-                                  geom_bar(stat = "identity") +
-                                    labs(x = "Sample", y = "Sum of length of contigs in bin", fill = "Genus") +
-                                    # scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6), limits = c(0, 6e+8)) +
-                                    scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
-                                      make_theme(setFill = F,
-                                          leg_pos = "right", guide_nrow = 22,
-                                          x_angle = 30, x_hj = 1, x_vj = 1
-                                        ) +
-                                      scale_fill_manual(values=genusColors)
-                                      # ggsave("Figures/05-contigs_binned_unbinned_by_genus_af.pdf")
-
-contig_length_host_plot_am <- ggplot(filter(length_bin_sum_df, sample %in% samples_am), aes(x = length_bin, y = length_bin_sum, fill = binned)) +
-                      geom_bar(stat = "identity") +
-                        geom_text(aes(label = num_contigs), angle = 0, size = 1, vjust = 1) +
-                        # geom_text(aes(label = num_contigs), angle = 90, size = 2) +
-                          labs(x = "length of contig", y = "Total bases from contigs in bin", fill = "binned") +
-                            scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
-                              facet_wrap(~ sample, scales = "free") +
-                                make_theme(x_angle = 40, x_size = 7, x_hj = 1, x_vj = 1, leg_pos = "none")
-                                  ggsave("Figures/05c-contig_length_histogram_am.pdf")
-contig_length_host_plot_am_passed <- ggplot(filter(length_bin_sum_df_passed, sample %in% samples_am), aes(x = length_bin, y = length_bin_sum, fill = binned)) +
-                      geom_bar(stat = "identity") +
-                        geom_text(aes(label = num_contigs), angle = 0, size = 1, vjust = 1) +
-                        # geom_text(aes(label = num_contigs), angle = 90, size = 2) +
-                          labs(x = "length of contig", y = "Total bases from contigs in bin", fill = "binned") +
-                            scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
-                              facet_wrap(~ sample, scales = "free") +
-                                make_theme(x_angle = 40, x_size = 7, x_hj = 1, x_vj = 1, leg_pos = "none")
-                                  ggsave("Figures/05d-contig_length_histogram_am_passed.pdf")
-contig_length_host_plot_ac <- ggplot(filter(length_bin_sum_df, sample %in% samples_ac), aes(x = length_bin, y = length_bin_sum, fill = binned)) +
-                      geom_bar(stat = "identity") +
-                        geom_text(aes(label = num_contigs), angle = 0, size = 1, vjust = 1) +
-                        # geom_text(aes(label = num_contigs), angle = 90, size = 2) +
-                          labs(x = "length of contig", y = "Total bases from contigs in bin", fill = "binned") +
-                            scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
-                              facet_wrap(~ sample, scales = "free") +
-                                make_theme(x_angle = 40, x_size = 7, x_hj = 1, x_vj = 1, leg_pos = "none")
-                                  ggsave("Figures/05c-contig_length_histogram_ac.pdf")
-contig_length_host_plot_ac_passed <- ggplot(filter(length_bin_sum_df_passed, sample %in% samples_ac), aes(x = length_bin, y = length_bin_sum, fill = binned)) +
-                      geom_bar(stat = "identity") +
-                        geom_text(aes(label = num_contigs), angle = 0, size = 1, vjust = 1) +
-                        # geom_text(aes(label = num_contigs), angle = 90, size = 2) +
-                          labs(x = "length of contig", y = "Total bases from contigs in bin", fill = "binned") +
-                            scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
-                              facet_wrap(~ sample, scales = "free") +
-                                make_theme(x_angle = 40, x_size = 7, x_hj = 1, x_vj = 1, leg_pos = "none")
-                                  ggsave("Figures/05d-contig_length_histogram_ac_passed.pdf")
-contig_length_host_plot_ad <- ggplot(filter(length_bin_sum_df, sample %in% samples_ad), aes(x = length_bin, y = length_bin_sum, fill = binned)) +
-                      geom_bar(stat = "identity") +
-                        geom_text(aes(label = num_contigs), angle = 0, size = 1, vjust = 1) +
-                        # geom_text(aes(label = num_contigs), angle = 90, size = 2) +
-                          labs(x = "length of contig", y = "Total bases from contigs in bin", fill = "binned") +
-                            scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
-                              facet_wrap(~ sample, scales = "free") +
-                                make_theme(x_angle = 40, x_size = 7, x_hj = 1, x_vj = 1, leg_pos = "none")
-                                  ggsave("Figures/05c-contig_length_histogram_ad.pdf")
-contig_length_host_plot_ad_passed <- ggplot(filter(length_bin_sum_df_passed, sample %in% samples_ad), aes(x = length_bin, y = length_bin_sum, fill = binned)) +
-                      geom_bar(stat = "identity") +
-                        geom_text(aes(label = num_contigs), angle = 0, size = 1, vjust = 1) +
-                        # geom_text(aes(label = num_contigs), angle = 90, size = 2) +
-                          labs(x = "length of contig", y = "Total bases from contigs in bin", fill = "binned") +
-                            scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
-                              facet_wrap(~ sample, scales = "free") +
-                                make_theme(x_angle = 40, x_size = 7, x_hj = 1, x_vj = 1, leg_pos = "none")
-                                  ggsave("Figures/05d-contig_length_histogram_ad_passed.pdf")
-contig_length_host_plot_af <- ggplot(filter(length_bin_sum_df, sample %in% samples_af), aes(x = length_bin, y = length_bin_sum, fill = binned)) +
-                      geom_bar(stat = "identity") +
-                        geom_text(aes(label = num_contigs), angle = 0, size = 1, vjust = 1) +
-                        # geom_text(aes(label = num_contigs), angle = 90, size = 2) +
-                          labs(x = "length of contig", y = "Total bases from contigs in bin", fill = "binned") +
-                            scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
-                              facet_wrap(~ sample, scales = "free") +
-                                make_theme(x_angle = 40, x_size = 7, x_hj = 1, x_vj = 1, leg_pos = "none")
-                                  ggsave("Figures/05c-contig_length_histogram_af.pdf")
-contig_length_host_plot_af_passed <- ggplot(filter(length_bin_sum_df_passed, sample %in% samples_af), aes(x = length_bin, y = length_bin_sum, fill = binned)) +
-                      geom_bar(stat = "identity") +
-                        geom_text(aes(label = num_contigs), angle = 0, size = 1, vjust = 1) +
-                        # geom_text(aes(label = num_contigs), angle = 90, size = 2) +
-                          labs(x = "length of contig", y = "Total bases from contigs in bin", fill = "binned") +
-                            scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
-                              facet_wrap(~ sample, scales = "free") +
-                                make_theme(x_angle = 40, x_size = 7, x_hj = 1, x_vj = 1, leg_pos = "none")
-                                  ggsave("Figures/05d-contig_length_histogram_af_passed.pdf")
-
-contigs_depths_df_genus <- left_join(contigs_depths_df, select(vis_magOTUs_df_all, ID, Genus, Cluster), by = c("bin" = "ID")) %>%
-  select(!Host) %>%
-  left_join(rename(select(df, Sample, SpeciesID), Host = SpeciesID), by = c("sample" = "Sample"))
-
-
-temp <- ggplot(filter(contigs_depths_df_genus, Host == "Apis mellifera"), aes(x = bin, y = depth, color = Genus, size = length, alpha = 0.5)) +
-                          geom_point() +
-                            make_theme(setFill = F, setCol = F,
-                              leg_pos = "bottom",
-                              guide_nrow = 7, leg_size = 12,
-                              x_size = 5, x_angle = 30, x_hj = 1, x_vj = 1
-                            ) +
-                            scale_color_manual(values=genusColors)+
-                              guides(size = "none", alpha = "none")
-genus_legend <- get_only_legend(temp)
-remove(temp)
-
-contig_len_vs_depth_am <- ggplot(filter(contigs_depths_df_genus, Host == "Apis mellifera"), aes(x = bin, y = depth, color = Genus, size = length, alpha = 0.5)) +
-                          geom_point() +
-                            make_theme(setFill = F, setCol = F,
-                              leg_pos = "bottom",
-                              x_size = 5, x_angle = 50, x_hj = 1, x_vj = 1
-                            ) +
-                            scale_size_continuous(labels=unit_format(unit = "K", scale = 1e-4)) +
-                            theme(legend.margin=margin(-1,-1,-1,-1), legend.box="vertical") +
-                            scale_color_manual(values=genusColors) +
-                            facet_wrap(~ factor(sample, samples_am), scales="free") +
-                              guides(color = "none", alpha = "none")
-                              ggsave("Figures/05g-length_vs_depth_contigs_all_am.pdf")
-contig_len_vs_depth_am_binned <- ggplot(filter(contigs_depths_df_genus, Host == "Apis mellifera" & binned != "N"), aes(x = bin, y = depth, color = Genus, size = length, alpha = 0.5)) +
-                          geom_point() +
-                            make_theme(setFill = F, setCol = F,
-                              leg_pos = "bottom",
-                              x_size = 5, x_angle = 50, x_hj = 1, x_vj = 1
-                            ) +
-                            scale_size_continuous(labels=unit_format(unit = "K", scale = 1e-4)) +
-                            theme(legend.margin=margin(-1,-1,-1,-1), legend.box="vertical") +
-                            scale_color_manual(values=genusColors) +
-                            facet_wrap(~ factor(sample, samples_am), scales="free") +
-                              guides(color = "none", alpha = "none")
-                              ggsave("Figures/05h-length_vs_depth_contigs_binned_am.pdf")
-contig_len_vs_depth_ac <- ggplot(filter(contigs_depths_df_genus, Host == "Apis cerana"), aes(x = bin, y = depth, color = Genus, size = length, alpha = 0.5)) +
-                          geom_point() +
-                            make_theme(setFill = F, setCol = F,
-                              leg_pos = "bottom",
-                              x_size = 5, x_angle = 50, x_hj = 1, x_vj = 1
-                            ) +
-                            scale_size_continuous(labels=unit_format(unit = "K", scale = 1e-4)) +
-                            theme(legend.margin=margin(-1,-1,-1,-1), legend.box="vertical") +
-                            scale_color_manual(values=genusColors) +
-                            facet_wrap(~ factor(sample, samples_ac), scales="free") +
-                              guides(color = "none", alpha = "none")
-                              ggsave("Figures/05g-length_vs_depth_contigs_all_ac.pdf")
-contig_len_vs_depth_ac_binned <- ggplot(filter(contigs_depths_df_genus, Host == "Apis cerana" & binned != "N"), aes(x = bin, y = depth, color = Genus, size = length, alpha = 0.5)) +
-                          geom_point() +
-                            make_theme(setFill = F, setCol = F,
-                              leg_pos = "bottom",
-                              x_size = 5, x_angle = 50, x_hj = 1, x_vj = 1
-                            ) +
-                            scale_size_continuous(labels=unit_format(unit = "K", scale = 1e-4)) +
-                            theme(legend.margin=margin(-1,-1,-1,-1), legend.box="vertical") +
-                            scale_color_manual(values=genusColors) +
-                            facet_wrap(~ factor(sample, samples_ac), scales="free") +
-                              guides(color = "none", alpha = "none")
-                              ggsave("Figures/05h-length_vs_depth_contigs_binned_ac.pdf")
-contig_len_vs_depth_ad <- ggplot(filter(contigs_depths_df_genus, Host == "Apis dorsata"), aes(x = bin, y = depth, color = Genus, size = length, alpha = 0.5)) +
-                          geom_point() +
-                            make_theme(setFill = F, setCol = F,
-                              leg_pos = "bottom",
-                              x_size = 5, x_angle = 50, x_hj = 1, x_vj = 1
-                            ) +
-                            scale_size_continuous(labels=unit_format(unit = "K", scale = 1e-4)) +
-                            theme(legend.margin=margin(-1,-1,-1,-1), legend.box="vertical") +
-                            scale_color_manual(values=genusColors) +
-                            facet_wrap(~ factor(sample, samples_ad), scales="free") +
-                              guides(color = "none", alpha = "none")
-                              ggsave("Figures/05g-length_vs_depth_contigs_all_ad.pdf")
-contig_len_vs_depth_ad_binned <- ggplot(filter(contigs_depths_df_genus, Host == "Apis dorsata" & binned != "N"), aes(x = bin, y = depth, color = Genus, size = length, alpha = 0.5)) +
-                          geom_point() +
-                            make_theme(setFill = F, setCol = F,
-                              leg_pos = "bottom",
-                              x_size = 5, x_angle = 50, x_hj = 1, x_vj = 1
-                            ) +
-                            scale_size_continuous(labels=unit_format(unit = "K", scale = 1e-4)) +
-                            theme(legend.margin=margin(-1,-1,-1,-1), legend.box="vertical") +
-                            scale_color_manual(values=genusColors) +
-                            facet_wrap(~ factor(sample, samples_ad), scales="free") +
-                              guides(color = "none", alpha = "none")
-                              ggsave("Figures/05h-length_vs_depth_contigs_binned_ad.pdf")
-contig_len_vs_depth_af <- ggplot(filter(contigs_depths_df_genus, Host == "Apis florea"), aes(x = bin, y = depth, color = Genus, size = length, alpha = 0.5)) +
-                          geom_point() +
-                            make_theme(setFill = F, setCol = F,
-                              leg_pos = "bottom",
-                              x_size = 5, x_angle = 50, x_hj = 1, x_vj = 1
-                            ) +
-                            scale_size_continuous(labels=unit_format(unit = "K", scale = 1e-4)) +
-                            theme(legend.margin=margin(-1,-1,-1,-1), legend.box="vertical") +
-                            scale_color_manual(values=genusColors) +
-                            facet_wrap(~ factor(sample, samples_af), scales="free") +
-                              guides(color = "none", alpha = "none")
-                              ggsave("Figures/05g-length_vs_depth_contigs_all_af.pdf")
-contig_len_vs_depth_af_binned <- ggplot(filter(contigs_depths_df_genus, Host == "Apis florea" & binned != "N"), aes(x = bin, y = depth, color = Genus, size = length, alpha = 0.5)) +
-                          geom_point() +
-                            make_theme(setFill = F, setCol = F,
-                              leg_pos = "bottom",
-                              x_size = 5, x_angle = 50, x_hj = 1, x_vj = 1
-                            ) +
-                            scale_size_continuous(labels=unit_format(unit = "K", scale = 1e-4)) +
-                            theme(legend.margin=margin(-1,-1,-1,-1), legend.box="vertical") +
-                            scale_color_manual(values=genusColors) +
-                            facet_wrap(~ factor(sample, samples_af), scales="free") +
-                              guides(color = "none", alpha = "none")
-                              ggsave("Figures/05h-length_vs_depth_contigs_binned_af.pdf")
-```
-
-```{r contig_binning_summary_plots,  dev = 'pdf', results='hold', fig.show = 'hold', out.width = '100%', fig.align = 'center'}
-amount_pass_fail
-  ggsave("Figures/05a-data-contigs_passed_failed.pdf", amount_pass_fail)
-contigs_binned_length_plot
-  ggsave("Figures/05b-contigs_binned_unbinned.pdf", contigs_binned_length_plot)
-binned_unbinned_contigs_length_genus <- grid.arrange(
-  arrangeGrob(
-    contigs_binned_length_am_plot_genus + make_theme(setFill = F, setCol = F, leg_pos = "none", x_size = 7, x_angle = 30, x_hj = 1, x_vj = 1) + scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6)),
-    contigs_binned_length_ac_plot_genus + make_theme(setFill = F, setCol = F, leg_pos = "none", x_size = 7, x_angle = 30, x_hj = 1, x_vj = 1) + scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6)),
-    nrow = 1
-  ),
-  arrangeGrob(
-    contigs_binned_length_ad_plot_genus + make_theme(setFill = F, setCol = F, leg_pos = "none", x_size = 7, x_angle = 30, x_hj = 1, x_vj = 1) + scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6)),
-    contigs_binned_length_af_plot_genus + make_theme(setFill = F, setCol = F, leg_pos = "none", x_size = 7, x_angle = 30, x_hj = 1, x_vj = 1) + scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6)),
-    nrow = 1
-  ),
-  get_only_legend(contigs_binned_length_am_plot_genus + make_theme(setFill = F, setCol = F, leg_pos = "bottom", guide_nrow = 6, leg_size = 7)),
-  nrow = 3, heights = c(2,2,1)
-)
-  ggsave("Figures/05e-contigs_binned_unbinned_by_genus.pdf", binned_unbinned_contigs_length_genus)
-
-binned_unbinned_contigs_length_genus_scaled <- grid.arrange(
-  arrangeGrob(
-    contigs_binned_length_am_plot_genus + make_theme(setFill = F, setCol = F, leg_pos = "none", x_size = 7, x_angle = 30, x_hj = 1, x_vj = 1) + scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6), limits = c(0, 6e+8)),
-    contigs_binned_length_ac_plot_genus + make_theme(setFill = F, setCol = F, leg_pos = "none", x_size = 7, x_angle = 30, x_hj = 1, x_vj = 1) + scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6), limits = c(0, 6e+8)),
-    nrow = 1
-  ),
-  arrangeGrob(
-    contigs_binned_length_ad_plot_genus + make_theme(setFill = F, setCol = F, leg_pos = "none", x_size = 7, x_angle = 30, x_hj = 1, x_vj = 1) + scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6), limits = c(0, 6e+8)),
-    contigs_binned_length_af_plot_genus + make_theme(setFill = F, setCol = F, leg_pos = "none", x_size = 7, x_angle = 30, x_hj = 1, x_vj = 1) + scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6), limits = c(0, 6e+8)),
-    nrow = 1
-  ),
-  get_only_legend(contigs_binned_length_am_plot_genus + make_theme(setFill = F, setCol = F, leg_pos = "bottom", guide_nrow = 6, leg_size = 7)),
-  nrow = 3, heights = c(2,2,1)
-)
-  ggsave("Figures/05e-contigs_binned_unbinned_by_genus_scaled.pdf", binned_unbinned_contigs_length_genus_scaled)
-binned_unbinned_contigs_length_genus_binned <- grid.arrange(
-  arrangeGrob(
-    contigs_binned_length_am_plot_genus_binned + make_theme(setFill = F, setCol = F, leg_pos = "none", x_size = 7, x_angle = 30, x_hj = 1, x_vj = 1) + scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6)),
-    contigs_binned_length_ac_plot_genus_binned + make_theme(setFill = F, setCol = F, leg_pos = "none", x_size = 7, x_angle = 30, x_hj = 1, x_vj = 1) + scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6)),
-    nrow = 1
-  ),
-  arrangeGrob(
-    contigs_binned_length_ad_plot_genus_binned + make_theme(setFill = F, setCol = F, leg_pos = "none", x_size = 7, x_angle = 30, x_hj = 1, x_vj = 1) + scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6)),
-    contigs_binned_length_af_plot_genus_binned + make_theme(setFill = F, setCol = F, leg_pos = "none", x_size = 7, x_angle = 30, x_hj = 1, x_vj = 1) + scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6)),
-    nrow = 1
-  ),
-  get_only_legend(contigs_binned_length_am_plot_genus_binned + make_theme(setFill = F, setCol = F, leg_pos = "bottom", guide_nrow = 6, leg_size = 7)),
-  nrow = 3, heights = c(2,2,1)
-)
-  ggsave("Figures/05f-contigs_by_genus_binned.pdf", binned_unbinned_contigs_length_genus_binned)
-
-binned_unbinned_contigs_length_genus_scaled_binned <- grid.arrange(
-  arrangeGrob(
-    contigs_binned_length_am_plot_genus_binned + make_theme(setFill = F, setCol = F, leg_pos = "none", x_size = 7, x_angle = 30, x_hj = 1, x_vj = 1) + scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6), limits = c(0, 1.5e+8)),
-    contigs_binned_length_ac_plot_genus_binned + make_theme(setFill = F, setCol = F, leg_pos = "none", x_size = 7, x_angle = 30, x_hj = 1, x_vj = 1) + scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6), limits = c(0, 1.5e+8)),
-    nrow = 1
-  ),
-  arrangeGrob(
-    contigs_binned_length_ad_plot_genus_binned + make_theme(setFill = F, setCol = F, leg_pos = "none", x_size = 7, x_angle = 30, x_hj = 1, x_vj = 1) + scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6), limits = c(0, 1.5e+8)),
-    contigs_binned_length_af_plot_genus_binned + make_theme(setFill = F, setCol = F, leg_pos = "none", x_size = 7, x_angle = 30, x_hj = 1, x_vj = 1) + scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6), limits = c(0, 1.5e+8)),
-    nrow = 1
-  ),
-  get_only_legend(contigs_binned_length_am_plot_genus_binned + make_theme(setFill = F, setCol = F, leg_pos = "bottom", guide_nrow = 6, leg_size = 7)),
-  nrow = 3, heights = c(2,2,1)
-)
-  ggsave("Figures/05f-contigs_by_genus_binned_scaled.pdf", binned_unbinned_contigs_length_genus_scaled_binned)
-contig_length_host_plot_am
-contig_length_host_plot_am_passed
-contig_length_host_plot_ac
-contig_length_host_plot_ac_passed
-contig_length_host_plot_ad
-contig_length_host_plot_ad_passed
-contig_length_host_plot_af
-contig_length_host_plot_af_passed
-contig_len_vs_depth_am
-contig_len_vs_depth_am_binned
-contig_len_vs_depth_ac
-contig_len_vs_depth_ac_binned
-contig_len_vs_depth_ad
-contig_len_vs_depth_ad_binned
-contig_len_vs_depth_af
-contig_len_vs_depth_af_binned
-```
-
-## MAGs prevalence and abundance
-
-Mean of mean contig coverage (calculated for metabat2) as a proxy for abundance of MAG in it's own sample.
-
-Total MAGs recovered - distribution of quality / total + per sample
-
-```{r visualize_coverage}
-MAGs_collated_info_plot_means <- vis_magOTUs_df_all %>%
-                        group_by(Sample) %>%
-                          summarise(Sample, completeness, contamination, N50, Host) %>%
-                            mutate(Completeness_mean = mean(completeness)) %>%
-                              mutate(Contamination_mean = mean(contamination)) %>%
-                              mutate(N50_mean = mean(N50))
-Completeness_hist <- ggplot(MAGs_collated_info_plot, aes(x = completeness, fill = Host)) +
-    geom_histogram(binwidth=2) +
-    geom_vline(xintercept = 70-1) +
-      make_theme(palettefill="Spectral")
-N50_hist <- ggplot(MAGs_collated_info_plot, aes(x = N50, fill = Host)) +
-    geom_histogram(bins = 150) +
-      scale_x_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
-      geom_vline(xintercept = 10000) +
-      make_theme(palettefill="Spectral")
-Contamination_hist <- ggplot(MAGs_collated_info_plot, aes(x = contamination, fill = Host)) +
-    geom_histogram(binwidth=2) +
-    geom_vline(xintercept = 5) +
-      make_theme(palettefill="Spectral")
-completeness_per_sample <- ggplot(MAGs_collated_info_plot, aes(y = factor(Sample, levels = samples), fill = Completeness_quality)) +
-    geom_bar(position = "stack") +
-    labs(fill = "Quality", y = "Sample") +
-      make_theme(palettefill="RdYlGn", max_colors = length(levels(MAGs_collated_info_plot$Completeness_quality)))
-N50_per_sample <- ggplot(MAGs_collated_info_plot, aes(y = factor(Sample, levels = samples), fill = N50_quality)) +
-        geom_bar(position = "stack") +
-        labs(fill = "Quality", y = "Sample") +
-        make_theme(palettefill="RdYlBu", max_colors = length(levels(MAGs_collated_info_plot$N50_quality)))
-contamination_per_sample <- ggplot(MAGs_collated_info_plot, aes(y = factor(Sample, levels = samples), fill = Contamination_quality)) +
-    geom_bar(position = "stack") +
-    labs(fill = "Quality", y = "Sample") +
-      make_theme(palettefill="RdYlBu", max_colors = length(levels(MAGs_collated_info_plot$Contamination_quality)))
-MAG_quality_per_sample <- ggplot(MAGs_collated_info_plot, aes(y = factor(Sample, levels = samples), fill = all_quality)) +
-    geom_bar(position = "stack") +
-    labs(fill = "Quality", y = "Sample") +
-      make_theme(palettefill="Set1",)
-
-prev_vs_abud_all <- ggplot(vis_magOTUs_df_all, aes(x = mean_coverage, y = Prevalence, size = completeness, color = Genus, alpha = 0.5)) +
-                    geom_point(position = position_jitter(w = 0, h = 0.05)) +
-                      make_theme(setFill = F, setCol = F,
-                        leg_pos = "bottom",
-                        guide_nrow = 8,
-                        leg_size = 12
-                      ) +
-                      theme(legend.margin=margin(-1,-1,-1,-1), legend.box="vertical") +
-                      scale_color_manual(values=genusColors) +
-                      scale_x_continuous(trans = "log10") +
-                        scale_alpha(guide = "none")
-
-prev_vs_abud <- ggplot(vis_magOTUs_df, aes(x = mean_coverage, y = Prevalence, size = completeness, color = Genus, alpha = 0.5)) +
-  geom_point(position = position_jitter(w = 0, h = 0.05)) +
-    make_theme(setFill = F, setCol = F,
-      leg_pos = "bottom",
-      guide_nrow = 8,
-      leg_size = 12
-    ) +
-    theme(legend.margin=margin(-1,-1,-1,-1), legend.box="vertical") +
-    scale_color_manual(values=genusColors) +
-    scale_x_continuous(trans = "log10") +
-    # facet_wrap(~ factor(Host, host_order)) +
-      scale_alpha(guide = "none")
-
-prev_overall_vs_abud_all <- ggplot(vis_magOTUs_df_all, aes(x = mean_coverage, y = Prevalence_overall, size = completeness, color = Genus, alpha = 0.5)) +
-                    geom_point(position = position_jitter(w = 0, h = 0.05)) +
-                      make_theme(setFill = F, setCol = F,
-                        leg_pos = "bottom",
-                        guide_nrow = 8,
-                        leg_size = 12
-                      ) +
-                      theme(legend.margin=margin(-1,-1,-1,-1), legend.box="vertical") +
-                      scale_color_manual(values=genusColors) +
-                      scale_x_continuous(trans = "log10") +
-                        scale_alpha(guide = "none")
-
-prev_overall_vs_abud <- ggplot(vis_magOTUs_df, aes(x = mean_coverage, y = Prevalence_overall, size = completeness, color = Genus, alpha = 0.5)) +
-  geom_point(position = position_jitter(w = 0, h = 0.05)) +
-    make_theme(setFill = F, setCol = F,
-      leg_pos = "bottom",
-      guide_nrow = 8,
-      leg_size = 12
-    ) +
-    theme(legend.margin=margin(-1,-1,-1,-1), legend.box="vertical") +
-    scale_color_manual(values=genusColors) +
-    scale_x_continuous(trans = "log10") +
-    # facet_wrap(~ factor(Host, host_order)) +
-      scale_alpha(guide = "none")
-
-prev_vs_abud_all_host <- ggplot(vis_magOTUs_df_all, aes(x = mean_coverage, y = Prevalence, size = completeness, color = Genus, alpha = 0.5)) +
-  geom_point(position = position_jitter(w = 0, h = 0.05)) +
-    make_theme(setFill = F, setCol = F,
-      leg_pos = "none",
-      guide_nrow = 8,
-      leg_size = 12
-    ) +
-    ggtitle("MAGs with > 70% completeness and < 5% contamination") +
-    theme(legend.margin=margin(-1,-1,-1,-1), legend.box="vertical") +
-    scale_color_manual(values=genusColors) +
-    scale_x_continuous(trans = "log10") +
-    facet_wrap(~ factor(Host, host_order)) +
-      scale_alpha(guide = "none")
-      ggsave("Figures/07a-prev_vs_coverage_all_MAGs_genus_by_host.pdf")
-
-prev_vs_abud_host <- ggplot(vis_magOTUs_df, aes(x = mean_coverage, y = Prevalence, size = completeness, color = Genus, alpha = 0.5)) +
-  geom_point(position = position_jitter(w = 0, h = 0.05)) +
-    make_theme(setFill = F, setCol = F,
-      leg_pos = "none",
-      guide_nrow = 8,
-      leg_size = 12
-    ) +
-    ggtitle("MAGs with > 70% completeness and < 5% contamination") +
-    theme(legend.margin=margin(-1,-1,-1,-1), legend.box="vertical") +
-    scale_color_manual(values=genusColors) +
-    scale_x_continuous(trans = "log10") +
-    facet_wrap(~ factor(Host, host_order)) +
-      scale_alpha(guide = "none")
-      ggsave("Figures/07a-prev_vs_coverage_filtered_MAGs_genus_by_host.pdf")
-
-prev_vs_abud_all_host <- ggplot(vis_magOTUs_df_all, aes(x = mean_coverage, y = Prevalence, color = Genus)) +
-  geom_point(position = position_jitter(w = 0, h = 0.05)) +
-    make_theme(setFill = F, setCol = F,
-      leg_pos = "none",
-      guide_nrow = 8,
-      leg_size = 12
-    ) +
-    ggtitle("MAGs with > 70% completeness and < 5% contamination") +
-    theme(legend.margin=margin(-1,-1,-1,-1), legend.box="vertical") +
-    scale_color_manual(values=genusColors) +
-    scale_x_continuous(trans = "log10") +
-    facet_wrap(~ factor(Host, host_order)) +
-      scale_alpha(guide = "none")
-      ggsave("Figures/07a-prev_vs_coverage_all_MAGs_genus_by_host_no_size.pdf")
-
-prev_vs_abud_host <- ggplot(vis_magOTUs_df, aes(x = mean_coverage, y = Prevalence, color = Genus)) +
-  geom_point(position = position_jitter(w = 0, h = 0.05)) +
-    make_theme(setFill = F, setCol = F,
-      leg_pos = "none",
-      guide_nrow = 8,
-      leg_size = 12
-    ) +
-    ggtitle("MAGs with > 70% completeness and < 5% contamination") +
-    theme(legend.margin=margin(-1,-1,-1,-1), legend.box="vertical") +
-    scale_color_manual(values=genusColors) +
-    scale_x_continuous(trans = "log10") +
-    facet_wrap(~ factor(Host, host_order)) +
-      scale_alpha(guide = "none")
-      ggsave("Figures/07a-prev_vs_coverage_filtered_MAGs_genus_by_host_no_size.pdf")
-```
-
-```{r visualize_coverage_plots,  dev = 'pdf', results='hold', fig.show = 'hold', out.width = '100%', fig.align = 'center'}
-legend_hist_host <- get_only_legend(Completeness_hist)
-g  <- arrangeGrob(
-  arrangeGrob(
-      Completeness_hist + make_theme(setFill = F, setCol = F, leg_pos = "none"),
-      Contamination_hist + make_theme(setFill = F, setCol = F, leg_pos = "none"),
-      N50_hist + make_theme(setFill = F, setCol = F, leg_pos = "none"),
-      nrow = 2,
-      layout_matrix = rbind(c(1,2), c(3,3))
-    ),
-    legend_hist_host,
-    heights = c(10, 1)
-  )
-  ggsave("Figures/06a-QC_MAG_histogram.pdf", g)
-g <- grid.arrange(
-    MAG_quality_per_sample + make_theme(setFill = F, setCol = F, leg_size = 7, y_size = 5, leg_pos = "right", guide_nrow = 2),
-    N50_per_sample + make_theme(setFill = F, setCol = F, leg_size = 7, y_size = 5, leg_pos = "right", guide_nrow = 7),
-    contamination_per_sample + make_theme(setFill = F, setCol = F, leg_size = 7, y_size = 5, leg_pos = "right", guide_nrow = 4),
-    completeness_per_sample + make_theme(setFill = F, setCol = F, leg_size = 7, y_size = 5, leg_pos = "right", guide_nrow = 10)
-  )
-  ggsave("Figures/06b-QC_MAG_per_sample.pdf", g)
-g <- grid.arrange(prev_vs_abud_all + make_theme(setFill = F, setCol = F, leg_pos = "none"),
-             prev_vs_abud + make_theme(setFill = F, setCol = F, leg_pos = "none") + ggtitle("MAGs with > 70% completeness and < 5% contamination"),
-             genus_legend,
-             heights = c(3,3,2)
-           )
-    ggsave("Figures/07a-prev_vs_coverage_MAGs_genus.pdf", g)
-g <- grid.arrange(prev_overall_vs_abud_all + make_theme(setFill = F, setCol = F, leg_pos = "none"),
-             prev_overall_vs_abud + make_theme(setFill = F, setCol = F, leg_pos = "none") + ggtitle("MAGs with > 70% completeness and < 5% contamination"),
-             genus_legend,
-             heights = c(3,3,2)
-           )
-    ggsave("Figures/07a-prev_overall_vs_coverage_MAGs_genus.pdf", g)
-```
-
-```{r mag_summary_stat_make_plots}
-extend_colors_family <- function(names_vec){
-  final_list <- list()
-  for (a_name in names_vec) {
-    if (a_name %in% names(familyColors)) {
-      final_list[a_name] = familyColors[a_name]
-    } else {
-      final_list[a_name] = "grey"
-    }
-  }
-  return(final_list)
-}
-
-extend_colors_genera <- function(names_vec){
-  final_list <- list()
-  for (a_name in names_vec) {
-    if (a_name %in% names(genusColors)) {
-      final_list[a_name] = genusColors[a_name]
-    } else {
-      final_list[a_name] = "grey"
-    }
-  }
-  return(final_list)
-}
-```
-
-There are a total of `r dim(MAGs_collated)[[1]]` MAGs present. There were `r dim(filter(MAGs_collated_info_plot, completeness > 95 & contamination < 5))[[1]]` high quality MAGs (> 95% complete and < 5% redundant) and `r dim(filter(MAGs_collated_info_plot, completeness > 50 & contamination < 10))[[1]]` with > 50% completion and < 10% redundancy.
-
-## MAG taxonomy affiliation per sample
-
-
-```{r mag_genus_summary}
-genus_MAG_quality_host_all <- ggplot(vis_magOTUs_df_all, aes(y = Genus, fill = Host)) +
-        geom_bar(position = "stack") +
-        labs(fill = "Host", y = "Genus", x = "Number of MAGs") +
-        make_theme(palettefill = "Spectral")
-      ggsave("Figures/07-QC_per_Genus_per_host_all.pdf")
-
-genus_MAG_quality_host <- ggplot(filter(vis_magOTUs_df_all, all_quality=="Pass"), aes(y = Genus, fill = Host)) +
-        geom_bar(position = "stack") +
-        labs(fill = "Host", y = "Genus", x = "Number of MAGs") +
-        make_theme(palettefill = "Spectral")
-      ggsave("Figures/07-QC_per_Genus_per_host_passed.pdf")
-```
-
-```{r mags_genus_plot,  dev = 'pdf', results='hold', fig.show = 'hold', out.width = '100%', fig.align = 'center', fig.cap = 'MAG quality summarised'}
-genus_MAG_quality_host_all
-genus_MAG_quality_host
-```
-
-The common threshold (thumb-rule) of >70% completeness and contamination <5% along with N50 >10Kb (N50 threshold does not exclude any genomes) seems appropriate as it does not exclude too many MAGs. Completeness is currently the most powerful criterion.
-
-There are a total of `r MAGs_collated_info_plot %>% pull(Cluster) %>% unique %>% length` clusters. They represent `r MAGs_collated_info_plot %>% pull(Family) %>% unique %>% length` families. Only `r MAGs_collated_info_plot %>% filter(all_quality == "Pass") %>% pull(Cluster) %>% unique %>% length` of them are represented by MAGs that cross the threshold comprising `r MAGs_collated_info_plot %>% filter(all_quality == "Pass") %>% pull(Family) %>% unique %>% length` families. The following families are not represented by MAGs crossing the threshold `r fail_families`.
-
-The families represented by passable MAGs will be considered for further analysis. These include:
-`r pass_families`
-including 80 clusters.
-
-The passed MAGs include `r filter(MAGs_collated_info_plot, all_quality=="Pass") %>% pull(Genus) %>% unique %>% length` <!-- 26  --> out of `r MAGs_collated_info_plot %>% pull(Genus) %>% unique %>% length` <!-- 34 --> genera.
-I exclude the following because they only contain 1 MAG: `r filter(MAGs_collated_info_plot, all_quality=="Pass") %>% group_by(Genus) %>% summarise(number = n()) %>% filter(number <2)`
-<!-- g__Pantoea, g__JAATFO01, g__Hafnia, g__Floricoccus, g__Klebsiella -->
-`r filter(MAGs_collated_info_plot, all_quality=="Pass") %>% pull(Species) %>% unique %>% length` <!-- 29 --> out of `r MAGs_collated_info_plot %>% pull(Species) %>% unique %>% length` <!-- 51 --> species.
-
-```{r magOTU_summary}
-line_list <- c()
-for (num in 1:94){
-  add_line <- geom_vline(xintercept=num+0.5, size=0.1, color="black")
-  # add_line <- geom_vline(xintercept=num+0.5, size=0.1, alpha=0.5, color="grey")
-  line_list <- c(line_list, add_line)
-}
-
-magOTUs_per_sample <- ggplot(vis_magOTUs_df_all, aes(y = factor(Cluster), x = factor(sample, samples), fill = Host)) +
-                            geom_tile() +
-                              labs(x = "Sample", y = "Cluster")+
-                              make_theme(setFill=F,
-                              # make_theme(palettefill="Spectral", max_colors = length(unique(vis_magOTUs_df$Cluster)),
-                              leg_pos="none", guide_nrow=6,
-                              y_hj=1, y_size=7, leg_size=8, y_vj=0.5,
-                              x_vj=0, x_hj=1, x_size=6, x_angle=90) +
-                              scale_fill_manual(values=host_order_color) +
-                              line_list
-                                    ggsave("Figures/08a-magOTUs_per_sample.pdf")
-
-magOTUs_per_sample_genus <- ggplot(vis_magOTUs_df_all, aes(y = factor(Cluster), x = factor(sample, samples), fill = factor(Genus, genera))) +
-                            geom_tile() +
-                              labs(x = "Sample", y = "Cluster")+
-                              make_theme(setFill=F,
-                              # make_theme(palettefill="Spectral", max_colors = length(unique(vis_magOTUs_df$Cluster)),
-                              leg_pos="none", guide_nrow=6,
-                              y_hj=1, y_size=7, leg_size=8, y_vj=0.5,
-                              x_vj=0, x_hj=1, x_size=6, x_angle=90) +
-                              scale_fill_manual(values=genusColors, guide = F) +
-                              line_list
-                                    ggsave("Figures/08b-magOTU_per_sample_genus.pdf")
-
-magOTUs_per_sample_by_host_genus <- ggplot(vis_magOTUs_df_all, aes(y = Cluster, x = sample, fill = factor(Genus, genera))) +
-        geom_tile() +
-        labs(y = "Cluster", x = "Prevalence", fill = "Genus") +
-        make_theme(setFill = F, setCol = F,
-                   y_size = 2, y_hj = 1.5, y_vj = 0.5,
-                   x_size = 7, x_angle = 40, x_hj = 1, x_vj = 1,
-                   leg_size = 5, leg_pos = "none") +
-        scale_fill_manual(values=genusColors) +
-          facet_wrap(~ factor(Host, host_order), scales = "free")
-      ggsave("Figures/08c-magOTU_by_host_genus.pdf")
-# contigs_depths_df %>%
-#   filter(bin == "MAG_C2.4_8")
-#
-# vis_magOTUs_df_all %>%
-#   filter(Cluster == "116_1") %>%
-#     select(Class, Genus, ID, completeness, length)
-
-magOTUs_per_sample_by_host_coverage <- ggplot(vis_magOTUs_df_all, aes(y = Cluster, x = sample, fill = mean_coverage)) +
-        geom_tile() +
-        labs(y = "Cluster", x = "Prevalence", fill = "Log of mean of contig mean coverage") +
-        make_theme(setFill = F, setCol = F,
-                   y_size = 7, y_hj = 1, y_vj = 0.5,
-                   x_size = 7, x_angle = 40, x_hj = 1, x_vj = 1,
-                   guide_nrow = 1,
-                   leg_pos = "bottom"
-                 ) +
-          guides(fill = guide_colorbar(barhwight = 1, barwidth = 10)) +
-          scale_fill_gradientn(colors=brewer.pal(5, "RdYlGn"), na.value = "transparent",
-                              trans = "log10") +
-          facet_wrap(~ factor(Host, host_order), scales = "free")
-          ggsave("Figures/08c-magOTU_by_host_MAGs_coverage.pdf")
-
-magOTUs_per_sample_by_host_prevalence <- ggplot(vis_magOTUs_df_all, aes(y = Cluster, x = sample, fill = Prevalence)) +
-        geom_tile() +
-        labs(y = "Cluster", x = "Prevalence", fill = "Prevalence within host") +
-        make_theme(setFill = F, setCol = F,
-                   y_size = 7, y_hj = 1, y_vj = 0.5,
-                   x_size = 7, x_angle = 40, x_hj = 1, x_vj = 1,
-                   guide_nrow = 1,
-                   leg_pos = "bottom"
-                 ) +
-          guides(fill = guide_colorbar(barhwight = 1, barwidth = 10)) +
-          scale_fill_gradientn(colors=brewer.pal(5, "RdYlGn"), na.value = "transparent") +
-          facet_wrap(~ factor(Host, host_order), scales = "free")
-          ggsave("Figures/08c-magOTU_by_host_MAGs_prevalence.pdf")
-
-vis_magOTUs_df_all_shared_cluster <- vis_magOTUs_df_all %>%
-                              group_by(Cluster) %>%
-                                mutate(Num_hosts = n_distinct(Host)) %>%
-                                  filter(Num_hosts > 1)
-
-magOTUs_shared_per_sample_genus <- ggplot(vis_magOTUs_df_all_shared_cluster, aes(y = factor(Cluster), x = factor(sample, samples), fill = factor(Genus, genera))) +
-                            geom_tile() +
-                              labs(x = "Sample", y = "Cluster")+
-                              make_theme(setFill=F,
-                              leg_pos="none", guide_nrow=6,
-                              y_hj=1, y_size=7, leg_size=8, y_vj=0.5,
-                              x_vj=0, x_hj=1, x_size=6, x_angle=90) +
-                              scale_fill_manual(values=genusColors) +
-                              line_list
-                                    ggsave("Figures/08d-magOTU_shared_per_sample_genus.pdf")
-
-magOTUs_shared_per_sample_prev_abund <- ggplot(vis_magOTUs_df_all_shared_cluster, aes(y = factor(Cluster), x = factor(sample, samples), fill = Prevalence)) +
-                            geom_tile() +
-                            geom_text(aes(label = round(mean_coverage, 2)), size = 1) +
-                              labs(x = "Sample", y = "Cluster", fill = "Prevalence within host")+
-                              make_theme(setFill=F,
-                              y_hj=1, y_size=7, leg_size=8, y_vj=0.5,
-                              x_vj=0, x_hj=1, x_size=6, x_angle=90) +
-                              guides(fill = guide_colorbar(barhwight = 1, barwidth = 10)) +
-                              scale_fill_gradientn(colors=brewer.pal(5, "RdYlGn"), na.value = "transparent", trans = "log10") +
-                              line_list
-                                    ggsave("Figures/08d-magOTUs_shared_per_sample_prev_abund.pdf")
-
-magOTUs_per_sample_by_host_completeness_genus <- ggplot(vis_magOTUs_df_all, aes(y = Cluster, x = Num_mags, size = factor(Completeness_quality), color = Genus, alpha = 0.5)) +
-        geom_point() +
-        labs(y = "Cluster", x = "Number of MAGs", size = "Completeness") +
-        make_theme(setFill = F, setCol = F,
-                   y_size = 3, y_hj = 1, y_vj = 0.5,
-                   leg_size = 5, leg_pos = "right") +
-        scale_color_manual(values=genusColors) +
-          facet_wrap(~ factor(Host, host_order)) +
-            guides(color = "none", alpha = "none")
-      ggsave("Figures/08e-magOTUs_by_host_completeness.pdf")
-
-prev_abd_by_genus_completeness <- ggplot(vis_magOTUs_df_all, aes(y = Prevalence, x = mean_coverage, color = factor(Completeness_quality), alpha = 0.5)) +
-        geom_point(position = position_jitter(w = 0, h = 0.05)) +
-        labs(y = "Prevalence within host", x = "Mean of mean contig coverage", color = "Completeness") +
-        make_theme(setFill = F, setCol = T,
-                   palettecolor = "RdYlGn",
-                   # y_size = 3, y_hj = 1, y_vj = 0.5,
-                   x_angle = 30, x_hj = 1, x_vj = 1,
-                   leg_size = 8, leg_pos = "right",
-                   guide_nrow = 11
-                 ) +
-        scale_x_continuous(trans="log10") +
-          facet_wrap(~ Genus) +
-            guides(alpha = "none", color = "none")
-            ggsave("Figures/08f-mags_prev_vs_abd_by_genus_completeness.pdf")
-
-prev_abd_by_genus_host <- ggplot(vis_magOTUs_df_all, aes(y = Prevalence, x = mean_coverage, color = Host, alpha = 0.5)) +
-        geom_point(position = position_jitter(w = 0, h = 0.05)) +
-        labs(y = "Cluster", x = "Mean of mean contig coverage", size = "Completeness") +
-        make_theme(setFill = F, setCol = F,
-                   # y_size = 3, y_hj = 1, y_vj = 0.5,
-                   x_angle = 30, x_hj = 1, x_vj = 1,
-                   leg_size = 5, leg_pos = "right") +
-        scale_color_manual(values=host_order_color) +
-        scale_x_continuous(trans="log10") +
-          facet_wrap(~ Genus) +
-            guides(color = "none", alpha = "none")
-            ggsave("Figures/08f-mags_prev_vs_abd_by_genus_host.pdf")
-```
-
-```{r magOTU_summary_plots,  dev = 'pdf', results='hold', fig.show = 'hold', out.width = '100%', fig.align = 'center'}
-magOTUs_per_sample
-magOTUs_per_sample_genus
-magOTUs_per_sample_by_host_genus
-magOTUs_per_sample_by_host_coverage
-magOTUs_per_sample_by_host_prevalence
-magOTUs_shared_per_sample_genus
-magOTUs_shared_per_sample_prev_abund
-magOTUs_per_sample_by_host_completeness_genus
-prev_abd_by_genus_completeness
-prev_abd_by_genus_host
-```
-
-
-```{r magOTU_numbers_compare}
-vis_magOTUs_df_numClusters_all <- vis_magOTUs_df_all %>%
-                        group_by(sample) %>%
-                          summarise(sample, Host, number_of_clusters = n_distinct(Cluster), .groups="keep") %>%
-                            unique()
-
-                            test_all <- pairwise.wilcox.test(vis_magOTUs_df_numClusters_all$number_of_clusters, vis_magOTUs_df_numClusters_all$Host, p.adjust = "fdr")
-                            glm_all <- summary(glm(data = vis_magOTUs_df_numClusters_all, number_of_clusters ~ Host, family = "poisson"))
-
-
-
-vis_magOTUs_df_numClusters_all_plot <- ggplot(vis_magOTUs_df_numClusters_all, aes(x = factor(Host, levels = c("Apis florea", "Apis cerana", "Apis mellifera", "Apis dorsata")), y = number_of_clusters, fill = Host)) +
-                                        geom_boxplot(outlier.shape = NA) +
-                                        geom_jitter() +
-                                        labs(y = "Number of magOTUs per individual", x = "Host species") +
-                                          make_theme(leg_pos = "none", x_angle = 30, setFill = F, x_vj = 1, x_hj = 1, ) +
-                                          scale_fill_manual(values=host_order_color)
-                                          ggsave("Figures/09a-magOTU_number_per_sample_all.pdf")
-
-vis_magOTUs_df_numClusters <- vis_magOTUs_df %>%
-                        group_by(sample) %>%
-                          summarise(sample, Host, number_of_clusters = n_distinct(Cluster)) %>%
-                            unique
-
-                        test_passed <- pairwise.wilcox.test(vis_magOTUs_df_numClusters$number_of_clusters, vis_magOTUs_df_numClusters$Host, p.adjust = "fdr")
-                        glm_passed <- summary(glm(data = vis_magOTUs_df_numClusters, number_of_clusters ~ Host, family = "poisson"))
-
-
-vis_magOTUs_df_numClusters_passed_plot <- ggplot(vis_magOTUs_df_numClusters, aes(x = factor(Host, levels = c("Apis florea", "Apis cerana", "Apis mellifera", "Apis dorsata")), y = number_of_clusters, fill = Host)) +
-                                        geom_boxplot(outlier.shape = NA) +
-                                        geom_jitter() +
-                                        labs(y = "Number of magOTUs per individual", x = "Host species") +
-                                          make_theme(leg_pos = "none", x_angle = 30, setFill = F, x_hj = 1, x_vj = 1) +
-                                          scale_fill_manual(values=host_order_color)
-                                          ggsave("Figures/09a-magOTU_number_per_sample_passed.pdf")
-```
-
-```{r magOTU_numbers_compare_plots,  dev = 'pdf', results='hold', fig.show = 'hold', out.width = '100%', fig.align = 'center'}
-grid.arrange(vis_magOTUs_df_numClusters_all_plot, vis_magOTUs_df_numClusters_passed_plot, nrow = 1)
-glm_all
-test_all
-glm_passed
-test_passed
-```
-
-```{r magOTU_clustering,  dev = 'pdf', results='hold', fig.show = 'hold', out.width = '100%', fig.align = 'center'}
-observations_host <- list(
-   `Apis mellifera` = c(pivot_wider(summarise(group_by(vis_magOTUs_df, Host), Cluster, .groups = "keep"), names_from = Host, values_from = Cluster, values_fn = list) %>% pull(`Apis mellifera`) %>% unlist),
-   `Apis cerana` = c(pivot_wider(summarise(group_by(vis_magOTUs_df, Host), Cluster, .groups = "keep"), names_from = Host, values_from = Cluster, values_fn = list) %>% pull(`Apis cerana`) %>% unlist),
-   `Apis dorsata` = c(pivot_wider(summarise(group_by(vis_magOTUs_df, Host), Cluster, .groups = "keep"), names_from = Host, values_from = Cluster, values_fn = list) %>% pull(`Apis dorsata`) %>% unlist),
-   `Apis florea` = c(pivot_wider(summarise(group_by(vis_magOTUs_df, Host), Cluster, .groups = "keep"), names_from = Host, values_from = Cluster, values_fn = list) %>% pull(`Apis florea`) %>% unlist)
-)
-
-magOTU_passed_venn <- ggVennDiagram(observations_host) +
-                        scale_color_manual(values=host_order_color) +
-                            scale_fill_gradient(low = brewer.pal(8, "Blues")[1], high = brewer.pal(8, "Blues")[6]) +
-                              scale_color_manual(values=host_order_color) +
-                                make_theme(theme_name = theme_void(), setFill = F, setCol = F, guide_nrow = 1) +
-                                theme(axis.text.x=element_blank(), axis.text.y=element_blank())
-                                ggsave("Figures/09b-magOTUs_venn_passed_MAGs.pdf")
-
-observations_host_all <- list(
-   `Apis mellifera` = c(pivot_wider(summarise(group_by(vis_magOTUs_df_all, Host), Cluster, .groups = "keep"), names_from = Host, values_from = Cluster, values_fn = list) %>% pull(`Apis mellifera`) %>% unlist),
-   `Apis cerana` = c(pivot_wider(summarise(group_by(vis_magOTUs_df_all, Host), Cluster, .groups = "keep"), names_from = Host, values_from = Cluster, values_fn = list) %>% pull(`Apis cerana`) %>% unlist),
-   `Apis dorsata` = c(pivot_wider(summarise(group_by(vis_magOTUs_df_all, Host), Cluster, .groups = "keep"), names_from = Host, values_from = Cluster, values_fn = list) %>% pull(`Apis dorsata`) %>% unlist),
-   `Apis florea` = c(pivot_wider(summarise(group_by(vis_magOTUs_df_all, Host), Cluster, .groups = "keep"), names_from = Host, values_from = Cluster, values_fn = list) %>% pull(`Apis florea`) %>% unlist)
-)
-
-magOTU_all_venn <- ggVennDiagram(observations_host_all) +
-                    scale_fill_gradient(low = brewer.pal(8, "Blues")[1], high = brewer.pal(8, "Blues")[6]) +
-                      scale_color_manual(values=host_order_color) +
-                        make_theme(theme_name = theme_void(), setFill = F, setCol = F, guide_nrow = 1) +
-                          theme(axis.text.x=element_blank(), axis.text.y=element_blank())
-                          ggsave("Figures/09b-magOTUs_venn_all_MAGs.pdf")
-
-observations <- vis_magOTUs_df_all %>%
-                  group_by(sample) %>%
-                    summarise(Cluster, .groups="keep") %>%
-                      pivot_wider(names_from = sample, values_from = Cluster, values_fn = list)
-df_magOTUs_vegan <- data.frame(matrix(nrow = length(samples), ncol = length(unique(vis_magOTUs_df_all$Cluster))))
-rownames(df_magOTUs_vegan) <- samples
-colnames(df_magOTUs_vegan) <- unique(vis_magOTUs_df_all$Cluster)
-
-for (sample in rownames(df_magOTUs_vegan)) {
-  for (cluster in colnames(df_magOTUs_vegan)) {
-    if (cluster %in% observations[sample][[1]][[1]]) {
-      df_magOTUs_vegan[sample, cluster] = 1
-    } else {
-      df_magOTUs_vegan[sample, cluster] = 0
-    }
-  }
-}
-
-
-samples_am <- c(vis_magOTUs_df_all %>% filter(Host == "Apis mellifera") %>% pull(Sample) %>% unique %>% as.vector)
-samples_ac <- c(vis_magOTUs_df_all %>% filter(Host == "Apis cerana") %>% pull(Sample) %>% unique %>% as.vector)
-samples_ad <-c(vis_magOTUs_df_all %>% filter(Host == "Apis dorsata") %>% pull(Sample) %>% unique %>% as.vector)
-samples_af <-c(vis_magOTUs_df_all %>% filter(Host == "Apis florea") %>% pull(Sample) %>% unique %>% as.vector)
-
-
-make_cum_curve <- function(samples_vector, pa_df, iterations, name = NA) {
-  num_clusters_matrix <- matrix(nrow = length(samples_vector), ncol = iterations)
-  for (iter in 1:iterations) {
-    clusters_found_cumulative <- c()
-    for (num_samples in 1:length(samples_vector)) {
-      num_new_clusters = 0
-      selected_samples <- sample(samples_vector, num_samples)
-      clusters_found <- colnames(pa_df[selected_samples, which(colSums(pa_df[selected_samples, ]) > 1)])
-      for (cluster in clusters_found) {
-        if (cluster %in% clusters_found_cumulative) {
-          invisible()
-        } else {
-          num_new_clusters <- num_new_clusters + 1
-          clusters_found_cumulative <- c(clusters_found_cumulative, cluster)
-        }
-      }
-      num_clusters_matrix[num_samples, iter] = length(clusters_found_cumulative)
-    }
-  }
-  num_clusters_df <- as.data.frame(num_clusters_matrix)
-  colnames(num_clusters_df) <- do.call(function(x) paste0("curve_", x), list(c(1:iterations)))
-  num_clusters_df <- cbind(sample_size = c(1:length(samples_vector)), num_clusters_df)
-  plot_cum_curve_df <- pivot_longer(num_clusters_df, !sample_size, values_to = "number_of_clusters", names_to = "curve")
-  plot_cum_curve_df <- cbind("name" = name, plot_cum_curve_df)
-  return(plot_cum_curve_df)
-}
-
-df_plot_cum_curve <- rbind(
-                        make_cum_curve(samples_am, df_magOTUs_vegan, 50, "Apis mellifera"),
-                        make_cum_curve(samples_ac, df_magOTUs_vegan, 50, "Apis cerana"),
-                        make_cum_curve(samples_ad, df_magOTUs_vegan, 50, "Apis dorsata"),
-                        make_cum_curve(samples_af, df_magOTUs_vegan, 50, "Apis florea")
-                      )
-
-magotu_accumulation_curve <- ggplot(data = df_plot_cum_curve, aes(x = sample_size, y = number_of_clusters, color = factor(name, host_order))) +
-                      geom_jitter(position = position_dodge(width=0.7)) +
-                        geom_smooth(se = FALSE) +
-                          labs(color = "Host species", x = "# Bees", y = "Number of magOTUs") +
-                          scale_color_manual(values=host_order_color) +
-                            make_theme(leg_pos = "bottom", setCol = F, guide_nrow = 1)
-                            ggsave("Figures/09c-magOTUs_accumulation_curve.pdf")
-
-pcoa_plot_by_host <- function(df_pcoa) {
-          matrix <- as.matrix(df_pcoa)
-          dist <- as.dist(matrix)
-          res_pcoa <- pcoa(dist)
-          ev1 <- res_pcoa$vectors[,1]
-          ev2 <- res_pcoa$vectors[,2]
-          df_pcoa_new <- data.frame(cbind(ev1,ev2))
-          df_pcoa_new$Sample <- rownames(df_pcoa_new)
-          rownames(df_pcoa_new) <- NULL
-          df_pcoa_new <- left_join(df_pcoa_new, select(df, Sample, SpeciesID), by = "Sample")
-          perc_axis <- round(((res_pcoa$values$Relative_eig[c(1,2)])*100), digits=1)
-          axis_x_title <- paste0("PCo1 (",perc_axis[1],"%)")
-          axis_y_title <- paste0("PCo2 (",perc_axis[2],"%)")
-          p <- ggplot(df_pcoa_new, aes(x = ev1,
-                                       y = ev2,
-                                       colour = factor(SpeciesID, levels = host_order)))+
-                geom_point(stat="identity", size=2, shape=19) +
-                  labs(x=axis_x_title, y = axis_y_title, color = "Host") +
-                    make_theme(setCol = F, guide_nrow = 1) +
-                      scale_color_manual(values=host_order_color)
-          return(p)
-}
-
-pcoa_plot <- function(df_pcoa, variable=SpeciesID) {
-          matrix <- as.matrix(df_pcoa)
-          dist <- as.dist(matrix)
-          res_pcoa <- pcoa(dist)
-          ev1 <- res_pcoa$vectors[,1]
-          ev2 <- res_pcoa$vectors[,2]
-          df_pcoa_new <- data.frame(cbind(ev1,ev2))
-          df_pcoa_new$Sample <- rownames(df_pcoa_new)
-          rownames(df_pcoa_new) <- NULL
-          df_pcoa_new <- left_join(df_pcoa_new, select(df, Sample, SpeciesID, matches(variable)), by = "Sample")
-          perc_axis <- round(((res_pcoa$values$Relative_eig[c(1,2)])*100), digits=1)
-          axis_x_title <- paste0("PCo1 (",perc_axis[1],"%)")
-          axis_y_title <- paste0("PCo2 (",perc_axis[2],"%)")
-          p <- ggplot(df_pcoa_new, aes(x = ev1,
-                                       y = ev2,
-                                       colour = get(variable)))+
-                geom_point(stat="identity", size=2, shape=19) +
-                  labs(x=axis_x_title, y = axis_y_title, color = variable) +
-                    make_theme( max_colors = length(unique(df_pcoa_new[, variable])), guide_nrow = 4 )
-          return(p)
-}
-
-dist_matrix <- as.matrix(vegdist(df_magOTUs_vegan, "jaccard"))
-
-pcoa_magotus <- pcoa_plot_by_host(dist_matrix)
-          ggsave("Figures/09d-magOTUs_pcoa.pdf")
-```
-
-```{r magOTU_clustering_plots,  dev = 'pdf', results='hold', fig.show = 'hold', out.width = '100%', fig.align = 'center'}
-magOTU_all_venn
-magOTU_passed_venn
-magotu_accumulation_curve
-pcoa_plot(dist_matrix, "Location_name")
-  ggsave("Figures/09d-magOTUs_pcoa_location.pdf")
-pcoa_plot(dist_matrix, "Colony")
-  ggsave("Figures/09d-magOTUs_pcoa_colony.pdf")
-pcoa_plot(dist_matrix, "Country")
-  ggsave("Figures/09d-magOTUs_pcoa_country.pdf")
-pcoa_plot(dist_matrix, "Run_ID")
-  ggsave("Figures/09d-magOTUs_pcoa_run_id.pdf")
-pcoa_magotus
-anosim(df_magOTUs_vegan, df$SpeciesID, distance = "jaccard", permutations = 9999)
-adonis2(dist_matrix ~ SpeciesID, data = df, permutations = 9999, method="jaccard")
-plot(betadisper(vegdist(df_magOTUs_vegan, "jaccard"), group=df$SpeciesID),hull=FALSE, ellipse=TRUE)
-# ggsave("Figures/09d-magOTUs_pcoa_betadisp.pdf")
-```
-
-# Next steps
-
-It is clear that the database is not best suited for some SDPs found especially in host species other than _Apis mellifera_. So, the next step would be to implement a MAG based analysis to compare these samples. However, as the database was already shown to be well-suited for _Apis mellifera_ and _Apis cerana_, another set of analysis would compare these samples from the [publication](https://www.sciencedirect.com/science/article/pii/S0960982220305868) ([zenodo](https://zenodo.org/record/3747314#.YcGkvRPMK3I)) with the samples from India.
-
-## Supplementary plots
 
 # Data description
 
@@ -3058,3 +1011,13 @@ dependencies:
   - fastqc
   - quast
 ```
+
+# Next steps
+
+It is clear that the database is not best suited for some SDPs found especially in host species other than _Apis mellifera_. So, the next step would be to implement a MAG based analysis to compare these samples. However, as the database was already shown to be well-suited for _Apis mellifera_ and _Apis cerana_, another set of analysis would compare these samples from the [publication](https://www.sciencedirect.com/science/article/pii/S0960982220305868) ([zenodo](https://zenodo.org/record/3747314#.YcGkvRPMK3I)) with the samples from India.
+
+## Choosing representative genomes
+
+Information in [drep](https://drep.readthedocs.io/en/latest/choosing_parameters.html) documentation.
+
+$$A * Completeness - B * Contamination + C * (Contamination * frac{strainheterogeneity}{100}) + D * log(N50) + E * log(size) + F * (centrality - S_{a}ni) $$s
