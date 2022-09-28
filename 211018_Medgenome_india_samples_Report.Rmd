@@ -77,7 +77,7 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(engine.opts = list(bash = "-l"))
-knitr::opts_chunk$set(cache=FALSE)
+knitr::opts_chunk$set(cache=TRUE)
 knitr::opts_chunk$set(echo=FALSE, message=FALSE, error=FALSE, warning=FALSE, results='hide', fig.show='hide')
 # load libraries
 library(ggplot2)
@@ -95,6 +95,7 @@ library(ggVennDiagram)
 library(vegan)
 library(ape)
 library(ggforce)
+library(VennDiagram)
 # useful function(s)
 make_theme <- function(theme_name=theme_classic() ,max_colors=0, palettefill="Pastel1", palettecolor="Dark2",
                         setFill=TRUE, setCol=TRUE,
@@ -376,8 +377,8 @@ paginate_save <- function(plot, variable, plot_name, pass_nrow = 5, pass_ncol = 
 }
 ```
 
-```{r child='README.md'}
-htmltools::includeMarkdown("README.md")
+```{r include_readme_text, child='README.md'}
+# htmltools::includeMarkdown("README.md")
 ```
 
 # Results
@@ -945,7 +946,7 @@ cluster_info <- drep_Widb %>%
                     rename(score_representative = score) %>%
                     mutate(representative_genome = Vectorize(format_name)(genome)) %>%
                       select(!genome)
-MAGs_collated <- read.csv("all_GenomeInfo_auto.tsv", sep = "\t")
+MAGs_collated <- read.csv("06_MAG_binning/all_GenomeInfo_auto.tsv", sep = "\t")
 
 # make sure that number per cluster is 1 for all
 MAGs_collated_info <- left_join(MAGs_collated, mutate(drep_gInformation, genome = Vectorize(format_name)(genome)), by = c("ID"="genome"))
@@ -2078,13 +2079,20 @@ observations_host <- list(
    `Apis florea` = c(pivot_wider(summarise(group_by(vis_magOTUs_df, Host), Cluster, .groups = "keep"), names_from = Host, values_from = Cluster, values_fn = list) %>% pull(`Apis florea`) %>% unlist)
 )
 
-magOTU_passed_venn <- ggVennDiagram(observations_host) +
-                        scale_color_manual(values=host_order_color) +
-                            scale_fill_gradient(low = brewer.pal(8, "Blues")[1], high = brewer.pal(8, "Blues")[6]) +
-                              scale_color_manual(values=host_order_color) +
-                                make_theme(theme_name = theme_void(), setFill = F, setCol = F, guide_nrow = 1) +
-                                theme(axis.text.x=element_blank(), axis.text.y=element_blank())
-                                ggsave("Figures/09b-magOTUs_venn_passed_MAGs.pdf")
+# magOTU_passed_venn <- ggVennDiagram(observations_host) +
+#                         scale_color_manual(values=host_order_color) +
+#                             scale_fill_gradient(low = brewer.pal(8, "Blues")[1], high = brewer.pal(8, "Blues")[6]) +
+#                               scale_color_manual(values=host_order_color) +
+#                                 make_theme(theme_name = theme_void(), setFill = F, setCol = F, guide_nrow = 1) +
+#                                 theme(axis.text.x=element_blank(), axis.text.y=element_blank())
+#                                 ggsave("Figures/09b-magOTUs_venn_passed_MAGs.pdf")
+venn.diagram(
+  x = observations_host,
+  category.names = names(observations_host),
+  output = T,
+  filename = "Figures/09b-magOTUs_venn_passed_MAGs.pdf",
+  fill = host_order_color
+)
 
 observations_host_all <- list(
    `Apis mellifera` = c(pivot_wider(summarise(group_by(vis_magOTUs_df_all, Host), Cluster, .groups = "keep"), names_from = Host, values_from = Cluster, values_fn = list) %>% pull(`Apis mellifera`) %>% unlist),
@@ -2093,12 +2101,20 @@ observations_host_all <- list(
    `Apis florea` = c(pivot_wider(summarise(group_by(vis_magOTUs_df_all, Host), Cluster, .groups = "keep"), names_from = Host, values_from = Cluster, values_fn = list) %>% pull(`Apis florea`) %>% unlist)
 )
 
-magOTU_all_venn <- ggVennDiagram(observations_host_all) +
-                    scale_fill_gradient(low = brewer.pal(8, "Blues")[1], high = brewer.pal(8, "Blues")[6]) +
-                      scale_color_manual(values=host_order_color) +
-                        make_theme(theme_name = theme_void(), setFill = F, setCol = F, guide_nrow = 1) +
-                          theme(axis.text.x=element_blank(), axis.text.y=element_blank())
-                          ggsave("Figures/09b-magOTUs_venn_all_MAGs.pdf")
+# magOTU_all_venn <- ggVennDiagram(observations_host_all) +
+#                     scale_fill_gradient(low = brewer.pal(8, "Blues")[1], high = brewer.pal(8, "Blues")[6]) +
+#                       scale_color_manual(values=host_order_color) +
+#                         make_theme(theme_name = theme_void(), setFill = F, setCol = F, guide_nrow = 1) +
+#                           theme(axis.text.x=element_blank(), axis.text.y=element_blank())
+#                           ggsave("Figures/09b-magOTUs_venn_all_MAGs.pdf")
+
+venn.diagram(
+  x = observations_host_all,
+  category.names = names(observations_host_all),
+  output = T,
+  filename = "Figures/09b-magOTUs_venn_all_MAGs.pdf",
+  fill = host_order_color
+)
 
 observations <- vis_magOTUs_df_all %>%
                   group_by(sample) %>%
@@ -2219,8 +2235,8 @@ pcoa_magotus <- pcoa_plot_by_host(dist_matrix)
 ```
 
 ```{r magOTU_clustering_plots,  dev = 'pdf', results='hold', fig.show = 'hold', out.width = '100%', fig.align = 'center', fig.height = 20}
-print(magOTU_all_venn)
-print(magOTU_passed_venn)
+knitr::include_graphics("Figures/09b-magOTUs_venn_all_MAGs.pdf")
+knitr::include_graphics("Figures/09b-magOTUs_venn_passed_MAGs.pdf")
 magotu_accumulation_curve
 pcoa_plot(dist_matrix, "Location_name")
   ggsave("Figures/09d-magOTUs_pcoa_location.pdf")
@@ -2387,5 +2403,4 @@ paginate_save(cluster_completeness_number, "Cluster", "Figures/11x-clusters_comp
 ```
 ```{r show_winning_magOTUs, dev = 'pdf', results='hold', fig.show = 'hold', out.width = '100%', fig.align = 'center', fig.height = 20, }
 score_hist
-htmltools::includeMarkdown("README.md")
 ```

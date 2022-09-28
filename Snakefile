@@ -73,21 +73,6 @@ def get_g_list_by_phylo(db, phylo):
     #                            # because this genome isn't in the main microbiome db
     return(g_list)
 
-def get_genomes(path):
-    """
-    reads genome info file (must be csv!)
-    and return list of genomes
-    """
-    genomeList = []
-    with open(path, "r", encoding='utf-8-sig') as info_fh:
-        for line in info_fh:
-            if line.startswith("ID"):
-                continue
-            genome = line.split("\t")[0]
-            genome = genome.strip()
-            genomeList.append(genome)
-    return(genomeList)
-
 def get_g_dict_for_groups(path):
     """
     Returns dictionary of genomes and groups with each value being a list of
@@ -159,18 +144,20 @@ def make_count_dict(filepath):
                 count_dict[sample] = count
     return(count_dict)
 
+def num_genomes_in_group(group, path):
+    """
+    This function finds the number of genomes in group
+    so make_tree is only run for those with at least 3
+    """
+    return len(get_g_dict_for_groups(path)[group])
+
+
 rule all:
     input:
         html = ProjectIdentifier+"_Report.html",
         backup_log = "logs/backup.log",
 
 onstart:
-    # For core_cov scripts
-    #  find a way to implement not needing this by modifying KE's scripts
-    # For a clean Rmd report!
-    shell("rm -rf Report_cache/")
-    shell("rm -rf Report_files/")
-    # shell("find Figures/ -type f ! -name 'rulegraph*' -delete")
     shell("rm -rf logs/backup.log")
 
 
@@ -1514,6 +1501,7 @@ rule make_tree:
         pruned_cat = "07_Phylogenies/04_pruned_and_concat_alignments/{group}/CoreGeneAlignment.fasta"
     output:
         treefile = "07_Phylogenies/05_IQTree/{group}/{group}_Phylogeny.treefile",
+        contree = "07_Phylogenies/05_IQTree/{group}/{group}_Phylogeny.contree",
         iqlog = "07_Phylogenies/05_IQTree/{group}/{group}_Phylogeny.log"
     params:
         outdir = "07_Phylogenies/05_IQTree/{group}/",
@@ -1534,14 +1522,14 @@ rule make_tree:
             iqtree -s {input.pruned_cat} \
                     -st AA -nt {threads} \
                     -bb 1000 -seed 12345 -m TEST --undo \
-                    -pre {params.outdir}{wildcards.group}_Phylogeny || touch 07_Phylogenies/05_IQTree/{wildcards.group}/{wildcards.group}_Phylogeny.treefile
+                    -pre {params.outdir}{wildcards.group}_Phylogeny
         else
             mkdir -p 07_Phylogenies/05_IQTree
             mkdir -p {params.outdir}
             iqtree -s {input.pruned_cat} \
                     -st AA -nt {threads} \
                     -bb 1000 -seed 12345 -m TEST \
-                    -pre {params.outdir}{wildcards.group}_Phylogeny || touch 07_Phylogenies/05_IQTree/{wildcards.group}/{wildcards.group}_Phylogeny.treefile
+                    -pre {params.outdir}{wildcards.group}_Phylogeny
         fi
         """
 
@@ -1690,7 +1678,7 @@ rule compile_report:
         out_all = "06_MAG_binning/all_GenomeInfo_auto.tsv",
         out_tree = "06_MAG_binning/ForTree_GenomeInfo_auto.tsv",
         checkpoint = lambda wildcards: checkpoints.make_phylo_table.get().output.out_tree,
-        trees = expand("07_Phylogenies/05_IQTree/{group}/{group}_Phylogeny.treefile", group=Groups),
+        trees = lambda wildcards: ["07_Phylogenies/05_IQTree/"+group+"/"+group+"_Phylogeny.contree" for group in [x for x in Groups if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_tree) >= 3]],
         single_ortho_MAGs = expand("07_Phylogenies/02_orthofinder/{group}/OrthoFinder/{group}_single_ortho_MAGs.txt", group=Groups),
         ortho_summary = expand("07_Phylogenies/02_orthofinder/{group}_Orthogroups_summary.csv", group=Groups),
     output:
@@ -1701,7 +1689,7 @@ rule compile_report:
         account="pengel_spirit",
         runtime_s=convertToSec("0-2:10:00"),
     resources:
-        mem_mb = 8000
+        mem_mb = convertToMb("10G")
     log: "logs/compile_report.log"
     benchmark: "logs/compile_report.benchmark"
     shell:
@@ -1730,8 +1718,7 @@ rule backup:
         assembly_mapped = expand("09_MapToAssembly/{sample}.bam", sample=SAMPLES),
         checkpoint_tree = lambda wildcards: checkpoints.make_phylo_table.get().output.out_tree,
         checkpoint_all = lambda wildcards: checkpoints.make_phylo_table.get().output.out_all,
-        trees = expand("07_Phylogenies/05_IQTree/{group}/{group}_Phylogeny.treefile", group=Groups),
-        # trees = lamda wildcards: expand("07_Phylogenies/05_IQTree/{group}/{group}_Phylogeny.treefile", group=[x for x in Groups if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_tree) >= 3]),
+        trees = lambda wildcards: ["07_Phylogenies/05_IQTree/"+group+"/"+group+"_Phylogeny.contree" for group in [x for x in Groups if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_tree) >= 3]],
         single_ortho_MAGs = expand("07_Phylogenies/02_orthofinder/{group}/OrthoFinder/{group}_single_ortho_MAGs.txt", group=Groups),
         ortho_summary = expand("07_Phylogenies/02_orthofinder/{group}_Orthogroups_summary.csv", group=Groups),
     output:

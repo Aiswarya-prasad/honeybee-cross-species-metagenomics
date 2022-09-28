@@ -4,7 +4,7 @@
 
 The chunk below describes
 
-```{bash}
+```{bash eval=FALSE}
 ├── [ 237G]  00_RawData
 │   ├── [ 1.8G]  ${SAMPLE}_R1.fastq.gz
 │   └── [ 1.8G]  ${SAMPLE}_R2.fastq.gz
@@ -779,7 +779,7 @@ The **results** of the core coverage estimation are stored in,
   - First, filter for samples with coverage of at least 1 on > 80% of the core genes. Next, values that are deviating no more than 2 times the median are kept others are discarded as outliers.
   - Next, gets fitted coordinates and append values to coord-table. It does this by using the segmented package. As explained below,
 
-```{r eval=FALSE, echo=TRUE}
+```{r eval=FALSE}
     x <- data_filt$Ref_pos
  	  y <- data_filt$Coverage
  	  psi_est <- max(x)/2
@@ -787,7 +787,7 @@ The **results** of the core coverage estimation are stored in,
     segmented(lin.mod, seg.Z=~x, psi=psi_est)
 ```
 where, `lin.mod` is a simple linear model that was made by base R. The R package `Segmented` supports breakpoint analysis. The methods used by this package are applicable when segments are (nearly continuous) so this means that for the regression to make sense the core gene families selected should cover the reference genome well and without too many huge gaps. `psi`, is a starting value of the breakpoint. Example of a model fit using segemented,
-```{r eval=FALSE, echo=TRUE}
+```{r eval=FALSE}
     Call: segmented.lm(obj = lin.mod, seg.Z = ~x, psi = psi_est)
 
     Meaningful coefficients of the linear terms:
@@ -800,7 +800,7 @@ where, `lin.mod` is a simple linear model that was made by base R. The R package
 ```
 `x` is the slope of the first segment and `U1.x` is the difference in slopes between the first and second segment. `psi_est` is the newly estimated breakpoint. This along with the slopes
     - The summary function shows:
-```{r eval=FALSE, echo=TRUE}
+```{r eval=FALSE}
 ***Regression Model with Segmented Relationship(s)***
 
 Call:
@@ -824,7 +824,7 @@ Multiple R-Squared: 0.7417,  Adjusted R-squared: 0.7407
 Convergence attained in 3 iter. (rel. change 2.8661e-06)
 ```
 Finally, from the segmented model the ptr is calculated as follows:
-```{r eval=FALSE, echo=TRUE}
+```{r eval=FALSE}
 cov_ter <- round(slope1*psi + intercept1, digits=1)
 cov_ori2  <- slope2*(tail(x, n=1)) + intercept2
 max_ori_cov <- max(intercept1, cov_ori2)
@@ -909,7 +909,7 @@ For `cor_ter` is the coverage $y = ax + b$ where x is psi (the breakpoint on the
 
 `core-cov-env.yaml`
 
-```{yaml echo=TRUE}
+```{yaml eval=FALSE}
 name: core-cov-env
 
 channels:
@@ -932,7 +932,7 @@ dependencies:
 
 `mapping-env.yaml`
 
-```{yaml echo=TRUE}
+```{yaml eval=FALSE}
 name: mapping-env
 
 channels:
@@ -951,7 +951,7 @@ dependencies:
 
 `rmd-env.yaml`
 
-```{yaml echo=TRUE}
+```{yaml eval=FALSE}
 name: rmd-env
 
 channels:
@@ -981,7 +981,7 @@ dependencies:
 
 `snv-env.yaml`
 
-```{yaml echo=TRUE}
+```{yaml eval=FALSE}
 name: snv-env
 
 channels:
@@ -997,7 +997,7 @@ dependencies:
 
 `trim-qc-env.yaml`
 
-```{yaml echo=TRUE}
+```{yaml eval=FALSE}
 name: trim-qc-env
 
 channels:

@@ -38,6 +38,7 @@ database/*
 07_Phylogenies/*
 08_motus_profile/*
 *_files/*
+*_cache/*
 *backup_*.log
 
 assembly_summary_genbank.txt
