@@ -9,15 +9,13 @@ locally in a workstation also.
 import os
 
 configfile: "config/config.yaml"
-
+LOCAL_BACKUP = config["LocalBackup"]
 SAMPLES = config["SAMPLES_INDIA"]
-ProjectIdentifier = config["ProjectIdentifier"]
+PROJECT_IDENTIFIER = config["PROJECT_IDENTIFIER"]
+BACKUP_PATH = config["BACKUP_PATH"]
 DBs = config["GENOME_DBs"]
-ProjectPath = config["ProjectPath"]
-Phylos = ["api", "bapis", "bifido", "bom", "com", "firm4", "firm5", "fper", "gilli", "lkun", "snod"]
-# useful for cluster submissions
-# move this to config file
-Groups = ["g__Bombilactobacillus",
+PROJECT_PATH = config["PROJECT_PATH"]
+GROUPS = ["g__Bombilactobacillus",
           "g__Lactobacillus",
           "g__Bifidobacterium",
           "g__Gilliamella",
@@ -79,7 +77,7 @@ def get_g_dict_for_groups(path):
     genomes corresponding to a given group
     """
     g_list_dict = {}
-    for group in Groups:
+    for group in GROUPS:
         g_list_dict[group] = []
     if os.path.isfile(path):
         pass
@@ -93,7 +91,7 @@ def get_g_dict_for_groups(path):
             genome = line.split("\t")[0]
             group = line.split("\t")[18]
             # only include groups of interest!
-            if group not in Groups:
+            if group not in GROUPS:
                 continue
             g_list_dict[group].append(genome)
     return(g_list_dict)
@@ -154,7 +152,7 @@ def num_genomes_in_group(group, path):
 
 rule all:
     input:
-        html = ProjectIdentifier+"_Report.html",
+        html = PROJECT_IDENTIFIER+"_Report.html",
         backup_log = "logs/backup.log",
 
 onstart:
@@ -1208,7 +1206,7 @@ rule gtdb_annotate:
         # set up path to database
         export GTDBTK_DATA_PATH={params.path_to_db}
         # find a more snakemakey way to do this
-        ln -sf {config[ProjectPath]}/06_MAG_binning/bins_renamed/*/*.fa 06_MAG_binning/bins_renamed/
+        ln -sf {config[PROJECT_PATH]}/06_MAG_binning/bins_renamed/*/*.fa 06_MAG_binning/bins_renamed/
         genomes_dir="06_MAG_binning/bins_renamed/"
         out_file={output.tax_info}
         gtdbtk classify_wf --genome_dir ${{genomes_dir}} --out_dir ${{out_file/\/classify\/gtdbtk.bac120.summary.tsv/}} --extension ".fa" --write_single_copy_genes --keep_intermediates
@@ -1233,7 +1231,7 @@ checkpoint make_phylo_table:
     shell:
         """
         which R
-        ./scripts/make_phylo_table.R {ProjectPath}
+        ./scripts/make_phylo_table.R {PROJECT_PATH}
         ./scripts/csv_to_tsv.py {output.out_t_all}
         ./scripts/csv_to_tsv.py {output.out_t_tree}
         """
@@ -1662,7 +1660,7 @@ rule extract_orthologs_phylo_filt:
 
 rule compile_report:
     input:
-        rmd = ProjectIdentifier+"_Report.Rmd",
+        rmd = PROJECT_IDENTIFIER+"_Report.Rmd",
         isolates = "config/IsolateGenomeInfo.csv",
         coverage_host = expand("02_HostMapping/{sample}_coverage.tsv", sample=SAMPLES),
         coverage_host_hist = expand("02_HostMapping/{sample}_coverage_histogram.txt", sample=SAMPLES),
@@ -1678,11 +1676,11 @@ rule compile_report:
         out_all = "06_MAG_binning/all_GenomeInfo_auto.tsv",
         out_tree = "06_MAG_binning/ForTree_GenomeInfo_auto.tsv",
         checkpoint = lambda wildcards: checkpoints.make_phylo_table.get().output.out_tree,
-        trees = lambda wildcards: ["07_Phylogenies/05_IQTree/"+group+"/"+group+"_Phylogeny.contree" for group in [x for x in Groups if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_tree) >= 3]],
-        single_ortho_MAGs = expand("07_Phylogenies/02_orthofinder/{group}/OrthoFinder/{group}_single_ortho_MAGs.txt", group=Groups),
-        ortho_summary = expand("07_Phylogenies/02_orthofinder/{group}_Orthogroups_summary.csv", group=Groups),
+        trees = lambda wildcards: ["07_Phylogenies/05_IQTree/"+group+"/"+group+"_Phylogeny.contree" for group in [x for x in GROUPS if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_tree) > 4]],
+        single_ortho_MAGs = expand("07_Phylogenies/02_orthofinder/{group}/OrthoFinder/{group}_single_ortho_MAGs.txt", group=GROUPS),
+        ortho_summary = expand("07_Phylogenies/02_orthofinder/{group}_Orthogroups_summary.csv", group=GROUPS),
     output:
-        html = ProjectIdentifier+"_Report.html",
+        html = PROJECT_IDENTIFIER+"_Report.html",
     conda: "envs/rmd-env.yaml"
     threads: 2
     params:
@@ -1699,8 +1697,8 @@ rule compile_report:
 
 rule backup:
     input:
-        html = ProjectIdentifier+"_Report.html",
-        rmd = ProjectIdentifier+"_Report.Rmd",
+        html = PROJECT_IDENTIFIER+"_Report.html",
+        rmd = PROJECT_IDENTIFIER+"_Report.Rmd",
         isolates = "config/IsolateGenomeInfo.csv",
         coverage_host = expand("02_HostMapping/{sample}_coverage.tsv", sample=SAMPLES),
         coverage_host_hist = expand("02_HostMapping/{sample}_coverage_histogram.txt", sample=SAMPLES),
@@ -1718,11 +1716,11 @@ rule backup:
         assembly_mapped = expand("09_MapToAssembly/{sample}.bam", sample=SAMPLES),
         checkpoint_tree = lambda wildcards: checkpoints.make_phylo_table.get().output.out_tree,
         checkpoint_all = lambda wildcards: checkpoints.make_phylo_table.get().output.out_all,
-        trees = lambda wildcards: ["07_Phylogenies/05_IQTree/"+group+"/"+group+"_Phylogeny.contree" for group in [x for x in Groups if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_tree) >= 3]],
-        single_ortho_MAGs = expand("07_Phylogenies/02_orthofinder/{group}/OrthoFinder/{group}_single_ortho_MAGs.txt", group=Groups),
-        ortho_summary = expand("07_Phylogenies/02_orthofinder/{group}_Orthogroups_summary.csv", group=Groups),
+        trees = lambda wildcards: ["07_Phylogenies/05_IQTree/"+group+"/"+group+"_Phylogeny.contree" for group in [x for x in GROUPS if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_tree) > 4]],
+        single_ortho_MAGs = expand("07_Phylogenies/02_orthofinder/{group}/OrthoFinder/{group}_single_ortho_MAGs.txt", group=GROUPS),
+        ortho_summary = expand("07_Phylogenies/02_orthofinder/{group}_Orthogroups_summary.csv", group=GROUPS),
     output:
-        "logs/backup.log"
+        outfile = touch("log/backup.done")
     threads: 2
     params:
         account="pengel_spirit",
@@ -1732,4 +1730,6 @@ rule backup:
     log: "logs/backup.log"
     benchmark: "logs/backup.benchmark"
     run:
-        shell("~/backup_dir.sh "+ProjectPath)
+        if LOCAL_BACKUP:
+            shell("mkdir -p "+BACKUP_PATH)
+        shell("scripts/backup_dir.sh "+PROJECT_PATH+" "+BACKUP_PATH)

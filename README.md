@@ -1021,3 +1021,5 @@ It is clear that the database is not best suited for some SDPs found especially 
 Information in [drep](https://drep.readthedocs.io/en/latest/choosing_parameters.html) documentation.
 
 $$A * Completeness - B * Contamination + C * (Contamination * frac{strainheterogeneity}{100}) + D * log(N50) + E * log(size) + F * (centrality - S_{a}ni) $$s
+
+"It makes no sense to perform bootstrap with less than 4 sequences" from IQTree

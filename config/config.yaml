@@ -366,3 +366,5 @@ GENOME_DBs:
   microbiome_red: "honeybee_gut_microbiota_db_red"
   microbiome: "genome_db_220315_AP"
 ProjectPath: "/scratch/aprasad/211018_Medgenome_india_samples"
+BackupPath: "/nas/FAC/FBM/DMF/pengel/spirit/D2c/aprasad/Backups"
+LocalBackup: True
