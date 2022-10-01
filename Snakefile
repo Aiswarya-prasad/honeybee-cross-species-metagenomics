@@ -11,10 +11,10 @@ import os
 configfile: "config/config.yaml"
 LOCAL_BACKUP = config["LocalBackup"]
 SAMPLES = config["SAMPLES_INDIA"]
-PROJECT_IDENTIFIER = config["PROJECT_IDENTIFIER"]
-BACKUP_PATH = config["BACKUP_PATH"]
+PROJECT_IDENTIFIER = config["ProjectIdentifier"]
+BACKUP_PATH = config["BackupPath"]
 DBs = config["GENOME_DBs"]
-PROJECT_PATH = config["PROJECT_PATH"]
+PROJECT_PATH = config["ProjectPath"]
 GROUPS = ["g__Bombilactobacillus",
           "g__Lactobacillus",
           "g__Bifidobacterium",
@@ -149,6 +149,9 @@ def num_genomes_in_group(group, path):
     """
     return len(get_g_dict_for_groups(path)[group])
 
+
+if LOCAL_BACKUP:
+    localrules: backup
 
 rule all:
     input:
@@ -1722,14 +1725,9 @@ rule backup:
     output:
         outfile = touch("log/backup.done")
     threads: 2
-    params:
-        account="pengel_spirit",
-        runtime_s=convertToSec("1-00:00:00"),
-    resources:
-        mem_mb = 8000
     log: "logs/backup.log"
     benchmark: "logs/backup.benchmark"
     run:
         if LOCAL_BACKUP:
-            shell("mkdir -p "+BACKUP_PATH)
-        shell("scripts/backup_dir.sh "+PROJECT_PATH+" "+BACKUP_PATH)
+            shell("echo \' ensure that "+BACKUP_PATH+" exists \'")
+        shell("scripts/backup.sh "+PROJECT_PATH+" "+BACKUP_PATH)

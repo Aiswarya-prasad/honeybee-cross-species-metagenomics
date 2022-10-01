@@ -1,0 +1,15 @@
+INFO [2022-10-01 12:32:02] $x
+INFO [2022-10-01 12:32:02] observations_host_all
+INFO [2022-10-01 12:32:02] 
+INFO [2022-10-01 12:32:02] $category.names
+INFO [2022-10-01 12:32:02] names(observations_host_all)
+INFO [2022-10-01 12:32:02] 
+INFO [2022-10-01 12:32:02] $output
+INFO [2022-10-01 12:32:02] T
+INFO [2022-10-01 12:32:02] 
+INFO [2022-10-01 12:32:02] $filename
+INFO [2022-10-01 12:32:02] [1] "Figures/09b-magOTUs_venn_all_MAGs.pdf"
+INFO [2022-10-01 12:32:02] 
+INFO [2022-10-01 12:32:02] $fill
+INFO [2022-10-01 12:32:02] host_order_color
+INFO [2022-10-01 12:32:02] 

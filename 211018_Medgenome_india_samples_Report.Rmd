@@ -1867,12 +1867,12 @@ I exclude the following because they only contain 1 MAG: `r filter(vis_magOTUs_d
 `r filter(vis_magOTUs_df_all, all_quality=="Pass") %>% pull(Species) %>% unique %>% length` <!-- 29 --> out of `r vis_magOTUs_df_all %>% pull(Species) %>% unique %>% length` <!-- 51 --> species.
 
 ```{r magOTU_summary}
-line_list <- c()
-for (num in 1:94){
-  add_line <- geom_vline(xintercept=num+0.5, size=0.1, color="black")
-  # add_line <- geom_vline(xintercept=num+0.5, size=0.1, alpha=0.5, color="grey")
-  line_list <- c(line_list, add_line)
-}
+# line_list <- c()
+# for (num in 1:94){
+#   add_line <- geom_vline(xintercept=num+0.5, size=0.1, color="black")
+#   # add_line <- geom_vline(xintercept=num+0.5, size=0.1, alpha=0.5, color="grey")
+#   line_list <- c(line_list, add_line)
+# }
 
 magOTUs_per_sample <- ggplot(vis_magOTUs_df_all, aes(y = factor(Cluster), x = factor(sample, samples), fill = Host)) +
                             geom_tile() +
@@ -1882,8 +1882,8 @@ magOTUs_per_sample <- ggplot(vis_magOTUs_df_all, aes(y = factor(Cluster), x = fa
                               leg_pos="none", guide_nrow=6,
                               y_hj=1, y_size=7, leg_size=8, y_vj=0.5,
                               x_vj=0, x_hj=1, x_size=6, x_angle=90) +
-                              scale_fill_manual(values=host_order_color) +
-                              line_list
+                              scale_fill_manual(values=host_order_color) #+
+                              # line_list
                                     ggsave("Figures/08a-magOTUs_per_sample.pdf")
 
 magOTUs_per_sample_genus <- ggplot(vis_magOTUs_df_all, aes(y = factor(Cluster), x = factor(sample, samples), fill = factor(Genus, genera))) +
@@ -1894,8 +1894,8 @@ magOTUs_per_sample_genus <- ggplot(vis_magOTUs_df_all, aes(y = factor(Cluster), 
                               leg_pos="none", guide_nrow=6,
                               y_hj=1, y_size=7, leg_size=8, y_vj=0.5,
                               x_vj=0, x_hj=1, x_size=6, x_angle=90) +
-                              scale_fill_manual(values=genusColors, guide = F) +
-                              line_list
+                              scale_fill_manual(values=genusColors, guide = F) #+
+                              # line_list
                                     ggsave("Figures/08b-magOTU_per_sample_genus.pdf")
 
 magOTUs_per_sample_by_host_genus <- ggplot(vis_magOTUs_df_all, aes(y = Cluster, x = sample, fill = factor(Genus, genera))) +
@@ -1908,12 +1908,6 @@ magOTUs_per_sample_by_host_genus <- ggplot(vis_magOTUs_df_all, aes(y = Cluster, 
         scale_fill_manual(values=genusColors) +
           facet_wrap(~ factor(Host, host_order), scales = "free")
       ggsave("Figures/08c-magOTU_by_host_genus.pdf")
-# contigs_depths_df %>%
-#   filter(bin == "MAG_C2.4_8")
-#
-# vis_magOTUs_df_all %>%
-#   filter(Cluster == "116_1") %>%
-#     select(Class, Genus, ID, completeness, length)
 
 magOTUs_per_sample_by_host_coverage <- ggplot(vis_magOTUs_df_all, aes(y = Cluster, x = sample, fill = mean_coverage)) +
         geom_tile() +
@@ -1956,8 +1950,8 @@ magOTUs_shared_per_sample_genus <- ggplot(vis_magOTUs_df_all_shared_cluster, aes
                               leg_pos="none", guide_nrow=6,
                               y_hj=1, y_size=7, leg_size=8, y_vj=0.5,
                               x_vj=0, x_hj=1, x_size=6, x_angle=90) +
-                              scale_fill_manual(values=genusColors) +
-                              line_list
+                              scale_fill_manual(values=genusColors) #+
+                              # line_list
                                     ggsave("Figures/08d-magOTU_shared_per_sample_genus.pdf")
 
 magOTUs_shared_per_sample_prev_abund <- ggplot(vis_magOTUs_df_all_shared_cluster, aes(y = factor(Cluster), x = factor(sample, samples), fill = Prevalence)) +
@@ -1968,8 +1962,8 @@ magOTUs_shared_per_sample_prev_abund <- ggplot(vis_magOTUs_df_all_shared_cluster
                               y_hj=1, y_size=7, leg_size=8, y_vj=0.5,
                               x_vj=0, x_hj=1, x_size=6, x_angle=90) +
                               guides(fill = guide_colorbar(barhwight = 1, barwidth = 10)) +
-                              scale_fill_gradientn(colors=brewer.pal(5, "RdYlGn"), na.value = "transparent", trans = "log10") +
-                              line_list
+                              scale_fill_gradientn(colors=brewer.pal(5, "RdYlGn"), na.value = "transparent", trans = "log10") #+
+                              # line_list
                                     ggsave("Figures/08d-magOTUs_shared_per_sample_prev_abund.pdf")
 
 magOTUs_per_sample_by_host_completeness_genus <- ggplot(vis_magOTUs_df_all, aes(y = Cluster, x = Num_mags, size = factor(Completeness_quality), color = Genus, alpha = 0.5)) +

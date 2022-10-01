@@ -38,7 +38,7 @@ echo "#############################################################" | tee -a ${
 
 # do not add the --update option (files that are touched in the remote server will be considered newer and not be updated
 #                                 also, files that are copied fresh will be considered "newer" rather than "uptodate")
-rsync -i --delete --backup --backup-dir="BACKUP/" --exclude "*_ortho_sequences*" --exclude "BACKUP/" --exclude "Report_cache/" --exclude "00_rawdata/" --exclude "00_Rawdata/" --exclude "00_RawData/" --exclude ".snakemake/" -avP ${source}/ ${destination}/ | tee -a ${destination}/nas_backup_${date_str}.log
+rsync -i --delete --backup --backup-dir="BACKUP/" --exclude "*.git*" --exclude "*_ortho_sequences*" --exclude "BACKUP/" --exclude "Report_cache/" --exclude "00_rawdata/" --exclude "00_Rawdata/" --exclude "00_RawData/" --exclude ".snakemake/" -avP ${source}/ ${destination}/ | tee -a ${destination}/nas_backup_${date_str}.log
 
 echo "#############################################################" | tee -a ${destination}/nas_backup_${date_str}.log
 echo "backup done" | tee -a ${destination}/nas_backup_${date_str}.log
