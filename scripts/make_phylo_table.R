@@ -229,3 +229,4 @@ MAGs_collated_for_tree <- MAGs_collated_for_tree %>%
 
 write.csv(rbind(final_genome_info, MAGs_collated_for_tree), paste0(project_dir_prefix, "06_MAG_binning/ForTree_GenomeInfo_auto.csv"), row.names = F, quote = T)
 write.csv(rbind(final_genome_info, MAGs_collated), paste0(project_dir_prefix, "06_MAG_binning/all_GenomeInfo_auto.csv"), row.names = F, quote = T)
+write.csv(rbind(MAGs_collated), paste0(project_dir_prefix, "06_MAG_binning/MAGs_GenomeInfo_auto.csv"), row.names = F, quote = T)

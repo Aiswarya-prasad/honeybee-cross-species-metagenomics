@@ -7,13 +7,15 @@ locally in a workstation also.
 """
 
 import os
+import itertools
 
 configfile: "config/config.yaml"
 LOCAL_BACKUP = config["LocalBackup"]
 # get sample lists
 SAMPLES_INDIA = config["SAMPLES_INDIA"]
 SAMPLES_KE_CHOSEN = config["SAMPLES_KE_CHOSEN"]
-SAMPLES = SAMPLES_INDIA + SAMPLES_KE_CHOSEN
+# SAMPLES = SAMPLES_INDIA + SAMPLES_KE_CHOSEN
+SAMPLES = SAMPLES_INDIA
 # get important paths
 PROJECT_IDENTIFIER = config["ProjectIdentifier"]
 BACKUP_PATH = config["BackupPath"]
@@ -153,6 +155,36 @@ def num_genomes_in_group(group, path):
     so make_tree is only run for those with at least 3
     """
     return len(get_g_dict_for_groups(path)[group])
+
+def get_MAGs_list_dict(path, full_list=False):
+    """
+    read list of MAGs from checkpoint output and return the list of Mags
+    of a given sample either as a list per sample, as a complete list including
+    all samples or a dictonary
+    """
+    g_list = []
+    g_list_dict = {}
+    for sample in SAMPLES:
+        g_list_dict[sample] = []
+    if os.path.isfile(path):
+        pass
+    else:
+        print(f"Could not find file at {path}")
+    with open(path, "r", encoding='utf-8-sig') as info_fh:
+        for line in info_fh:
+            line = line.strip()
+            if line.startswith("ID"):
+                continue
+            genome = line.split("\t")[0]
+            sample = "_".join(genome.split("MAG_")[1].split("_")[:-1])
+            # only include samples of interest!
+            if sample not in SAMPLES:
+                continue
+            g_list_dict[sample].append(genome)
+            g_list.append(genome)
+        if full_list:
+            return(g_list)
+        return(g_list_dict)
 
 
 if LOCAL_BACKUP:
@@ -313,7 +345,7 @@ rule run_motus:
         reads1 = "01_Trimmed/{sample}_R1_trim.fastq.gz",
         reads2 = "01_Trimmed/{sample}_R2_trim.fastq.gz",
     output:
-        motus_temp = temp("08_motus_profile/{sample}.motus")
+        motus_temp = "08_motus_profile/{sample}.motus"
     params:
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
@@ -1212,7 +1244,7 @@ rule gtdb_annotate:
         # set up path to database
         export GTDBTK_DATA_PATH={params.path_to_db}
         # find a more snakemakey way to do this
-        ln -sf {config[PROJECT_PATH]}/06_MAG_binning/bins_renamed/*/*.fa 06_MAG_binning/bins_renamed/
+        ln -sf {PROJECT_PATH}/06_MAG_binning/bins_renamed/*/*.fa 06_MAG_binning/bins_renamed/
         genomes_dir="06_MAG_binning/bins_renamed/"
         out_file={output.tax_info}
         gtdbtk classify_wf --genome_dir ${{genomes_dir}} --out_dir ${{out_file/\/classify\/gtdbtk.bac120.summary.tsv/}} --extension ".fa" --write_single_copy_genes --keep_intermediates
@@ -1228,8 +1260,10 @@ checkpoint make_phylo_table:
     output:
         out_all = "06_MAG_binning/all_GenomeInfo_auto.tsv",
         out_tree = "06_MAG_binning/ForTree_GenomeInfo_auto.tsv",
+        out_mags = "06_MAG_binning/MAGs_GenomeInfo_auto.tsv",
         out_t_all = temp("06_MAG_binning/all_GenomeInfo_auto.csv"),
         out_t_tree = temp("06_MAG_binning/ForTree_GenomeInfo_auto.csv"),
+        out_t_mags = temp("06_MAG_binning/MAGs_GenomeInfo_auto.csv"),
     log: "logs/make_phylo_table.log"
     benchmark: "logs/make_phylo_table.benchmark"
     conda: "envs/rmd-env.yaml"
@@ -1240,6 +1274,7 @@ checkpoint make_phylo_table:
         ./scripts/make_phylo_table.R {PROJECT_PATH}
         ./scripts/csv_to_tsv.py {output.out_t_all}
         ./scripts/csv_to_tsv.py {output.out_t_tree}
+        ./scripts/csv_to_tsv.py {output.out_t_mags}
         """
 
 rule prepare_phylo_genomes:
@@ -1647,6 +1682,98 @@ rule extract_orthologs_phylo_filt:
         python3 scripts/extract_orthologs_phylo.py --orthofile {input.ortho_single} --outdir {output.ortho_seq_dir} --faaffndir {params.faaffndir}
         """
 
+rule setup_midas_parse_gff:
+    input:
+        gff_file = "07_Phylogenies/01_prokka/{genome}/{genome}.gff",
+    output:
+        outfile = "11_MIDAS/MAGs_database/{genome}/{genome}.genes",
+    params:
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-2:10:00"),
+    benchmark: "logs/setup_midas_parse_gff.benchmark"
+    log: "logs/setup_midas_parse_gff.log"
+    shell:
+    """
+    python3 scripts/parse_gff_for_midas.py --outfile {output.outfile} --gff {input.gff_file}
+    """
+
+rule setup_midas_for_custom_db:
+    input:
+        bins_renamed = lambda wildcards: get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags, full_list = True),
+        fna_files = lambda wildcards: expand("07_Phylogenies/01_prokka/{genome}/{genome}.fna", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags, full_list = True)),
+        faa_files = lambda wildcards: expand("07_Phylogenies/01_prokka/{genome}/{genome}.faa", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags, full_list = True)),
+        ffn_files = lambda wildcards: expand("07_Phylogenies/01_prokka/{genome}/{genome}.ffn", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags, full_list = True)),
+        genomes_info = lambda wildcards: checkpoints.make_phylo_table.get().output.out_mags,
+        winning_genomes = rules.drep.output.Widb,
+    output:
+        fna_files = lambda wildcards: expand("11_MIDAS/MAGs_database/{genome}/{genome}.fna", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags, full_list = True)),
+        faa_files = lambda wildcards: expand("11_MIDAS/MAGs_database/{genome}/{genome}.faa", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags, full_list = True)),
+        ffn_files = lambda wildcards: expand("11_MIDAS/MAGs_database/{genome}/{genome}.ffn", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags, full_list = True)),
+        mapfile = midas_mapfile.tsv
+    params:
+        midas_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/",
+        indir = "11_MIDAS/MAGs_database/",
+        # outdir
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-2:10:00"),
+    benchmark: "logs/setup_midas_for_custom_db.benchmark"
+    log: "logs/setup_midas_for_custom_db.log"
+    conda: "envs/midas-env.yaml"
+    run:
+        # export PYTHONPATH=$PYTHONPATH:{params.midas_path}
+        shell("export PATH=$PATH:"+params.midas_path)
+        shell("export MIDAS_DB="+params.midas_path)
+        rep_genomes = {}
+        with open(input.winning_genomes, "r") as win_fh:
+            for line in win_fh:
+                rep_genomes.add(line.split(",")[0].split(".fa")[0])
+        with open(input.genomes_info, "r") as info_fh:
+            with open(output.mapfile, "w") as out_fh:
+                out_fh.write("genome_id\tspecies_id\trep_genome\n")
+                for line in info_fh:
+                    if line.startswith("ID"):
+                        continue
+                    genome_id = line.split("\t")[0]
+                    # cluster is species_id
+                    species_id = line.split("\t")[11]
+                    rep_genome = 1 if genome in rep_genomes else 0
+                    out_fh.write(f"{genome_id}\t{species_id}\t{rep_genome}\n")
+        for fna_in, fna_out in zip(input.fna_files, output.fna_files):
+            shell("ln -s "+fna_in+" "+fna_out)
+        for faa_in, faa_out in zip(input.faa_files, output.faa_files):
+            shell("ln -s "+faa_in+" "+faa_out)
+        for ffn_in, ffn_out in zip(input.ffn_files, output.ffn_files):
+            shell("ln -s "+ffn_in+" "+ffn_out)
+
+# rule create_midas_for_custom_db:
+#     input:
+#         fna_files = lambda wildcards: expand("11_MIDAS/MAGs_database/{genome}/{genome}.fna", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags, full_list = True)),
+#         faa_files = lambda wildcards: expand("11_MIDAS/MAGs_database/{genome}/{genome}.faa", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags, full_list = True)),
+#         ffn_files = lambda wildcards: expand("11_MIDAS/MAGs_database/{genome}/{genome}.ffn", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags, full_list = True)),
+#         genes_file = lambda wildcards: expand("11_MIDAS/MAGs_database/{genome}/{genome}.genes", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags, full_list = True)),
+#         mapfile = midas_mapfile.tsv
+#     output:
+#         outfile=
+#     params:
+#         midas_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/",
+#         indir = "11_MIDAS/MAGs_database/",
+#         # outdir
+#         mailto="aiswarya.prasad@unil.ch",
+#         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+#         account="pengel_spirit",
+#         runtime_s=convertToSec("0-2:10:00"),
+#     benchmark: "logs/setup_midas_for_custom_db.benchmark"
+#     log: "logs/setup_midas_for_custom_db.log"
+#     conda: "envs/midas-env.yaml"
+#     shell:
+#         """
+#         """
+
+
 # rule make_magOTU_collection:
 #     input:
 #         out_tree_info = lambda wildcards: checkpoints.make_phylo_table.get().output.out_tree,
@@ -1707,6 +1834,7 @@ rule compile_report:
         trees = lambda wildcards: ["07_Phylogenies/05_IQTree/"+group+"/"+group+"_Phylogeny.contree" for group in [x for x in GROUPS if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_tree) > 4]],
         single_ortho_MAGs = expand("07_Phylogenies/02_orthofinder/{group}/OrthoFinder/{group}_single_ortho_MAGs.txt", group=GROUPS),
         ortho_summary = expand("07_Phylogenies/02_orthofinder/{group}_Orthogroups_summary.csv", group=GROUPS),
+        mapfile = midas_mapfile.tsv
     output:
         html = PROJECT_IDENTIFIER+"_Report.html",
         # fig_00a = "Figures/00a-Total_reads_trimming.pdf",
@@ -1811,6 +1939,7 @@ rule backup:
         trees = lambda wildcards: ["07_Phylogenies/05_IQTree/"+group+"/"+group+"_Phylogeny.contree" for group in [x for x in GROUPS if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_tree) > 4]],
         single_ortho_MAGs = expand("07_Phylogenies/02_orthofinder/{group}/OrthoFinder/{group}_single_ortho_MAGs.txt", group=GROUPS),
         ortho_summary = expand("07_Phylogenies/02_orthofinder/{group}_Orthogroups_summary.csv", group=GROUPS),
+        mapfile = midas_mapfile.tsv
     output:
         outfile = touch("logs/backup.done")
     threads: 2
