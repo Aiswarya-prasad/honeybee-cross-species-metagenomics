@@ -12,7 +12,7 @@ transferred - remove or add patterns to --exculde if needed)
 
 Make sure that the destination path exists!
 
-usage: ./backup.sh /scratch/<> /nas/<>
+usage: ./backup.sh /scratch/<> /nas/<> <path to log file>
 '
 
 date_str=$(date +'%y%m%d')
@@ -21,25 +21,26 @@ time_str=$(date +'%R')
 source=$1
 destination=$2
 # Write log file to current directory
-touch ${destination}/nas_backup_${date_str}.log
+logfile=$3
+touch ${logfile}
 
 echo "#######################"
-echo "backup being done on" | tee -a ${destination}/nas_backup_${date_str}.log
-echo ${date_str} | tee -a ${destination}/nas_backup_${date_str}.log
-echo "at" | tee -a ${destination}/nas_backup_${date_str}.log
-echo ${time_str} | tee -a ${destination}/nas_backup_${date_str}.log
-echo "#######################" | tee -a ${destination}/nas_backup_${date_str}.log
-echo "#######################" | tee -a ${destination}/nas_backup_${date_str}.log
-echo "#######################" | tee -a ${destination}/nas_backup_${date_str}.log
-echo "#############################################################" | tee -a ${destination}/nas_backup_${date_str}.log
-echo "starting backup of" | tee -a ${destination}/nas_backup_${date_str}.log
-echo $source | tee -a ${destination}/nas_backup_${date_str}.log
-echo "#############################################################" | tee -a ${destination}/nas_backup_${date_str}.log
+echo "backup being done on" | tee -a ${logfile}
+echo ${date_str} | tee -a ${logfile}
+echo "at" | tee -a ${logfile}
+echo ${time_str} | tee -a ${logfile}
+echo "#######################" | tee -a ${logfile}
+echo "#######################" | tee -a ${logfile}
+echo "#######################" | tee -a ${logfile}
+echo "#############################################################" | tee -a ${logfile}
+echo "starting backup of" | tee -a ${logfile}
+echo $source | tee -a ${logfile}
+echo "#############################################################" | tee -a ${logfile}
 
 # do not add the --update option (files that are touched in the remote server will be considered newer and not be updated
 #                                 also, files that are copied fresh will be considered "newer" rather than "uptodate")
-rsync -i --delete --backup --backup-dir="BACKUP/" --exclude "*.git*" --exclude "*_ortho_sequences*" --exclude "BACKUP/" --exclude "Report_cache/" --exclude "00_rawdata/" --exclude "00_Rawdata/" --exclude "00_RawData/" --exclude ".snakemake/" -avP ${source}/ ${destination}/ | tee -a ${destination}/nas_backup_${date_str}.log
+rsync -i --delete --backup --backup-dir="BACKUP/" --exclude "*.git*" --exclude "*_ortho_sequences*" --exclude "BACKUP/" --exclude "Report_cache/" --exclude "00_rawdata/" --exclude "00_Rawdata/" --exclude "00_RawData/" --exclude ".snakemake/" -avP ${source}/ ${destination}/ | tee -a ${logfile}
 
-echo "#############################################################" | tee -a ${destination}/nas_backup_${date_str}.log
-echo "backup done" | tee -a ${destination}/nas_backup_${date_str}.log
-echo "#############################################################" | tee -a ${destination}/nas_backup_${date_str}.log
+echo "#############################################################" | tee -a ${logfile}
+echo "backup done" | tee -a ${logfile}
+echo "#############################################################" | tee -a ${logfile}

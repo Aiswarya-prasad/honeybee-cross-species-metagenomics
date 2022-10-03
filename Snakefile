@@ -10,10 +10,15 @@ import os
 
 configfile: "config/config.yaml"
 LOCAL_BACKUP = config["LocalBackup"]
-SAMPLES = config["SAMPLES_INDIA"]
+# get sample lists
+SAMPLES_INDIA = config["SAMPLES_INDIA"]
+SAMPLES_KE_CHOSEN = config["SAMPLES_KE_CHOSEN"]
+SAMPLES = SAMPLES_INDIA + SAMPLES_KE_CHOSEN
+# get important paths
 PROJECT_IDENTIFIER = config["ProjectIdentifier"]
 BACKUP_PATH = config["BackupPath"]
 DBs = config["GENOME_DBs"]
+ADAPTERS = config["Adapters"]
 PROJECT_PATH = config["ProjectPath"]
 GROUPS = ["g__Bombilactobacillus",
           "g__Lactobacillus",
@@ -158,9 +163,6 @@ rule all:
         html = PROJECT_IDENTIFIER+"_Report.html",
         backup_log = "logs/backup.log",
 
-onstart:
-    shell("rm -rf logs/backup.log")
-
 
 rule raw_qc:
     input:
@@ -189,9 +191,9 @@ rule raw_qc:
 # """
 # rule make_adapters:
 #     input:
-#         "index_table.csv"
+#         "config/index_table.csv"
 #     output:
-#         "Adapters-PE.fa"
+#         "config/Adapters-PE.fa"
 #     script:
 #         "scripts/write_adapters.py"
 # """
@@ -200,7 +202,7 @@ rule trim:
     input:
         reads1=ancient(os.path.join("00_RawData", "{sample}_R1.fastq.gz")),
         reads2=ancient(os.path.join("00_RawData", "{sample}_R2.fastq.gz")),
-        adapter="Adapters-PE.fa"
+        adapter="config/Adapters-PE.fa"
         # adapter=rules.make_adapters.output
     output:
         reads1 = "01_Trimmed/{sample}_R1_trim.fastq.gz",
@@ -208,7 +210,8 @@ rule trim:
         reads1_unpaired = temp("01_Trimmed/{sample}_R1.unpaired.fastq.gz"),
         reads2_unpaired = temp("01_Trimmed/{sample}_R2.unpaired.fastq.gz")
     params:
-        adapters="Adapters-PE.fa",
+        # add adapter definition to config later
+        adapters = lambda wildcards: ADAPTERS["SAMPLES_INDIA"] if wildcards.sample in SAMPLES_INDIA else (ADAPTERS["SAMPLES_KE_CHOSEN"] if wildcards.sample in SAMPLES_KE_CHOSEN else ADAPTERS["default"]),
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         jobname="{sample}_trim",
@@ -393,8 +396,8 @@ rule host_mapping_extract_host_mapped_reads:
     input:
         bam_unmapped=rules.host_mapping.output.bam_mapped
     output:
-        reads1 = "02_HostMapping/{sample}_R1_host_mapped.fastq",
-        reads2 = "02_HostMapping/{sample}_R2_host_mapped.fastq",
+        reads1 = temp("02_HostMapping/{sample}_R1_host_mapped.fastq"),
+        reads2 = temp("02_HostMapping/{sample}_R2_host_mapped.fastq"),
         bai_unmapped=temp("02_HostMapping/{sample}_host_mapped.bam.bai")
     params:
         mailto="aiswarya.prasad@unil.ch",
@@ -597,7 +600,7 @@ rule microbiomedb_direct_extract_reads:
     params:
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        jobname="{sample}_microbiomedb_extract_reads",
+        jobname="{sample}_microbiomedb_direct__extract_reads",
         account="pengel_spirit",
         runtime_s=convertToSec("0-2:10:00"),
     resources:
@@ -1644,6 +1647,28 @@ rule extract_orthologs_phylo_filt:
         python3 scripts/extract_orthologs_phylo.py --orthofile {input.ortho_single} --outdir {output.ortho_seq_dir} --faaffndir {params.faaffndir}
         """
 
+# rule make_magOTU_collection:
+#     input:
+#         out_tree_info = lambda wildcards: checkpoints.make_phylo_table.get().output.out_tree,
+#     output:
+#         mags_db = "10_MAGsCoreCoverage/mags_db"
+#     params:
+#         mag_path = "06_MAG_binning/bins_renamed/"
+#         mailto="aiswarya.prasad@unil.ch",
+#         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+#         jobname=lambda wildcards: wildcards.group+"_extract_orthologs_phylo_filt",
+#         account="pengel_spirit",
+#         runtime_s=convertToSec("0-2:10:00"),
+#     resources:
+#         mem_mb = 8000
+#     log: "logs/{group}_extract_orthologs_phylo_filt.log"
+#     benchmark: "logs/{group}_extract_orthologs_phylo_filt.benchmark"
+#     conda: "envs/mapping-env.yaml"
+#     threads: 5
+#     shell:
+#     """
+#     """
+
 # Choose Mags that will be used for abundance estimation. x% of the core genes should be present...
 
 # rule map_to_all_mags:
@@ -1684,6 +1709,69 @@ rule compile_report:
         ortho_summary = expand("07_Phylogenies/02_orthofinder/{group}_Orthogroups_summary.csv", group=GROUPS),
     output:
         html = PROJECT_IDENTIFIER+"_Report.html",
+        # fig_00a = "Figures/00a-Total_reads_trimming.pdf",
+        # fig_00b = "Figures/00b-Total_reads_species_after_trimming.pdf",
+        # fig_00c = "Figures/00c-Mapped_Unmapped_reads_prop.pdf",
+        # fig_00d = "Figures/00d-Mapping_non_specific.pdf",
+        # fig_04b = "Figures/04b-motus_filt.pdf",
+        # fig_04a = "Figures/04a-motus.pdf",
+        # fig_03a = "Figures/03a-NumberOfFilteredcontigs.pdf",
+        # fig_03b = "Figures/03b-Assembly_summary.pdf",
+        # fig_05c_am = "Figures/05c-contig_length_histogram_am.pdf",
+        # fig_05d_am = "Figures/05d-contig_length_histogram_am_passed.pdf",
+        # fig_05c_ac = "Figures/05c-contig_length_histogram_ac.pdf",
+        # fig_05d_ac = "Figures/05d-contig_length_histogram_ac_passed.pdf",
+        # fig_05c_ad = "Figures/05c-contig_length_histogram_ad.pdf",
+        # fig_05d_ad = "Figures/05d-contig_length_histogram_ad_passed.pdf",
+        # fig_05c_af = "Figures/05c-contig_length_histogram_af.pdf",
+        # fig_05d_af = "Figures/05d-contig_length_histogram_af_passed.pdf",
+        # fig_05g_am = "Figures/05g-length_vs_depth_contigs_all_am.pdf",
+        # fig_05h_am = "Figures/05h-length_vs_depth_contigs_binned_am.pdf",
+        # fig_05g_ac = "Figures/05g-length_vs_depth_contigs_all_ac.pdf",
+        # fig_05h_ac = "Figures/05h-length_vs_depth_contigs_binned_ac.pdf",
+        # fig_05g_ad = "Figures/05g-length_vs_depth_contigs_all_ad.pdf",
+        # fig_05h_ad = "Figures/05h-length_vs_depth_contigs_binned_ad.pdf",
+        # fig_05g_af = "Figures/05g-length_vs_depth_contigs_all_af.pdf",
+        # fig_05h_af = "Figures/05h-length_vs_depth_contigs_binned_af.pdf",
+        # fig_05a = "Figures/05a-data-contigs_passed_failed.pdf",
+        # fig_05b = "Figures/05b-contigs_binned_unbinned.pdf",
+        # fig_05e_1 = "Figures/05e-contigs_binned_unbinned_by_genus.pdf",
+        # fig_05e_2 = "Figures/05e-contigs_binned_unbinned_by_genus_scaled.pdf",
+        # fig_05f_1 = "Figures/05f-contigs_by_genus_binned.pdf",
+        # fig_05f_2 = "Figures/05f-contigs_by_genus_binned_scaled.pdf",
+        # fig_07a_1 = "Figures/07a-prev_vs_coverage_all_MAGs_genus_by_host.pdf",
+        # fig_07a_2 = "Figures/07a-prev_vs_coverage_filtered_MAGs_genus_by_host.pdf",
+        # fig_07a_3 = "Figures/07a-prev_vs_coverage_all_MAGs_genus_by_host_no_size.pdf",
+        # fig_07a_4 = "Figures/07a-prev_vs_coverage_filtered_MAGs_genus_by_host_no_size.pdf",
+        # fig_06a = "Figures/06a-QC_MAG_histogram.pdf",
+        # fig_06b = "Figures/06b-QC_MAG_per_sample.pdf",
+        # fig_07a_5 = "Figures/07a-prev_vs_coverage_MAGs_genus.pdf",
+        # fig_07a_6 = "Figures/07a-prev_overall_vs_coverage_MAGs_genus.pdf",
+        # fig_07_1 = "Figures/07-QC_per_Genus_per_host_all.pdf",
+        # fig_07_2 = "Figures/07-QC_per_Genus_per_host_passed.pdf",
+        # fig_08a = "Figures/08a-magOTUs_per_sample.pdf",
+        # fig_08b = "Figures/08b-magOTU_per_sample_genus.pdf",
+        # fig_08c_1 = "Figures/08c-magOTU_by_host_genus.pdf",
+        # fig_08c_2 = "Figures/08c-magOTU_by_host_MAGs_coverage.pdf",
+        # fig_08c_3 = "Figures/08c-magOTU_by_host_MAGs_prevalence.pdf",
+        # fig_08d_1 = "Figures/08d-magOTU_shared_per_sample_genus.pdf",
+        # fig_08d_2 = "Figures/08d-magOTUs_shared_per_sample_prev_abund.pdf",
+        # fig_08e = "Figures/08e-magOTUs_by_host_completeness.pdf",
+        # fig_08f_1 = "Figures/08f-mags_prev_vs_abd_by_genus_completeness.pdf",
+        # fig_08f_2 = "Figures/08f-mags_prev_vs_abd_by_genus_host.pdf",
+        # fig_09a_1 = "Figures/09a-magOTU_number_per_sample_all.pdf",
+        # fig_09a_2 = "Figures/09a-magOTU_number_per_sample_passed.pdf",
+        # fig_09c = "Figures/09c-magOTUs_accumulation_curve.pdf",
+        # fig_09d_1 = "Figures/09d-magOTUs_pcoa.pdf",
+        # fig_09d_2 = "Figures/09d-magOTUs_pcoa_location.pdf",
+        # fig_09d_3 = "Figures/09d-magOTUs_pcoa_colony.pdf",
+        # fig_09d_4 = "Figures/09d-magOTUs_pcoa_country.pdf",
+        # fig_09d_5 = "Figures/09d-magOTUs_pcoa_run_id.pdf",
+        # fig_10a = "Figures/10a-Number_of_genomes_per_group.pdf",
+        # fig_10b = "Figures/10b-Number_of_orthogroups_per_group.pdf",
+        # fig_10c = "Figures/10c-Orthogroups_status_per_group.pdf",
+        # fig_11a = "Figures/11a-mag_drep_scores_histogram.pdf",
+        # fig_11b = "Figures/11b-cluster_size_histogram.pdf",
     conda: "envs/rmd-env.yaml"
     threads: 2
     params:
@@ -1695,6 +1783,7 @@ rule compile_report:
     benchmark: "logs/compile_report.benchmark"
     shell:
         """
+        rm -rf PROJECT_IDENTIFIER_Report_cache
         R -e \"rmarkdown::render('{input.rmd}')\"
         """
 
@@ -1723,11 +1812,16 @@ rule backup:
         single_ortho_MAGs = expand("07_Phylogenies/02_orthofinder/{group}/OrthoFinder/{group}_single_ortho_MAGs.txt", group=GROUPS),
         ortho_summary = expand("07_Phylogenies/02_orthofinder/{group}_Orthogroups_summary.csv", group=GROUPS),
     output:
-        outfile = touch("log/backup.done")
+        outfile = touch("logs/backup.done")
     threads: 2
     log: "logs/backup.log"
     benchmark: "logs/backup.benchmark"
+    params:
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-2:10:00"),
+    resources:
+        mem_mb = convertToMb("4G")
     run:
         if LOCAL_BACKUP:
             shell("echo \' ensure that "+BACKUP_PATH+" exists \'")
-        shell("scripts/backup.sh "+PROJECT_PATH+" "+BACKUP_PATH)
+        shell("scripts/backup.sh "+PROJECT_PATH+" "+os.path.join(BACKUP_PATH, PROJECT_IDENTIFIER)+" logs/backup.log")

@@ -147,3 +147,33 @@ rsync -a -v --progress ${remote_server_nas}/aprasad/Backups/working_dir_backup/C
 rsync -a -v --progress ${remote_server_nas}/aprasad/Backups/working_dir_backup/Cluster/211018_Medgenome_india_samples/${specifier}Metadata_211018_Medgenome_india_samples.csv /scratch/aprasad/211018_Medgenome_india_samples/  | tee -a /scratch/aprasad/211018_Medgenome_india_samples/project_initialization.log
 rsync -a -v --progress ${remote_server_nas}/aprasad/Backups/working_dir_backup/Cluster/211018_Medgenome_india_samples/${specifier}MakePhylogenies.smk /scratch/aprasad/211018_Medgenome_india_samples/  | tee -a /scratch/aprasad/211018_Medgenome_india_samples/project_initialization.log
 rsync -a -v --progress ${remote_server_nas}/aprasad/Backups/working_dir_backup/Cluster/211018_Medgenome_india_samples/${specifier}index_table.csv /scratch/aprasad/211018_Medgenome_india_samples/  | tee -a /scratch/aprasad/211018_Medgenome_india_samples/project_initialization.log
+
+# for copying KE's samples. Incorporate this feature elsewhere later
+#!/bin/bash
+
+rsync -a -v --progress aiswarya@130.223.110.124:/home/aiswarya/mnt/lab_resources/NGS_data/20180612_KE_japan_metagenomes/data/Ig13612_R1.fastq.gz aprasad@curnagl.dcsr.unil.ch:/scratch/aprasad/211018_Medgenome_india_samples/00_RawData/AmAi02_R1.fastq.gz
+rsync -a -v --progress aiswarya@130.223.110.124:/home/aiswarya/mnt/lab_resources/NGS_data/20180612_KE_japan_metagenomes/data/Ig13612_R2.fastq.gz aprasad@curnagl.dcsr.unil.ch:/scratch/aprasad/211018_Medgenome_india_samples/00_RawData/AmAi02_R2.fastq.gz
+rsync -a -v --progress aiswarya@130.223.110.124:/home/aiswarya/mnt/lab_resources/NGS_data/20180612_KE_japan_metagenomes/data/Ig13618_R1.fastq.gz aprasad@curnagl.dcsr.unil.ch:/scratch/aprasad/211018_Medgenome_india_samples/00_RawData/AmAi08_R1.fastq.gz
+rsync -a -v --progress aiswarya@130.223.110.124:/home/aiswarya/mnt/lab_resources/NGS_data/20180612_KE_japan_metagenomes/data/Ig13618_R2.fastq.gz aprasad@curnagl.dcsr.unil.ch:/scratch/aprasad/211018_Medgenome_india_samples/00_RawData/AmAi08_R2.fastq.gz
+rsync -a -v --progress aiswarya@130.223.110.124:/home/aiswarya/mnt/lab_resources/NGS_data/20180612_KE_japan_metagenomes/data/Ig13611_R1.fastq.gz aprasad@curnagl.dcsr.unil.ch:/scratch/aprasad/211018_Medgenome_india_samples/00_RawData/AmAi01_R1.fastq.gz
+rsync -a -v --progress aiswarya@130.223.110.124:/home/aiswarya/mnt/lab_resources/NGS_data/20180612_KE_japan_metagenomes/data/Ig13611_R2.fastq.gz aprasad@curnagl.dcsr.unil.ch:/scratch/aprasad/211018_Medgenome_india_samples/00_RawData/AmAi01_R2.fastq.gz
+rsync -a -v --progress aiswarya@130.223.110.124:/home/aiswarya/mnt/lab_resources/NGS_data/20180612_KE_japan_metagenomes/data/Ig13613_R1.fastq.gz aprasad@curnagl.dcsr.unil.ch:/scratch/aprasad/211018_Medgenome_india_samples/00_RawData/AmAi03_R1.fastq.gz
+rsync -a -v --progress aiswarya@130.223.110.124:/home/aiswarya/mnt/lab_resources/NGS_data/20180612_KE_japan_metagenomes/data/Ig13613_R2.fastq.gz aprasad@curnagl.dcsr.unil.ch:/scratch/aprasad/211018_Medgenome_india_samples/00_RawData/AmAi03_R2.fastq.gz
+rsync -a -v --progress aiswarya@130.223.110.124:/home/aiswarya/mnt/lab_resources/NGS_data/20180612_KE_japan_metagenomes/data/Ig13614_R1.fastq.gz aprasad@curnagl.dcsr.unil.ch:/scratch/aprasad/211018_Medgenome_india_samples/00_RawData/AmAi04_R1.fastq.gz
+rsync -a -v --progress aiswarya@130.223.110.124:/home/aiswarya/mnt/lab_resources/NGS_data/20180612_KE_japan_metagenomes/data/Ig13614_R2.fastq.gz aprasad@curnagl.dcsr.unil.ch:/scratch/aprasad/211018_Medgenome_india_samples/00_RawData/AmAi04_R2.fastq.gz
+rsync -a -v --progress aiswarya@130.223.110.124:/home/aiswarya/mnt/lab_resources/NGS_data/20180612_KE_japan_metagenomes/data/Ig13615_R1.fastq.gz aprasad@curnagl.dcsr.unil.ch:/scratch/aprasad/211018_Medgenome_india_samples/00_RawData/AmAi05_R1.fastq.gz
+rsync -a -v --progress aiswarya@130.223.110.124:/home/aiswarya/mnt/lab_resources/NGS_data/20180612_KE_japan_metagenomes/data/Ig13615_R2.fastq.gz aprasad@curnagl.dcsr.unil.ch:/scratch/aprasad/211018_Medgenome_india_samples/00_RawData/AmAi05_R2.fastq.gz
+rsync -a -v --progress aiswarya@130.223.110.124:/home/aiswarya/mnt/lab_resources/NGS_data/20180612_KE_japan_metagenomes/data/Ig13616_R1.fastq.gz aprasad@curnagl.dcsr.unil.ch:/scratch/aprasad/211018_Medgenome_india_samples/00_RawData/AmAi06_R1.fastq.gz
+rsync -a -v --progress aiswarya@130.223.110.124:/home/aiswarya/mnt/lab_resources/NGS_data/20180612_KE_japan_metagenomes/data/Ig13616_R2.fastq.gz aprasad@curnagl.dcsr.unil.ch:/scratch/aprasad/211018_Medgenome_india_samples/00_RawData/AmAi06_R2.fastq.gz
+rsync -a -v --progress aiswarya@130.223.110.124:/home/aiswarya/mnt/lab_resources/NGS_data/20180612_KE_japan_metagenomes/data/Ig13617_R1.fastq.gz aprasad@curnagl.dcsr.unil.ch:/scratch/aprasad/211018_Medgenome_india_samples/00_RawData/AmAi07_R1.fastq.gz
+rsync -a -v --progress aiswarya@130.223.110.124:/home/aiswarya/mnt/lab_resources/NGS_data/20180612_KE_japan_metagenomes/data/Ig13617_R2.fastq.gz aprasad@curnagl.dcsr.unil.ch:/scratch/aprasad/211018_Medgenome_india_samples/00_RawData/AmAi07_R2.fastq.gz
+rsync -a -v --progress aiswarya@130.223.110.124:/home/aiswarya/mnt/lab_resources/NGS_data/20180612_KE_japan_metagenomes/data/Ig13619_R1.fastq.gz aprasad@curnagl.dcsr.unil.ch:/scratch/aprasad/211018_Medgenome_india_samples/00_RawData/AmAi09_R1.fastq.gz
+rsync -a -v --progress aiswarya@130.223.110.124:/home/aiswarya/mnt/lab_resources/NGS_data/20180612_KE_japan_metagenomes/data/Ig13619_R2.fastq.gz aprasad@curnagl.dcsr.unil.ch:/scratch/aprasad/211018_Medgenome_india_samples/00_RawData/AmAi09_R2.fastq.gz
+rsync -a -v --progress aiswarya@130.223.110.124:/home/aiswarya/mnt/lab_resources/NGS_data/20180612_KE_japan_metagenomes/data/Ig13620_R1.fastq.gz aprasad@curnagl.dcsr.unil.ch:/scratch/aprasad/211018_Medgenome_india_samples/00_RawData/AmAi10_R1.fastq.gz
+rsync -a -v --progress aiswarya@130.223.110.124:/home/aiswarya/mnt/lab_resources/NGS_data/20180612_KE_japan_metagenomes/data/Ig13620_R2.fastq.gz aprasad@curnagl.dcsr.unil.ch:/scratch/aprasad/211018_Medgenome_india_samples/00_RawData/AmAi10_R2.fastq.gz
+
+for sample in DrY2_F1 DrY2_F2 DrY2_F3 DrY2_F4 DrY2_F5
+do
+  rsync -a -v --progress aiswarya@130.223.110.124:/home/aiswarya/mnt/lab_resources/NGS_data/20170310_WINDU179/data/${sample}_R1.fastq.gz aprasad@curnagl.dcsr.unil.ch:/scratch/aprasad/211018_Medgenome_india_samples/00_RawData/
+  rsync -a -v --progress aiswarya@130.223.110.124:/home/aiswarya/mnt/lab_resources/NGS_data/20170310_WINDU179/data/${sample}_R2.fastq.gz aprasad@curnagl.dcsr.unil.ch:/scratch/aprasad/211018_Medgenome_india_samples/00_RawData/
+done
