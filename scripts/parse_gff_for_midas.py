@@ -18,12 +18,16 @@ outfile = args.outfile
 with open(gff, "r") as gff_fh:
     with open(outfile, "w") as outfile_fh:
         outfile_fh.write("\t".join(["gene_id","scaffold_id","start","end","strand","gene_type"])+"\n")
+        print("skipped gff entries:\n")
         for line in gff_fh:
             if line.startswith("##"):
                 continue
             if line.startswith(">"):
                 break
             info_dict = {x.split("=")[0] : x.split("=")[1] for x in line.split("\t")[-1].split(";")}
+            if "ID" not in info_dict.keys():
+                print(line)
+                continue
             gene_id = info_dict["ID"]
             scaffold_id = line.split("\t")[0].split("|")[-1]
             start = line.split("\t")[3]

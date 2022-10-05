@@ -13,3 +13,6 @@ dependencies:
   - pandas>=0.17.1
   - hmmer
   - vsearch
+  - hs-blastn
+  - bowtie2
+  - samtools

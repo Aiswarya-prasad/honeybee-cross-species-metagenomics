@@ -388,9 +388,10 @@ paginate_save <- function(plot, variable, plot_name, pass_nrow = 5, pass_ncol = 
 # Results
 
 ```{r predefined_vectors}
+# Read this from the config file(s)?
 samples <- c("M1.1", "M1.2", "M1.3", "M1.4", "M1.5",
-              "AmAi01", "AmAi02", "AmAi03", "AmAi04", "AmAi05",
-              "DrY1_F1", "DrY1_F2", "DrY1_F3", "DrY1_F4", "DrY1_F5",
+              # "AmAi01", "AmAi02", "AmAi03", "AmAi04", "AmAi05",
+              # "DrY1_F1", "DrY1_F2", "DrY1_F3", "DrY1_F4", "DrY1_F5",
               "C1.1", "C1.2", "C1.3", "C1.4", "C1.5",
               "C2.1", "C2.2", "C2.3", "C2.4", "C2.5",
               "C3.1", "C3.2", "C3.3", "C3.4", "C3.5",
@@ -961,6 +962,11 @@ vis_magOTUs_df_all <- MAGs_collated_info %>%
                                   mutate(Host = Vectorize(get_host_name)(ID)) # %>%
                                     # mutate(num_contigs = Vectorize(get_num_contigs_per_bin)(ID))
 
+samples_am <- c(vis_magOTUs_df_all %>% filter(Host == "Apis mellifera") %>% pull(Sample) %>% unique %>% as.vector)
+samples_ac <- c(vis_magOTUs_df_all %>% filter(Host == "Apis cerana") %>% pull(Sample) %>% unique %>% as.vector)
+samples_ad <-c(vis_magOTUs_df_all %>% filter(Host == "Apis dorsata") %>% pull(Sample) %>% unique %>% as.vector)
+samples_af <-c(vis_magOTUs_df_all %>% filter(Host == "Apis florea") %>% pull(Sample) %>% unique %>% as.vector)
+
 contig_fates_df_am <- data.frame()
 for (sample in samples_am) {
   contig_fates_df_am <- rbind(contig_fates_df_am, read.csv(paste0("06_MAG_binning/contig_fates/",sample,"_contig_fates.csv"), sep = ","))
@@ -1039,11 +1045,6 @@ vis_magOTUs_df_all <- vis_magOTUs_df_all %>%
                           group_by(Cluster) %>%
                             mutate(Num_mags = n()) %>%
                               mutate(Prevalence_overall = Num_mags/length(samples))
-
-samples_am <- c(vis_magOTUs_df_all %>% filter(Host == "Apis mellifera") %>% pull(Sample) %>% unique %>% as.vector)
-samples_ac <- c(vis_magOTUs_df_all %>% filter(Host == "Apis cerana") %>% pull(Sample) %>% unique %>% as.vector)
-samples_ad <-c(vis_magOTUs_df_all %>% filter(Host == "Apis dorsata") %>% pull(Sample) %>% unique %>% as.vector)
-samples_af <-c(vis_magOTUs_df_all %>% filter(Host == "Apis florea") %>% pull(Sample) %>% unique %>% as.vector)
 
 vis_magOTUs_df_all <- vis_magOTUs_df_all %>%
                           group_by(Cluster, Host) %>%
@@ -2238,7 +2239,7 @@ plot(betadisper(vegdist(df_magOTUs_vegan, "jaccard"), group=df_meta$SpeciesID),h
 ```{r orthofinder_results}
 Number_genomes_df <- data.frame()
 for (group in Groups) {
-  OG_numbers_df <- read.csv(paste0("07_Phylogenies/02_orthofinder/", group, "/OrthoFinder/Results_", group, "/Orthogroups/Orthogroups.GeneCount.tsv"), sep = "\t")
+  OG_numbers_df <- read.csv(paste0("07_AnnotationAndPhylogenies/02_orthofinder/", group, "/OrthoFinder/Results_", group, "/Orthogroups/Orthogroups.GeneCount.tsv"), sep = "\t")
   genomes <- head(colnames(OG_numbers_df)[-1], -1)
   MAGs <- genomes[which(grepl("MAG", genomes, fixed=TRUE))]
   Isolates <- genomes[which(!grepl("MAG", genomes, fixed=TRUE))]
@@ -2256,7 +2257,7 @@ Number_genomes_df <- pivot_longer(Number_genomes_df, !Group, names_to = "Type", 
 
 Orthogroups_summary_df <- data.frame()
 for (group in Groups) {
-  OG_summary <- read.csv(paste0("07_Phylogenies/02_orthofinder/", group, "_Orthogroups_summary.csv"), sep = ",")
+  OG_summary <- read.csv(paste0("07_AnnotationAndPhylogenies/02_orthofinder/", group, "_Orthogroups_summary.csv"), sep = ",")
   Orthogroups_summary_df <- rbind(Orthogroups_summary_df,
                                   OG_summary
                             ) %>%

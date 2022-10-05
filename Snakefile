@@ -162,6 +162,7 @@ def get_MAGs_list_dict(path, full_list=False):
     of a given sample either as a list per sample, as a complete list including
     all samples or a dictonary
     """
+    g_paths_list = []
     g_list = []
     g_list_dict = {}
     for sample in SAMPLES:
@@ -185,7 +186,6 @@ def get_MAGs_list_dict(path, full_list=False):
         if full_list:
             return(g_list)
         return(g_list_dict)
-
 
 if LOCAL_BACKUP:
     localrules: backup
@@ -953,6 +953,8 @@ rule process_metabat2:
         all_mags = directory("06_MAG_binning/bins_renamed/{sample}"),
     log: "logs/{sample}_process_metabat2.log"
     benchmark: "logs/{sample}_process_metabat2.benchmark"
+    params:
+        outpath = "06_MAG_binning/bins_renamed/"
     shell:
         """
         mkdir -p {output.all_mags}
@@ -965,6 +967,7 @@ rule process_metabat2:
             mag_name=${{mag/MAG./}}
             mag_num=${{mag_name%%.fa}}
             cp ${{dir}}/${{mag}} {output.all_mags}/MAG_${{sample}}_${{mag_num}}.fa
+            ln -s {output.all_mags}/MAG_${{sample}}_${{mag_num}}.fa {params.outpath}//MAG_${{sample}}_${{mag_num}}.fa
         done
         """
 
@@ -1130,6 +1133,7 @@ rule drep:
     output:
         drep_C = "06_MAG_binning/drep_results/data_tables/Cdb.csv",
         drep_W = "06_MAG_binning/drep_results/data_tables/Wdb.csv",
+        drep_Wi = "06_MAG_binning/drep_results/data_tables/Widb.csv",
         drep_gI = "06_MAG_binning/drep_results/data_tables/genomeInformation.csv",
     params:
         bins = expand("06_MAG_binning/bins_renamed/{sample}/*.fa", sample=SAMPLES),
@@ -1277,28 +1281,29 @@ checkpoint make_phylo_table:
         ./scripts/csv_to_tsv.py {output.out_t_mags}
         """
 
-rule prepare_phylo_genomes:
+rule prepare_genomes:
     input:
         mags = "06_MAG_binning/bins_renamed"
     output:
-        genome = "07_Phylogenies/00_genomes/{genome}.fa",
+        genome = "07_AnnotationAndPhylogenies/00_genomes/{genome}.fa",
     threads: 4
     params:
         info = "config/IsolateGenomeInfo.csv",
+        sample_name = lambda wildcards: "_".join(wildcards.genome.split("MAG_")[1].split("_")[:-1]),
         mags_dir = "06_MAG_binning/bins_renamed/",
         ftp_summary = "https://ftp.ncbi.nih.gov/genomes/ASSEMBLY_REPORTS/assembly_summary_genbank.txt",
         assembly_summary_genbank = "assembly_summary_genbank.txt",
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         account="pengel_spirit",
-    log: "logs/{genome}_download.log"
-    benchmark: "logs/{genome}_download.benchmark"
+    log: "logs/{genome}_prepare_genomes.log"
+    benchmark: "logs/{genome}_prepare_genomes.benchmark"
     shell:
         """
         if [[ \"{wildcards.genome}\" == *\"MAG_\"* ]]; then
             echo \"{wildcards.genome} is a MAG.\"
-            echo \"Copying {wildcards.genome}.fa from {params.mags_dir}\"
-            cp {params.mags_dir}/{wildcards.genome}.fa 07_Phylogenies/00_genomes/{wildcards.genome}.fa
+            echo \"Copying {wildcards.genome}.fa from {params.mags_dir}/{params.sample_name}\"
+            cp {params.mags_dir}/{params.sample_name}/{wildcards.genome}.fa 07_AnnotationAndPhylogenies/00_genomes/{wildcards.genome}.fa
         else
             if [ -f {output.genome} ]; then
                 # if snakemake is working, this part should never run!
@@ -1335,7 +1340,7 @@ rule prepare_phylo_genomes:
                     mv {output.genome}.temp {output.genome}
             fi
         fi
-        fz_file=\"07_Phylogenies/00_genomes/{wildcards.genome}.fa.gz\"
+        fz_file=\"07_AnnotationAndPhylogenies/00_genomes/{wildcards.genome}.fa.gz\"
         if [ -f ${{fz_file}} ]; then
             rm ${{fz_file}}
         fi
@@ -1343,14 +1348,14 @@ rule prepare_phylo_genomes:
 
 rule annotate:
     input:
-        genome = "07_Phylogenies/00_genomes/{genome}.fa"
+        genome = "07_AnnotationAndPhylogenies/00_genomes/{genome}.fa"
     output:
-        faa = "07_Phylogenies/01_prokka/{genome}/{genome}.faa",
-        ffn = "07_Phylogenies/01_prokka/{genome}/{genome}.ffn",
-        gff = "07_Phylogenies/01_prokka/{genome}/{genome}.gff",
-        fna = "07_Phylogenies/01_prokka/{genome}/{genome}.fna",
+        faa = "07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.faa",
+        ffn = "07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.ffn",
+        gff = "07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.gff",
+        fna = "07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.fna",
     params:
-        outdir = "07_Phylogenies/01_prokka/{genome}/",
+        outdir = "07_AnnotationAndPhylogenies/01_prokka/{genome}/",
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         account="pengel_spirit",
@@ -1375,11 +1380,11 @@ rule annotate:
 rule prepare_faa:
     input:
         info = lambda wildcards: checkpoints.make_phylo_table.get().output.out_tree,
-        prokka_faa_file = "07_Phylogenies/01_prokka/{genome}/{genome}.faa"
+        prokka_faa_file = "07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.faa"
     output:
-        faa_file = "07_Phylogenies/02_orthofinder/{group}/{genome}.faa"
+        faa_file = "07_AnnotationAndPhylogenies/02_orthofinder/{group}/{genome}.faa"
     params:
-        prokka_path="07_Phylogenies/01_prokka",
+        prokka_path="07_AnnotationAndPhylogenies/01_prokka",
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         account="pengel_spirit"
@@ -1391,11 +1396,11 @@ rule prepare_faa:
 
 rule run_orthofinder_phylo:
     input:
-        faa_files = lambda wildcards: expand("07_Phylogenies/02_orthofinder/{{group}}/{genome}.faa", genome=get_g_dict_for_groups(checkpoints.make_phylo_table.get().output.out_tree)[wildcards.group]),
+        faa_files = lambda wildcards: expand("07_AnnotationAndPhylogenies/02_orthofinder/{{group}}/{genome}.faa", genome=get_g_dict_for_groups(checkpoints.make_phylo_table.get().output.out_tree)[wildcards.group]),
     output:
-        orthogroups = "07_Phylogenies/02_orthofinder/{group}/OrthoFinder/Results_{group}/Orthogroups/Orthogroups.txt",
-        orthogroup_counts = "07_Phylogenies/02_orthofinder/{group}/OrthoFinder/Results_{group}/Orthogroups/Orthogroups.GeneCount.tsv",
-        orthogroup_stats = "07_Phylogenies/02_orthofinder/{group}/OrthoFinder/Results_{group}/Comparative_Genomics_Statistics/Statistics_Overall.tsv"
+        orthogroups = "07_AnnotationAndPhylogenies/02_orthofinder/{group}/OrthoFinder/Results_{group}/Orthogroups/Orthogroups.txt",
+        orthogroup_counts = "07_AnnotationAndPhylogenies/02_orthofinder/{group}/OrthoFinder/Results_{group}/Orthogroups/Orthogroups.GeneCount.tsv",
+        orthogroup_stats = "07_AnnotationAndPhylogenies/02_orthofinder/{group}/OrthoFinder/Results_{group}/Comparative_Genomics_Statistics/Statistics_Overall.tsv"
     params:
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
@@ -1416,10 +1421,10 @@ rule run_orthofinder_phylo:
 
 rule summarise_orthogroups:
     input:
-        ortho_file = "07_Phylogenies/02_orthofinder/{group}/OrthoFinder/Results_{group}/Orthogroups/Orthogroups.txt",
+        ortho_file = "07_AnnotationAndPhylogenies/02_orthofinder/{group}/OrthoFinder/Results_{group}/Orthogroups/Orthogroups.txt",
         genomes_list = lambda wildcards: checkpoints.make_phylo_table.get().output.out_tree,
     output:
-        summary_orthogroups = "07_Phylogenies/02_orthofinder/{group}_Orthogroups_summary.csv"
+        summary_orthogroups = "07_AnnotationAndPhylogenies/02_orthofinder/{group}_Orthogroups_summary.csv"
     params:
         group = lambda wildcards: wildcards.group,
         mailto="aiswarya.prasad@unil.ch",
@@ -1432,11 +1437,11 @@ rule summarise_orthogroups:
 
 rule get_single_ortho_phylo:
     input:
-        ortho_file = "07_Phylogenies/02_orthofinder/{group}/OrthoFinder/Results_{group}/Orthogroups/Orthogroups.txt",
+        ortho_file = "07_AnnotationAndPhylogenies/02_orthofinder/{group}/OrthoFinder/Results_{group}/Orthogroups/Orthogroups.txt",
         genomes_list = lambda wildcards: checkpoints.make_phylo_table.get().output.out_tree,
     output:
-        single_ortho = "07_Phylogenies/02_orthofinder/{group}/OrthoFinder/{group}_single_ortho.txt",
-        single_ortho_MAGs = "07_Phylogenies/02_orthofinder/{group}/OrthoFinder/{group}_single_ortho_MAGs.txt",
+        single_ortho = "07_AnnotationAndPhylogenies/02_orthofinder/{group}/OrthoFinder/{group}_single_ortho.txt",
+        single_ortho_MAGs = "07_AnnotationAndPhylogenies/02_orthofinder/{group}/OrthoFinder/{group}_single_ortho_MAGs.txt",
     params:
         group = lambda wildcards: wildcards.group,
         mailto="aiswarya.prasad@unil.ch",
@@ -1453,15 +1458,15 @@ rule get_single_ortho_phylo:
 
 rule extract_orthologs_phylo:
     input:
-        ortho_single = "07_Phylogenies/02_orthofinder/{group}/OrthoFinder/{group}_single_ortho.txt",
-        faa_files = lambda wildcards: expand("07_Phylogenies/01_prokka/{genome}/{genome}.faa", genome=get_g_dict_for_groups(checkpoints.make_phylo_table.get().output.out_tree)[wildcards.group]),
-        ffn_files = lambda wildcards: expand("07_Phylogenies/01_prokka/{genome}/{genome}.ffn", genome=get_g_dict_for_groups(checkpoints.make_phylo_table.get().output.out_tree)[wildcards.group]),
+        ortho_single = "07_AnnotationAndPhylogenies/02_orthofinder/{group}/OrthoFinder/{group}_single_ortho.txt",
+        faa_files = lambda wildcards: expand("07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.faa", genome=get_g_dict_for_groups(checkpoints.make_phylo_table.get().output.out_tree)[wildcards.group]),
+        ffn_files = lambda wildcards: expand("07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.ffn", genome=get_g_dict_for_groups(checkpoints.make_phylo_table.get().output.out_tree)[wildcards.group]),
     output:
-        ortho_seq_dir = directory("07_Phylogenies/02_orthofinder/{group}/single_ortholog_sequences/"),
-        done = touch("07_Phylogenies/02_orthofinder/{group}/single_ortholog_sequences.done")
+        ortho_seq_dir = directory("07_AnnotationAndPhylogenies/02_orthofinder/{group}/single_ortholog_sequences/"),
+        done = touch("07_AnnotationAndPhylogenies/02_orthofinder/{group}/single_ortholog_sequences.done")
     params:
         # to the prefix, script adds, "genome/genome.xxx"
-        faaffndir = "07_Phylogenies/01_prokka/",
+        faaffndir = "07_AnnotationAndPhylogenies/01_prokka/",
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         jobname=lambda wildcards: wildcards.group+"_extract_orthologs",
@@ -1480,10 +1485,10 @@ rule extract_orthologs_phylo:
 
 rule align_orthologs:
     input:
-        orthogroups_sequences = "07_Phylogenies/02_orthofinder/{group}/single_ortholog_sequences/",
+        orthogroups_sequences = "07_AnnotationAndPhylogenies/02_orthofinder/{group}/single_ortholog_sequences/",
     output:
-        out_dir = directory("07_Phylogenies/03_aligned_orthogroups/{group}/"),
-        done = touch("07_Phylogenies/03_aligned_orthogroups/{group}/mafft.done"),
+        out_dir = directory("07_AnnotationAndPhylogenies/03_aligned_orthogroups/{group}/"),
+        done = touch("07_AnnotationAndPhylogenies/03_aligned_orthogroups/{group}/mafft.done"),
     conda: "envs/phylogenies-env.yaml"
     params:
         mailto="aiswarya.prasad@unil.ch",
@@ -1510,12 +1515,12 @@ rule align_orthologs:
 # no pruning, just filling
 rule prune_and_concat:
     input:
-        aligned_dir = "07_Phylogenies/03_aligned_orthogroups/{group}/",
-        done = "07_Phylogenies/03_aligned_orthogroups/{group}/mafft.done",
+        aligned_dir = "07_AnnotationAndPhylogenies/03_aligned_orthogroups/{group}/",
+        done = "07_AnnotationAndPhylogenies/03_aligned_orthogroups/{group}/mafft.done",
         genomes_list = lambda wildcards: checkpoints.make_phylo_table.get().output.out_tree,
     output:
-        pruned_dir = directory("07_Phylogenies/04_pruned_and_concat_alignments/{group}/"),
-        pruned_cat = "07_Phylogenies/04_pruned_and_concat_alignments/{group}/CoreGeneAlignment.fasta",
+        pruned_dir = directory("07_AnnotationAndPhylogenies/04_pruned_and_concat_alignments/{group}/"),
+        pruned_cat = "07_AnnotationAndPhylogenies/04_pruned_and_concat_alignments/{group}/CoreGeneAlignment.fasta",
     params:
         pipe_names = False,
         group = lambda wildcards: wildcards.group,
@@ -1537,13 +1542,13 @@ rule prune_and_concat:
 
 rule make_tree:
     input:
-        pruned_cat = "07_Phylogenies/04_pruned_and_concat_alignments/{group}/CoreGeneAlignment.fasta"
+        pruned_cat = "07_AnnotationAndPhylogenies/04_pruned_and_concat_alignments/{group}/CoreGeneAlignment.fasta"
     output:
-        treefile = "07_Phylogenies/05_IQTree/{group}/{group}_Phylogeny.treefile",
-        contree = "07_Phylogenies/05_IQTree/{group}/{group}_Phylogeny.contree",
-        iqlog = "07_Phylogenies/05_IQTree/{group}/{group}_Phylogeny.log"
+        treefile = "07_AnnotationAndPhylogenies/05_IQTree/{group}/{group}_Phylogeny.treefile",
+        contree = "07_AnnotationAndPhylogenies/05_IQTree/{group}/{group}_Phylogeny.contree",
+        iqlog = "07_AnnotationAndPhylogenies/05_IQTree/{group}/{group}_Phylogeny.log"
     params:
-        outdir = "07_Phylogenies/05_IQTree/{group}/",
+        outdir = "07_AnnotationAndPhylogenies/05_IQTree/{group}/",
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         account="pengel_spirit",
@@ -1563,7 +1568,7 @@ rule make_tree:
                     -bb 1000 -seed 12345 -m TEST --undo \
                     -pre {params.outdir}{wildcards.group}_Phylogeny
         else
-            mkdir -p 07_Phylogenies/05_IQTree
+            mkdir -p 07_AnnotationAndPhylogenies/05_IQTree
             mkdir -p {params.outdir}
             iqtree -s {input.pruned_cat} \
                     -st AA -nt {threads} \
@@ -1576,7 +1581,7 @@ rule make_group_affiliation_file:
     input:
         out_tree_info = lambda wildcards: checkpoints.make_phylo_table.get().output.out_tree,
     output:
-        meta = "07_Phylogenies/02_orthofinder/phylo_meta.txt"
+        meta = "07_AnnotationAndPhylogenies/02_orthofinder/phylo_meta.txt"
     params:
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
@@ -1591,11 +1596,11 @@ rule make_group_affiliation_file:
 
 rule calc_perc_id:
     input:
-        ortho_seq_dir = "07_Phylogenies/02_orthofinder/{group}/single_ortholog_sequences/",
-        done = "07_Phylogenies/02_orthofinder/{group}/single_ortholog_sequences.done",
-        meta = "07_Phylogenies/02_orthofinder/phylo_meta.txt",
+        ortho_seq_dir = "07_AnnotationAndPhylogenies/02_orthofinder/{group}/single_ortholog_sequences/",
+        done = "07_AnnotationAndPhylogenies/02_orthofinder/{group}/single_ortholog_sequences.done",
+        meta = "07_AnnotationAndPhylogenies/02_orthofinder/phylo_meta.txt",
     output:
-        perc_id = "07_Phylogenies/02_orthofinder/{group}/{group}_perc_id.txt"
+        perc_id = "07_AnnotationAndPhylogenies/02_orthofinder/{group}/{group}_perc_id.txt"
     params:
         pwd_prefix = os.path.join(os.getcwd()),
         mailto="aiswarya.prasad@unil.ch",
@@ -1635,12 +1640,12 @@ rule calc_perc_id:
 
 rule filter_orthologs_phylo:
     input:
-        single_ortho = "07_Phylogenies/02_orthofinder/{group}/OrthoFinder/{group}_single_ortho.txt",
-        perc_id = "07_Phylogenies/02_orthofinder/{group}/{group}_perc_id.txt"
+        single_ortho = "07_AnnotationAndPhylogenies/02_orthofinder/{group}/OrthoFinder/{group}_single_ortho.txt",
+        perc_id = "07_AnnotationAndPhylogenies/02_orthofinder/{group}/{group}_perc_id.txt"
     output:
-        ortho_filt = "07_Phylogenies/02_orthofinder/{group}/OrthoFinder/{group}_single_ortho_filt.txt",
+        ortho_filt = "07_AnnotationAndPhylogenies/02_orthofinder/{group}/OrthoFinder/{group}_single_ortho_filt.txt",
     params:
-        faaffndir = "07_Phylogenies/01_prokka/",
+        faaffndir = "07_AnnotationAndPhylogenies/01_prokka/",
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         jobname=lambda wildcards: wildcards.group+"_filter_orthologs_phylo",
@@ -1658,14 +1663,14 @@ rule filter_orthologs_phylo:
 
 rule extract_orthologs_phylo_filt:
     input:
-        ortho_single = "07_Phylogenies/02_orthofinder/{group}/OrthoFinder/{group}_single_ortho_filt.txt",
-        faa_files = lambda wildcards: expand("07_Phylogenies/01_prokka/{genome}/{genome}.faa", genome=get_g_dict_for_groups(checkpoints.make_phylo_table.get().output.out_tree)[wildcards.group]),
-        ffn_files = lambda wildcards: expand("07_Phylogenies/01_prokka/{genome}/{genome}.ffn", genome=get_g_dict_for_groups(checkpoints.make_phylo_table.get().output.out_tree)[wildcards.group]),
+        ortho_single = "07_AnnotationAndPhylogenies/02_orthofinder/{group}/OrthoFinder/{group}_single_ortho_filt.txt",
+        faa_files = lambda wildcards: expand("07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.faa", genome=get_g_dict_for_groups(checkpoints.make_phylo_table.get().output.out_tree)[wildcards.group]),
+        ffn_files = lambda wildcards: expand("07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.ffn", genome=get_g_dict_for_groups(checkpoints.make_phylo_table.get().output.out_tree)[wildcards.group]),
     output:
-        ortho_seq_dir = directory("07_Phylogenies/02_orthofinder/{group}/filtered_ortholog_sequences/"),
-        done = touch("07_Phylogenies/02_orthofinder/{group}/filtered_ortholog_sequences.done")
+        ortho_seq_dir = directory("07_AnnotationAndPhylogenies/02_orthofinder/{group}/filtered_ortholog_sequences/"),
+        done = touch("07_AnnotationAndPhylogenies/02_orthofinder/{group}/filtered_ortholog_sequences.done")
     params:
-        faaffndir = "07_Phylogenies/01_prokka/",
+        faaffndir = "07_AnnotationAndPhylogenies/01_prokka/",
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         jobname=lambda wildcards: wildcards.group+"_extract_orthologs_phylo_filt",
@@ -1684,7 +1689,7 @@ rule extract_orthologs_phylo_filt:
 
 rule setup_midas_parse_gff:
     input:
-        gff_file = "07_Phylogenies/01_prokka/{genome}/{genome}.gff",
+        gff_file = "07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.gff",
     output:
         outfile = "11_MIDAS/MAGs_database/{genome}/{genome}.genes",
     params:
@@ -1692,42 +1697,52 @@ rule setup_midas_parse_gff:
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         account="pengel_spirit",
         runtime_s=convertToSec("0-2:10:00"),
-    benchmark: "logs/setup_midas_parse_gff.benchmark"
-    log: "logs/setup_midas_parse_gff.log"
+    benchmark: "logs/setup_midas_parse_gff_{genome}.benchmark"
+    log: "logs/setup_midas_parse_gff_{genome}.log"
     shell:
-    """
-    python3 scripts/parse_gff_for_midas.py --outfile {output.outfile} --gff {input.gff_file}
-    """
+        """
+        python3 scripts/parse_gff_for_midas.py --outfile {output.outfile} --gff {input.gff_file}
+        """
 
-rule setup_midas_for_custom_db:
+rule setup_midas_for_custom_db_prepare_files:
     input:
-        bins_renamed = lambda wildcards: get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags, full_list = True),
-        fna_files = lambda wildcards: expand("07_Phylogenies/01_prokka/{genome}/{genome}.fna", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags, full_list = True)),
-        faa_files = lambda wildcards: expand("07_Phylogenies/01_prokka/{genome}/{genome}.faa", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags, full_list = True)),
-        ffn_files = lambda wildcards: expand("07_Phylogenies/01_prokka/{genome}/{genome}.ffn", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags, full_list = True)),
-        genomes_info = lambda wildcards: checkpoints.make_phylo_table.get().output.out_mags,
-        winning_genomes = rules.drep.output.Widb,
+        fna_file = "07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.fna",
+        faa_file = "07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.faa",
+        ffn_file = "07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.ffn",
     output:
-        fna_files = lambda wildcards: expand("11_MIDAS/MAGs_database/{genome}/{genome}.fna", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags, full_list = True)),
-        faa_files = lambda wildcards: expand("11_MIDAS/MAGs_database/{genome}/{genome}.faa", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags, full_list = True)),
-        ffn_files = lambda wildcards: expand("11_MIDAS/MAGs_database/{genome}/{genome}.ffn", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags, full_list = True)),
-        mapfile = midas_mapfile.tsv
+        fna_file = "11_MIDAS/MAGs_database/{genome}/{genome}.fna"
+        faa_file = "11_MIDAS/MAGs_database/{genome}/{genome}.faa"
+        ffn_file = "11_MIDAS/MAGs_database/{genome}/{genome}.ffn"
     params:
-        midas_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/",
-        indir = "11_MIDAS/MAGs_database/",
-        # outdir
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         account="pengel_spirit",
         runtime_s=convertToSec("0-2:10:00"),
-    benchmark: "logs/setup_midas_for_custom_db.benchmark"
-    log: "logs/setup_midas_for_custom_db.log"
-    conda: "envs/midas-env.yaml"
+    benchmark: "logs/setup_midas_for_custom_db_prepare_files.benchmark"
+    log: "logs/setup_midas_for_custom_db_prepare_files.log"
+    shell:
+        """
+        rsync -av {input.fna_file} {output.fna_file}
+        rsync -av {input.faa_file} {output.faa_file}
+        rsync -av {input.ffn_file} {output.ffn_file}
+        """
+
+rule setup_midas_for_custom_db_write_mapfile:
+    input:
+        genomes_info = lambda wildcards: checkpoints.make_phylo_table.get().output.out_mags,
+        winning_genomes = lambda wildcards: rules.drep.output.drep_Wi,
+    output:
+        symlinks = touch("midas_symlinks.done"),
+        mapfile = "11_MIDAS/midas_mapfile.tsv"
+    params:
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-2:10:00"),
+    benchmark: "logs/setup_midas_for_custom_db_write_mapfile.benchmark"
+    log: "logs/setup_midas_for_custom_db_write_mapfile.log"
     run:
-        # export PYTHONPATH=$PYTHONPATH:{params.midas_path}
-        shell("export PATH=$PATH:"+params.midas_path)
-        shell("export MIDAS_DB="+params.midas_path)
-        rep_genomes = {}
+        rep_genomes = set()
         with open(input.winning_genomes, "r") as win_fh:
             for line in win_fh:
                 rep_genomes.add(line.split(",")[0].split(".fa")[0])
@@ -1738,40 +1753,48 @@ rule setup_midas_for_custom_db:
                     if line.startswith("ID"):
                         continue
                     genome_id = line.split("\t")[0]
+                    shell(f"mkdir -p "+os.path.join(params.indir, genome_id))
                     # cluster is species_id
                     species_id = line.split("\t")[11]
-                    rep_genome = 1 if genome in rep_genomes else 0
+                    rep_genome = 1 if genome_id in rep_genomes else 0
                     out_fh.write(f"{genome_id}\t{species_id}\t{rep_genome}\n")
-        for fna_in, fna_out in zip(input.fna_files, output.fna_files):
-            shell("ln -s "+fna_in+" "+fna_out)
-        for faa_in, faa_out in zip(input.faa_files, output.faa_files):
-            shell("ln -s "+faa_in+" "+faa_out)
-        for ffn_in, ffn_out in zip(input.ffn_files, output.ffn_files):
-            shell("ln -s "+ffn_in+" "+ffn_out)
 
-# rule create_midas_for_custom_db:
-#     input:
-#         fna_files = lambda wildcards: expand("11_MIDAS/MAGs_database/{genome}/{genome}.fna", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags, full_list = True)),
-#         faa_files = lambda wildcards: expand("11_MIDAS/MAGs_database/{genome}/{genome}.faa", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags, full_list = True)),
-#         ffn_files = lambda wildcards: expand("11_MIDAS/MAGs_database/{genome}/{genome}.ffn", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags, full_list = True)),
-#         genes_file = lambda wildcards: expand("11_MIDAS/MAGs_database/{genome}/{genome}.genes", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags, full_list = True)),
-#         mapfile = midas_mapfile.tsv
-#     output:
-#         outfile=
-#     params:
-#         midas_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/",
-#         indir = "11_MIDAS/MAGs_database/",
-#         # outdir
-#         mailto="aiswarya.prasad@unil.ch",
-#         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-#         account="pengel_spirit",
-#         runtime_s=convertToSec("0-2:10:00"),
-#     benchmark: "logs/setup_midas_for_custom_db.benchmark"
-#     log: "logs/setup_midas_for_custom_db.log"
-#     conda: "envs/midas-env.yaml"
-#     shell:
-#         """
-#         """
+rule create_midas_for_custom_db:
+    input:
+        fna_files = lambda wildcards: expand("11_MIDAS/MAGs_database/{genome}/{genome}.fna", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags, full_list = True)),
+        faa_files = lambda wildcards: expand("11_MIDAS/MAGs_database/{genome}/{genome}.faa", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags, full_list = True)),
+        ffn_files = lambda wildcards: expand("11_MIDAS/MAGs_database/{genome}/{genome}.ffn", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags, full_list = True)),
+        genes_file = lambda wildcards: expand("11_MIDAS/MAGs_database/{genome}/{genome}.genes", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags, full_list = True)),
+        mapfile = "11_MIDAS/midas_mapfile.tsv"
+    output:
+        outdir = directory("11_MIDAS/MAGs_database/Midas_DB")
+    params:
+        # consider putting these paths in config
+        midas_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/",
+        midas_scripts_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/scripts/",
+        # midas_db_default = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/midas_db_v1.2/",
+        indir = "11_MIDAS/MAGs_database/",
+        setup_done = "11_MIDAS/midas_first_setup.log",
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-2:10:00"),
+    benchmark: "logs/create_midas_for_custom_db.benchmark"
+    log: "logs/create_midas_for_custom_db.log"
+    threads: 8
+    conda: "envs/midas-env.yaml"
+    shell:
+        """
+        export PYTHONPATH={params.midas_path}
+        export PATH=$PATH:{params.midas_scripts_path}
+        # if [ ! -f {params.setup_done} ]
+        # then
+        #     python {params.midas_path}/setup.py install --user | tee {params.setup_done}
+        #
+        # fi
+        build_midas_db.py {params.indir} {input.mapfile} {output.outdir} --threads {threads}
+        export MIDAS_DB={output.outdir}
+        """
 
 
 # rule make_magOTU_collection:
@@ -1831,10 +1854,11 @@ rule compile_report:
         out_all = "06_MAG_binning/all_GenomeInfo_auto.tsv",
         out_tree = "06_MAG_binning/ForTree_GenomeInfo_auto.tsv",
         checkpoint = lambda wildcards: checkpoints.make_phylo_table.get().output.out_tree,
-        trees = lambda wildcards: ["07_Phylogenies/05_IQTree/"+group+"/"+group+"_Phylogeny.contree" for group in [x for x in GROUPS if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_tree) > 4]],
-        single_ortho_MAGs = expand("07_Phylogenies/02_orthofinder/{group}/OrthoFinder/{group}_single_ortho_MAGs.txt", group=GROUPS),
-        ortho_summary = expand("07_Phylogenies/02_orthofinder/{group}_Orthogroups_summary.csv", group=GROUPS),
-        mapfile = midas_mapfile.tsv
+        trees = lambda wildcards: ["07_AnnotationAndPhylogenies/05_IQTree/"+group+"/"+group+"_Phylogeny.contree" for group in [x for x in GROUPS if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_tree) > 4]],
+        single_ortho_MAGs = expand("07_AnnotationAndPhylogenies/02_orthofinder/{group}/OrthoFinder/{group}_single_ortho_MAGs.txt", group=GROUPS),
+        ortho_summary = expand("07_AnnotationAndPhylogenies/02_orthofinder/{group}_Orthogroups_summary.csv", group=GROUPS),
+        mapfile = "11_MIDAS/midas_mapfile.tsv",
+        midas_db = "11_MIDAS/MAGs_database/Midas_DB",
     output:
         html = PROJECT_IDENTIFIER+"_Report.html",
         # fig_00a = "Figures/00a-Total_reads_trimming.pdf",
@@ -1936,10 +1960,11 @@ rule backup:
         assembly_mapped = expand("09_MapToAssembly/{sample}.bam", sample=SAMPLES),
         checkpoint_tree = lambda wildcards: checkpoints.make_phylo_table.get().output.out_tree,
         checkpoint_all = lambda wildcards: checkpoints.make_phylo_table.get().output.out_all,
-        trees = lambda wildcards: ["07_Phylogenies/05_IQTree/"+group+"/"+group+"_Phylogeny.contree" for group in [x for x in GROUPS if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_tree) > 4]],
-        single_ortho_MAGs = expand("07_Phylogenies/02_orthofinder/{group}/OrthoFinder/{group}_single_ortho_MAGs.txt", group=GROUPS),
-        ortho_summary = expand("07_Phylogenies/02_orthofinder/{group}_Orthogroups_summary.csv", group=GROUPS),
-        mapfile = midas_mapfile.tsv
+        trees = lambda wildcards: ["07_AnnotationAndPhylogenies/05_IQTree/"+group+"/"+group+"_Phylogeny.contree" for group in [x for x in GROUPS if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_tree) > 4]],
+        single_ortho_MAGs = expand("07_AnnotationAndPhylogenies/02_orthofinder/{group}/OrthoFinder/{group}_single_ortho_MAGs.txt", group=GROUPS),
+        ortho_summary = expand("07_AnnotationAndPhylogenies/02_orthofinder/{group}_Orthogroups_summary.csv", group=GROUPS),
+        mapfile = "11_MIDAS/midas_mapfile.tsv",
+        midas_db = "11_MIDAS/MAGs_database/Midas_DB",
     output:
         outfile = touch("logs/backup.done")
     threads: 2

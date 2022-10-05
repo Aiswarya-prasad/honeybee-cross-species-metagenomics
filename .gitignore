@@ -36,7 +36,10 @@ database/*
 05_Assembly/*
 06_MAG_binning/*
 07_Phylogenies/*
+07_AnnotationAndPhylogenies/*
 08_motus_profile/*
+09_MapToAssembly*
+11_MIDAS/*
 *_files/*
 *_cache/*
 *backup_*.log
