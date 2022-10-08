@@ -44,40 +44,6 @@ GROUPS = ["g__Bombilactobacillus",
           "g__Apilactobacillus",
           "g__Bombella"]
 
-def get_g_list(db):
-    """
-    Returns list of genomes in given database
-    """
-    g_list = list()
-    if os.path.isfile(os.path.join(os.getcwd(), "database/"+db+"_list.txt")):
-        pass
-    else:
-        shell("cat database/"+ db +" | grep \">\" | sed \"s/>//\" > database/"+ db +"_list.txt")
-    with open(os.path.join(os.getcwd(), "database/"+db+"_list.txt")) as fh:
-        for line in fh:
-            line = line.strip()
-            g_list.append(line)
-    return(g_list)
-
-def get_g_list_by_phylo(db, phylo):
-    """
-    Returns list of genomes in given phylotype in a given database
-    """
-    g_list = list()
-    if os.path.isfile(os.path.join(os.getcwd(), "database/"+db+"_metafile.txt")):
-        pass
-    else:
-        print(f"cannot find database/{db}_metafile.txt")
-    with open(os.path.join(os.getcwd(), "database/"+db+"_metafile.txt")) as fh:
-        for line in fh:
-            genome_id = line.split("\t")[0]
-            phylotype = line.split("\t")[1]
-            if phylo == phylotype:
-                g_list.append(genome_id)
-    # g_list.remove("Ga0216351") # this is a com_1 genome. bed file core_cove etc. not there
-    #                            # because this genome isn't in the main microbiome db
-    return(g_list)
-
 def get_g_dict_for_groups(path):
     """
     Returns dictionary of genomes and groups with each value being a list of
@@ -1687,6 +1653,76 @@ rule extract_orthologs_phylo_filt:
         python3 scripts/extract_orthologs_phylo.py --orthofile {input.ortho_single} --outdir {output.ortho_seq_dir} --faaffndir {params.faaffndir}
         """
 
+# rule make_contig_tracker:
+#     input:
+#         faa_files = lambda wildcards: "07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.faa",
+#     output:
+#         outfile = "06_MAG_binning/contig_tracker_after_prokka/{genome}_contig_tracker.tsv"
+#     shell:
+#         """
+#         # prokka renames contigs
+#         # write the names of the contig according to spades and according to the prokka fna file here
+#         """
+
+# rule concat_all_mags:
+#     input:
+#
+#
+# rule make_core_bed_files:
+#     input:
+#
+#
+# rule map_to_all_mags:
+# edit core_cov to work one bam file at a time
+# rule core_cov:
+#     input:
+#         genome_db_meta = "database/"+DBs["microbiome"]+"_metafile.txt",
+#         bed_files = expand("database/bed_files/{genome}.bed", genome=get_g_list(DBs["microbiome"])),
+#         bam_files = expand("03_MicrobiomeMapping/{sample}_microbiome_mapped.bam", sample=config["SAMPLES"]),
+#         ortho_file = "database/OrthoFiles_"+DBs["microbiome"]+"/{phylotype}_single_ortho_filt.txt",
+#         core_cov = "scripts/core_cov.py",
+#     output:
+#         txt = "04_CoreCov_"+ProjectIdentifier+"/{phylotype}_corecov.txt"
+#     params:
+#         out_dir = "04_CoreCov_"+ProjectIdentifier,
+#         bed_files = "database/bed_files/",
+#         mailto="aiswarya.prasad@unil.ch",
+#         account="pengel_spirit",
+#         runtime_s=convertToSec("0-2:10:00"),
+#     resources:
+#         mem_mb = 8000
+#     log: "logs/{phylotype}_core_cov.log"
+#     conda: "envs/core-cov-env.yaml"
+#     threads: 5
+#     shell:
+#         """
+#         {input.core_cov} -d {input.genome_db_meta} -L {input.bam_files} -g {input.ortho_file} -b {params.bed_files} -o {params.out_dir} -n {wildcards.phylotype};
+#         """
+#
+# rule core_cov_plots:
+#     input:
+#         txt = "04_CoreCov_"+ProjectIdentifier+"/{phylotype}_corecov.txt",
+#         core_covR = "scripts/core_cov.R",
+#     output:
+#         txt = "04_CoreCov_"+ProjectIdentifier+"/{phylotype}_corecov_coord.txt",
+#         pdf = "04_CoreCov_"+ProjectIdentifier+"/{phylotype}_corecov_coord.pdf"
+#     params:
+#         mailto="aiswarya.prasad@unil.ch",
+#         account="pengel_spirit",
+#         runtime_s=convertToSec("0-1:10:00"),
+#     resources:
+#         mem_mb = 8000
+#     conda: "envs/core-cov-env.yaml"
+#     log: "logs/{phylotype}_core_cov_plots.log"
+#     threads: 1
+#     # at some point do:
+#     # script:
+#     #     "scripts/core_cov.R"
+#     shell:
+#         """
+#         {input.core_covR} {input.txt};
+#         """
+
 rule setup_midas_parse_gff:
     input:
         gff_file = "07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.gff",
@@ -1710,16 +1746,15 @@ rule setup_midas_for_custom_db_prepare_files:
         faa_file = "07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.faa",
         ffn_file = "07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.ffn",
     output:
-        fna_file = "11_MIDAS/MAGs_database/{genome}/{genome}.fna"
-        faa_file = "11_MIDAS/MAGs_database/{genome}/{genome}.faa"
+        fna_file = "11_MIDAS/MAGs_database/{genome}/{genome}.fna",
+        faa_file = "11_MIDAS/MAGs_database/{genome}/{genome}.faa",
         ffn_file = "11_MIDAS/MAGs_database/{genome}/{genome}.ffn"
     params:
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         account="pengel_spirit",
         runtime_s=convertToSec("0-2:10:00"),
-    benchmark: "logs/setup_midas_for_custom_db_prepare_files.benchmark"
-    log: "logs/setup_midas_for_custom_db_prepare_files.log"
+    log: "logs/setup_midas_for_custom_db_prepare_files_{genome}.log"
     shell:
         """
         rsync -av {input.fna_file} {output.fna_file}
@@ -1767,58 +1802,38 @@ rule create_midas_for_custom_db:
         genes_file = lambda wildcards: expand("11_MIDAS/MAGs_database/{genome}/{genome}.genes", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags, full_list = True)),
         mapfile = "11_MIDAS/midas_mapfile.tsv"
     output:
-        outdir = directory("11_MIDAS/MAGs_database/Midas_DB")
+        done = touch("logs/Midas_DB.done")
     params:
+        outdir = "11_MIDAS/MAGs_database/Midas_DB",
         # consider putting these paths in config
         midas_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/",
         midas_scripts_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/scripts/",
         # midas_db_default = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/midas_db_v1.2/",
         indir = "11_MIDAS/MAGs_database/",
-        setup_done = "11_MIDAS/midas_first_setup.log",
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         account="pengel_spirit",
-        runtime_s=convertToSec("0-2:10:00"),
+        runtime_s=convertToSec("0-23:10:00"),
     benchmark: "logs/create_midas_for_custom_db.benchmark"
     log: "logs/create_midas_for_custom_db.log"
     threads: 8
+    resources:
+        mem_mb = 8000
     conda: "envs/midas-env.yaml"
     shell:
         """
         export PYTHONPATH={params.midas_path}
         export PATH=$PATH:{params.midas_scripts_path}
+        build_midas_db.py {params.indir} {input.mapfile} {params.outdir} --threads {threads} --resume
+        # export MIDAS_DB={params.outdir}
+        """
+        # not sure if this is actually necessary - I don't think so
         # if [ ! -f {params.setup_done} ]
         # then
         #     python {params.midas_path}/setup.py install --user | tee {params.setup_done}
         #
         # fi
-        build_midas_db.py {params.indir} {input.mapfile} {output.outdir} --threads {threads}
-        export MIDAS_DB={output.outdir}
-        """
-
-
-# rule make_magOTU_collection:
-#     input:
-#         out_tree_info = lambda wildcards: checkpoints.make_phylo_table.get().output.out_tree,
-#     output:
-#         mags_db = "10_MAGsCoreCoverage/mags_db"
-#     params:
-#         mag_path = "06_MAG_binning/bins_renamed/"
-#         mailto="aiswarya.prasad@unil.ch",
-#         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-#         jobname=lambda wildcards: wildcards.group+"_extract_orthologs_phylo_filt",
-#         account="pengel_spirit",
-#         runtime_s=convertToSec("0-2:10:00"),
-#     resources:
-#         mem_mb = 8000
-#     log: "logs/{group}_extract_orthologs_phylo_filt.log"
-#     benchmark: "logs/{group}_extract_orthologs_phylo_filt.benchmark"
-#     conda: "envs/mapping-env.yaml"
-#     threads: 5
-#     shell:
-#     """
-#     """
-
+# done = "logs/Midas_DB.done"
 # Choose Mags that will be used for abundance estimation. x% of the core genes should be present...
 
 # rule map_to_all_mags:
@@ -1858,7 +1873,7 @@ rule compile_report:
         single_ortho_MAGs = expand("07_AnnotationAndPhylogenies/02_orthofinder/{group}/OrthoFinder/{group}_single_ortho_MAGs.txt", group=GROUPS),
         ortho_summary = expand("07_AnnotationAndPhylogenies/02_orthofinder/{group}_Orthogroups_summary.csv", group=GROUPS),
         mapfile = "11_MIDAS/midas_mapfile.tsv",
-        midas_db = "11_MIDAS/MAGs_database/Midas_DB",
+        midas_db = "logs/Midas_DB.done"
     output:
         html = PROJECT_IDENTIFIER+"_Report.html",
         # fig_00a = "Figures/00a-Total_reads_trimming.pdf",
@@ -1964,7 +1979,7 @@ rule backup:
         single_ortho_MAGs = expand("07_AnnotationAndPhylogenies/02_orthofinder/{group}/OrthoFinder/{group}_single_ortho_MAGs.txt", group=GROUPS),
         ortho_summary = expand("07_AnnotationAndPhylogenies/02_orthofinder/{group}_Orthogroups_summary.csv", group=GROUPS),
         mapfile = "11_MIDAS/midas_mapfile.tsv",
-        midas_db = "11_MIDAS/MAGs_database/Midas_DB",
+        midas_db = "logs/Midas_DB.done"
     output:
         outfile = touch("logs/backup.done")
     threads: 2
