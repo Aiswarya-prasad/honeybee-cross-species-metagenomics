@@ -153,6 +153,32 @@ def get_MAGs_list_dict(path, full_list=False):
             return(g_list)
         return(g_list_dict)
 
+def get_cluster_dict(path):
+    """
+    return a list of clusters
+    """
+    cluster_list_dict = {}
+    if os.path.isfile(path):
+        pass
+    else:
+        print(f"Could not find file at {path}")
+    with open(path, "r", encoding='utf-8-sig') as info_fh:
+        for line in info_fh:
+            line = line.strip()
+            if line.startswith("ID"):
+                continue
+            genome = line.split("\t")[0]
+            type = line.split("\t")[10]
+            if type != "MAGs":
+                continue
+            cluster = line.split("\t")[11]
+            # only include groups of interest!
+            if cluster not in cluster_list_dict.keys():
+                cluster_list_dict[cluster] = [genome]
+            else:
+                cluster_list_dict[cluster].append(genome)
+    return(cluster_list_dict)
+
 if LOCAL_BACKUP:
     localrules: backup
 
@@ -392,15 +418,15 @@ rule host_mapping:
 
 rule host_mapping_extract_host_mapped_reads:
     input:
-        bam_unmapped=rules.host_mapping.output.bam_mapped
+        bam_mapped=rules.host_mapping.output.bam_mapped
     output:
         reads1 = temp("02_HostMapping/{sample}_R1_host_mapped.fastq"),
         reads2 = temp("02_HostMapping/{sample}_R2_host_mapped.fastq"),
-        bai_unmapped=temp("02_HostMapping/{sample}_host_mapped.bam.bai")
+        bai_mapped=temp("02_HostMapping/{sample}_host_mapped.bam.bai")
     params:
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        jobname="{sample}_host_mapping_extract_host_filtered_reads",
+        jobname="{sample}_host_mapping_extract_host_mapped_reads",
         account="pengel_spirit",
         runtime_s=convertToSec("0-2:10:00"),
     resources:
@@ -421,7 +447,7 @@ rule host_mapping_extract_host_filtered_reads:
     output:
        reads1 = "02_HostMapping/{sample}_R1_host_unmapped.fastq",
        reads2 = "02_HostMapping/{sample}_R2_host_unmapped.fastq",
-        bai_unmapped=temp("02_HostMapping/{sample}_host_unmapped.bam.bai")
+       bai_unmapped=temp("02_HostMapping/{sample}_host_unmapped.bam.bai")
     params:
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
@@ -1097,8 +1123,7 @@ rule drep:
         bins = expand("06_MAG_binning/bins_renamed/{sample}", sample=SAMPLES),
         compiled_checkm_summary = "06_MAG_binning/evaluate_bins/checkm_drep_summary.txt",
     output:
-        drep_C = "06_MAG_binning/drep_results/data_tables/Cdb.csv",
-        drep_W = "06_MAG_binning/drep_results/data_tables/Wdb.csv",
+        drep_S = "06_MAG_binning/drep_results/data_tables/Sdb.csv",
         drep_Wi = "06_MAG_binning/drep_results/data_tables/Widb.csv",
         drep_gI = "06_MAG_binning/drep_results/data_tables/genomeInformation.csv",
     params:
@@ -1767,7 +1792,6 @@ rule setup_midas_for_custom_db_write_mapfile:
         genomes_info = lambda wildcards: checkpoints.make_phylo_table.get().output.out_mags,
         winning_genomes = lambda wildcards: rules.drep.output.drep_Wi,
     output:
-        symlinks = touch("midas_symlinks.done"),
         mapfile = "11_MIDAS/midas_mapfile.tsv"
     params:
         mailto="aiswarya.prasad@unil.ch",
@@ -1825,22 +1849,524 @@ rule create_midas_for_custom_db:
         export PYTHONPATH={params.midas_path}
         export PATH=$PATH:{params.midas_scripts_path}
         build_midas_db.py {params.indir} {input.mapfile} {params.outdir} --threads {threads} --resume
-        # export MIDAS_DB={params.outdir}
+        # export MIDAS_DB={params.midas_db}
         """
-        # not sure if this is actually necessary - I don't think so
-        # if [ ! -f {params.setup_done} ]
-        # then
-        #     python {params.midas_path}/setup.py install --user | tee {params.setup_done}
-        #
-        # fi
-# done = "logs/Midas_DB.done"
-# Choose Mags that will be used for abundance estimation. x% of the core genes should be present...
 
-# rule map_to_all_mags:
+rule midas_species_abundance:
+    input:
+        reads1 = rules.host_mapping_extract_host_filtered_reads.output.reads1,
+        reads2 = rules.host_mapping_extract_host_filtered_reads.output.reads2,
+        done = "logs/Midas_DB.done"
+    output:
+        output = "11_MIDAS/MidasProfiling/{sample}/species/species_profile.txt",
+    params:
+        outdir = "11_MIDAS/MidasProfiling/{sample}/",
+        midas_db = "11_MIDAS/MAGs_database/Midas_DB",
+        midas_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/",
+        midas_scripts_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/scripts/",
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-5:10:00"),
+    benchmark: "logs/midas_species_abundance_{sample}.benchmark"
+    log: "logs/midas_species_abundance_{sample}.log"
+    threads: 8
+    resources:
+        mem_mb = 8000
+    conda: "envs/midas-env.yaml"
+    shell:
+        """
+        export PYTHONPATH={params.midas_path}
+        export PATH=$PATH:{params.midas_scripts_path}
+        run_midas.py species {params.outdir} -1 {input.reads1} -2 {input.reads2} -t {threads} -d {params.midas_db} --remove_temp
+        """
 
-# rule make_magOTU_db:
-# rule map_to_mag_otu_db:
-# rule variant_calling:
+rule midas_species_abundance_merge:
+    input:
+        per_sample_output = expand("11_MIDAS/MidasProfiling/{sample}/species/species_profile.txt", sample=SAMPLES)
+    output:
+        relative_abundance = "11_MIDAS/MidasProfiling/relative_abundance.txt",
+        count_reads = "11_MIDAS/MidasProfiling/count_reads.txt",
+        coverage = "11_MIDAS/MidasProfiling/coverage.txt",
+        species_prevalence = "11_MIDAS/MidasProfiling/species_prevalence.txt",
+    params:
+        outdir = "11_MIDAS/MidasProfiling/",
+        midas_db = "11_MIDAS/MAGs_database/Midas_DB",
+        midas_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/",
+        midas_scripts_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/scripts/",
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-5:10:00"),
+    benchmark: "logs/midas_species_abundance_merged.benchmark"
+    log: "logs/midas_species_abundance_merged.log"
+    threads: 8
+    resources:
+        mem_mb = 8000
+    conda: "envs/midas-env.yaml"
+    shell:
+        """
+        export PYTHONPATH={params.midas_path}
+        export PATH=$PATH:{params.midas_scripts_path}
+        export MIDAS_DB={params.midas_db}
+        merge_midas.py species {params.outdir} -i {params.outdir} -t dir
+        """
+
+rule midas_gene_content:
+    input:
+        reads1 = rules.host_mapping_extract_host_filtered_reads.output.reads1,
+        reads2 = rules.host_mapping_extract_host_filtered_reads.output.reads2,
+        output = "11_MIDAS/MidasProfiling/{sample}/species/species_profile.txt",
+        done = "logs/Midas_DB.done",
+    output:
+        output = "11_MIDAS/MidasProfiling/{sample}/genes/summary.txt",
+    params:
+        outdir = "11_MIDAS/MidasProfiling/{sample}/",
+        midas_db = "11_MIDAS/MAGs_database/Midas_DB",
+        midas_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/",
+        midas_scripts_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/scripts/",
+        species_cov = 10, # default is 3 use later if needed
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-5:10:00"),
+    benchmark: "logs/midas_gene_content_{sample}.benchmark"
+    log: "logs/midas_gene_content_{sample}.log"
+    threads: 8
+    resources:
+        mem_mb = 8000
+    conda: "envs/midas-env.yaml"
+    shell:
+        """
+        export PYTHONPATH={params.midas_path}
+        export PATH=$PATH:{params.midas_scripts_path}
+        export MIDAS_DB={params.midas_db}
+        run_midas.py genes {params.outdir} -1 {input.reads1} -2 {input.reads2} -t {threads} -d {params.midas_db} --remove_temp
+        """
+
+rule midas_gene_content_merge:
+    input:
+        per_sample_output = expand("11_MIDAS/MidasProfiling/{sample}/genes/summary.txt", sample=SAMPLES)
+    output:
+        # genes_coverage = "11_MIDAS/MidasProfiling/{cluster}/genes_coverage.txt",
+        # genes_presence = "11_MIDAS/MidasProfiling/{cluster}/genes_presence_absence.txt",
+        # genes_summary = "11_MIDAS/MidasProfiling/{cluster}/genes_summary.txt",
+        # genes_copy_number = "11_MIDAS/MidasProfiling/{cluster}/genes_copy_number.txt"
+        outdone = touch("11_MIDAS/midas_genes_summary.done")
+    params:
+        outdir = "11_MIDAS/MidasProfiling/",
+        midas_db = "11_MIDAS/MAGs_database/Midas_DB",
+        midas_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/",
+        midas_scripts_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/scripts/",
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-5:10:00"),
+    benchmark: "logs/midas_gene_content_merged.benchmark"
+    log: "logs/midas_gene_content_merged.log"
+    threads: 8
+    resources:
+        mem_mb = 8000
+    conda: "envs/midas-env.yaml"
+    shell:
+        """
+        export PYTHONPATH={params.midas_path}
+        export PATH=$PATH:{params.midas_scripts_path}
+        export MIDAS_DB={params.midas_db}
+        merge_midas.py genes {params.outdir} -i {params.outdir} -t dir
+        for readme in 11_MIDAS/MidasProfiling/*/readme.txt;
+        do
+            cp ${{readme%%readme.txt}}/readme.txt ${{readme%%readme.txt}}/genes_readme.txt
+        done
+        """
+
+rule midas_profile_snps:
+    input:
+        reads1 = rules.host_mapping_extract_host_filtered_reads.output.reads1,
+        reads2 = rules.host_mapping_extract_host_filtered_reads.output.reads2,
+        output = "11_MIDAS/MidasProfiling/{sample}/species/species_profile.txt",
+        done = "logs/Midas_DB.done"
+    output:
+        summary = "11_MIDAS/MidasProfiling/{sample}/snps/summary.txt",
+    params:
+        outdir = "11_MIDAS/MidasProfiling/{sample}/",
+        midas_db = "11_MIDAS/MAGs_database/Midas_DB",
+        midas_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/",
+        midas_scripts_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/scripts/",
+        species_cov = 1, # default is 3 use later if needed
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-5:10:00"),
+    benchmark: "logs/midas_profile_snps_{sample}.benchmark"
+    log: "logs/midas_profile_snps_{sample}.log"
+    threads: 8
+    resources:
+        mem_mb = 8000
+    conda: "envs/midas-env.yaml"
+    shell:
+        """
+        export PYTHONPATH={params.midas_path}
+        export PATH=$PATH:{params.midas_scripts_path}
+        export MIDAS_DB={params.midas_db}
+        run_midas.py snps {params.outdir} -1 {input.reads1} -2 {input.reads2} -t {threads} -d {params.midas_db} --remove_temp
+        """
+
+rule midas_profile_snps_merge:
+    input:
+        per_sample_output = expand("11_MIDAS/MidasProfiling/{sample}/snps/summary.txt", sample=SAMPLES)
+    output:
+        # snps_freq = "11_MIDAS/MidasProfiling/{cluster}/snps_freq.txt",
+        # snps_depth = "11_MIDAS/MidasProfiling/{cluster}/snps_depth.txt",
+        # snps_summary = "11_MIDAS/MidasProfiling/{cluster}/snps_summary.txt",
+        # snps_info = "11_MIDAS/MidasProfiling/{cluster}/snps_info.txt"
+        outdone = touch("11_MIDAS/snps_summary.done")
+    params:
+        outdir = "11_MIDAS/MidasProfiling/",
+        midas_db = "11_MIDAS/MAGs_database/Midas_DB",
+        midas_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/",
+        midas_scripts_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/scripts/",
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-5:10:00"),
+    benchmark: "logs/midas_profile_snps_merged.benchmark"
+    log: "logs/midas_profile_snps_merged.log"
+    threads: 8
+    resources:
+        mem_mb = 8000
+    conda: "envs/midas-env.yaml"
+    shell:
+        """
+        export PYTHONPATH={params.midas_path}
+        export PATH=$PATH:{params.midas_scripts_path}
+        export MIDAS_DB={params.midas_db}
+        merge_midas.py snps {params.outdir} -i {params.outdir} -t dir
+        for readme in 11_MIDAS/MidasProfiling/*/readme.txt;
+        do
+            cp ${{readme%%readme.txt}}/readme.txt ${{readme%%readme.txt}}/snps_readme.txt
+        done
+        """
+
+rule genus_setup_midas_for_custom_db_write_mapfile:
+    input:
+        genomes_info = lambda wildcards: checkpoints.make_phylo_table.get().output.out_mags,
+        winning_genomes = lambda wildcards: rules.drep.output.drep_Wi,
+        genome_scores = lambda wildcards: rules.drep.output.drep_S,
+    output:
+        mapfile = "11_MIDAS/midas_mapfile_genus.tsv"
+    params:
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-2:10:00"),
+    benchmark: "logs/genus_setup_midas_for_custom_db_write_mapfile.benchmark"
+    log: "logs/genus_setup_midas_for_custom_db_write_mapfile.log"
+    run:
+        genome_scores = {}
+        with open(input.genome_scores, "r") as win_fh:
+            for line in win_fh:
+                genome_scores[line.split(",")[0].split(".fa")[0]] = int(line.split(",")[1])
+                # continue here
+        with open(input.genomes_info, "r") as info_fh:
+            with open(output.mapfile, "w") as out_fh:
+                out_fh.write("genome_id\tspecies_id\trep_genome\n")
+                for line in info_fh:
+                    if line.startswith("ID"):
+                        continue
+                    genome_id = line.split("\t")[0]
+                    shell(f"mkdir -p "+os.path.join(params.indir, genome_id))
+                    # cluster is species_id
+                    species_id = line.split("\t")[11]
+                    rep_genome = 1 if genome_id in rep_genomes else 0
+                    out_fh.write(f"{genome_id}\t{species_id}\t{rep_genome}\n")
+
+rule genus_create_midas_for_custom_db:
+    input:
+        fna_files = lambda wildcards: expand("11_MIDAS/MAGs_database/{genome}/{genome}.fna", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags, full_list = True)),
+        faa_files = lambda wildcards: expand("11_MIDAS/MAGs_database/{genome}/{genome}.faa", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags, full_list = True)),
+        ffn_files = lambda wildcards: expand("11_MIDAS/MAGs_database/{genome}/{genome}.ffn", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags, full_list = True)),
+        genes_file = lambda wildcards: expand("11_MIDAS/MAGs_database/{genome}/{genome}.genes", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags, full_list = True)),
+        mapfile = "11_MIDAS/midas_mapfile_genus.tsv"
+    output:
+        done = touch("logs/Midas_DB_genus.done")
+    params:
+        outdir = "11_MIDAS/MAGs_database/Midas_DB_genus",
+        # consider putting these paths in config
+        midas_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/",
+        midas_scripts_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/scripts/",
+        # midas_db_default = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/midas_db_v1.2/",
+        indir = "11_MIDAS/MAGs_database/",
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-23:10:00"),
+    benchmark: "logs/genus_create_midas_for_custom_db.benchmark"
+    log: "logs/genus_create_midas_for_custom_db.log"
+    threads: 8
+    resources:
+        mem_mb = 8000
+    conda: "envs/midas-env.yaml"
+    shell:
+        """
+        export PYTHONPATH={params.midas_path}
+        export PATH=$PATH:{params.midas_scripts_path}
+        build_midas_db.py {params.indir} {input.mapfile} {params.outdir} --threads {threads} --resume
+        """
+
+rule midas_genus_species_abundance:
+    input:
+        reads1 = rules.host_mapping_extract_host_filtered_reads.output.reads1,
+        reads2 = rules.host_mapping_extract_host_filtered_reads.output.reads2,
+        done = "logs/Midas_DB_genus.done"
+    output:
+        output = "11_MIDAS/MidasProfiling_genus/{sample}/species/species_profile.txt",
+    params:
+        outdir = "11_MIDAS/MidasProfiling_genus/{sample}/",
+        midas_db = "11_MIDAS/MAGs_database/Midas_DB_genus",
+        midas_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/",
+        midas_scripts_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/scripts/",
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-5:10:00"),
+    benchmark: "logs/midas_genus_species_abundance_{sample}.benchmark"
+    log: "logs/midas_genus_species_abundance_{sample}.log"
+    threads: 8
+    resources:
+        mem_mb = 8000
+    conda: "envs/midas-env.yaml"
+    shell:
+        """
+        export PYTHONPATH={params.midas_path}
+        export PATH=$PATH:{params.midas_scripts_path}
+        run_midas.py species {params.outdir} -1 {input.reads1} -2 {input.reads2} -t {threads} -d {params.midas_db} --remove_temp
+        """
+
+rule midas_genus_species_abundance_merge:
+    input:
+        per_sample_output = expand("11_MIDAS/MidasProfiling_genus/{sample}/species/species_profile.txt", sample=SAMPLES)
+    output:
+        relative_abundance = "11_MIDAS/MidasProfiling_genus/relative_abundance.txt",
+        count_reads = "11_MIDAS/MidasProfiling_genus/count_reads.txt",
+        coverage = "11_MIDAS/MidasProfiling_genus/coverage.txt",
+        species_prevalence = "11_MIDAS/MidasProfiling_genus/species_prevalence.txt",
+    params:
+        outdir = "11_MIDAS/MidasProfiling_genus/",
+        midas_db = "11_MIDAS/MAGs_database/Midas_DB_genus",
+        midas_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/",
+        midas_scripts_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/scripts/",
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-5:10:00"),
+    benchmark: "logs/midas_genus_species_abundance_merged.benchmark"
+    log: "logs/midas_genus_species_abundance_merged.log"
+    threads: 8
+    resources:
+        mem_mb = 8000
+    conda: "envs/midas-env.yaml"
+    shell:
+        """
+        export PYTHONPATH={params.midas_path}
+        export PATH=$PATH:{params.midas_scripts_path}
+        export MIDAS_DB={params.midas_db}
+        merge_midas.py species {params.outdir} -i {params.outdir} -t dir
+        """
+
+rule midas_genus_gene_content:
+    input:
+        reads1 = rules.host_mapping_extract_host_filtered_reads.output.reads1,
+        reads2 = rules.host_mapping_extract_host_filtered_reads.output.reads2,
+        output = "11_MIDAS/MidasProfiling_genus/{sample}/species/species_profile.txt",
+        done = "logs/Midas_DB_genus.done",
+    output:
+        output = "11_MIDAS/MidasProfiling_genus/{sample}/genes/summary.txt",
+    params:
+        outdir = "11_MIDAS/MidasProfiling_genus/{sample}/",
+        midas_db = "11_MIDAS/MAGs_database/Midas_DB_genus",
+        midas_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/",
+        midas_scripts_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/scripts/",
+        species_cov = 10, # default is 3 use later if needed
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-5:10:00"),
+    benchmark: "logs/midas_genus_gene_content_{sample}.benchmark"
+    log: "logs/midas_genus_gene_content_{sample}.log"
+    threads: 8
+    resources:
+        mem_mb = 8000
+    conda: "envs/midas-env.yaml"
+    shell:
+        """
+        export PYTHONPATH={params.midas_path}
+        export PATH=$PATH:{params.midas_scripts_path}
+        export MIDAS_DB={params.midas_db}
+        run_midas.py genes {params.outdir} -1 {input.reads1} -2 {input.reads2} -t {threads} -d {params.midas_db} --remove_temp
+        """
+
+rule midas_genus_gene_content_merge:
+    input:
+        per_sample_output = expand("11_MIDAS/MidasProfiling_genus/{sample}/genes/summary.txt", sample=SAMPLES)
+    output:
+        # genes_coverage = "11_MIDAS/MidasProfiling_genus/{cluster}/genes_coverage.txt",
+        # genes_presence = "11_MIDAS/MidasProfiling_genus/{cluster}/genes_presence_absence.txt",
+        # genes_summary = "11_MIDAS/MidasProfiling_genus/{cluster}/genes_summary.txt",
+        # genes_copy_number = "11_MIDAS/MidasProfiling_genus/{cluster}/genes_copy_number.txt"
+        outdone = touch("11_MIDAS/midas_genes_summary_genus.done")
+    params:
+        outdir = "11_MIDAS/MidasProfiling_genus/",
+        midas_db = "11_MIDAS/MAGs_database/Midas_DB_genus",
+        midas_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/",
+        midas_scripts_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/scripts/",
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-5:10:00"),
+    benchmark: "logs/midas_genus_gene_content_merged.benchmark"
+    log: "logs/midas_genus_gene_content_merged.log"
+    threads: 8
+    resources:
+        mem_mb = 8000
+    conda: "envs/midas-env.yaml"
+    shell:
+        """
+        export PYTHONPATH={params.midas_path}
+        export PATH=$PATH:{params.midas_scripts_path}
+        export MIDAS_DB={params.midas_db}
+        merge_midas.py genes {params.outdir} -i {params.outdir} -t dir
+        for readme in 11_MIDAS/MidasProfiling_genus/*/readme.txt;
+        do
+            cp ${{readme%%readme.txt}}/readme.txt ${{readme%%readme.txt}}/genes_readme.txt
+        done
+        """
+
+rule midas_genus_profile_snps:
+    input:
+        reads1 = rules.host_mapping_extract_host_filtered_reads.output.reads1,
+        reads2 = rules.host_mapping_extract_host_filtered_reads.output.reads2,
+        output = "11_MIDAS/MidasProfiling_genus/{sample}/species/species_profile.txt",
+        done = "logs/Midas_DB_genus.done"
+    output:
+        summary = "11_MIDAS/MidasProfiling_genus/{sample}/snps/summary.txt",
+    params:
+        outdir = "11_MIDAS/MidasProfiling_genus/{sample}/",
+        midas_db = "11_MIDAS/MAGs_database/Midas_DB_genus",
+        midas_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/",
+        midas_scripts_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/scripts/",
+        species_cov = 1, # default is 3 use later if needed
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-5:10:00"),
+    benchmark: "logs/midas_genus_profile_snps_{sample}.benchmark"
+    log: "logs/midas_genus_profile_snps_{sample}.log"
+    threads: 8
+    resources:
+        mem_mb = 8000
+    conda: "envs/midas-env.yaml"
+    shell:
+        """
+        export PYTHONPATH={params.midas_path}
+        export PATH=$PATH:{params.midas_scripts_path}
+        export MIDAS_DB={params.midas_db}
+        run_midas.py snps {params.outdir} -1 {input.reads1} -2 {input.reads2} -t {threads} -d {params.midas_db} --remove_temp
+        """
+
+rule midas_genus_profile_snps_merge:
+    input:
+        per_sample_output = expand("11_MIDAS/MidasProfiling_genus/{sample}/snps/summary.txt", sample=SAMPLES)
+    output:
+        # snps_freq = "11_MIDAS/MidasProfiling_genus/{cluster}/snps_freq.txt",
+        # snps_depth = "11_MIDAS/MidasProfiling_genus/{cluster}/snps_depth.txt",
+        # snps_summary = "11_MIDAS/MidasProfiling_genus/{cluster}/snps_summary.txt",
+        # snps_info = "11_MIDAS/MidasProfiling_genus/{cluster}/snps_info.txt"
+        outdone = touch("11_MIDAS/snps_summary_genus.done")
+    params:
+        outdir = "11_MIDAS/MidasProfiling_genus/",
+        midas_db = "11_MIDAS/MAGs_database/Midas_DB_genus",
+        midas_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/",
+        midas_scripts_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/scripts/",
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-5:10:00"),
+    benchmark: "logs/midas_genus_profile_snps_merged.benchmark"
+    log: "logs/midas_genus_profile_snps_merged.log"
+    threads: 8
+    resources:
+        mem_mb = 8000
+    conda: "envs/midas-env.yaml"
+    shell:
+        """
+        export PYTHONPATH={params.midas_path}
+        export PATH=$PATH:{params.midas_scripts_path}
+        export MIDAS_DB={params.midas_db}
+        merge_midas.py snps {params.outdir} -i {params.outdir} -t dir
+        for readme in 11_MIDAS/MidasProfiling/*/readme.txt;
+        do
+            cp ${{readme%%readme.txt}}/readme.txt ${{readme%%readme.txt}}/snps_readme.txt
+        done
+        """
+
+# rule midas_snp_diversity_intra:
+#     input:
+#         done = rules.midas_profile_snps_merge.output.outdone
+#     output:
+#         outfile = "11_MIDAS/snp_diversity_intra/snp_diversity_{cluster}.info"
+#     params:
+#         indir = "11_MIDAS/MidasProfiling/{cluster}/",
+#         maf = 0.01, #minimum minor allele frequency to be considered polymorphic
+#         midas_db = "11_MIDAS/MAGs_database/Midas_DB",
+#         midas_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/",
+#         midas_scripts_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/scripts/",
+#         mailto="aiswarya.prasad@unil.ch",
+#         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+#         account="pengel_spirit",
+#         runtime_s=convertToSec("0-5:10:00"),
+#     benchmark: "logs/midas_snp_diversity_intra_{cluster}.benchmark"
+#     log: "logs/midas_snp_diversity_intra_{cluster}.log"
+#     threads: 8
+#     resources:
+#         mem_mb = 8000
+#     conda: "envs/midas-env.yaml"
+#     shell:
+#         """
+#         export PYTHONPATH={params.midas_path}
+#         export PATH=$PATH:{params.midas_scripts_path}
+#         export MIDAS_DB={params.midas_db}
+#         snp_diversity.py {params.indir} --genomic_type genome-wide --sample_type per-sample --out {output.outfile} --snp_maf {params.maf}
+#         """
+#
+# rule midas_snp_diversity_inter:
+#     input:
+#         done = rules.midas_profile_snps_merge.output.outdone
+#     output:
+#         outfile = "11_MIDAS/snp_diversity_inter/snp_diversity_{cluster}.info"
+#     params:
+#         indir = "11_MIDAS/MidasProfiling/{cluster}/",
+#         maf = 0.01, #minimum minor allele frequency to be considered polymorphic
+#         midas_db = "11_MIDAS/MAGs_database/Midas_DB",
+#         midas_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/",
+#         midas_scripts_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/scripts/",
+#         mailto="aiswarya.prasad@unil.ch",
+#         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+#         account="pengel_spirit",
+#         runtime_s=convertToSec("0-5:10:00"),
+#     benchmark: "logs/midas_snp_diversity_inter_{cluster}.benchmark"
+#     log: "logs/midas_snp_diversity_inter_{cluster}.log"
+#     threads: 8
+#     resources:
+#         mem_mb = 8000
+#     conda: "envs/midas-env.yaml"
+#     shell:
+#         """
+#         export PYTHONPATH={params.midas_path}
+#         export PATH=$PATH:{params.midas_scripts_path}
+#         export MIDAS_DB={params.midas_db}
+#         snp_diversity.py {params.indir} --genomic_type genome-wide --sample_type pooled-samples --out {output.outfile} --snp_maf {params.maf}
+#         """
 
 ###############################
 ###############################
@@ -1872,8 +2398,14 @@ rule compile_report:
         trees = lambda wildcards: ["07_AnnotationAndPhylogenies/05_IQTree/"+group+"/"+group+"_Phylogeny.contree" for group in [x for x in GROUPS if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_tree) > 4]],
         single_ortho_MAGs = expand("07_AnnotationAndPhylogenies/02_orthofinder/{group}/OrthoFinder/{group}_single_ortho_MAGs.txt", group=GROUPS),
         ortho_summary = expand("07_AnnotationAndPhylogenies/02_orthofinder/{group}_Orthogroups_summary.csv", group=GROUPS),
-        mapfile = "11_MIDAS/midas_mapfile.tsv",
-        midas_db = "logs/Midas_DB.done"
+        midas_species_prevalence = "11_MIDAS/MidasProfiling/species_prevalence.txt",
+        midas_genes_summary = "11_MIDAS/midas_genes_summary.done",
+        snps_summary = "11_MIDAS/snps_summary.done",
+        midas_genus_species_prevalence = "11_MIDAS/MidasProfiling_genus/species_prevalence.txt",
+        midas_genus_genes_summary = "11_MIDAS/midas_genes_summary_genus.done",
+        snps_summary_genus = "11_MIDAS/snps_summary_genus.done",
+        # snp_intra = lambda wildcards: expand("11_MIDAS/snp_diversity_intra/snp_diversity_{cluster}.info", cluster = get_cluster_dict(checkpoints.make_phylo_table.get().output.out_all).keys()),
+        # snp_inter = lambda wildcards: expand("11_MIDAS/snp_diversity_inter/snp_diversity_{cluster}.info", cluster = get_cluster_dict(checkpoints.make_phylo_table.get().output.out_all).keys())
     output:
         html = PROJECT_IDENTIFIER+"_Report.html",
         # fig_00a = "Figures/00a-Total_reads_trimming.pdf",
@@ -1978,8 +2510,14 @@ rule backup:
         trees = lambda wildcards: ["07_AnnotationAndPhylogenies/05_IQTree/"+group+"/"+group+"_Phylogeny.contree" for group in [x for x in GROUPS if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_tree) > 4]],
         single_ortho_MAGs = expand("07_AnnotationAndPhylogenies/02_orthofinder/{group}/OrthoFinder/{group}_single_ortho_MAGs.txt", group=GROUPS),
         ortho_summary = expand("07_AnnotationAndPhylogenies/02_orthofinder/{group}_Orthogroups_summary.csv", group=GROUPS),
-        mapfile = "11_MIDAS/midas_mapfile.tsv",
-        midas_db = "logs/Midas_DB.done"
+        midas_species_prevalence = "11_MIDAS/MidasProfiling/species_prevalence.txt",
+        midas_genes_summary = "11_MIDAS/midas_genes_summary.done",
+        snps_summary = "11_MIDAS/snps_summary.done",
+        midas_genus_species_prevalence = "11_MIDAS/MidasProfiling_genus/species_prevalence.txt",
+        midas_genus_genes_summary = "11_MIDAS/midas_genes_summary_genus.done",
+        snps_summary_genus = "11_MIDAS/snps_summary_genus.done",
+        # snp_intra = lambda wildcards: expand("11_MIDAS/snp_diversity_intra/snp_diversity_{cluster}.info", cluster = get_cluster_dict(checkpoints.make_phylo_table.get().output.out_all).keys()),
+        # snp_inter = lambda wildcards: expand("11_MIDAS/snp_diversity_inter/snp_diversity_{cluster}.info", cluster = get_cluster_dict(checkpoints.make_phylo_table.get().output.out_all).keys())
     output:
         outfile = touch("logs/backup.done")
     threads: 2

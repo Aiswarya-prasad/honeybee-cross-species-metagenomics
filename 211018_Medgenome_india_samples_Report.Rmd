@@ -13,44 +13,46 @@ output:
     cold-folding: hide
     toc: true
 ---
-
-<!--
-h1.title {
-    font-size: 40px;
-    font-family: Serif;
-    text-align: center;
-    font-weight: normal;
-    /* color: DarkRed; */
-}
-h1 {
-    font-size: 24px;
-    font-family: Serif;
-    font-weight: bold;
-    /* font-weight: bold; */
-    /* text-align: center; */
-    /* color: DarkRed; */
-}
-h2 {
-    font-size: 22px;
-    font-family: Serif;
-    font-weight: bold;
-    /* text-align: center; */
-    /* color: DarkRed; */
-}
-h3 {
-    font-size: 20px;
-    font-family: Serif;
-    font-weight: bold;
-    /* text-align: center; */
-    /* color: DarkRed; */
-}
--->
+<!-- comment out for pdf compiling -->
+<!-- some css for formatting html -->
+<!-- <style>
+    h1.title {
+        font-size: 40px;
+        font-family: Serif;
+        text-align: center;
+        font-weight: normal;
+        /* color: DarkRed; */
+    }
+    h1 {
+        font-size: 24px;
+        font-family: Serif;
+        font-weight: bold;
+        /* font-weight: bold; */
+        /* text-align: center; */
+        /* color: DarkRed; */
+    }
+    h2 {
+        font-size: 22px;
+        font-family: Serif;
+        font-weight: bold;
+        /* text-align: center; */
+        /* color: DarkRed; */
+    }
+    h3 {
+        font-size: 20px;
+        font-family: Serif;
+        font-weight: bold;
+        /* text-align: center; */
+        /* color: DarkRed; */
+    }
+    body .main-container {
+        /* max-width: 1000px; */
+        font-size: 18px;
+        font-family: Serif;
+    }
+</style> -->
 
 ```{css echo=FALSE, warning=FALSE}
-.main-container {
-    max-width: unset;
-}
-
 /* To make hoverable links. (does not have to be called hint) Usage: */
 /* [Message to show on hover]{.hint} */
 .hint {
@@ -71,17 +73,11 @@ h3 {
 .hint:hover::before {
   display: none;
 }
-/* .vscroll-plot {
-    width: 1000px;
-    height: 400px;
-    overflow-y: scroll;
-    overflow-x: hidden;
-} */
 ```
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(engine.opts = list(bash = "-l"))
-knitr::opts_chunk$set(cache=FALSE)
+knitr::opts_chunk$set(cache=TRUE)
 knitr::opts_chunk$set(echo=FALSE, message=FALSE, error=FALSE, warning=FALSE, results='hide', fig.show='hide')
 # load libraries
 library(ggplot2)
@@ -387,11 +383,20 @@ paginate_save <- function(plot, variable, plot_name, pass_nrow = 5, pass_ncol = 
 
 # Results
 
+
 ```{r predefined_vectors}
-# Read this from the config file(s)?
 samples <- c("M1.1", "M1.2", "M1.3", "M1.4", "M1.5",
-              # "AmAi01", "AmAi02", "AmAi03", "AmAi04", "AmAi05",
-              # "DrY1_F1", "DrY1_F2", "DrY1_F3", "DrY1_F4", "DrY1_F5",
+              "C1.1", "C1.2", "C1.3", "C1.4", "C1.5",
+              "C2.1", "C2.2", "C2.3", "C2.4", "C2.5",
+              "C3.1", "C3.2", "C3.3", "C3.4", "C3.5",
+              "D1.1","D1.2","D1.3","D1.4","D1.5",
+              "D2.1","D2.2","D2.3","D2.4","D2.5",
+              "D3.1","D3.2","D3.3","D3.4","D3.5",
+              "F1.1","F1.2","F1.3","F1.4","F1.5",
+              "F2.1","F2.2","F2.3","F2.4","F2.5",
+              "F3.1","F3.2","F3.3","F3.4","F3.5"
+            )
+india_samples <- c("M1.1", "M1.2", "M1.3", "M1.4", "M1.5",
               "C1.1", "C1.2", "C1.3", "C1.4", "C1.5",
               "C2.1", "C2.2", "C2.3", "C2.4", "C2.5",
               "C3.1", "C3.2", "C3.3", "C3.4", "C3.5",
@@ -721,7 +726,7 @@ Total_reads <- ggplot(filter(df_plot_reads, Type %in% c("Raw", "Trimmed")), aes(
                                   ggsave("Figures/00a-Total_reads_trimming.pdf")
 ```
 
-```{r show_plots_total_species, dev = 'pdf', results='hold', fig.show = 'hold', fig.align = 'center', fig.cap = 'Total reads by species'}
+```{r show_plots_total_species, dev = 'pdf', results='hold', fig.show = 'hold', out.width = '100%', fig.align = 'center', fig.height = 20, fig.cap = 'Total reads by species'}
 Total_reads
 # knitr::include_graphics("Figures/Total_reads_species.pdf")
 ```
@@ -746,9 +751,9 @@ Total_reads_species <- ggplot(filter(df_plot_reads, Type %in% c("Trimmed")), aes
                                   ggsave("Figures/00b-Total_reads_species_after_trimming.pdf")
 ```
 
-```{r show_plots_total_trimmed, dev = 'pdf', results='hold', fig.show = 'hold', fig.align = 'center', fig.cap = 'Total reads by species'}
-# Total_reads_species
-knitr::include_graphics("Figures/00b-Total_reads_species_after_trimming.pdf")
+```{r show_plots_total_trimmed, dev = 'pdf', results='hold', fig.show = 'hold', out.width = '100%', fig.align = 'center', fig.height = 20, fig.cap = 'Total reads by species'}
+Total_reads_species
+# knitr::include_graphics("Figures/Total_reads_species.pdf")
 ```
 
 ## Proportion of reads mapping to host and microbiome database
@@ -777,9 +782,9 @@ Mapped_Unmapped_reads_prop <- ggplot(df_plot_reads_prop, aes(y=factor(Sample, le
                                       ggsave("Figures/00c-Mapped_Unmapped_reads_prop.pdf")
 ```
 
-```{r show_plots_num_mapped_mic, dev = 'pdf', results='hold', fig.show = 'hold', fig.align = 'center', fig.cap = 'Proportion of reads mapped to the microbiome database and host database'}
-# Mapped_Unmapped_reads_prop
-knitr::include_graphics("Figures/00c-Mapped_Unmapped_reads_prop.pdf")
+```{r show_plots_num_mapped_mic, dev = 'pdf', results='hold', fig.show = 'hold', out.width = '100%', fig.align = 'center', fig.height = 20, fig.cap = 'Proportion of reads mapped to the microbiome database and host database'}
+Mapped_Unmapped_reads_prop
+# knitr::include_graphics("Figures/Mapped_Unmapped_reads_prop.pdf")
 ```
 
 ## Micorbiome reads lost by non_specific mapping to host
@@ -809,11 +814,13 @@ Non_specific_reads <- ggplot(df_plot_reads_non_specific %>% filter(Type == "Mapp
                                          x_angle=0 ,x_vj=0, x_hj=0, x_size=12,
                                          y_angle=0 ,y_vj=0, y_hj=1, y_size=7)
                                       ggsave("Figures/00d-Mapping_non_specific.pdf")
+
+                                      # ggsave("Figures/00d-Mapping_non_specific.pdf")
 ```
 
-```{r show_plots_prop_mapped_mic, dev = 'pdf', results='hold', fig.show = 'hold', fig.align = 'center', fig.cap = 'Proportion of reads mapped to the microbiome database and host database'}
-# Non_specific_reads
-knitr::include_graphics("Figures/00d-Mapping_non_specific.pdf")
+```{r show_plots_prop_mapped_mic, dev = 'pdf', results='hold', fig.show = 'hold', out.width = '100%', fig.align = 'center', fig.height = 20, fig.cap = 'Proportion of reads mapped to the microbiome database and host database'}
+Non_specific_reads
+# knitr::include_graphics("Figures/Mapped_Unmapped_reads_prop.pdf")
 ```
 
 ## Community profiling with mOTUs
@@ -876,18 +883,6 @@ assigned_plot <- ggplot(df_assigned_plot, aes(y = factor(Sample, samples), x = p
                     )
                     # ggsave("Figures/04-motus_unassigned.pdf")
 
-extend_colors_motus <- function(names_vec){
-  final_list <- list()
-  for (a_name in names_vec) {
-    if (a_name %in% names(motuColors)) {
-      final_list[a_name] = motuColors[a_name]
-    } else {
-      final_list[a_name] = "grey"
-    }
-  }
-  return(final_list)
-}
-
 plot_motus_high_prev <- ggplot(df_motus_combined, aes(y = factor(Sample, samples), x = rel_ab, fill = factor(motu_condensed, motus))) +
                 geom_bar(position = "stack", stat = "identity") +
                 labs(fill = "mOTU", x = "mOTUs2 Relative abundance", y = "Sample") +
@@ -914,13 +909,11 @@ plot_motus_filt <- ggplot(df_motus_filt, aes(y = factor(Sample, samples), x = re
                   ggsave("Figures/04b-motus_filt.pdf")
 ```
 
-```{r motus_summary_plots,  dev = 'pdf', results='hold', fig.show = 'hold', fig.align = 'center', fig.cap = 'mOTUs Summary'}
+```{r motus_summary_plots,  dev = 'pdf', results='hold', fig.show = 'hold', out.width = '100%', fig.align = 'center', fig.height = 20, fig.cap = 'mOTUs Summary'}
 g <- grid.arrange(arrangeGrob(assigned_plot, ncol = 2, widths = c(4, 2)), plot_motus_high_prev, nrow = 2, heights = c(1.2, 2))
   ggsave("Figures/04a-motus.pdf", g)
-# g
-# plot_motus_filt
-knitr::include_graphics("Figures/04b-motus_filt.pdf")
-knitr::include_graphics("Figures/04a-motus.pdf")
+g
+plot_motus_filt
 ```
 
 # MAG analysis
@@ -1046,6 +1039,11 @@ vis_magOTUs_df_all <- vis_magOTUs_df_all %>%
                             mutate(Num_mags = n()) %>%
                               mutate(Prevalence_overall = Num_mags/length(samples))
 
+samples_am <- c(vis_magOTUs_df_all %>% filter(Host == "Apis mellifera") %>% pull(Sample) %>% unique %>% as.vector)
+samples_ac <- c(vis_magOTUs_df_all %>% filter(Host == "Apis cerana") %>% pull(Sample) %>% unique %>% as.vector)
+samples_ad <-c(vis_magOTUs_df_all %>% filter(Host == "Apis dorsata") %>% pull(Sample) %>% unique %>% as.vector)
+samples_af <-c(vis_magOTUs_df_all %>% filter(Host == "Apis florea") %>% pull(Sample) %>% unique %>% as.vector)
+
 vis_magOTUs_df_all <- vis_magOTUs_df_all %>%
                           group_by(Cluster, Host) %>%
                             mutate(Present = n()) %>%
@@ -1065,6 +1063,8 @@ vis_magOTUs_df_all <- left_join(vis_magOTUs_df_all, cluster_info, by = c("Cluste
 vis_magOTUs_df <- vis_magOTUs_df_all %>%
                     filter(all_quality == "Pass")
 
+
+vis_magOTUs_df$Host <- as.factor(recode(vis_magOTUs_df$Host, Am="Apis mellifera", Ac="Apis cerana", Ad="Apis dorsata", Af="Apis florea"))
 vis_magOTUs_df$Cluster <- as.factor(vis_magOTUs_df$Cluster)
 vis_magOTUs_df$sample <- as.factor(vis_magOTUs_df$sample)
 vis_magOTUs_df$Family <- as.factor(vis_magOTUs_df$Family)
@@ -1165,7 +1165,7 @@ Total_data_species <- ggplot(mutate(filter(df_plot_reads, Type == "Raw" ), amoun
                                 scale_fill_manual(values=host_order_color)
 ```
 
-```{r Assembly_plots,  dev = 'pdf', results='hold', fig.show = 'hold', fig.align = 'center'}
+```{r Assembly_plots,  dev = 'pdf', results='hold', fig.show = 'hold', out.width = '100%', fig.align = 'center', fig.height = 20}
 Total_reads_species_temp <- ggplot(filter(df_plot_reads, Type == "Raw"), aes(y=factor(Sample, levels = samples),
                                       x=Number,
                                       fill = SpeciesID)) +
@@ -1195,9 +1195,7 @@ g <- grid.arrange(
  )
  g
  ggsave("Figures/03b-Assembly_summary.pdf", g)
-knitr::include_graphics("Figures/03b-Assembly_summary.pdf")
-# Number_contig_plot
-knitr::include_graphics("Figures/03a-NumberOfFilteredcontigs.pdf")
+Number_contig_plot
 ```
 
 ## contig length and fate (binning outcome)
@@ -1554,7 +1552,7 @@ contig_len_vs_depth_af_binned <- ggplot(filter(contigs_depths_df_genus, Host == 
                               ggsave("Figures/05h-length_vs_depth_contigs_binned_af.pdf")
 ```
 
-```{r contig_binning_summary_plots,  dev = 'pdf', results='hold', fig.show = 'hold', fig.align = 'center'}
+```{r contig_binning_summary_plots,  dev = 'pdf', results='hold', fig.show = 'hold', out.width = '100%', fig.align = 'center', fig.height = 20}
 amount_pass_fail
   ggsave("Figures/05a-data-contigs_passed_failed.pdf", amount_pass_fail)
 contigs_binned_length_plot
@@ -1793,7 +1791,7 @@ prev_vs_abud_host <- ggplot(vis_magOTUs_df, aes(x = mean_coverage, y = Prevalenc
       ggsave("Figures/07a-prev_vs_coverage_filtered_MAGs_genus_by_host_no_size.pdf")
 ```
 
-```{r visualize_coverage_plots,  dev = 'pdf', results='hold', fig.show = 'hold', fig.align = 'center'}
+```{r visualize_coverage_plots,  dev = 'pdf', results='hold', fig.show = 'hold', out.width = '100%', fig.align = 'center', fig.height = 20}
 legend_hist_host <- get_only_legend(Completeness_hist)
 g  <- arrangeGrob(
   arrangeGrob(
@@ -1847,7 +1845,7 @@ genus_MAG_quality_host <- ggplot(filter(vis_magOTUs_df_all, all_quality=="Pass")
       ggsave("Figures/07-QC_per_Genus_per_host_passed.pdf")
 ```
 
-```{r mags_genus_plot,  dev = 'pdf', results='hold', fig.show = 'hold', fig.align = 'center', fig.cap = 'MAG quality summarised'}
+```{r mags_genus_plot,  dev = 'pdf', results='hold', fig.show = 'hold', out.width = '100%', fig.align = 'center', fig.height = 20, fig.cap = 'MAG quality summarised'}
 genus_MAG_quality_host_all
 genus_MAG_quality_host
 ```
@@ -1863,12 +1861,12 @@ I exclude the following because they only contain 1 MAG: `r filter(vis_magOTUs_d
 `r filter(vis_magOTUs_df_all, all_quality=="Pass") %>% pull(Species) %>% unique %>% length` <!-- 29 --> out of `r vis_magOTUs_df_all %>% pull(Species) %>% unique %>% length` <!-- 51 --> species.
 
 ```{r magOTU_summary}
-# line_list <- c()
-# for (num in 1:94){
-#   add_line <- geom_vline(xintercept=num+0.5, size=0.1, color="black")
-#   # add_line <- geom_vline(xintercept=num+0.5, size=0.1, alpha=0.5, color="grey")
-#   line_list <- c(line_list, add_line)
-# }
+line_list <- c()
+for (num in 1:94){
+  add_line <- geom_vline(xintercept=num+0.5, size=0.1, color="black")
+  # add_line <- geom_vline(xintercept=num+0.5, size=0.1, alpha=0.5, color="grey")
+  line_list <- c(line_list, add_line)
+}
 
 magOTUs_per_sample <- ggplot(vis_magOTUs_df_all, aes(y = factor(Cluster), x = factor(sample, samples), fill = Host)) +
                             geom_tile() +
@@ -1878,8 +1876,8 @@ magOTUs_per_sample <- ggplot(vis_magOTUs_df_all, aes(y = factor(Cluster), x = fa
                               leg_pos="none", guide_nrow=6,
                               y_hj=1, y_size=7, leg_size=8, y_vj=0.5,
                               x_vj=0, x_hj=1, x_size=6, x_angle=90) +
-                              scale_fill_manual(values=host_order_color) #+
-                              # line_list
+                              scale_fill_manual(values=host_order_color) +
+                              line_list
                                     ggsave("Figures/08a-magOTUs_per_sample.pdf")
 
 magOTUs_per_sample_genus <- ggplot(vis_magOTUs_df_all, aes(y = factor(Cluster), x = factor(sample, samples), fill = factor(Genus, genera))) +
@@ -1890,8 +1888,8 @@ magOTUs_per_sample_genus <- ggplot(vis_magOTUs_df_all, aes(y = factor(Cluster), 
                               leg_pos="none", guide_nrow=6,
                               y_hj=1, y_size=7, leg_size=8, y_vj=0.5,
                               x_vj=0, x_hj=1, x_size=6, x_angle=90) +
-                              scale_fill_manual(values=genusColors, guide = F) #+
-                              # line_list
+                              scale_fill_manual(values=genusColors, guide = F) +
+                              line_list
                                     ggsave("Figures/08b-magOTU_per_sample_genus.pdf")
 
 magOTUs_per_sample_by_host_genus <- ggplot(vis_magOTUs_df_all, aes(y = Cluster, x = sample, fill = factor(Genus, genera))) +
@@ -1904,6 +1902,12 @@ magOTUs_per_sample_by_host_genus <- ggplot(vis_magOTUs_df_all, aes(y = Cluster, 
         scale_fill_manual(values=genusColors) +
           facet_wrap(~ factor(Host, host_order), scales = "free")
       ggsave("Figures/08c-magOTU_by_host_genus.pdf")
+# contigs_depths_df %>%
+#   filter(bin == "MAG_C2.4_8")
+#
+# vis_magOTUs_df_all %>%
+#   filter(Cluster == "116_1") %>%
+#     select(Class, Genus, ID, completeness, length)
 
 magOTUs_per_sample_by_host_coverage <- ggplot(vis_magOTUs_df_all, aes(y = Cluster, x = sample, fill = mean_coverage)) +
         geom_tile() +
@@ -1946,8 +1950,8 @@ magOTUs_shared_per_sample_genus <- ggplot(vis_magOTUs_df_all_shared_cluster, aes
                               leg_pos="none", guide_nrow=6,
                               y_hj=1, y_size=7, leg_size=8, y_vj=0.5,
                               x_vj=0, x_hj=1, x_size=6, x_angle=90) +
-                              scale_fill_manual(values=genusColors) #+
-                              # line_list
+                              scale_fill_manual(values=genusColors) +
+                              line_list
                                     ggsave("Figures/08d-magOTU_shared_per_sample_genus.pdf")
 
 magOTUs_shared_per_sample_prev_abund <- ggplot(vis_magOTUs_df_all_shared_cluster, aes(y = factor(Cluster), x = factor(sample, samples), fill = Prevalence)) +
@@ -1958,8 +1962,8 @@ magOTUs_shared_per_sample_prev_abund <- ggplot(vis_magOTUs_df_all_shared_cluster
                               y_hj=1, y_size=7, leg_size=8, y_vj=0.5,
                               x_vj=0, x_hj=1, x_size=6, x_angle=90) +
                               guides(fill = guide_colorbar(barhwight = 1, barwidth = 10)) +
-                              scale_fill_gradientn(colors=brewer.pal(5, "RdYlGn"), na.value = "transparent", trans = "log10") #+
-                              # line_list
+                              scale_fill_gradientn(colors=brewer.pal(5, "RdYlGn"), na.value = "transparent", trans = "log10") +
+                              line_list
                                     ggsave("Figures/08d-magOTUs_shared_per_sample_prev_abund.pdf")
 
 magOTUs_per_sample_by_host_completeness_genus <- ggplot(vis_magOTUs_df_all, aes(y = Cluster, x = Num_mags, size = factor(Completeness_quality), color = Genus, alpha = 0.5)) +
@@ -2002,7 +2006,7 @@ prev_abd_by_genus_host <- ggplot(vis_magOTUs_df_all, aes(y = Prevalence, x = mea
             ggsave("Figures/08f-mags_prev_vs_abd_by_genus_host.pdf")
 ```
 
-```{r magOTU_summary_plots,  dev = 'pdf', results='hold', fig.show = 'hold', fig.align = 'center'}
+```{r magOTU_summary_plots,  dev = 'pdf', results='hold', fig.show = 'hold', out.width = '100%', fig.align = 'center', fig.height = 20}
 magOTUs_per_sample
 magOTUs_per_sample_genus
 magOTUs_per_sample_by_host_genus
@@ -2035,6 +2039,20 @@ vis_magOTUs_df_numClusters_all_plot <- ggplot(vis_magOTUs_df_numClusters_all, ae
                                           scale_fill_manual(values=host_order_color)
                                           ggsave("Figures/09a-magOTU_number_per_sample_all.pdf")
 
+vis_magOTUs_df_numClusters_all_genus <- vis_magOTUs_df_all %>%
+                        group_by(sample, Genus) %>%
+                          summarise(sample, Host, number_of_clusters = n_distinct(Cluster), Genus = Genus, .groups="keep") %>%
+                            unique()
+
+vis_magOTUs_df_numClusters_all_plot_genus <- ggplot(vis_magOTUs_df_numClusters_all_genus, aes(x = factor(Host, levels = c("Apis florea", "Apis cerana", "Apis mellifera", "Apis dorsata")), y = number_of_clusters, fill = Host)) +
+                                        geom_boxplot(outlier.shape = NA) +
+                                        geom_jitter() +
+                                        labs(y = "Number of magOTUs per individual", x = "Host species") +
+                                          make_theme(leg_pos = "none", x_angle = 30, setFill = F, x_vj = 1, x_hj = 1, ) +
+                                          scale_fill_manual(values=host_order_color) +
+                                          facet_wrap(~ factor(Genus, genera))
+                                            ggsave("Figures/09a-magOTU_number_per_sample_all_per_genus.pdf")
+
 vis_magOTUs_df_numClusters <- vis_magOTUs_df %>%
                         group_by(sample) %>%
                           summarise(sample, Host, number_of_clusters = n_distinct(Cluster)) %>%
@@ -2051,17 +2069,38 @@ vis_magOTUs_df_numClusters_passed_plot <- ggplot(vis_magOTUs_df_numClusters, aes
                                           make_theme(leg_pos = "none", x_angle = 30, setFill = F, x_hj = 1, x_vj = 1) +
                                           scale_fill_manual(values=host_order_color)
                                           ggsave("Figures/09a-magOTU_number_per_sample_passed.pdf")
+
+vis_magOTUs_df_numClusters_genus <- vis_magOTUs_df %>%
+                        group_by(sample, Genus) %>%
+                          summarise(sample, Host, number_of_clusters = n_distinct(Cluster), Genus = Genus) %>%
+                            unique
+
+                        test_passed <- pairwise.wilcox.test(vis_magOTUs_df_numClusters$number_of_clusters, vis_magOTUs_df_numClusters$Host, p.adjust = "fdr")
+                        glm_passed <- summary(glm(data = vis_magOTUs_df_numClusters, number_of_clusters ~ Host, family = "poisson"))
+
+
+vis_magOTUs_df_numClusters_passed_plot_genus <- ggplot(vis_magOTUs_df_numClusters_genus, aes(x = factor(Host, levels = c("Apis florea", "Apis cerana", "Apis mellifera", "Apis dorsata")), y = number_of_clusters, fill = Host)) +
+                                        geom_boxplot(outlier.shape = NA) +
+                                        geom_jitter() +
+                                        labs(y = "Number of magOTUs per individual", x = "Host species") +
+                                          make_theme(leg_pos = "none", x_angle = 30, setFill = F, x_hj = 1, x_vj = 1) +
+                                          scale_fill_manual(values=host_order_color) +
+                                          facet_wrap(~ factor(Genus, genera))
+                                          ggsave("Figures/09a-magOTU_number_per_sample_passed_per_genus.pdf")
 ```
 
-```{r magOTU_numbers_compare_plots,  dev = 'pdf', results='hold', fig.show = 'hold', fig.align = 'center'}
+```{r magOTU_numbers_compare_plots,  dev = 'pdf', results='hold', fig.show = 'hold', out.width = '100%', fig.align = 'center', fig.height = 20}
 grid.arrange(vis_magOTUs_df_numClusters_all_plot, vis_magOTUs_df_numClusters_passed_plot, nrow = 1)
 glm_all
 test_all
 glm_passed
 test_passed
+
+vis_magOTUs_df_numClusters_all_plot_genus
+vis_magOTUs_df_numClusters_passed_plot_genus
 ```
 
-```{r magOTU_clustering,  dev = 'pdf', results='hold', fig.show = 'hold', fig.align = 'center'}
+```{r magOTU_clustering,  dev = 'pdf', results='hold', fig.show = 'hold', out.width = '100%', fig.align = 'center', fig.height = 20}
 observations_host <- list(
    `Apis mellifera` = c(pivot_wider(summarise(group_by(vis_magOTUs_df, Host), Cluster, .groups = "keep"), names_from = Host, values_from = Cluster, values_fn = list) %>% pull(`Apis mellifera`) %>% unlist),
    `Apis cerana` = c(pivot_wider(summarise(group_by(vis_magOTUs_df, Host), Cluster, .groups = "keep"), names_from = Host, values_from = Cluster, values_fn = list) %>% pull(`Apis cerana`) %>% unlist),
@@ -2069,13 +2108,6 @@ observations_host <- list(
    `Apis florea` = c(pivot_wider(summarise(group_by(vis_magOTUs_df, Host), Cluster, .groups = "keep"), names_from = Host, values_from = Cluster, values_fn = list) %>% pull(`Apis florea`) %>% unlist)
 )
 
-# magOTU_passed_venn <- ggVennDiagram(observations_host) +
-#                         scale_color_manual(values=host_order_color) +
-#                             scale_fill_gradient(low = brewer.pal(8, "Blues")[1], high = brewer.pal(8, "Blues")[6]) +
-#                               scale_color_manual(values=host_order_color) +
-#                                 make_theme(theme_name = theme_void(), setFill = F, setCol = F, guide_nrow = 1) +
-#                                 theme(axis.text.x=element_blank(), axis.text.y=element_blank())
-#                                 ggsave("Figures/09b-magOTUs_venn_passed_MAGs.pdf")
 venn.diagram(
   x = observations_host,
   category.names = names(observations_host),
@@ -2090,13 +2122,6 @@ observations_host_all <- list(
    `Apis dorsata` = c(pivot_wider(summarise(group_by(vis_magOTUs_df_all, Host), Cluster, .groups = "keep"), names_from = Host, values_from = Cluster, values_fn = list) %>% pull(`Apis dorsata`) %>% unlist),
    `Apis florea` = c(pivot_wider(summarise(group_by(vis_magOTUs_df_all, Host), Cluster, .groups = "keep"), names_from = Host, values_from = Cluster, values_fn = list) %>% pull(`Apis florea`) %>% unlist)
 )
-
-# magOTU_all_venn <- ggVennDiagram(observations_host_all) +
-#                     scale_fill_gradient(low = brewer.pal(8, "Blues")[1], high = brewer.pal(8, "Blues")[6]) +
-#                       scale_color_manual(values=host_order_color) +
-#                         make_theme(theme_name = theme_void(), setFill = F, setCol = F, guide_nrow = 1) +
-#                           theme(axis.text.x=element_blank(), axis.text.y=element_blank())
-#                           ggsave("Figures/09b-magOTUs_venn_all_MAGs.pdf")
 
 venn.diagram(
   x = observations_host_all,
@@ -2123,6 +2148,7 @@ for (sample in rownames(df_magOTUs_vegan)) {
     }
   }
 }
+
 
 make_cum_curve <- function(samples_vector, pa_df, iterations, name = NA) {
   num_clusters_matrix <- matrix(nrow = length(samples_vector), ncol = iterations)
@@ -2217,7 +2243,7 @@ pcoa_magotus <- pcoa_plot_by_host(dist_matrix)
           ggsave("Figures/09d-magOTUs_pcoa.pdf")
 ```
 
-```{r magOTU_clustering_plots,  dev = 'pdf', results='hold', fig.show = 'hold', fig.align = 'center'}
+```{r magOTU_clustering_plots,  dev = 'pdf', results='hold', fig.show = 'hold', out.width = '100%', fig.align = 'center', fig.height = 20}
 knitr::include_graphics("Figures/09b-magOTUs_venn_all_MAGs.pdf")
 knitr::include_graphics("Figures/09b-magOTUs_venn_passed_MAGs.pdf")
 magotu_accumulation_curve
@@ -2321,7 +2347,7 @@ status <- ggplot(orthogroups_status,
                            y_angle=0 ,y_vj=0, y_hj=0, y_size=12)
                            ggsave("Figures/10c-Orthogroups_status_per_group.pdf")
 ```
-```{r show_orthofinder_results,  dev = 'pdf', results='hold', fig.show = 'hold', fig.align = 'center'}
+```{r show_orthofinder_results,  dev = 'pdf', results='hold', fig.show = 'hold', out.width = '100%', fig.align = 'center', fig.height = 20}
 num_genomes
 plot_present_in
 status
@@ -2384,6 +2410,6 @@ cluster_completeness_number <- ggplot(vis_magOTUs_df_all, aes(y = Completeness_q
 paginate_save(cluster_completeness_number, "Cluster", "Figures/11x-clusters_completeness_numbers.pdf",
               pass_nrow = 7)
 ```
-```{r show_winning_magOTUs, dev = 'pdf', results='hold', fig.show = 'hold', fig.align = 'center', }
+```{r show_winning_magOTUs, dev = 'pdf', results='hold', fig.show = 'hold', out.width = '100%', fig.align = 'center', fig.height = 20, }
 score_hist
 ```
