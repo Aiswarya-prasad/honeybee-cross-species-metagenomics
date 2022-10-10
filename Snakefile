@@ -1851,6 +1851,7 @@ rule setup_midas_for_custom_db_write_mapfile:
                     species_id = cluster
                     # species_id = genus+cluster if genus == "g__" else genus
                     rep_genome = 1 if genome_id in rep_genome_dict.values() else 0
+                    out_fh.write(f"{genome_id}\t{species_id}\t{rep_genome}\n")
 
 rule create_midas_for_custom_db:
     input:
