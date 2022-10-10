@@ -3,6 +3,8 @@ library(ggplot2)
 library(tidyverse)
 library(dplyr)
 
+# IMPORTANT TO DO: remove those which have NA for Genus where needed as they will interfere downstream
+
 script_usage <- function() {
     cat("\nUsage: Rscript make_phylo_table.R /directory/xxxx/ \n", fill=TRUE)
     cat("No argument provided for file prefix or path provided is not the absolute path. Script will exit.", fill=TRUE)
@@ -127,6 +129,7 @@ get_group_phy <- function(phy){
   return(c(phy_group_dict[phy][[1]]))
 }
 # setwd("/Volumes/Storage/Work/Temp-From-NAS/cross-species-analysis")
+# project_dir_prefix="/Volumes/Storage/Work/Temp-From-NAS/cross-species-analysis"
 MAG_taxonomy_info <- read.csv(paste0(project_dir_prefix, "/06_MAG_binning/gtdbtk_out_dir/classify/gtdbtk.bac120.summary.tsv"), sep = "\t")
 MAG_info <- read.csv(paste0(project_dir_prefix, "/06_MAG_binning/all_genomes.csv"), sep = "\t")
 
@@ -153,6 +156,9 @@ MAGs_collated <- left_join(genomes_info, MAGs_collated, by = c("Genome"="genome"
 MAGs_collated_for_tree <- MAGs_collated %>%
                         filter(Completeness > 50, Contamination < 5)
 
+MAGs_collated_filt <- MAGs_collated %>%
+                        filter(Completeness > 50, Contamination < 5)
+
 final_genome_info <- data.frame("ID" = isolates$ID,
                                  "Accession" = isolates$Accession,
                                  "Locus_tag" = isolates$Locus_tag_KE_DB,
@@ -177,7 +183,7 @@ final_genome_info <- final_genome_info %>%
                       mutate("Group_auto" = ifelse(is.na(Phylotype), Vectorize(get_group_phy)(Group), Vectorize(get_group_phy)(Phylotype)))
 final_genome_info$Group_auto <- as.character(final_genome_info$Group_auto)
 
-MAGs_collated_for_tree <- data.frame("ID" = MAGs_collated_for_tree$Genome,
+MAGs_collated_for_tree_info <- data.frame("ID" = MAGs_collated_for_tree$Genome,
                                  "Accession" = rep(NA, length(MAGs_collated_for_tree$Genome)),
                                  "Locus_tag" = rep(NA, length(MAGs_collated_for_tree$Genome)),
                                  "Strain_name" = MAGs_collated_for_tree$Genome,
@@ -196,7 +202,7 @@ MAGs_collated_for_tree <- data.frame("ID" = MAGs_collated_for_tree$Genome,
                                  "Class" = MAGs_collated_for_tree$class,
                                  "Sample" = rep("EMPTY", length(MAGs_collated_for_tree$Genome)))
 
-MAGs_collated <- data.frame("ID" = MAGs_collated$Genome,
+MAGs_collated_info <- data.frame("ID" = MAGs_collated$Genome,
                                  "Accession" = rep(NA, length(MAGs_collated$Genome)),
                                  "Locus_tag" = rep(NA, length(MAGs_collated$Genome)),
                                  "Strain_name" = MAGs_collated$Genome,
@@ -215,18 +221,44 @@ MAGs_collated <- data.frame("ID" = MAGs_collated$Genome,
                                  "Class" = MAGs_collated$class,
                                  "Sample" = rep("EMPTY", length(MAGs_collated$Genome)))
 
-MAGs_collated <- MAGs_collated %>%
+MAGs_collated_filt_info <- data.frame("ID" = MAGs_collated_filt$Genome,
+                                 "Accession" = rep(NA, length(MAGs_collated_filt$Genome)),
+                                 "Locus_tag" = rep(NA, length(MAGs_collated_filt$Genome)),
+                                 "Strain_name" = MAGs_collated_filt$Genome,
+                                 "Phylotype" = rep(NA, length(MAGs_collated_filt$Genome)),
+                                 "SDP" = rep(NA, length(MAGs_collated_filt$Genome)),
+                                 "Species" = MAGs_collated_filt$species,
+                                 "Host" = rep("EMPTY", length(MAGs_collated_filt$Genome)),
+                                 "Study" = rep(NA, length(MAGs_collated_filt$Genome)),
+                                 "Origin" = rep("EMPTY", length(MAGs_collated_filt$Genome)),
+                                 "Source_database" = rep("MAGs", length(MAGs_collated_filt$Genome)),
+                                 "Cluster" = MAGs_collated_filt$secondary_cluster,
+                                 "Group" = rep("EMPTY", length(MAGs_collated_filt$Genome)),
+                                 "Genus" = MAGs_collated_filt$genus,
+                                 "Family" = MAGs_collated_filt$family,
+                                 "Order" = MAGs_collated_filt$order,
+                                 "Class" = MAGs_collated_filt$class,
+                                 "Sample" = rep("EMPTY", length(MAGs_collated_filt$Genome)))
+
+MAGs_collated_info <- MAGs_collated_info %>%
   mutate(Group_auto = Genus) %>%
     mutate(Host = Vectorize(get_host_name)(ID)) %>%
       mutate(Origin = Vectorize(get_origin_name)(ID)) %>%
         mutate(Sample = Vectorize(get_sample_name)(ID))
 
-MAGs_collated_for_tree <- MAGs_collated_for_tree %>%
+MAGs_collated_for_tree_info <- MAGs_collated_for_tree_info %>%
   mutate("Group_auto" = Genus) %>%
     mutate("Host" = Vectorize(get_host_name)(ID)) %>%
       mutate(Origin = Vectorize(get_origin_name)(ID)) %>%
         mutate(Sample = Vectorize(get_sample_name)(ID))
 
-write.csv(rbind(final_genome_info, MAGs_collated_for_tree), paste0(project_dir_prefix, "06_MAG_binning/ForTree_GenomeInfo_auto.csv"), row.names = F, quote = T)
-write.csv(rbind(final_genome_info, MAGs_collated), paste0(project_dir_prefix, "06_MAG_binning/all_GenomeInfo_auto.csv"), row.names = F, quote = T)
-write.csv(rbind(MAGs_collated), paste0(project_dir_prefix, "06_MAG_binning/MAGs_GenomeInfo_auto.csv"), row.names = F, quote = T)
+MAGs_collated_filt_info <- MAGs_collated_filt_info %>%
+  mutate("Group_auto" = Genus) %>%
+    mutate("Host" = Vectorize(get_host_name)(ID)) %>%
+      mutate(Origin = Vectorize(get_origin_name)(ID)) %>%
+        mutate(Sample = Vectorize(get_sample_name)(ID))
+
+write.csv(rbind(final_genome_info, MAGs_collated_for_tree_info), paste0(project_dir_prefix, "06_MAG_binning/ForTree_GenomeInfo_auto.csv"), row.names = F, quote = T)
+write.csv(rbind(final_genome_info, MAGs_collated_info), paste0(project_dir_prefix, "06_MAG_binning/all_GenomeInfo_auto.csv"), row.names = F, quote = T)
+write.csv(rbind(MAGs_collated_info), paste0(project_dir_prefix, "06_MAG_binning/MAGs_GenomeInfo_auto.csv"), row.names = F, quote = T)
+write.csv(rbind(MAGs_collated_filt_info), paste0(project_dir_prefix, "06_MAG_binning/MAGs_filt_GenomeInfo_auto.csv"), row.names = F, quote = T)

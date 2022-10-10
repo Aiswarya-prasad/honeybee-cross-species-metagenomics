@@ -39,7 +39,7 @@ database/*
 07_AnnotationAndPhylogenies/*
 08_motus_profile/*
 09_MapToAssembly*
-11_MIDAS/*
+11_MIDAS*/*
 *_files/*
 *_cache/*
 *backup_*.log

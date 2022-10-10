@@ -1260,6 +1260,7 @@ checkpoint make_phylo_table:
         out_t_all = temp("06_MAG_binning/all_GenomeInfo_auto.csv"),
         out_t_tree = temp("06_MAG_binning/ForTree_GenomeInfo_auto.csv"),
         out_t_mags = temp("06_MAG_binning/MAGs_GenomeInfo_auto.csv"),
+        out_t_mags_filt = temp("06_MAG_binning/MAGs_filt_GenomeInfo_auto.csv"),
     log: "logs/make_phylo_table.log"
     benchmark: "logs/make_phylo_table.benchmark"
     conda: "envs/rmd-env.yaml"
@@ -1271,6 +1272,7 @@ checkpoint make_phylo_table:
         ./scripts/csv_to_tsv.py {output.out_t_all}
         ./scripts/csv_to_tsv.py {output.out_t_tree}
         ./scripts/csv_to_tsv.py {output.out_t_mags}
+        ./scripts/csv_to_tsv.py {output.out_t_mags_filt}
         """
 
 rule prepare_genomes:
@@ -1783,6 +1785,8 @@ rule setup_midas_for_custom_db_prepare_files:
     log: "logs/setup_midas_for_custom_db_prepare_files_{genome}.log"
     shell:
         """
+        mkdir -p 11_MIDAS/MAGs_database/
+        mkdir -p 11_MIDAS/MAGs_database/{wildcards.genome}
         rsync -av {input.fna_file} {output.fna_file}
         rsync -av {input.faa_file} {output.faa_file}
         rsync -av {input.ffn_file} {output.ffn_file}
@@ -1790,8 +1794,9 @@ rule setup_midas_for_custom_db_prepare_files:
 
 rule setup_midas_for_custom_db_write_mapfile:
     input:
-        genomes_info = lambda wildcards: checkpoints.make_phylo_table.get().output.out_tree,
-        winning_genomes = lambda wildcards: rules.drep.output.drep_Wi,
+        genomes_info = lambda wildcards: checkpoints.make_phylo_table.get().output.out_mags_filt,
+        # winning_genomes = lambda wildcards: rules.drep.output.drep_Wi,
+        genome_scores = lambda wildcards: rules.drep.output.drep_S
     output:
         mapfile = "11_MIDAS/midas_mapfile.tsv"
     params:
@@ -1802,10 +1807,33 @@ rule setup_midas_for_custom_db_write_mapfile:
     benchmark: "logs/setup_midas_for_custom_db_write_mapfile.benchmark"
     log: "logs/setup_midas_for_custom_db_write_mapfile.log"
     run:
-        rep_genomes = set()
-        with open(input.winning_genomes, "r") as win_fh:
+        genome_scores = {}
+        with open(input.genome_scores, "r") as win_fh:
             for line in win_fh:
-                rep_genomes.add(line.split(",")[0].split(".fa")[0])
+                line = line.strip()
+                if line.startswith("genome"):
+                    continue
+                genome_scores[line.split(",")[0].split(".fa")[0]] = float(line.split(",")[1])
+        with open(input.genomes_info, "r") as info_fh:
+            # make rep genomes set
+            genus_max_score = {}
+            rep_genome_dict = {}
+            for line in info_fh:
+                if line.startswith("ID"):
+                    continue
+                genome_id = line.split("\t")[0]
+                if "MAG_" not in genome_id:
+                    continue
+                cluster = line.split("\t")[11]
+                genus = line.split("\t")[13]
+                # genus = genus+cluster if genus == "g__" else genus
+                if genus in genus_max_score.keys():
+                    if int(genome_scores[genome_id]) > genus_max_score[genus]:
+                        genus_max_score[genus] = genome_scores[genome_id]
+                        rep_genome_dict[genus] = genome_id
+                else:
+                    genus_max_score[genus] = genome_scores[genome_id]
+                    rep_genome_dict[genus] = genome_id
         with open(input.genomes_info, "r") as info_fh:
             with open(output.mapfile, "w") as out_fh:
                 out_fh.write("genome_id\tspecies_id\trep_genome\n")
@@ -1813,21 +1841,26 @@ rule setup_midas_for_custom_db_write_mapfile:
                     if line.startswith("ID"):
                         continue
                     genome_id = line.split("\t")[0]
-                    shell(f"mkdir -p "+os.path.join(params.indir, genome_id))
-                    # cluster is species_id
-                    species_id = line.split("\t")[11]
-                    rep_genome = 1 if genome_id in rep_genomes else 0
-                    out_fh.write(f"{genome_id}\t{species_id}\t{rep_genome}\n")
+                    if "MAG_" not in genome_id:
+                        continue
+                    cluster = line.split("\t")[11]
+                    genus = line.split("\t")[13]
+                    # if genus == "NA":
+                    #     print(f"genus for {genome_id} is {genus}. This group may not make sense.")
+                    #     continue
+                    species_id = cluster
+                    # species_id = genus+cluster if genus == "g__" else genus
+                    rep_genome = 1 if genome_id in rep_genome_dict.values() else 0
 
 rule create_midas_for_custom_db:
     input:
-        fna_files = lambda wildcards: expand("11_MIDAS/MAGs_database/{genome}/{genome}.fna", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_tree, full_list = True)),
-        faa_files = lambda wildcards: expand("11_MIDAS/MAGs_database/{genome}/{genome}.faa", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_tree, full_list = True)),
-        ffn_files = lambda wildcards: expand("11_MIDAS/MAGs_database/{genome}/{genome}.ffn", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_tree, full_list = True)),
-        genes_file = lambda wildcards: expand("11_MIDAS/MAGs_database/{genome}/{genome}.genes", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_tree, full_list = True)),
+        fna_files = lambda wildcards: expand("11_MIDAS/MAGs_database/{genome}/{genome}.fna", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags_filt, full_list = True)),
+        faa_files = lambda wildcards: expand("11_MIDAS/MAGs_database/{genome}/{genome}.faa", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags_filt, full_list = True)),
+        ffn_files = lambda wildcards: expand("11_MIDAS/MAGs_database/{genome}/{genome}.ffn", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags_filt, full_list = True)),
+        genes_file = lambda wildcards: expand("11_MIDAS/MAGs_database/{genome}/{genome}.genes", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags_filt, full_list = True)),
         mapfile = "11_MIDAS/midas_mapfile.tsv"
     output:
-        done = touch("logs/Midas_DB.done")
+        done = touch("11_MIDAS/Midas_DB.done")
     params:
         outdir = "11_MIDAS/MAGs_database/Midas_DB",
         # consider putting these paths in config
@@ -1856,7 +1889,7 @@ rule midas_species_abundance:
     input:
         reads1 = rules.host_mapping_extract_host_filtered_reads.output.reads1,
         reads2 = rules.host_mapping_extract_host_filtered_reads.output.reads2,
-        done = "logs/Midas_DB.done"
+        done = "11_MIDAS/Midas_DB.done"
     output:
         output = "11_MIDAS/MidasProfiling/{sample}/species/species_profile.txt",
     params:
@@ -1917,7 +1950,7 @@ rule midas_gene_content:
         reads1 = rules.host_mapping_extract_host_filtered_reads.output.reads1,
         reads2 = rules.host_mapping_extract_host_filtered_reads.output.reads2,
         output = "11_MIDAS/MidasProfiling/{sample}/species/species_profile.txt",
-        done = "logs/Midas_DB.done",
+        done = "11_MIDAS/Midas_DB.done",
     output:
         output = "11_MIDAS/MidasProfiling/{sample}/genes/summary.txt",
     params:
@@ -1985,7 +2018,7 @@ rule midas_profile_snps:
         reads1 = rules.host_mapping_extract_host_filtered_reads.output.reads1,
         reads2 = rules.host_mapping_extract_host_filtered_reads.output.reads2,
         output = "11_MIDAS/MidasProfiling/{sample}/species/species_profile.txt",
-        done = "logs/Midas_DB.done"
+        done = "11_MIDAS/Midas_DB.done"
     output:
         summary = "11_MIDAS/MidasProfiling/{sample}/snps/summary.txt",
     params:
@@ -2048,25 +2081,68 @@ rule midas_profile_snps_merge:
         done
         """
 
-rule genus_setup_midas_for_custom_db_write_mapfile:
+rule setup_midas_genus_parse_gff:
     input:
-        genomes_info = lambda wildcards: checkpoints.make_phylo_table.get().output.out_mags,
-        winning_genomes = lambda wildcards: rules.drep.output.drep_Wi,
-        genome_scores = lambda wildcards: rules.drep.output.drep_S,
+        gff_file = "07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.gff",
     output:
-        mapfile = "11_MIDAS/midas_mapfile_genus.tsv"
+        outfile = "11_MIDAS_genus_level/MAGs_database/{genome}/{genome}.genes",
     params:
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         account="pengel_spirit",
         runtime_s=convertToSec("0-2:10:00"),
-    benchmark: "logs/genus_setup_midas_for_custom_db_write_mapfile.benchmark"
-    log: "logs/genus_setup_midas_for_custom_db_write_mapfile.log"
+    benchmark: "logs/setup_midas_genus_parse_gff_{genome}.benchmark"
+    log: "logs/setup_midas_genus_parse_gff_{genome}.log"
+    shell:
+        """
+        python3 scripts/parse_gff_for_midas.py --outfile {output.outfile} --gff {input.gff_file}
+        """
+
+rule setup_midas_genus_for_custom_db_prepare_files:
+    input:
+        fna_file = "07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.fna",
+        faa_file = "07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.faa",
+        ffn_file = "07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.ffn",
+    output:
+        fna_file = "11_MIDAS_genus_level/MAGs_database/{genome}/{genome}.fna",
+        faa_file = "11_MIDAS_genus_level/MAGs_database/{genome}/{genome}.faa",
+        ffn_file = "11_MIDAS_genus_level/MAGs_database/{genome}/{genome}.ffn"
+    params:
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-2:10:00"),
+    log: "logs/setup_midas_genus_for_custom_db_prepare_files_{genome}.log"
+    shell:
+        """
+        mkdir -p 11_MIDAS_genus_level/MAGs_database/
+        mkdir -p 11_MIDAS_genus_level/MAGs_database/{wildcards.genome}
+        rsync -av {input.fna_file} {output.fna_file}
+        rsync -av {input.faa_file} {output.faa_file}
+        rsync -av {input.ffn_file} {output.ffn_file}
+        """
+
+rule setup_midas_genus_for_custom_db_write_mapfile:
+    input:
+        genomes_info = lambda wildcards: checkpoints.make_phylo_table.get().output.out_mags_filt,
+        genome_scores = lambda wildcards: rules.drep.output.drep_S,
+    output:
+        mapfile = "11_MIDAS_genus_level/midas_mapfile.tsv"
+    params:
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-2:10:00"),
+    benchmark: "logs/setup_midas_genus_for_custom_db_write_mapfile.benchmark"
+    log: "logs/setup_midas_genus_for_custom_db_write_mapfile.log"
     run:
         genome_scores = {}
         with open(input.genome_scores, "r") as win_fh:
             for line in win_fh:
-                genome_scores[line.split(",")[0].split(".fa")[0]] = int(line.split(",")[1])
+                line = line.strip()
+                if line.startswith("genome"):
+                    continue
+                genome_scores[line.split(",")[0].split(".fa")[0]] = float(line.split(",")[1])
         with open(input.genomes_info, "r") as info_fh:
             # make rep genomes set
             genus_max_score = {}
@@ -2075,13 +2151,17 @@ rule genus_setup_midas_for_custom_db_write_mapfile:
                 if line.startswith("ID"):
                     continue
                 genome_id = line.split("\t")[0]
+                if "MAG_" not in genome_id:
+                    continue
+                cluster = line.split("\t")[11]
                 genus = line.split("\t")[13]
+                genus = genus+cluster if genus == "g__" else genus
                 if genus in genus_max_score.keys():
                     if int(genome_scores[genome_id]) > genus_max_score[genus]:
-                        genus_max_score[genus] = int(genome_scores[genome_id])
+                        genus_max_score[genus] = genome_scores[genome_id]
                         rep_genome_dict[genus] = genome_id
                 else:
-                    genus_max_score[genus] = int(genome_scores[genome_id])
+                    genus_max_score[genus] = genome_scores[genome_id]
                     rep_genome_dict[genus] = genome_id
         with open(input.genomes_info, "r") as info_fh:
             with open(output.mapfile, "w") as out_fh:
@@ -2090,34 +2170,39 @@ rule genus_setup_midas_for_custom_db_write_mapfile:
                     if line.startswith("ID"):
                         continue
                     genome_id = line.split("\t")[0]
+                    if "MAG_" not in genome_id:
+                        continue
+                    cluster = line.split("\t")[11]
                     genus = line.split("\t")[13]
-                    species_id = genus # not cluster anymore
+                    # if genus == "NA":
+                    #     print(f"genus for {genome_id} is {genus}.")
+                    #     continue
+                    species_id = genus+cluster if genus == "g__" else genus
                     rep_genome = 1 if genome_id in rep_genome_dict.values() else 0
                     out_fh.write(f"{genome_id}\t{species_id}\t{rep_genome}\n")
-                    shell(f"mkdir -p "+os.path.join(params.indir, genome_id))
 
-rule genus_create_midas_for_custom_db:
+rule create_midas_genus_for_custom_db:
     input:
-        fna_files = lambda wildcards: expand("11_MIDAS/MAGs_database/{genome}/{genome}.fna", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags, full_list = True)),
-        faa_files = lambda wildcards: expand("11_MIDAS/MAGs_database/{genome}/{genome}.faa", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags, full_list = True)),
-        ffn_files = lambda wildcards: expand("11_MIDAS/MAGs_database/{genome}/{genome}.ffn", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags, full_list = True)),
-        genes_file = lambda wildcards: expand("11_MIDAS/MAGs_database/{genome}/{genome}.genes", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags, full_list = True)),
-        mapfile = "11_MIDAS/midas_mapfile_genus.tsv"
+        fna_files = lambda wildcards: expand("11_MIDAS_genus_level/MAGs_database/{genome}/{genome}.fna", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags_filt, full_list = True)),
+        faa_files = lambda wildcards: expand("11_MIDAS_genus_level/MAGs_database/{genome}/{genome}.faa", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags_filt, full_list = True)),
+        ffn_files = lambda wildcards: expand("11_MIDAS_genus_level/MAGs_database/{genome}/{genome}.ffn", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags_filt, full_list = True)),
+        genes_file = lambda wildcards: expand("11_MIDAS_genus_level/MAGs_database/{genome}/{genome}.genes", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags_filt, full_list = True)),
+        mapfile = "11_MIDAS_genus_level/midas_mapfile.tsv"
     output:
-        done = touch("logs/Midas_DB_genus.done")
+        done = touch("11_MIDAS_genus_level/Midas_DB.done")
     params:
-        outdir = "11_MIDAS/MAGs_database/Midas_DB_genus",
+        outdir = "11_MIDAS_genus_level/MAGs_database/Midas_DB",
         # consider putting these paths in config
         midas_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/",
         midas_scripts_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/scripts/",
         # midas_db_default = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/midas_db_v1.2/",
-        indir = "11_MIDAS/MAGs_database/",
+        indir = "11_MIDAS_genus_level/MAGs_database/",
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         account="pengel_spirit",
         runtime_s=convertToSec("0-23:10:00"),
-    benchmark: "logs/genus_create_midas_for_custom_db.benchmark"
-    log: "logs/genus_create_midas_for_custom_db.log"
+    benchmark: "logs/create_midas_genus_for_custom_db.benchmark"
+    log: "logs/create_midas_genus_for_custom_db.log"
     threads: 8
     resources:
         mem_mb = 8000
@@ -2133,12 +2218,12 @@ rule midas_genus_species_abundance:
     input:
         reads1 = rules.host_mapping_extract_host_filtered_reads.output.reads1,
         reads2 = rules.host_mapping_extract_host_filtered_reads.output.reads2,
-        done = "logs/Midas_DB_genus.done"
+        done = "11_MIDAS_genus_level/Midas_DB.done"
     output:
-        output = "11_MIDAS/MidasProfiling_genus/{sample}/species/species_profile.txt",
+        output = "11_MIDAS_genus_level/MidasProfiling/{sample}/species/species_profile.txt",
     params:
-        outdir = "11_MIDAS/MidasProfiling_genus/{sample}/",
-        midas_db = "11_MIDAS/MAGs_database/Midas_DB_genus",
+        outdir = "11_MIDAS_genus_level/MidasProfiling/{sample}/",
+        midas_db = "11_MIDAS_genus_level/MAGs_database/Midas_DB",
         midas_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/",
         midas_scripts_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/scripts/",
         mailto="aiswarya.prasad@unil.ch",
@@ -2160,15 +2245,15 @@ rule midas_genus_species_abundance:
 
 rule midas_genus_species_abundance_merge:
     input:
-        per_sample_output = expand("11_MIDAS/MidasProfiling_genus/{sample}/species/species_profile.txt", sample=SAMPLES)
+        per_sample_output = expand("11_MIDAS_genus_level/MidasProfiling/{sample}/species/species_profile.txt", sample=SAMPLES)
     output:
-        relative_abundance = "11_MIDAS/MidasProfiling_genus/relative_abundance.txt",
-        count_reads = "11_MIDAS/MidasProfiling_genus/count_reads.txt",
-        coverage = "11_MIDAS/MidasProfiling_genus/coverage.txt",
-        species_prevalence = "11_MIDAS/MidasProfiling_genus/species_prevalence.txt",
+        relative_abundance = "11_MIDAS_genus_level/MidasProfiling/relative_abundance.txt",
+        count_reads = "11_MIDAS_genus_level/MidasProfiling/count_reads.txt",
+        coverage = "11_MIDAS_genus_level/MidasProfiling/coverage.txt",
+        species_prevalence = "11_MIDAS_genus_level/MidasProfiling/species_prevalence.txt",
     params:
-        outdir = "11_MIDAS/MidasProfiling_genus/",
-        midas_db = "11_MIDAS/MAGs_database/Midas_DB_genus",
+        outdir = "11_MIDAS_genus_level/MidasProfiling/",
+        midas_db = "11_MIDAS_genus_level/MAGs_database/Midas_DB",
         midas_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/",
         midas_scripts_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/scripts/",
         mailto="aiswarya.prasad@unil.ch",
@@ -2193,13 +2278,13 @@ rule midas_genus_gene_content:
     input:
         reads1 = rules.host_mapping_extract_host_filtered_reads.output.reads1,
         reads2 = rules.host_mapping_extract_host_filtered_reads.output.reads2,
-        output = "11_MIDAS/MidasProfiling_genus/{sample}/species/species_profile.txt",
-        done = "logs/Midas_DB_genus.done",
+        output = "11_MIDAS_genus_level/MidasProfiling/{sample}/species/species_profile.txt",
+        done = "11_MIDAS_genus_level/Midas_DB.done",
     output:
-        output = "11_MIDAS/MidasProfiling_genus/{sample}/genes/summary.txt",
+        output = "11_MIDAS_genus_level/MidasProfiling/{sample}/genes/summary.txt",
     params:
-        outdir = "11_MIDAS/MidasProfiling_genus/{sample}/",
-        midas_db = "11_MIDAS/MAGs_database/Midas_DB_genus",
+        outdir = "11_MIDAS_genus_level/MidasProfiling/{sample}/",
+        midas_db = "11_MIDAS_genus_level/MAGs_database/Midas_DB",
         midas_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/",
         midas_scripts_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/scripts/",
         species_cov = 10, # default is 3 use later if needed
@@ -2223,16 +2308,16 @@ rule midas_genus_gene_content:
 
 rule midas_genus_gene_content_merge:
     input:
-        per_sample_output = expand("11_MIDAS/MidasProfiling_genus/{sample}/genes/summary.txt", sample=SAMPLES)
+        per_sample_output = expand("11_MIDAS_genus_level/MidasProfiling/{sample}/genes/summary.txt", sample=SAMPLES)
     output:
-        # genes_coverage = "11_MIDAS/MidasProfiling_genus/{cluster}/genes_coverage.txt",
-        # genes_presence = "11_MIDAS/MidasProfiling_genus/{cluster}/genes_presence_absence.txt",
-        # genes_summary = "11_MIDAS/MidasProfiling_genus/{cluster}/genes_summary.txt",
-        # genes_copy_number = "11_MIDAS/MidasProfiling_genus/{cluster}/genes_copy_number.txt"
-        outdone = touch("11_MIDAS/midas_genes_summary_genus.done")
+        # genes_coverage = "11_MIDAS_genus_level/MidasProfiling/{cluster}/genes_coverage.txt",
+        # genes_presence = "11_MIDAS_genus_level/MidasProfiling/{cluster}/genes_presence_absence.txt",
+        # genes_summary = "11_MIDAS_genus_level/MidasProfiling/{cluster}/genes_summary.txt",
+        # genes_copy_number = "11_MIDAS_genus_level/MidasProfiling/{cluster}/genes_copy_number.txt"
+        outdone = touch("11_MIDAS_genus_level/midas_genes_summary.done")
     params:
-        outdir = "11_MIDAS/MidasProfiling_genus/",
-        midas_db = "11_MIDAS/MAGs_database/Midas_DB_genus",
+        outdir = "11_MIDAS_genus_level/MidasProfiling/",
+        midas_db = "11_MIDAS_genus_level/MAGs_database/Midas_DB",
         midas_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/",
         midas_scripts_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/scripts/",
         mailto="aiswarya.prasad@unil.ch",
@@ -2251,7 +2336,7 @@ rule midas_genus_gene_content_merge:
         export PATH=$PATH:{params.midas_scripts_path}
         export MIDAS_DB={params.midas_db}
         merge_midas.py genes {params.outdir} -i {params.outdir} -t dir
-        for readme in 11_MIDAS/MidasProfiling_genus/*/readme.txt;
+        for readme in 11_MIDAS_genus_level/MidasProfiling/*/readme.txt;
         do
             cp ${{readme%%readme.txt}}/readme.txt ${{readme%%readme.txt}}/genes_readme.txt
         done
@@ -2261,13 +2346,13 @@ rule midas_genus_profile_snps:
     input:
         reads1 = rules.host_mapping_extract_host_filtered_reads.output.reads1,
         reads2 = rules.host_mapping_extract_host_filtered_reads.output.reads2,
-        output = "11_MIDAS/MidasProfiling_genus/{sample}/species/species_profile.txt",
-        done = "logs/Midas_DB_genus.done"
+        output = "11_MIDAS_genus_level/MidasProfiling/{sample}/species/species_profile.txt",
+        done = "11_MIDAS_genus_level/Midas_DB.done"
     output:
-        summary = "11_MIDAS/MidasProfiling_genus/{sample}/snps/summary.txt",
+        summary = "11_MIDAS_genus_level/MidasProfiling/{sample}/snps/summary.txt",
     params:
-        outdir = "11_MIDAS/MidasProfiling_genus/{sample}/",
-        midas_db = "11_MIDAS/MAGs_database/Midas_DB_genus",
+        outdir = "11_MIDAS_genus_level/MidasProfiling/{sample}/",
+        midas_db = "11_MIDAS_genus_level/MAGs_database/Midas_DB",
         midas_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/",
         midas_scripts_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/scripts/",
         species_cov = 1, # default is 3 use later if needed
@@ -2291,16 +2376,16 @@ rule midas_genus_profile_snps:
 
 rule midas_genus_profile_snps_merge:
     input:
-        per_sample_output = expand("11_MIDAS/MidasProfiling_genus/{sample}/snps/summary.txt", sample=SAMPLES)
+        per_sample_output = expand("11_MIDAS_genus_level/MidasProfiling/{sample}/snps/summary.txt", sample=SAMPLES)
     output:
-        # snps_freq = "11_MIDAS/MidasProfiling_genus/{cluster}/snps_freq.txt",
-        # snps_depth = "11_MIDAS/MidasProfiling_genus/{cluster}/snps_depth.txt",
-        # snps_summary = "11_MIDAS/MidasProfiling_genus/{cluster}/snps_summary.txt",
-        # snps_info = "11_MIDAS/MidasProfiling_genus/{cluster}/snps_info.txt"
-        outdone = touch("11_MIDAS/snps_summary_genus.done")
+        # snps_freq = "11_MIDAS_genus_level/MidasProfiling/{cluster}/snps_freq.txt",
+        # snps_depth = "11_MIDAS_genus_level/MidasProfiling/{cluster}/snps_depth.txt",
+        # snps_summary = "11_MIDAS_genus_level/MidasProfiling/{cluster}/snps_summary.txt",
+        # snps_info = "11_MIDAS_genus_level/MidasProfiling/{cluster}/snps_info.txt"
+        outdone = touch("11_MIDAS_genus_level/snps_summary.done")
     params:
-        outdir = "11_MIDAS/MidasProfiling_genus/",
-        midas_db = "11_MIDAS/MAGs_database/Midas_DB_genus",
+        outdir = "11_MIDAS_genus_level/MidasProfiling/",
+        midas_db = "11_MIDAS_genus_level/MAGs_database/Midas_DB",
         midas_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/",
         midas_scripts_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/scripts/",
         mailto="aiswarya.prasad@unil.ch",
@@ -2319,7 +2404,7 @@ rule midas_genus_profile_snps_merge:
         export PATH=$PATH:{params.midas_scripts_path}
         export MIDAS_DB={params.midas_db}
         merge_midas.py snps {params.outdir} -i {params.outdir} -t dir
-        for readme in 11_MIDAS/MidasProfiling/*/readme.txt;
+        for readme in 11_MIDAS_genus_level/MidasProfiling/*/readme.txt;
         do
             cp ${{readme%%readme.txt}}/readme.txt ${{readme%%readme.txt}}/snps_readme.txt
         done
@@ -2416,9 +2501,9 @@ rule compile_report:
         midas_species_prevalence = "11_MIDAS/MidasProfiling/species_prevalence.txt",
         midas_genes_summary = "11_MIDAS/midas_genes_summary.done",
         snps_summary = "11_MIDAS/snps_summary.done",
-        midas_genus_species_prevalence = "11_MIDAS/MidasProfiling_genus/species_prevalence.txt",
-        midas_genus_genes_summary = "11_MIDAS/midas_genes_summary_genus.done",
-        snps_summary_genus = "11_MIDAS/snps_summary_genus.done",
+        midas_genus_species_prevalence = "11_MIDAS_genus_level/MidasProfiling/species_prevalence.txt",
+        midas_genus_genes_summary = "11_MIDAS_genus_level/midas_genes_summary.done",
+        snps_summary_genus = "11_MIDAS_genus_level/snps_summary.done",
         # snp_intra = lambda wildcards: expand("11_MIDAS/snp_diversity_intra/snp_diversity_{cluster}.info", cluster = get_cluster_dict(checkpoints.make_phylo_table.get().output.out_all).keys()),
         # snp_inter = lambda wildcards: expand("11_MIDAS/snp_diversity_inter/snp_diversity_{cluster}.info", cluster = get_cluster_dict(checkpoints.make_phylo_table.get().output.out_all).keys())
     output:
@@ -2528,9 +2613,9 @@ rule backup:
         midas_species_prevalence = "11_MIDAS/MidasProfiling/species_prevalence.txt",
         midas_genes_summary = "11_MIDAS/midas_genes_summary.done",
         snps_summary = "11_MIDAS/snps_summary.done",
-        midas_genus_species_prevalence = "11_MIDAS/MidasProfiling_genus/species_prevalence.txt",
-        midas_genus_genes_summary = "11_MIDAS/midas_genes_summary_genus.done",
-        snps_summary_genus = "11_MIDAS/snps_summary_genus.done",
+        midas_genus_species_prevalence = "11_MIDAS_genus_level/MidasProfiling/species_prevalence.txt",
+        midas_genus_genes_summary = "11_MIDAS_genus_level/midas_genes_summary.done",
+        snps_summary_genus = "11_MIDAS_genus_level/snps_summary.done",
         # snp_intra = lambda wildcards: expand("11_MIDAS/snp_diversity_intra/snp_diversity_{cluster}.info", cluster = get_cluster_dict(checkpoints.make_phylo_table.get().output.out_all).keys()),
         # snp_inter = lambda wildcards: expand("11_MIDAS/snp_diversity_inter/snp_diversity_{cluster}.info", cluster = get_cluster_dict(checkpoints.make_phylo_table.get().output.out_all).keys())
     output:
