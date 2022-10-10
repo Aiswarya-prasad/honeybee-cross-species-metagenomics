@@ -1143,8 +1143,8 @@ rule drep:
     benchmark: "logs/drep.benchmark"
     shell:
         """
-        out_file={output.drep_C}
-        dRep dereplicate ${{out_file/\/data_tables\/Cdb.csv/}} -g {params.bins} --genomeInfo {input.compiled_checkm_summary} -comp 0 -con 1000 -sa {params.ani} -nc {params.overlap} -p {threads}
+        out_file={output.drep_S}
+        dRep dereplicate ${{out_file/\/data_tables\/Sdb.csv/}} -g {params.bins} --genomeInfo {input.compiled_checkm_summary} -comp 0 -con 1000 -sa {params.ani} -nc {params.overlap} -p {threads}
         """
 
 rule extract_mag_lists:
@@ -1256,6 +1256,7 @@ checkpoint make_phylo_table:
         out_all = "06_MAG_binning/all_GenomeInfo_auto.tsv",
         out_tree = "06_MAG_binning/ForTree_GenomeInfo_auto.tsv",
         out_mags = "06_MAG_binning/MAGs_GenomeInfo_auto.tsv",
+        out_mags_filt = "06_MAG_binning/MAGs_filt_GenomeInfo_auto.tsv",
         out_t_all = temp("06_MAG_binning/all_GenomeInfo_auto.csv"),
         out_t_tree = temp("06_MAG_binning/ForTree_GenomeInfo_auto.csv"),
         out_t_mags = temp("06_MAG_binning/MAGs_GenomeInfo_auto.csv"),
@@ -1789,7 +1790,7 @@ rule setup_midas_for_custom_db_prepare_files:
 
 rule setup_midas_for_custom_db_write_mapfile:
     input:
-        genomes_info = lambda wildcards: checkpoints.make_phylo_table.get().output.out_mags,
+        genomes_info = lambda wildcards: checkpoints.make_phylo_table.get().output.out_tree,
         winning_genomes = lambda wildcards: rules.drep.output.drep_Wi,
     output:
         mapfile = "11_MIDAS/midas_mapfile.tsv"
@@ -1820,10 +1821,10 @@ rule setup_midas_for_custom_db_write_mapfile:
 
 rule create_midas_for_custom_db:
     input:
-        fna_files = lambda wildcards: expand("11_MIDAS/MAGs_database/{genome}/{genome}.fna", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags, full_list = True)),
-        faa_files = lambda wildcards: expand("11_MIDAS/MAGs_database/{genome}/{genome}.faa", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags, full_list = True)),
-        ffn_files = lambda wildcards: expand("11_MIDAS/MAGs_database/{genome}/{genome}.ffn", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags, full_list = True)),
-        genes_file = lambda wildcards: expand("11_MIDAS/MAGs_database/{genome}/{genome}.genes", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags, full_list = True)),
+        fna_files = lambda wildcards: expand("11_MIDAS/MAGs_database/{genome}/{genome}.fna", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_tree, full_list = True)),
+        faa_files = lambda wildcards: expand("11_MIDAS/MAGs_database/{genome}/{genome}.faa", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_tree, full_list = True)),
+        ffn_files = lambda wildcards: expand("11_MIDAS/MAGs_database/{genome}/{genome}.ffn", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_tree, full_list = True)),
+        genes_file = lambda wildcards: expand("11_MIDAS/MAGs_database/{genome}/{genome}.genes", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_tree, full_list = True)),
         mapfile = "11_MIDAS/midas_mapfile.tsv"
     output:
         done = touch("logs/Midas_DB.done")
@@ -1849,7 +1850,6 @@ rule create_midas_for_custom_db:
         export PYTHONPATH={params.midas_path}
         export PATH=$PATH:{params.midas_scripts_path}
         build_midas_db.py {params.indir} {input.mapfile} {params.outdir} --threads {threads} --resume
-        # export MIDAS_DB={params.midas_db}
         """
 
 rule midas_species_abundance:
@@ -2067,7 +2067,22 @@ rule genus_setup_midas_for_custom_db_write_mapfile:
         with open(input.genome_scores, "r") as win_fh:
             for line in win_fh:
                 genome_scores[line.split(",")[0].split(".fa")[0]] = int(line.split(",")[1])
-                # continue here
+        with open(input.genomes_info, "r") as info_fh:
+            # make rep genomes set
+            genus_max_score = {}
+            rep_genome_dict = {}
+            for line in info_fh:
+                if line.startswith("ID"):
+                    continue
+                genome_id = line.split("\t")[0]
+                genus = line.split("\t")[13]
+                if genus in genus_max_score.keys():
+                    if int(genome_scores[genome_id]) > genus_max_score[genus]:
+                        genus_max_score[genus] = int(genome_scores[genome_id])
+                        rep_genome_dict[genus] = genome_id
+                else:
+                    genus_max_score[genus] = int(genome_scores[genome_id])
+                    rep_genome_dict[genus] = genome_id
         with open(input.genomes_info, "r") as info_fh:
             with open(output.mapfile, "w") as out_fh:
                 out_fh.write("genome_id\tspecies_id\trep_genome\n")
@@ -2075,11 +2090,11 @@ rule genus_setup_midas_for_custom_db_write_mapfile:
                     if line.startswith("ID"):
                         continue
                     genome_id = line.split("\t")[0]
-                    shell(f"mkdir -p "+os.path.join(params.indir, genome_id))
-                    # cluster is species_id
-                    species_id = line.split("\t")[11]
-                    rep_genome = 1 if genome_id in rep_genomes else 0
+                    genus = line.split("\t")[13]
+                    species_id = genus # not cluster anymore
+                    rep_genome = 1 if genome_id in rep_genome_dict.values() else 0
                     out_fh.write(f"{genome_id}\t{species_id}\t{rep_genome}\n")
+                    shell(f"mkdir -p "+os.path.join(params.indir, genome_id))
 
 rule genus_create_midas_for_custom_db:
     input:

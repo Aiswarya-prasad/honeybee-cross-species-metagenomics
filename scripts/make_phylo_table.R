@@ -126,11 +126,11 @@ phy_group_dict = c("firm4" = "g__Bombilactobacillus",
 get_group_phy <- function(phy){
   return(c(phy_group_dict[phy][[1]]))
 }
-# setwd("/Volumes/Storage/Work/Temp-From-NAS/cross-species-analysis-India")
+# setwd("/Volumes/Storage/Work/Temp-From-NAS/cross-species-analysis")
 MAG_taxonomy_info <- read.csv(paste0(project_dir_prefix, "/06_MAG_binning/gtdbtk_out_dir/classify/gtdbtk.bac120.summary.tsv"), sep = "\t")
 MAG_info <- read.csv(paste0(project_dir_prefix, "/06_MAG_binning/all_genomes.csv"), sep = "\t")
 
-isolates <- read.csv(paste0(project_dir_prefix, "config/IsolateGenomeInfo.csv"))
+isolates <- read.csv(paste0(project_dir_prefix, "/config/IsolateGenomeInfo.csv"))
 
 MAG_clusters_info <- read.csv(paste0(project_dir_prefix, "/06_MAG_binning/drep_results/data_tables/Cdb.csv"))
 format_name <- function(genome){
