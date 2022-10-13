@@ -93,8 +93,10 @@ genome_ids = list()
 genome_aln_index = dict()
 aln_index = 0
 for record in aln:
-    genome_ids.append(record.id)
-    genome_aln_index[record.id] = aln_index
+    recored_unparsed = record.id
+    record_parsed = "_".join(recored_unparsed.split(" ")[0].split("_")[:-1])
+    genome_ids.append(record_parsed)
+    genome_aln_index[record_parsed] = aln_index
     aln_index += 1
 
 #Identify the SDP-groups contained within the alignment, save in dict

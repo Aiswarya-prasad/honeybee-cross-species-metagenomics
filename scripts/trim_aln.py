@@ -46,7 +46,7 @@ def aln_np_to_bio(aln_np,seq_ids):
     new_aln = MultipleSeqAlignment(seq_records)
     return(new_aln)
 
-#Open alignment file, read-in as alignment object with BioPython, store seq-ids in list 
+#Open alignment file, read-in as alignment object with BioPython, store seq-ids in list
 try:
     aln_in = sys.argv[1]
 except:
@@ -56,7 +56,7 @@ aln = AlignIO.read(aln_in, "fasta")
 seq_ids = list()
 for record in aln:
     seq_ids.append(record.id)
-    
+
 #Filter alignment columns, and generate trimmed alignment object
 trim_columns = trimmed_col_indices(aln)
 trimmed_aln_np = trim_aln_np(aln, trim_columns)
@@ -64,5 +64,6 @@ trimmed_aln = aln_np_to_bio(trimmed_aln_np,seq_ids)
 
 #Print trimmed alignment to file
 infile_name_split = aln_in.split('_')
-outfile = infile_name_split[0] + '_aln_trim.fasta'
+# outfile = infile_name_split[0] + '_aln_trim.fasta'
+outfile = sys.argv[2]
 AlignIO.write(trimmed_aln,outfile,"fasta")

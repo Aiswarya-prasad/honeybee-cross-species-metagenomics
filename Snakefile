@@ -1777,23 +1777,6 @@ rule get_single_ortho_mag_database:
     script:
         "scripts/get_single_ortho_phylo.py"
 
-rule make_group_affiliation_file_mag_database:
-    input:
-        out_tree_info = lambda wildcards: checkpoints.make_phylo_table.get().output.out_tree,
-    output:
-        meta = "database/MAGs_database_Orthofinder/group_metadata.txt"
-    params:
-        mailto="aiswarya.prasad@unil.ch",
-        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        jobname="make_group_affiliation_file",
-        account="pengel_spirit",
-    log: "logs/make_group_affiliation_file_mag_database.log"
-    conda: "envs/phylogenies-env.yaml"
-    shell:
-        """
-        cat {input.out_tree_info} | cut -f1,19 | tail -n +2 > {output.meta}
-        """
-
 rule extract_orthologs_mag_database:
     input:
         ortho_single = "database/MAGs_database_Orthofinder/{group}/OrthoFinder/{group}_single_ortho.txt",
@@ -1826,7 +1809,6 @@ rule extract_orthologs_mag_database:
 rule calc_perc_id_mag_database:
     input:
         single_ortho_seq_done = "database/MAGs_database_Orthofinder/{group}/single_ortholog_sequences.done",
-        meta = "database/MAGs_database_Orthofinder/group_metadata.txt",
         genome_info_path = lambda wildcards: checkpoints.make_phylo_table.get().output.out_mags_filt,
     output:
         perc_id = "database/MAGs_database_Orthofinder/{group}/{group}_perc_id.txt"
@@ -1860,10 +1842,8 @@ rule calc_perc_id_mag_database:
             python3 \"${{scripts_dir}}/aln_aa_to_dna.py\" \"$aln_faa\" \"$ffn_file\"
             #Trimming alignment for gaps
             aln_nuc=$OG\"_aln_nuc.fasta\"
-            python3 \"${{scripts_dir}}/trim_aln.py\"  \"$aln_nuc\"
-            #Simplifying headers in alignment
             trim_file=$OG\"_aln_trim.fasta\"
-            sed -i 's/_.*$//g' $trim_file
+            python3 \"${{scripts_dir}}/trim_aln.py\"  \"$aln_nuc\" \"$trim_file\"
             #Calculating inter-SDP alignment stats
             python3 \"${{scripts_dir}}/calc_perc_id_orthologs.py\" --meta \"$genome_db_meta\" --trim_file \"$trim_file\" --outfile \"$outfile\"
         done
