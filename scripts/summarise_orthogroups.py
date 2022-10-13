@@ -14,6 +14,9 @@ def is_MAG(genome_name):
 # specify if the og is present in only MAGs, only isolates or both
 # can be MAGs, Isolates or Both
 def present_in(gene_list, genomes, MAGs):
+    Isolates_present = True
+    if len(genomes) == 0:
+        Isolates_present = False
     in_MAGs = False
     in_Isolates = False
     for gene in gene_list:
@@ -21,8 +24,9 @@ def present_in(gene_list, genomes, MAGs):
         genome_id = "_".join(split_gene[:-1])
         if genome_id in MAGs:
             in_MAGs = True
-        if genome_id in genomes:
-            in_Isolates = True
+        if Isolates_present:
+            if genome_id in genomes:
+                in_Isolates = True
         if in_Isolates and in_MAGs:
             return("Both")
     if in_Isolates:
@@ -34,10 +38,17 @@ def present_in(gene_list, genomes, MAGs):
 # specify if the og is present in single copy only in MAGs, only in isolates or both
 # can be MAGs, Isolates, Both or NotSingle
 def single_copy_in(gene_list, genomes, MAGs):
+    Isolates_present = True
+    if len(genomes) == 0:
+        Isolates_present = False
     single_in_MAGs = True
-    single_in_Isolates = True
+    if Isolates_present:
+        single_in_Isolates = True
+    else:
+        single_in_Isolates = False
     genomes_seen_MAGs = set()
-    genomes_seen_Isolates = set()
+    if Isolates_present:
+        genomes_seen_Isolates = set()
     for gene in gene_list:
         split_gene = gene.split('_')
         genome_id = "_".join(split_gene[:-1])
@@ -47,12 +58,13 @@ def single_copy_in(gene_list, genomes, MAGs):
                 continue
             else:
                 genomes_seen_MAGs.add(genome_id)
-        if genome_id in genomes:
-            if genome_id in genomes_seen_Isolates:
-                single_in_Isolates = False
-                continue
-            else:
-                genomes_seen_Isolates.add(genome_id)
+        if Isolates_present:
+            if genome_id in genomes:
+                if genome_id in genomes_seen_Isolates:
+                    single_in_Isolates = False
+                    continue
+                else:
+                    genomes_seen_Isolates.add(genome_id)
     if single_in_MAGs and single_in_Isolates:
         return("Both")
     else:
@@ -67,10 +79,14 @@ def single_copy_in(gene_list, genomes, MAGs):
 def core_in(gene_list, genomes, MAGs):
     num_MAGs = len(MAGs)
     num_genomes = len(genomes)
+    Isolates_present = True
+    if num_genomes == 0:
+        Isolates_present = False
     is_core_MAGs = False
     is_core_Isolates = False
     genomes_seen_MAGs = set()
-    genomes_seen_Isolates = set()
+    if Isolates_present:
+        genomes_seen_Isolates = set()
     for gene in gene_list:
         split_gene = gene.split('_')
         genome_id = "_".join(split_gene[:-1])
@@ -79,17 +95,19 @@ def core_in(gene_list, genomes, MAGs):
                 continue
             else:
                 genomes_seen_MAGs.add(genome_id)
-        if genome_id in genomes:
-            if genome_id in genomes_seen_Isolates:
-                continue
-            else:
-                genomes_seen_Isolates.add(genome_id)
+        if Isolates_present:
+            if genome_id in genomes:
+                if genome_id in genomes_seen_Isolates:
+                    continue
+                else:
+                    genomes_seen_Isolates.add(genome_id)
         if len(genomes_seen_MAGs) == num_MAGs:
             is_core_MAGs = True
-        if len(genomes_seen_Isolates) == num_genomes:
-            is_core_Isolates = True
-        if is_core_MAGs and is_core_Isolates:
-            return("Both")
+        if Isolates_present:
+            if len(genomes_seen_Isolates) == num_genomes:
+                is_core_Isolates = True
+    if is_core_MAGs and is_core_Isolates:
+        return("Both")
     else:
         if is_core_MAGs:
             return("MAGs")
@@ -115,7 +133,7 @@ def core_in_half_the_MAGs(gene_list, MAGs):
             is_core_in_half_the_MAGs = True
     return(is_core_in_half_the_MAGs)
 
-def get_og_status(single, core, half_core_MAGs):
+def get_og_status(single, core, half_core_MAGs, Isolates_present):
     I_copy = "x"
     I_core = "x"
     M_copy = "x"
@@ -147,7 +165,10 @@ def get_og_status(single, core, half_core_MAGs):
     if M_core == "-":
         if half_core_MAGs:
             M_core = "Core0.5"
-    return(f"Isolates:{I_copy}{I_core} ; MAGs:{M_copy}{M_core}")
+    if Isolates_present:
+        return(f"Isolates:{I_copy}{I_core} ; MAGs:{M_copy}{M_core}")
+    else:
+        return(f"; MAGs:{M_copy}{M_core}")
 
 def get_g_dict_for_groups(path):
     """
@@ -177,14 +198,17 @@ orthofile=snakemake.input.ortho_file
 genomes_file=snakemake.input.genomes_list
 group=snakemake.params.group
 
+Isolates_present = True
 genomesAndMAGs = get_g_dict_for_groups(genomes_file)[group]
 MAGs = [genome for genome in genomesAndMAGs if "MAG_" in genome]
 genomes = [genome for genome in genomesAndMAGs if "MAG_" not in genome]
+if len(genomes) == 0:
+    Isolates_present = False
+    print(f"No isolates in this input {genomes_file}")
 
 # how many ogs in all - - only isolates - only MAGs - both
 # how many single copy ogs - only isolates - only MAGs - both
 # how many single copy ogs core - in isolates - in MAGs - all
-
 
 #Go through each ortholog-family, print to file if single-copy
 outfile = snakemake.output.summary_orthogroups
@@ -201,5 +225,5 @@ with open(orthofile, "r") as fh_orthofile:
             single = single_copy_in(og_split, genomes, MAGs)
             core = core_in(og_split, genomes, MAGs)
             half_core_MAGs = core_in_half_the_MAGs(og_split, MAGs)
-            status = get_og_status(single, core, half_core_MAGs)
+            status = get_og_status(single, core, half_core_MAGs, Isolates_present)
             fh_outfile.write(f"{group},{og_name},{present},{single},{core},{half_core_MAGs},{status}\n")

@@ -10,3 +10,5 @@ dependencies:
   - metabat2
   - checkm-genome
   - drep
+  - motulizer
+  - mmseqs2

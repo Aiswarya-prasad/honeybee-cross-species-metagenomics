@@ -38,7 +38,7 @@ database/*
 07_Phylogenies/*
 07_AnnotationAndPhylogenies/*
 08_motus_profile/*
-09_MapToAssembly*
+09_MagDatabaseProfiling
 11_MIDAS*/*
 *_files/*
 *_cache/*
