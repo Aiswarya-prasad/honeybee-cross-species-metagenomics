@@ -85,7 +85,6 @@ aln_in = args.trim_file
 outfile = args.outfile
 #Open the SDP-affiliation file and save data in dict
 genome_group = get_genome_group_dict(genome_db_meta)
-
 #Open the alignment file, get ordered list of genome-ids, and save their index positions (in order to subset the alignment with genome-id downstream)
 split_filename = aln_in.split('_')
 OG_id = split_filename[0]

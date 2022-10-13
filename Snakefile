@@ -1857,15 +1857,15 @@ rule calc_perc_id_mag_database:
             mafft --auto --quiet $j > $aln_faa
             #Back-translating alignment (codon-aligned nucleotide alignment)
             ffn_file=$OG\".ffn\"
-            python3 \"${{scripts_dir}}/aln_aa_to_dna_phylo.py\" \"$aln_faa\" \"$ffn_file\"
+            python3 \"${{scripts_dir}}/aln_aa_to_dna.py\" \"$aln_faa\" \"$ffn_file\"
             #Trimming alignment for gaps
             aln_nuc=$OG\"_aln_nuc.fasta\"
-            python3 \"${{scripts_dir}}/trim_aln_phylo.py\"  \"$aln_nuc\"
+            python3 \"${{scripts_dir}}/trim_aln.py\"  \"$aln_nuc\"
             #Simplifying headers in alignment
             trim_file=$OG\"_aln_trim.fasta\"
             sed -i 's/_.*$//g' $trim_file
             #Calculating inter-SDP alignment stats
-            python3 \"${{scripts_dir}}/calc_perc_id_orthologs_phylo.py\" --meta \"$genome_db_meta\" --trim_file \"$trim_file\" --outfile \"$outfile\"
+            python3 \"${{scripts_dir}}/calc_perc_id_orthologs.py\" --meta \"$genome_db_meta\" --trim_file \"$trim_file\" --outfile \"$outfile\"
         done
         """
 
