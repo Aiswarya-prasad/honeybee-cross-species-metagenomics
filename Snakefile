@@ -1827,6 +1827,7 @@ rule calc_perc_id_mag_database:
     input:
         single_ortho_seq_done = "database/MAGs_database_Orthofinder/{group}/single_ortholog_sequences.done",
         meta = "database/MAGs_database_Orthofinder/group_metadata.txt",
+        genome_info_path = lambda wildcards: checkpoints.make_phylo_table.get().output.out_mags_filt,
     output:
         perc_id = "database/MAGs_database_Orthofinder/{group}/{group}_perc_id.txt"
     params:
@@ -1845,9 +1846,9 @@ rule calc_perc_id_mag_database:
     shell:
         """
         scripts_dir={params.pwd_prefix}/scripts
-        genome_db_meta={params.pwd_prefix}/{input.meta}
+        genome_db_meta={params.pwd_prefix}/{input.genome_info_path}
         cd {params.pwd_prefix}/{params.ortho_seq_dir}
-        outfile=../{wildcards.group}_perc_id.txt
+        outfile={params.pwd_prefix}/{output.perc_id}
         for j in $( ls *.faa ); do
             OG=${{j%.\"faa\"}}
             echo \"Processing: $OG\"
@@ -1864,7 +1865,7 @@ rule calc_perc_id_mag_database:
             trim_file=$OG\"_aln_trim.fasta\"
             sed -i 's/_.*$//g' $trim_file
             #Calculating inter-SDP alignment stats
-            python3 \"${{scripts_dir}}/calc_perc_id_orthologs_phylo.py\" \"$genome_db_meta\" \"$trim_file\" \"$outfile\"
+            python3 \"${{scripts_dir}}/calc_perc_id_orthologs_phylo.py\" --meta \"$genome_db_meta\" --trim_file \"$trim_file\" --outfile \"$outfile\"
         done
         """
 
@@ -1891,6 +1892,24 @@ rule filter_orthologs_mag_database:
         """
         python3 scripts/filter_orthologs_phylo.py --single_ortho {input.single_ortho} --perc_id {input.perc_id} --extracted_ffndir {params.ortho_seq_dir} --ortho_filt {output.ortho_filt}
         """
+
+rule summarise_orthogroups_filtered_mag_database:
+    input:
+        ortho_file = "database/MAGs_database_Orthofinder/{group}/OrthoFinder/{group}_single_ortho.txt",
+        ortho_file_filt = "database/MAGs_database_Orthofinder/{group}/OrthoFinder/{group}_single_ortho_filt.txt",
+        perc_id = "database/MAGs_database_Orthofinder/{group}/{group}_perc_id.txt",
+        genomes_list = lambda wildcards: checkpoints.make_phylo_table.get().output.out_mags_filt,
+    output:
+        summary_orthogroups_filt = "database/MAGs_database_Orthofinder/{group}_Orthogroups_filtered_summary.csv"
+    params:
+        group = lambda wildcards: wildcards.group,
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+    log: "logs/{group}_summarise_orthogroups_filtered_mag_database.log"
+    benchmark: "logs/{group}_summarise_orthogroups_filtered_mag_database.benckmark"
+    script:
+        "scripts/summarise_orthogroups_filtered.py"
 
 # rule extract_orthologs_filt_mag_database:
 #     input:
@@ -2784,10 +2803,10 @@ rule compile_report:
         snps_summary_genus = "11_MIDAS_genus_level/snps_summary.done",
         # snp_intra = lambda wildcards: expand("11_MIDAS/snp_diversity_intra/snp_diversity_{cluster}.info", cluster = get_cluster_dict(checkpoints.make_phylo_table.get().output.out_all).keys()),
         # snp_inter = lambda wildcards: expand("11_MIDAS/snp_diversity_inter/snp_diversity_{cluster}.info", cluster = get_cluster_dict(checkpoints.make_phylo_table.get().output.out_all).keys())
-        mag_mapping_flagstat = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_flagstat.tsv", sample=SAMPLES),
-        mag_mapping_hostfiltered_flagstat = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_host-filtered_flagstat.tsv", sample=SAMPLES),
+        # mag_mapping_flagstat = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_flagstat.tsv", sample=SAMPLES),
+        # mag_mapping_hostfiltered_flagstat = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_host-filtered_flagstat.tsv", sample=SAMPLES),
         summarise_db_ortho = lambda wildcards: ["database/MAGs_database_Orthofinder/"+group+"_Orthogroups_summary.csv" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
-        bam_mapped_mag_database = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_mapped.bam", sample=SAMPLES),
+        # bam_mapped_mag_database = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_mapped.bam", sample=SAMPLES),
         single_ortho_filt_mag_database = lambda wildcards: ["database/MAGs_database_Orthofinder/"+group+"/OrthoFinder/"+group+"_single_ortho_filt.txt" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
     output:
         html = PROJECT_IDENTIFIER+"_Report.html",
@@ -2902,10 +2921,10 @@ rule backup:
         # snp_intra = lambda wildcards: expand("11_MIDAS/snp_diversity_intra/snp_diversity_{cluster}.info", cluster = get_cluster_dict(checkpoints.make_phylo_table.get().output.out_all).keys()),
         # snp_inter = lambda wildcards: expand("11_MIDAS/snp_diversity_inter/snp_diversity_{cluster}.info", cluster = get_cluster_dict(checkpoints.make_phylo_table.get().output.out_all).keys())
         # mOTUlize = "06_MAG_binning/mOTUlizer/mOTUlizer_output.tsv",
-        mag_mapping_flagstat = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_flagstat.tsv", sample=SAMPLES),
-        mag_mapping_hostfiltered_flagstat = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_host-filtered_flagstat.tsv", sample=SAMPLES),
+        # mag_mapping_flagstat = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_flagstat.tsv", sample=SAMPLES),
+        # mag_mapping_hostfiltered_flagstat = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_host-filtered_flagstat.tsv", sample=SAMPLES),
         summarise_db_ortho = lambda wildcards: ["database/MAGs_database_Orthofinder/"+group+"_Orthogroups_summary.csv" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
-        bam_mapped_mag_database = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_mapped.bam", sample=SAMPLES),
+        # bam_mapped_mag_database = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_mapped.bam", sample=SAMPLES),
         single_ortho_filt_mag_database = lambda wildcards: ["database/MAGs_database_Orthofinder/"+group+"/OrthoFinder/"+group+"_single_ortho_filt.txt" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
     output:
         outfile = touch("logs/backup.done")

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import os
 import sys
 from Bio import AlignIO
 from Bio.Align import MultipleSeqAlignment
@@ -6,8 +7,33 @@ from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 import numpy as np
 from statistics import mean
+import argparse
 
 #Usage: python3 calc_perc_id_orthologs.py Locustag_Phylotype_SDP.txt OG0000400_aln_trim.fasta
+
+def get_genome_group_dict(path):
+    """
+    Returns dictionary of genomes and groups with each value being a the group
+    correspoinding to the key which is the genome
+    """
+    g_list_dict = {}
+    if os.path.isfile(path):
+        pass
+    else:
+        print(f"Could not find file at {path}")
+    with open(path, "r", encoding='utf-8-sig') as info_fh:
+        for line in info_fh:
+            line = line.strip()
+            if line.startswith("ID"):
+                continue
+            genome = line.split("\t")[0]
+            cluster = line.split("\t")[11]
+            group = line.split("\t")[18]
+            # only include groups of interest!
+            if group == "g__":
+                group = "g__"+cluster
+            g_list_dict[genome] = group
+    return(g_list_dict)
 
 #Function for getting the elements in list1 which are not contained in list2
 def Diff(list1, list2):
@@ -47,26 +73,20 @@ def group_perc_id(in_group, out_group):
             group_perc_ids.append(perc_id)
     return(group_perc_ids)
 
-if (len(sys.argv) < 3):
-    print('Two input-files are required for this script:')
-    print('1. Tab-delim file with genome-id in tab1 and SDP-affiliation in tab 3')
-    print('2. A core gene family alignment-file in fasta-format')
-    print("Exiting script!")
-    exit()
+parser = argparse.ArgumentParser()
+requiredNamed = parser.add_argument_group('required named arguments')
+requiredNamed.add_argument('--meta', action='store', help='Tab-delim file with genome-id in tab1 and cluster affiliation - parsed assuming that it is the checkpoint file. Change script if it is not.')
+requiredNamed.add_argument('--trim_file', action='store', help='Core gene family alignment-file in fasta-format trimmed - description to be updated')
+requiredNamed.add_argument('--outfile', action='store', help='Output file path - description to be updated')
+args = parser.parse_args()
 
+genome_db_meta = args.meta
+aln_in = args.trim_file
+outfile = args.outfile
 #Open the SDP-affiliation file and save data in dict
-group_file = sys.argv[1]
-with open(group_file, "r") as fh_group_file:
-    genome_group = dict()
-for line in fh_group_file:
-    line = line.strip()
-    split_line = line.split('\t')
-    genome_id = "_".join(split_line[:-1])
-    group = split_line[2]
-    genome_group[genome_id] = group
+genome_group = get_genome_group_dict(genome_db_meta)
 
 #Open the alignment file, get ordered list of genome-ids, and save their index positions (in order to subset the alignment with genome-id downstream)
-aln_in = sys.argv[2]
 split_filename = aln_in.split('_')
 OG_id = split_filename[0]
 aln = AlignIO.read(aln_in, "fasta")
@@ -89,25 +109,23 @@ for genome_id in genome_ids:
 #Check the number of SDPs contained within the alignment. If more than one, continue by calculating alignment percentage identity stats across SDPs. If only one SDP, exit script.
 nb_groups = len(group_genomes)
 if nb_groups == 1:
-    fh_outfile = open(sys.argv[3], 'a')
-    line_out = [OG_id, str(0), str(0), str(0)]
-    line_out_str = "\t".join(line_out)
-    fh_outfile.write(line_out_str + '\n')
-    fh_outfile.close()
-    exit()
+    with open(outfile, "a") as fh_outfile:
+        line_out = [OG_id, str(0), str(0), str(0)]
+        line_out_str = "\t".join(line_out)
+        fh_outfile.write(line_out_str + '\n')
+        exit()
 
 #Compare the genomes in each SDP to all other genomes in the alignment: calculate percentage identity for all pairwise combinations. Calculate the max, min, and mean values, print to file
-fh_outfile = open(sys.argv[3], 'a')
-all_perc_ids = list()
-for group in group_genomes.keys():
-    in_genomes = group_genomes[group]
-    out_genomes = Diff(genome_ids, in_genomes)
-    group_perc_ids = group_perc_id(in_genomes, out_genomes)
-    all_perc_ids.extend(group_perc_ids)
-mean_perc_id = round(mean(all_perc_ids),3)
-min_perc_id = min(all_perc_ids)
-max_perc_id = max(all_perc_ids)
-line_out = [OG_id, str(mean_perc_id), str(min_perc_id), str(max_perc_id)]
-line_out_str = "\t".join(line_out)
-fh_outfile.write(line_out_str + '\n')
-fh_outfile.close()
+with open(outfile, "a") as fh_outfile:
+    all_perc_ids = list()
+    for group in group_genomes.keys():
+        in_genomes = group_genomes[group]
+        out_genomes = Diff(genome_ids, in_genomes)
+        group_perc_ids = group_perc_id(in_genomes, out_genomes)
+        all_perc_ids.extend(group_perc_ids)
+    mean_perc_id = round(mean(all_perc_ids),3)
+    min_perc_id = min(all_perc_ids)
+    max_perc_id = max(all_perc_ids)
+    line_out = [OG_id, str(mean_perc_id), str(min_perc_id), str(max_perc_id)]
+    line_out_str = "\t".join(line_out)
+    fh_outfile.write(line_out_str + '\n')

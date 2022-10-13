@@ -45,19 +45,20 @@ args = parser.parse_args()
 ortho_single = args.orthofile
 if args.faaffndir:
     faaffndir = args.faaffndir
+else:
+    faaffndir = None
 if args.faadir and args.ffndir:
     faadir = args.faadir
     ffndir = args.ffndir
+else:
+    faadir = None
+    ffndir = None
 ortho_seq_dir = args.outdir
 
 #Open the ortholog file
-try:
-    fh_ortho_in = open(ortho_single)
-    # fh_ortho_in = open(snakemake.input.ortho_single)
-except:
-    print('working from directory' + os.getcwd())
-    print('tried to open', ortho_single)
-    # print('tried to open', snakemake.input.ortho_single)
+if os.path.exists(ortho_single):
+    pass
+else:
     print('Input ortho-file not found. Exiting script')
     exit()
 
@@ -66,15 +67,15 @@ except:
 print('reading single_ortho file')
 genome_ids = dict()
 OG_fams = dict()
-for line in fh_ortho_in:
-    line = line.strip()
-    split_line = line.split()
-    OG_id = split_line.pop(0)[:-1]
-    OG_fams[OG_id] = split_line
-    genome_count = genome_count_line(split_line)
-    for genome in genome_count:
-        genome_ids[genome] = 1
-fh_ortho_in.close()
+with open(ortho_single, "r") as fh_ortho_in:
+    for line in fh_ortho_in
+        line = line.strip()
+        split_line = line.split()
+        OG_id = split_line.pop(0)[:-1]
+        OG_fams[OG_id] = split_line
+        genome_count = genome_count_line(split_line)
+        for genome in genome_count:
+            genome_ids[genome] = 1
 
 #Construct dictionaries of gene-sequences
 
@@ -104,7 +105,7 @@ for genome in genome_ids.keys():
 output_dir = ortho_seq_dir
 
 if not os.path.isdir(output_dir):
-    os.mkdirs(output_dir)
+    os.makedirs(output_dir)
 
 #Print multi-fasta files corresponding to each gene-family in the output dir
 for OG in OG_fams.keys():

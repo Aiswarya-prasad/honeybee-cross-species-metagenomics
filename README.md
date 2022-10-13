@@ -1023,3 +1023,18 @@ Information in [drep](https://drep.readthedocs.io/en/latest/choosing_parameters.
 $$A * Completeness - B * Contamination + C * (Contamination * frac{strainheterogeneity}{100}) + D * log(N50) + E * log(size) + F * (centrality - S_{a}ni) $$s
 
 "It makes no sense to perform bootstrap with less than 4 sequences" from IQTree
+
+## extra info to be curated later
+meaning of benchmark output
+
+colname | type (unit) | description
+s | float (seconds) | Running time in seconds
+h:m:s | string (-) | Running time in hour, minutes, seconds format
+max_rss | float (MB) | Maximum "Resident Set Size”, this is the non-swapped physical memory a process has used.
+max_vms | float (MB) | Maximum “Virtual Memory Size”, this is the total amount of virtual memory used by the process
+max_uss | float (MB) | “Unique Set Size”, this is the memory which is unique to a process and which would be freed if the process was terminated right now.
+max_pss | float (MB) | “Proportional Set Size”, is the amount of memory shared with other processes, accounted in a way that the amount is divided evenly between the processes that share it (Linux only)
+io_in | float (MB) | the number of MB read (cumulative).
+io_out | float (MB) | the number of MB written (cumulative).
+mean_load | float (-) | CPU usage over time, divided by the total running time (first row)
+cpu_time | float(-) | CPU time summed for user and system
