@@ -1542,7 +1542,7 @@ rule extract_orthologs_phylo:
     threads: 5
     shell:
         """
-        python3 scripts/extract_orthologs_phylo.py --orthofile {input.ortho_single} --outdir {output.ortho_seq_dir} --faaffndir {params.faaffndir}
+        python3 scripts/extract_orthologs_phylo.py --orthofile {input.ortho_single} --outdir {output.ortho_seq_dir} --extracted_ffndir {params.faaffndir}
         """
 
 rule align_orthologs:
@@ -1637,116 +1637,6 @@ rule make_tree:
                     -bb 1000 -seed 12345 -m TEST \
                     -pre {params.outdir}{wildcards.group}_Phylogeny
         fi
-        """
-
-rule make_group_affiliation_file:
-    input:
-        out_tree_info = lambda wildcards: checkpoints.make_phylo_table.get().output.out_tree,
-    output:
-        meta = "07_AnnotationAndPhylogenies/02_orthofinder/phylo_meta.txt"
-    params:
-        mailto="aiswarya.prasad@unil.ch",
-        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        jobname="make_group_affiliation_file",
-        account="pengel_spirit",
-    log: "logs/make_group_affiliation_file.log"
-    conda: "envs/phylogenies-env.yaml"
-    shell:
-        """
-        cat {input.out_tree_info} | cut -f1,19 | tail -n +2 > {output.meta}
-        """
-
-rule calc_perc_id:
-    input:
-        ortho_seq_dir = "07_AnnotationAndPhylogenies/02_orthofinder/{group}/single_ortholog_sequences/",
-        done = "07_AnnotationAndPhylogenies/02_orthofinder/{group}/single_ortholog_sequences.done",
-        meta = "07_AnnotationAndPhylogenies/02_orthofinder/phylo_meta.txt",
-    output:
-        perc_id = "07_AnnotationAndPhylogenies/02_orthofinder/{group}/{group}_perc_id.txt"
-    params:
-        pwd_prefix = os.path.join(os.getcwd()),
-        mailto="aiswarya.prasad@unil.ch",
-        account="pengel_spirit",
-        runtime_s=convertToSec("0-3:10:00"),
-        jobname=lambda wildcards: wildcards.group+"_calc_perc_id",
-    resources:
-        mem_mb = 8000
-    conda: "envs/phylogenies-env.yaml"
-    log: "logs/{group}_calc_perc_id.log"
-    threads: 5
-    shell:
-        """
-        scripts_dir={params.pwd_prefix}/scripts
-        genome_db_meta={params.pwd_prefix}/{input.meta}
-        cd {params.pwd_prefix}/{input.ortho_seq_dir}
-        outfile=../{wildcards.group}_perc_id.txt
-        for j in $( ls *.faa ); do
-            OG=${{j%.\"faa\"}}
-            echo \"Processing: $OG\"
-            aln_faa=$OG\"_aln.fasta\"
-            #Aligning amino-acid sequences
-            mafft --auto --quiet $j > $aln_faa
-            #Back-translating alignment (codon-aligned nucleotide alignment)
-            ffn_file=$OG\".ffn\"
-            python3 \"{params.scripts_dir}/aln_aa_to_dna_phylo.py\" \"$aln_faa\" \"$ffn_file\"
-            #Trimming alignment for gaps
-            aln_nuc=$OG\"_aln_nuc.fasta\"
-            python3 \"{params.scripts_dir}/trim_aln_phylo.py\"  \"$aln_nuc\"
-            #Simplifying headers in alignment
-            trim_file=$OG\"_aln_trim.fasta\"
-            sed -i 's/_.*$//g' $trim_file
-            #Calculating inter-SDP alignment stats
-            python3 \"{params.scripts_dir}/calc_perc_id_orthologs_phylo.py\" \"$genome_db_meta\" \"$trim_file\" \"$outfile\"
-        done
-        """
-
-rule filter_orthologs_phylo:
-    input:
-        single_ortho = "07_AnnotationAndPhylogenies/02_orthofinder/{group}/OrthoFinder/{group}_single_ortho.txt",
-        perc_id = "07_AnnotationAndPhylogenies/02_orthofinder/{group}/{group}_perc_id.txt"
-    output:
-        ortho_filt = "07_AnnotationAndPhylogenies/02_orthofinder/{group}/OrthoFinder/{group}_single_ortho_filt.txt",
-    params:
-        faaffndir = "07_AnnotationAndPhylogenies/01_prokka/",
-        mailto="aiswarya.prasad@unil.ch",
-        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        jobname=lambda wildcards: wildcards.group+"_filter_orthologs_phylo",
-        account="pengel_spirit",
-        runtime_s=convertToSec("0-2:10:00"),
-    resources:
-        mem_mb = 8000
-    log: "logs/{group}_filter_orthologs_phylo.log"
-    benchmark: "logs/{group}_filter_orthologs_phylo.benchmark"
-    conda: "envs/phylogenies-env.yaml"
-    shell:
-        """
-        python3 scripts/filter_orthologs_phylo.py --single_ortho {input.single_ortho} --perc_id {input.perc_id} --faaffndir {params.faaffndir} --ortho_filt {output.ortho_filt}
-        """
-
-rule extract_orthologs_phylo_filt:
-    input:
-        ortho_single = "07_AnnotationAndPhylogenies/02_orthofinder/{group}/OrthoFinder/{group}_single_ortho_filt.txt",
-        faa_files = lambda wildcards: expand("07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.faa", genome=get_g_dict_for_defined_groups(checkpoints.make_phylo_table.get().output.out_tree)[wildcards.group]),
-        ffn_files = lambda wildcards: expand("07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.ffn", genome=get_g_dict_for_defined_groups(checkpoints.make_phylo_table.get().output.out_tree)[wildcards.group]),
-    output:
-        ortho_seq_dir = directory("07_AnnotationAndPhylogenies/02_orthofinder/{group}/filtered_ortholog_sequences/"),
-        done = touch("07_AnnotationAndPhylogenies/02_orthofinder/{group}/filtered_ortholog_sequences.done")
-    params:
-        faaffndir = "07_AnnotationAndPhylogenies/01_prokka/",
-        mailto="aiswarya.prasad@unil.ch",
-        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        jobname=lambda wildcards: wildcards.group+"_extract_orthologs_phylo_filt",
-        account="pengel_spirit",
-        runtime_s=convertToSec("0-2:10:00"),
-    resources:
-        mem_mb = 8000
-    log: "logs/{group}_extract_orthologs_phylo_filt.log"
-    benchmark: "logs/{group}_extract_orthologs_phylo_filt.benchmark"
-    conda: "envs/phylogenies-env.yaml"
-    threads: 5
-    shell:
-        """
-        python3 scripts/extract_orthologs_phylo.py --orthofile {input.ortho_single} --outdir {output.ortho_seq_dir} --faaffndir {params.faaffndir}
         """
 
 # rule make_contig_tracker:
@@ -1869,9 +1759,9 @@ rule summarise_orthogroups_mag_database:
 rule get_single_ortho_mag_database:
     input:
         ortho_file = "database/MAGs_database_Orthofinder/{group}/OrthoFinder/Results_{group}/Orthogroups/Orthogroups.txt",
-        genomes_list = lambda wildcards: checkpoints.make_phylo_table.get().output.out_tree,
+        genomes_list = lambda wildcards: checkpoints.make_phylo_table.get().output.out_mags_filt,
     output:
-        single_ortho_half = "database/MAGs_database_Orthofinder/{group}/OrthoFinder/{group}_single_ortho.txt",
+        single_ortho = "database/MAGs_database_Orthofinder/{group}/OrthoFinder/{group}_single_ortho.txt",
         single_ortho_MAGs = "database/MAGs_database_Orthofinder/{group}/OrthoFinder/{group}_single_ortho_core.txt",
     params:
         group = lambda wildcards: wildcards.group,
@@ -1887,6 +1777,145 @@ rule get_single_ortho_mag_database:
     script:
         "scripts/get_single_ortho_phylo.py"
 
+rule make_group_affiliation_file_mag_database:
+    input:
+        out_tree_info = lambda wildcards: checkpoints.make_phylo_table.get().output.out_tree,
+    output:
+        meta = "database/MAGs_database_Orthofinder/group_metadata.txt"
+    params:
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        jobname="make_group_affiliation_file",
+        account="pengel_spirit",
+    log: "logs/make_group_affiliation_file_mag_database.log"
+    conda: "envs/phylogenies-env.yaml"
+    shell:
+        """
+        cat {input.out_tree_info} | cut -f1,19 | tail -n +2 > {output.meta}
+        """
+
+rule extract_orthologs_mag_database:
+    input:
+        ortho_single = "database/MAGs_database_Orthofinder/{group}/OrthoFinder/{group}_single_ortho.txt",
+        ffn_files = lambda wildcards: expand("database/ffn_files/{genome}.ffn", genome=get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt)[wildcards.group]),
+        faa_files = lambda wildcards: expand("database/faa_files/{genome}.faa", genome=get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt)[wildcards.group]),
+    output:
+        done = touch("database/MAGs_database_Orthofinder/{group}/single_ortholog_sequences.done")
+    params:
+        # to the prefix, script adds, "genome/genome.xxx"
+        ortho_seq_dir = lambda wildcards: "database/MAGs_database_Orthofinder/"+wildcards.group+"/single_ortholog_sequences/",
+        ffndir = "database/ffn_files/",
+        faadir = "database/faa_files/",
+        # faaffndir = "07_AnnotationAndPhylogenies/01_prokka/",
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        jobname=lambda wildcards: wildcards.group+"_extract_orthologs",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-2:10:00"),
+    resources:
+        mem_mb = 8000
+    log: "logs/{group}_extract_orthologs_mag_database.log"
+    benchmark: "logs/{group}_extract_orthologs_mag_database.benchmark"
+    conda: "envs/phylogenies-env.yaml"
+    threads: 5
+    shell:
+        """
+        python3 scripts/extract_orthologs_phylo.py --orthofile {input.ortho_single} --outdir {params.ortho_seq_dir} --faadir {params.faadir} --ffndir {params.ffndir}
+        """
+
+rule calc_perc_id_mag_database:
+    input:
+        single_ortho_seq_done = "database/MAGs_database_Orthofinder/{group}/single_ortholog_sequences.done",
+        meta = "database/MAGs_database_Orthofinder/group_metadata.txt",
+    output:
+        perc_id = "database/MAGs_database_Orthofinder/{group}/{group}_perc_id.txt"
+    params:
+        ortho_seq_dir = lambda wildcards: "database/MAGs_database_Orthofinder/"+wildcards.group+"/single_ortholog_sequences/",
+        pwd_prefix = os.path.join(os.getcwd()),
+        mailto="aiswarya.prasad@unil.ch",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-3:10:00"),
+        jobname=lambda wildcards: wildcards.group+"_calc_perc_id",
+    resources:
+        mem_mb = 8000
+    conda: "envs/phylogenies-env.yaml"
+    log: "logs/{group}_calc_perc_id_mag_database.log"
+    benchmark: "logs/{group}_calc_perc_id_mag_database.benchmark"
+    threads: 5
+    shell:
+        """
+        scripts_dir={params.pwd_prefix}/scripts
+        genome_db_meta={params.pwd_prefix}/{input.meta}
+        cd {params.pwd_prefix}/{params.ortho_seq_dir}
+        outfile=../{wildcards.group}_perc_id.txt
+        for j in $( ls *.faa ); do
+            OG=${{j%.\"faa\"}}
+            echo \"Processing: $OG\"
+            aln_faa=$OG\"_aln.fasta\"
+            #Aligning amino-acid sequences
+            mafft --auto --quiet $j > $aln_faa
+            #Back-translating alignment (codon-aligned nucleotide alignment)
+            ffn_file=$OG\".ffn\"
+            python3 \"${{scripts_dir}}/aln_aa_to_dna_phylo.py\" \"$aln_faa\" \"$ffn_file\"
+            #Trimming alignment for gaps
+            aln_nuc=$OG\"_aln_nuc.fasta\"
+            python3 \"${{scripts_dir}}/trim_aln_phylo.py\"  \"$aln_nuc\"
+            #Simplifying headers in alignment
+            trim_file=$OG\"_aln_trim.fasta\"
+            sed -i 's/_.*$//g' $trim_file
+            #Calculating inter-SDP alignment stats
+            python3 \"${{scripts_dir}}/calc_perc_id_orthologs_phylo.py\" \"$genome_db_meta\" \"$trim_file\" \"$outfile\"
+        done
+        """
+
+rule filter_orthologs_mag_database:
+    input:
+        single_ortho = "database/MAGs_database_Orthofinder/{group}/OrthoFinder/{group}_single_ortho.txt",
+        perc_id = "database/MAGs_database_Orthofinder/{group}/{group}_perc_id.txt",
+        single_ortho_seq_done = "database/MAGs_database_Orthofinder/{group}/single_ortholog_sequences.done",
+    output:
+        ortho_filt = "database/MAGs_database_Orthofinder/{group}/OrthoFinder/{group}_single_ortho_filt.txt",
+    params:
+        ortho_seq_dir = lambda wildcards: "database/MAGs_database_Orthofinder/"+wildcards.group+"/single_ortholog_sequences/",
+        mailto = "aiswarya.prasad@unil.ch",
+        mailtype = "BEGIN,END,FAIL,TIME_LIMIT_80",
+        jobname = lambda wildcards: wildcards.group+"_filter_orthologs_mag_database",
+        account = "pengel_spirit",
+        runtime_s = convertToSec("0-2:10:00"),
+    resources:
+        mem_mb = 8000
+    log: "logs/{group}_filter_orthologs_mag_database.log"
+    benchmark: "logs/{group}_filter_orthologs_mag_database.benchmark"
+    conda: "envs/phylogenies-env.yaml"
+    shell:
+        """
+        python3 scripts/filter_orthologs_phylo.py --single_ortho {input.single_ortho} --perc_id {input.perc_id} --extracted_ffndir {params.ortho_seq_dir} --ortho_filt {output.ortho_filt}
+        """
+
+# rule extract_orthologs_filt_mag_database:
+#     input:
+#         ortho_single_filt = "database/MAGs_database_Orthofinder/{group}/OrthoFinder/{group}_single_ortho_filt.txt",
+#     output:
+#         filtered_ortho_seq_done = touch("database/MAGs_database_Orthofinder/{group}/filtered_ortholog_sequences.done")
+#     params:
+#         ortho_seq_filt_dir = lambda wildcards: "database/MAGs_database_Orthofinder/"+wildcards.group+"/filtered_ortholog_sequences/",
+#         ffndir = "database/ffn_files/",
+#         faadir = "database/faa_files/",
+#         mailto="aiswarya.prasad@unil.ch",
+#         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+#         jobname=lambda wildcards: wildcards.group+"_extract_orthologs_filt_mag_database",
+#         account="pengel_spirit",
+#         runtime_s=convertToSec("0-2:10:00"),
+#     resources:
+#         mem_mb = 8000
+#     log: "logs/{group}_extract_orthologs_filt_mag_database.log"
+#     benchmark: "logs/{group}_extract_orthologs_filt_mag_database.benchmark"
+#     conda: "envs/phylogenies-env.yaml"
+#     threads: 5
+#     shell:
+#         """
+#         python3 scripts/extract_orthologs_phylo.py --orthofile {input.ortho_single_filt} --outdir {params.ortho_seq_filt_dir} --ffndir {params.ortho_seq_filt_dir} --faadir {params.ortho_seq_filt_dir}
+#         """
 
 rule map_to_MAGs:
     input:
@@ -1897,7 +1926,7 @@ rule map_to_MAGs:
         index = multiext("database/MAGs_database", ".amb", ".ann", ".bwt", ".pac", ".sa"),
         genome_db = "database/MAGs_database"
     output:
-        bam_mapped = temp("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_mapped.bam"),
+        bam_mapped = "09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_mapped.bam",
         bam = temp("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}.bam"),
         sam = temp("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}.sam"),
         sam_mapped = temp("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}mapped.sam"),
@@ -1935,8 +1964,6 @@ rule map_to_MAGs:
         samtools flagstat -O tsv {output.bam_hostfiltered} > {output.mag_mapping_hostfiltered_flagstat}
         """
 
-#
-#
 # rule make_core_bed_files:
 #     input:
 #
@@ -2759,6 +2786,9 @@ rule compile_report:
         # snp_inter = lambda wildcards: expand("11_MIDAS/snp_diversity_inter/snp_diversity_{cluster}.info", cluster = get_cluster_dict(checkpoints.make_phylo_table.get().output.out_all).keys())
         mag_mapping_flagstat = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_flagstat.tsv", sample=SAMPLES),
         mag_mapping_hostfiltered_flagstat = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_host-filtered_flagstat.tsv", sample=SAMPLES),
+        summarise_db_ortho = lambda wildcards: ["database/MAGs_database_Orthofinder/"+group+"_Orthogroups_summary.csv" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
+        bam_mapped_mag_database = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_mapped.bam", sample=SAMPLES),
+        single_ortho_filt_mag_database = lambda wildcards: ["database/MAGs_database_Orthofinder/"+group+"/OrthoFinder/"+group+"_single_ortho_filt.txt" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
     output:
         html = PROJECT_IDENTIFIER+"_Report.html",
         # fig_00a = "Figures/00a-Total_reads_trimming.pdf",
@@ -2874,8 +2904,9 @@ rule backup:
         # mOTUlize = "06_MAG_binning/mOTUlizer/mOTUlizer_output.tsv",
         mag_mapping_flagstat = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_flagstat.tsv", sample=SAMPLES),
         mag_mapping_hostfiltered_flagstat = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_host-filtered_flagstat.tsv", sample=SAMPLES),
-        single_ortho_for_database = lambda wildcards: ["database/MAGs_database_Orthofinder/"+group+"/OrthoFinder/"+group+"_single_ortho.txt" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
         summarise_db_ortho = lambda wildcards: ["database/MAGs_database_Orthofinder/"+group+"_Orthogroups_summary.csv" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
+        bam_mapped_mag_database = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_mapped.bam", sample=SAMPLES),
+        single_ortho_filt_mag_database = lambda wildcards: ["database/MAGs_database_Orthofinder/"+group+"/OrthoFinder/"+group+"_single_ortho_filt.txt" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
     output:
         outfile = touch("logs/backup.done")
     threads: 2

@@ -187,7 +187,11 @@ def get_g_dict_for_groups(path):
             if line.startswith("ID"):
                 continue
             genome = line.split("\t")[0]
+            cluster = line.split("\t")[11]
             group = line.split("\t")[18]
+            # only include groups of interest!
+            if group == "g__":
+                group = "g__"+cluster
             if group not in g_list_dict.keys():
                 g_list_dict[group] = []
             g_list_dict[group].append(genome)

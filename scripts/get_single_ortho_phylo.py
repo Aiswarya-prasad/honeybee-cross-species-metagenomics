@@ -59,7 +59,6 @@ def get_g_dict_for_groups(path):
     genomes corresponding to a given group
     """
     g_list_dict = {}
-    g_list_dict = {}
     if os.path.isfile(path):
         pass
     else:
@@ -70,7 +69,11 @@ def get_g_dict_for_groups(path):
             if line.startswith("ID"):
                 continue
             genome = line.split("\t")[0]
+            cluster = line.split("\t")[11]
             group = line.split("\t")[18]
+            # only include groups of interest!
+            if group == "g__":
+                group = "g__"+cluster
             if group not in g_list_dict.keys():
                 g_list_dict[group] = []
             g_list_dict[group].append(genome)
@@ -80,7 +83,6 @@ def get_g_dict_for_groups(path):
 orthofile=snakemake.input.ortho_file
 genomes_file=snakemake.input.genomes_list
 group=snakemake.params.group
-
 
 genomesAndMAGs = get_g_dict_for_groups(genomes_file)[group]
 MAGs = [genome for genome in genomesAndMAGs if "MAG_" in genome]
@@ -100,5 +102,6 @@ with open(orthofile, "r") as fh_orthofile:
                 core_mag_status = is_scp_MAG(og_split, genomes, MAGs)
                 if core_status == 1:
                     fh_outfile.write(f"{og}\n")
-                if core_mag_status == 1:
-                    fh_outfile_MAG.write(f"{og}\n")
+                if len(genomes) > 0:
+                    if core_mag_status == 1:
+                        fh_outfile_MAG.write(f"{og}\n")

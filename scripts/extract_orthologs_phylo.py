@@ -32,15 +32,22 @@ def get_seq_objects(filename):
         else:
             seq_record_dict[seq_record.id] = seq_record
     return(seq_record_dict)
-
+# to do update annotation
 parser = argparse.ArgumentParser()
 parser.add_argument('--orthofile', action='store', help='*_ single_ortho.txt as input')
 parser.add_argument('--outdir', action='store', help='name of directory to write outputs to')
-parser.add_argument('--faaffndir', action='store', help='name of directory where annotation output directories are')
+mutually_exclusive_group = parser.add_mutually_exclusive_group()
+mutually_exclusive_group.add_argument('--faaffndir', action='store', help='name of directory where annotation output directories are')
+mutually_exclusive_group.add_argument('--faadir', action='store', help='name of directory where faa files aer')
+parser.add_argument('--ffndir', action='store', help='name of directory where ffn files are')
 args = parser.parse_args()
 
 ortho_single = args.orthofile
-faaffndir = args.faaffndir
+if args.faaffndir:
+    faaffndir = args.faaffndir
+if args.faadir and args.ffndir:
+    faadir = args.faadir
+    ffndir = args.ffndir
 ortho_seq_dir = args.outdir
 
 #Open the ortholog file
@@ -74,14 +81,15 @@ fh_ortho_in.close()
 ffn_seq_objects = dict()
 faa_seq_objects = dict()
 for genome in genome_ids.keys():
-    ffn_file = os.path.join(faaffndir, genome, genome + '.ffn')
-    # ffn_file = os.path.join(snakemake.params.faa_ffn_dir, genome, genome + '.ffn')
-    faa_file = os.path.join(faaffndir, genome, genome + '.faa')
-    # faa_file = os.path.join(snakemake.params.faa_ffn_dir, genome, genome + '.faa')
-    try:
-        fh_ffn_file = open(ffn_file)
-        fh_faa_file = open(faa_file)
-    except:
+    if faaffndir:
+        ffn_file = os.path.join(faaffndir, genome, genome + '.ffn')
+        faa_file = os.path.join(faaffndir, genome, genome + '.faa')
+    if faadir and ffndir:
+        ffn_file = os.path.join(ffndir, genome + '.ffn')
+        faa_file = os.path.join(faadir, genome + '.faa')
+    if os.path.exists(ffn_file) and os.path.exists(faa_file):
+        pass
+    else:
         print('One or both of these files are missing: ')
         print(ffn_file)
         print(faa_file)
@@ -94,17 +102,16 @@ for genome in genome_ids.keys():
 
 #Create the output directory, and move into it
 output_dir = ortho_seq_dir
-# output_dir = snakemake.output.ortho_seq_dir
+
 if not os.path.isdir(output_dir):
-    os.mkdir(output_dir)
-os.chdir(output_dir)
+    os.mkdirs(output_dir)
 
 #Print multi-fasta files corresponding to each gene-family in the output dir
 for OG in OG_fams.keys():
     OG_seq_ids = OG_fams[OG]
     OG_ffn_seq_obj = [ffn_seq_objects[x] for x in OG_seq_ids]
     OG_faa_seq_obj = [faa_seq_objects[x] for x in OG_seq_ids]
-    ffn_outfile = OG + '.ffn'
-    faa_outfile = OG + '.faa'
+    ffn_outfile = os.path.join(output_dir, OG + '.ffn')
+    faa_outfile = os.path.join(output_dir, OG + '.faa')
     SeqIO.write(OG_ffn_seq_obj,ffn_outfile,"fasta")
     SeqIO.write(OG_faa_seq_obj,faa_outfile,"fasta")

@@ -17,13 +17,13 @@ def get_min_seq_length(ffn_file):
 parser = argparse.ArgumentParser()
 parser.add_argument('--single_ortho', action='store', help='*_ single_ortho.txt as input')
 parser.add_argument('--perc_id', action='store', help='name of file with percentage similarities')
-parser.add_argument('--faaffndir', action='store', help='name of directory where annotation output directories are')
+parser.add_argument('--extracted_ffndir', action='store', help='name of directory where annotation output directories are')
 parser.add_argument('--ortho_filt', action='store', help='name of file to which outputs are writted')
 args = parser.parse_args()
 
 single_ortho = args.single_ortho
 perc_id = args.perc_id
-faaffndir = args.faaffndir
+extracted_ffndir = args.extracted_ffndir
 ortho_filt = args.ortho_filt
 
 #Read the orthofinder-file, save genes as lists in dict
@@ -47,7 +47,6 @@ fh_orthofile.close()
 #If the file "perc_id.txt" is present in the run-dir, read and flag OG-ids for which the max perc-id is > 95%
 filt_perc_id = dict()
 with open(perc_id) as fh_perc_id:
-# with open(snakemake.input.perc_id) as fh_perc_id:
     for line in fh_perc_id:
         line = line.strip()
         split_line = line.split("\t")
@@ -58,12 +57,10 @@ with open(perc_id) as fh_perc_id:
 
 #Filter the ortholog file by seq-length (min 300bp) and max inter-SDP perc-id is applicable  (95%)
 filt_outfile = ortho_filt
-# filt_outfile = snakemake.output.ortho_filt
 fh_outfile = open(filt_outfile, 'w')
 for OG in OG_fam_list:
     if OG in filt_perc_id:  continue
-    ffn_file = faaffndir + OG + ".ffn"
-    # ffn_file = snakemake.params.faaffndir + OG + ".ffn"
+    ffn_file = os.path.join(extracted_ffndir, OG + ".ffn")
     nb_small_seq = get_min_seq_length(ffn_file)
     if nb_small_seq == 0:
         OG_genes = " ".join(OG_fams[OG])
