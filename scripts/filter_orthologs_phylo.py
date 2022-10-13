@@ -66,3 +66,8 @@ for OG in OG_fam_list:
         OG_genes = " ".join(OG_fams[OG])
         fh_outfile.write(f"{OG}:{OG_genes}\n")
 fh_outfile.close()
+
+# first trying to onlt select if it is present in the marking reference genome (highest drep score and hence most complete and least contaminated). If this fails,
+# ensure it is present in at least one genome for each cluster
+# and note, which genome for each OG id and get the contig/chr and start and positions in that genome
+# OG_id cluster genome chr str end

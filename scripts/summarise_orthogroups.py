@@ -220,7 +220,6 @@ with open(orthofile, "r") as fh_orthofile:
     with open(outfile, "w") as fh_outfile:
         fh_outfile.write(f"group,og_name,present_in,single_copy_in,core_in,core_in_half_the_MAGs,status\n")
         for og in fh_orthofile:
-            og = fh_orthofile.readline()
             og = og.strip()
             og_name = og.split(":")[0]
             og_split = og.split(" ")
