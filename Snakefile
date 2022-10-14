@@ -1822,7 +1822,6 @@ rule get_single_ortho_mag_database:
         genomes_list = lambda wildcards: checkpoints.make_phylo_table.get().output.out_mags_filt,
     output:
         single_ortho = "database/MAGs_database_Orthofinder/{group}/OrthoFinder/{group}_single_ortho.txt",
-        single_ortho_MAGs = "database/MAGs_database_Orthofinder/{group}/OrthoFinder/{group}_single_ortho_core.txt",
     params:
         group = lambda wildcards: wildcards.group,
         mailto = "aiswarya.prasad@unil.ch",
@@ -1871,13 +1870,14 @@ rule calc_perc_id_mag_database:
         single_ortho_seq_done = "database/MAGs_database_Orthofinder/{group}/single_ortholog_sequences.done",
         genome_info_path = lambda wildcards: checkpoints.make_phylo_table.get().output.out_mags_filt,
     output:
-        perc_id = "database/MAGs_database_Orthofinder/{group}/{group}_perc_id.txt"
+        perc_id = "database/MAGs_database_Orthofinder/{group}/{group}_perc_id.txt",
+        done = touch("database/MAGs_database_Orthofinder/{group}/{group}_perc_id_all.done")
     params:
         ortho_seq_dir = lambda wildcards: "database/MAGs_database_Orthofinder/"+wildcards.group+"/single_ortholog_sequences/",
         pwd_prefix = os.path.join(os.getcwd()),
         mailto="aiswarya.prasad@unil.ch",
         account="pengel_spirit",
-        runtime_s=convertToSec("0-3:10:00"),
+        runtime_s=convertToSec("0-10:10:00"),
         jobname=lambda wildcards: wildcards.group+"_calc_perc_id",
     resources:
         mem_mb = 8000
@@ -1891,19 +1891,29 @@ rule calc_perc_id_mag_database:
         genome_db_meta={params.pwd_prefix}/{input.genome_info_path}
         cd {params.pwd_prefix}/{params.ortho_seq_dir}
         outfile={params.pwd_prefix}/{output.perc_id}
+        rm -rf $outfile
         for j in $( ls *.faa ); do
             OG=${{j%.\"faa\"}}
             echo \"Processing: $OG\"
             aln_faa=$OG\"_aln.fasta\"
             #Aligning amino-acid sequences
-            mafft --auto --quiet $j > $aln_faa
+            if [ ! -f $aln_faa ];
+            then
+                mafft --auto --quiet $j > $aln_faa
+            fi
             #Back-translating alignment (codon-aligned nucleotide alignment)
             ffn_file=$OG\".ffn\"
-            python3 \"${{scripts_dir}}/aln_aa_to_dna.py\" \"$aln_faa\" \"$ffn_file\"
+            if [ ! -f $ffn_file ];
+            then
+                python3 \"${{scripts_dir}}/aln_aa_to_dna.py\" \"$aln_faa\" \"$ffn_file\"
+            fi
             #Trimming alignment for gaps
             aln_nuc=$OG\"_aln_nuc.fasta\"
             trim_file=$OG\"_aln_trim.fasta\"
-            python3 \"${{scripts_dir}}/trim_aln.py\"  \"$aln_nuc\" \"$trim_file\"
+            if [ ! -f $trim_file ];
+            then
+                python3 \"${{scripts_dir}}/trim_aln.py\"  \"$aln_nuc\" \"$trim_file\"
+            fi
             #Calculating inter-SDP alignment stats
             python3 \"${{scripts_dir}}/calc_perc_id_orthologs.py\" --meta \"$genome_db_meta\" --trim_file \"$trim_file\" --outfile \"$outfile\"
         done
@@ -1913,6 +1923,7 @@ rule filter_orthologs_mag_database:
     input:
         single_ortho = "database/MAGs_database_Orthofinder/{group}/OrthoFinder/{group}_single_ortho.txt",
         perc_id = "database/MAGs_database_Orthofinder/{group}/{group}_perc_id.txt",
+        done = "database/MAGs_database_Orthofinder/{group}/{group}_perc_id_all.done",
         single_ortho_seq_done = "database/MAGs_database_Orthofinder/{group}/single_ortholog_sequences.done",
     output:
         ortho_filt = "database/MAGs_database_Orthofinder/{group}/OrthoFinder/{group}_single_ortho_filt.txt",
@@ -1938,6 +1949,7 @@ rule summarise_orthogroups_filtered_mag_database:
         ortho_file = "database/MAGs_database_Orthofinder/{group}/OrthoFinder/{group}_single_ortho.txt",
         ortho_file_filt = "database/MAGs_database_Orthofinder/{group}/OrthoFinder/{group}_single_ortho_filt.txt",
         perc_id = "database/MAGs_database_Orthofinder/{group}/{group}_perc_id.txt",
+        done = "database/MAGs_database_Orthofinder/{group}/{group}_perc_id_all.done",
         genomes_list = lambda wildcards: checkpoints.make_phylo_table.get().output.out_mags_filt,
         ref_info = "database/MAGs_database_ref_info.txt"
     output:
@@ -1958,7 +1970,7 @@ rule make_bed_files_mag_database:
         gff_file = "database/gff_files/{genome}.gff",
         faa_file = "database/faa_files/{genome}.faa",
     output:
-        outfile = "database/bed_files/{genome}.bed"
+        outfile = "database/bed_files/{genome}.bed",
     params:
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
