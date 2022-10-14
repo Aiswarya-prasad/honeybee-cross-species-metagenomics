@@ -173,43 +173,45 @@ with open(ref_info, "r") as ref_info_fh:
         ref_status = split_line[2]
         cluster = split_line[1]
         if ref_status == "1":
-            print(genome_id)
-            cluster_ref[genome_id] = cluster
+            cluster_ref[cluster] = genome_id
 
 #Read the bed-files for the cluster reference genomes, get the start-position for each gene-family
+# if the OG happens to be missing in the
+# reference MAG, fix this by either making do with that assign 0
+# or by removing further OGs that are missing in the reference
+
 OG_ref_pos = dict()
 for cluster in cluster_genomes.keys():
     ref_genome = cluster_ref[cluster]
     bedfile = ref_genome + ".bed"
     check_file_exists(bedfile)
-    fh_bedfile = open(bedfile)
-    if cluster not in OG_ref_pos:
-        OG_ref_pos[cluster] = dict()
-    for line in fh_bedfile:
-        line = line.strip()
-        split_line = line.split("\t")
-        gene_id = split_line[3]
-        start_pos = split_line[1]
-        if gene_id not in gene_OG: continue
-        OG_id = gene_OG[gene_id]
-        OG_ref_pos[cluster][OG_id] = int(start_pos)
-    fh_bedfile.close()
-os.chdir(cwd)
+    with open(bedfile, "r") as fh_bedfile:
+        if cluster not in OG_ref_pos:
+            OG_ref_pos[cluster] = dict()
+        for line in fh_bedfile:
+            line = line.strip()
+            split_line = line.split("\t")
+            gene_id = split_line[3]
+            start_pos = split_line[1]
+            if gene_id not in gene_OG: continue
+            OG_id = gene_OG[gene_id]
+            OG_ref_pos[cluster][OG_id] = int(start_pos)
 
 #Prepare for outfile, print the header
-outfile = out_name + "_corecov.txt"
-outfile = os.path.join(out_dir, outfile)
 fh_outfile = open(outfile, 'w')
-header = ["cluster","Sample","OG", "Ref_pos", "Coverage"]
-header_str = "\t".join(header)
-fh_outfile.write(header_str + "\n")
-fh_outfile.close()
+with open(outfile, 'w') as fh_outfile:
+    header = ["cluster","Sample","OG", "Ref_pos", "Coverage"]
+    header_str = "\t".join(header)
+    fh_outfile.write(header_str + "\n")
 
 #Get the cluster-coverage of all gene-families in orthofile, for all listed bam-files
 cluster_bam_genefam_cov = dict()  #cluster - bamfile - OG - summed_cov
 gene_cov = dict()
 cluster_list = list(cluster_genomes.keys())
 cluster_list.sort()
+"""
+resume
+"""
 for cluster in cluster_list:
     print("Working on cluster:", cluster)
     cluster_bam_genefam_cov[cluster] = dict()

@@ -15,4 +15,3 @@ dependencies:
   - r-plyr=1.8.6
   - r-segmented=1.1_0
   - r-cairo
-  - bedtools

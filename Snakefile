@@ -1953,11 +1953,28 @@ rule summarise_orthogroups_filtered_mag_database:
         "scripts/summarise_orthogroups_filtered.py"
 
 
-# rule make_core_bed_files:
-#     input:
+rule make_bed_files_mag_database:
+    input:
+        gff_file = "database/gff_files/{genome}.gff",
+        faa_file = "database/faa_files/{genome}.faa",
+    output:
+        outfile = "database/bed_files/{genome}.bed"
+    params:
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+    log: "logs/{genome}_make_bed_files_mag_database.log"
+    benchmark: "logs/{genome}_make_bed_files_mag_database.benckmark"
+    # needs biopython
+    # convert to shell accorsingly
+    #  re-run summarise after filter - consider re-running filter
+    # with the additional info
+    script:
+        "scripts/parse_gff_to_bed.py"
 #
 #
 # edit core_cov to work one bam file at a time
+# and from shell within a conda env
 # rule core_cov:
 #     input:
 #         genome_db_meta = "database/"+DBs["microbiome"]+"_metafile.txt",
