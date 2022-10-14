@@ -1903,12 +1903,12 @@ rule calc_perc_id_mag_database:
             fi
             #Back-translating alignment (codon-aligned nucleotide alignment)
             ffn_file=$OG\".ffn\"
-            if [ ! -f $ffn_file ];
+            aln_nuc=$OG\"_aln_nuc.fasta\"
+            if [ ! -f $aln_nuc ];
             then
                 python3 \"${{scripts_dir}}/aln_aa_to_dna.py\" \"$aln_faa\" \"$ffn_file\"
             fi
             #Trimming alignment for gaps
-            aln_nuc=$OG\"_aln_nuc.fasta\"
             trim_file=$OG\"_aln_trim.fasta\"
             if [ ! -f $trim_file ];
             then
@@ -1983,60 +1983,6 @@ rule make_bed_files_mag_database:
     # with the additional info
     script:
         "scripts/parse_gff_to_bed.py"
-#
-#
-# edit core_cov to work one bam file at a time
-# and from shell within a conda env
-# rule core_cov:
-#     input:
-#         genome_db_meta = "database/"+DBs["microbiome"]+"_metafile.txt",
-#         bed_files = expand("database/bed_files/{genome}.bed", genome=get_g_list(DBs["microbiome"])),
-#         bam_files = expand("03_MicrobiomeMapping/{sample}_microbiome_mapped.bam", sample=config["SAMPLES"]),
-#         ortho_file = "database/OrthoFiles_"+DBs["microbiome"]+"/{phylotype}_single_ortho_filt.txt",
-#         core_cov = "scripts/core_cov.py",
-#         ref_info = "database/MAGs_database_ref_info.txt"
-#     output:
-#         txt = "04_CoreCov_"+ProjectIdentifier+"/{phylotype}_corecov.txt"
-#     params:
-#         out_dir = "04_CoreCov_"+ProjectIdentifier,
-#         bed_files = "database/bed_files/",
-#         mailto="aiswarya.prasad@unil.ch",
-#         account="pengel_spirit",
-#         runtime_s=convertToSec("0-2:10:00"),
-#     resources:
-#         mem_mb = 8000
-#     log: "logs/{phylotype}_core_cov.log"
-#     conda: "envs/core-cov-env.yaml"
-#     threads: 5
-#     shell:
-#         """
-#         {input.core_cov} -d {input.genome_db_meta} -L {input.bam_files} -g {input.ortho_file} -b {params.bed_files} -o {params.out_dir} -n {wildcards.phylotype};
-#         """
-#
-# rule core_cov_plots:
-#     input:
-#         txt = "04_CoreCov_"+ProjectIdentifier+"/{phylotype}_corecov.txt",
-#         core_covR = "scripts/core_cov.R",
-#     output:
-#         txt = "04_CoreCov_"+ProjectIdentifier+"/{phylotype}_corecov_coord.txt",
-#         pdf = "04_CoreCov_"+ProjectIdentifier+"/{phylotype}_corecov_coord.pdf"
-#     params:
-#         mailto="aiswarya.prasad@unil.ch",
-#         account="pengel_spirit",
-#         runtime_s=convertToSec("0-1:10:00"),
-#     resources:
-#         mem_mb = 8000
-#     conda: "envs/core-cov-env.yaml"
-#     log: "logs/{phylotype}_core_cov_plots.log"
-#     threads: 1
-#     # at some point do:
-#     # script:
-#     #     "scripts/core_cov.R"
-#     shell:
-#         """
-#         {input.core_covR} {input.txt};
-#         """
-
 
 rule map_to_MAGs:
     input:
@@ -2084,6 +2030,75 @@ rule map_to_MAGs:
         samtools view -bh {output.sam_hostfiltered} | samtools sort - > {output.bam_hostfiltered}
         samtools flagstat -O tsv {output.bam_hostfiltered} > {output.mag_mapping_hostfiltered_flagstat}
         """
+
+rule core_cov:
+    input:
+        bed_files = lambda wildcards: expand("database/bed_files/{genome}.bed", genome=get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt)[wildcards.group]),
+        bam_file = "09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_mapped.bam",
+        ortho_file = "database/MAGs_database_Orthofinder/{group}/OrthoFinder/{group}_single_ortho_filt.txt",
+        ref_info = "database/MAGs_database_ref_info.txt"
+    output:
+        txt = "09_MagDatabaseProfiling/CoverageEstimation/{sample}/{group}_corecov.txt"
+    params:
+        out_dir = lambda wildcards: "09_MagDatabaseProfiling/CoverageEstimation/"+wildcards.sample,
+        bedfiles_dir = "database/bed_files/",
+        mailto="aiswarya.prasad@unil.ch",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-2:10:00"),
+    resources:
+        mem_mb = 8000
+    log: "logs/{sample}_{group}_core_cov.log"
+    benchmark: "logs/{sample}_{group}_core_cov.benchmark"
+    conda: "envs/core-cov-env.yaml"
+    threads: 5
+    shell:
+        """
+        python3 scripts/core_cov.py --info {input.ref_info} --bamfile {input.bam_file} --ortho {input.ortho_file} --beddir {params.bedfiles_dir} --outfile {params.out_dir} --group {wildcards.phylotype} --sample {wildcards.sample}
+        """
+
+rule merge_core_cov:
+    input:
+        core_cov_per_sample = expand("09_MagDatabaseProfiling/CoverageEstimation/{sample}/{{group}}_corecov.txt", sample=SAMPLES)
+    output:
+        core_cov_merged = "09_MagDatabaseProfiling/CoverageEstimation/{group}_corecov.txt"
+    params:
+        mailto="aiswarya.prasad@unil.ch",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-2:10:00"),
+    resources:
+        mem_mb = 8000
+    log: "logs/{group}_merge_core_cov.log"
+    benchmark: "logs/{group}_merge_core_cov.benchmark"
+    conda: "envs/core-cov-env.yaml"
+    shell:
+        """
+        cat {input.core_cov_per_sample} > {output.core_cov_merged}
+        """
+
+
+# rule core_cov_plots:
+#     input:
+#         txt = "04_CoreCov_"+ProjectIdentifier+"/{phylotype}_corecov.txt",
+#         core_covR = "scripts/core_cov.R",
+#     output:
+#         txt = "04_CoreCov_"+ProjectIdentifier+"/{phylotype}_corecov_coord.txt",
+#         pdf = "04_CoreCov_"+ProjectIdentifier+"/{phylotype}_corecov_coord.pdf"
+#     params:
+#         mailto="aiswarya.prasad@unil.ch",
+#         account="pengel_spirit",
+#         runtime_s=convertToSec("0-1:10:00"),
+#     resources:
+#         mem_mb = 8000
+#     conda: "envs/core-cov-env.yaml"
+#     log: "logs/{phylotype}_core_cov_plots.log"
+#     threads: 1
+#     # at some point do:
+#     # script:
+#     #     "scripts/core_cov.R"
+#     shell:
+#         """
+#         {input.core_covR} {input.txt};
+#         """
 
 rule setup_midas_parse_gff:
     input:
@@ -2855,7 +2870,7 @@ rule compile_report:
         summarise_db_ortho = lambda wildcards: ["database/MAGs_database_Orthofinder/"+group+"_Orthogroups_summary.csv" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
         summarise_db_ortho_filt = lambda wildcards: ["database/MAGs_database_Orthofinder/"+group+"_Orthogroups_filtered_summary.csv" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
         bam_mapped_mag_database = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_mapped.bam", sample=SAMPLES),
-        single_ortho_filt_mag_database = lambda wildcards: ["database/MAGs_database_Orthofinder/"+group+"/OrthoFinder/"+group+"_single_ortho_filt.txt" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
+        core_cov_merged = lambda wildcards: ["09_MagDatabaseProfiling/CoverageEstimation/"+group+"_corecov.txt" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
     output:
         html = PROJECT_IDENTIFIER+"_Report.html",
         # fig_00a = "Figures/00a-Total_reads_trimming.pdf",
@@ -2974,7 +2989,7 @@ rule backup:
         summarise_db_ortho = lambda wildcards: ["database/MAGs_database_Orthofinder/"+group+"_Orthogroups_summary.csv" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
         summarise_db_ortho_filt = lambda wildcards: ["database/MAGs_database_Orthofinder/"+group+"_Orthogroups_filtered_summary.csv" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
         bam_mapped_mag_database = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_mapped.bam", sample=SAMPLES),
-        single_ortho_filt_mag_database = lambda wildcards: ["database/MAGs_database_Orthofinder/"+group+"/OrthoFinder/"+group+"_single_ortho_filt.txt" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
+        core_cov_merged = lambda wildcards: ["09_MagDatabaseProfiling/CoverageEstimation/"+group+"_corecov.txt" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
     output:
         outfile = touch("logs/backup.done")
     threads: 2

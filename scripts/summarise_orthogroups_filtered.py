@@ -56,18 +56,18 @@ with open(perc_id, "r") as percid_fh:
         percid_dict[og_name] = line.split("\t")[3]
 
 
-ref_genomes = set()
-ref_genome_cluster_dict = dict()
+rep_genomes = set()
+rep_genome_cluster_dict = dict()
 with open(ref_info, "r") as ref_info_fh:
-    for line in ref_info:
+    for line in ref_info_fh:
         line = line.strip()
         split_line = line.split("\t")
         genome_id = split_line[0]
-        rep_status = split_line[3]
-        cluster = split_line[2]
+        rep_status = split_line[2]
+        cluster = split_line[1]
         if rep_status == 1:
-            ref_genomes.add(genome_id)
-            ref_genome_cluster_dict[ref_genome] = cluster
+            rep_genomes.add(genome_id)
+            rep_genome_cluster_dict[genome_id] = cluster
 
 og_genomes_dict = {}
 with open(outfile, "w") as outfile_fh:
@@ -83,11 +83,11 @@ with open(outfile, "w") as outfile_fh:
             og_genomes_dict[og_name] = genomes_missing
             present_in = len(genomes_covered)
             missing_in = len(genomes_missing)
-            if ref_genomes & genomes_covered:
+            if rep_genomes & genomes_covered:
                 present_in_ref = "Y"
             else:
                 present_in_ref = "N"
-            represented_cluster = ";".join([ref_genome_cluster_dict[x] for x in genomes_covered if x in ref_genome])
+            represented_cluster = ";".join([rep_genome_cluster_dict[x] for x in genomes_covered if x in rep_genomes])
             print(f"Checking orthogroup: {og_name}")
             if og_name not in percid_dict.keys():
                 print(f"{og_name} missing in perc_id.txt")

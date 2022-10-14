@@ -17,7 +17,9 @@ args = parser.parse_args()
 faa = args.faa
 gff = args.gff
 outfile = args.outfile
-
+# faa = "MAG_C2.2_4.faa"
+# gff = "MAG_C2.2_4.gff"
+# outfile = "MAG_C2.2_4.bed"
 genes_present_in_faa = set()
 for seq_record in SeqIO.parse(faa, "fasta"):
     locustag = seq_record.id
@@ -45,6 +47,6 @@ with open(gff, "r") as gff_fh:
             if gene_type != "CDS":
                 continue
             if gene_id in genes_present_in_faa:
-                outfile_fh.write(f"{scaffold_id}\t{start}\t{end}\t{gene_id}\n")
+                outfile_fh.write(f"gnl|Prokka|{scaffold_id}\t{start}\t{end}\t{gene_id}\n")
             else:
                 print(f"{gene_id} not present in faa file.")
