@@ -53,6 +53,8 @@ def make_magOTU_g_dict(path):
     return(magOTU_list_dict)
 
 def get_bedcov_genome(bedfile, bamfile):
+    if not os.path.exists(bamfile+".bai"):
+        subprocess.run(['samtools', 'index', bamfile])
     bedcov_run = subprocess.run(['samtools', 'bedcov', bedfile, bamfile], universal_newlines=True,stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     bedcov = bedcov_run.stdout
     bedcov = bedcov.strip()
@@ -61,6 +63,7 @@ def get_bedcov_genome(bedfile, bamfile):
     for line in bedcov_list:
         line = line.strip()
         split_line = line.split("\t")
+        print(split_line)
         gene_id = split_line[3]
         if gene_id not in gene_OG: continue
         OG_id = gene_OG[gene_id]
@@ -80,15 +83,14 @@ def check_file_exists(file):
         print("Exiting script!")
         exit()
 
-def print_to_file(outfile, magOTU,magOTU_genefam_cov):
+def print_to_file(outfile, magOTU,magOTU_genefam_cov, sample):
     fh_outfile = open(outfile, 'a')
     magOTU_ref_pos = OG_ref_pos[magOTU]
     sorted_pos = sorted(magOTU_ref_pos.items(), key=lambda x: x[1]) #Tuple (OG-pos pairs)
-    sample = "what"
     for ele in sorted_pos:
         OG_id = ele[0][0:-1] #Trim off colon from id
         start_pos = str(ele[1])
-        line_out = [magOTU, sample, OG_id, start_pos, str(magOTU_genefam_cov[magOTU][bamfile][ele[0]])]
+        line_out = [magOTU, sample, OG_id, start_pos, str(magOTU_genefam_cov[magOTU][ele[0]])]
         line_out_str = "\t".join(line_out)
         fh_outfile.write(line_out_str + "\n")
     fh_outfile.close()
@@ -119,23 +121,20 @@ parser = argparse.ArgumentParser()
 requiredNamed = parser.add_argument_group('required arguments')
 requiredNamed.add_argument('--info',metavar="db_metafile",required=True, help="File from checkpoint output with all mag details", action="store") # same as 06_MAG_binning/MAGs_filt_GenomeInfo_auto.tsv
 requiredNamed.add_argument('--ortho', metavar='orthofinder_file', required=True, help="Filtered single-copy ortholog gene file (orthofinder format)", action="store")
-requiredNamed.add_argument('--beddir', metavar="bedfile_dir", required=True, help="Directory containing bed-files for genomes in db", action="store")
+requiredNamed.add_argument('--beddir', metavar="bedfiles_dir", required=True, help="Directory containing bed-files for genomes in db", action="store")
 requiredNamed.add_argument('--bamfile', metavar="bamfile_notlistanymore", help="List of bam-files, one line per file", action="store")
 requiredNamed.add_argument('--group', metavar="group", required=True, help="Name of sample being evaluated", action="store")
 requiredNamed.add_argument('--sample', metavar="sample", required=True, help="Name of genus / group being evaluated", action="store")
 requiredNamed.add_argument('--outfile', metavar="out_file", required=True, help="Output file containing coverage of genefamilies in each magOTU", action="store")
+args = parser.parse_args()
 
 database_metafile = args.info
 ortho_file = args.ortho
-bedfile_dir = args.beddir
+bedfiles_dir = args.beddir
 outfile = args.outfile
 bamfile = args.bamfile
 group = args.group
-sample = arg.sample
-# with open("bedcov.txt", "r") as fh:
-#     bedcov = "".join(fh.readlines())
-# ortho_file = "g__Bombilactobacillus_single_ortho_filt.txt"
-# ref_info = "MAGs_database_ref_info.txt"
+sample = args.sample
 
 #Read the database metafile, store magOTU-affiliation and magOTU-ref ids in dictionaries
 magOTU_ref = make_magOTU_g_dict(database_metafile)
@@ -165,8 +164,8 @@ with open(ortho_file, "r") as fh_orthofile:
             magOTU_OG_genes[magOTU][OG_id].append(gene)
 
 magOTU_ref = dict()
-with open(ref_info, "r") as ref_info_fh:
-    for line in ref_info_fh:
+with open(database_metafile, "r") as database_metafile_fh:
+    for line in database_metafile_fh:
         if line.startswith("genome"):
             continue
         line = line.strip()
@@ -196,7 +195,9 @@ for magOTU in magOTU_genomes.keys():
             OG_ref_pos[magOTU] = dict()
         for line in fh_bedfile:
             line = line.strip()
+            print(line)
             split_line = line.split("\t")
+            print(split_line)
             gene_id = split_line[3]
             start_pos = split_line[1]
             if gene_id not in gene_OG: continue
@@ -228,6 +229,7 @@ for magOTU in magOTU_list:
         check_file_exists(bedfile)
         fh_bedfile = open(bedfile)
         print("\t\tGenome:", genome)
+        print(f"\t\tEstimating bedcov for:{bedfile}, {bamfile}")
         gene_cov_genome = get_bedcov_genome(bedfile, bamfile)
         gene_cov.update(gene_cov_genome)
     print("\tSumming up magOTU-coverage for each gene-family..")
@@ -238,4 +240,4 @@ for magOTU in magOTU_list:
         for gene in OG_genes:
             genefam_cov += gene_cov[gene]
             magOTU_genefam_cov[magOTU][OG_id]= round(genefam_cov,2)
-    print_to_file(outfile, magOTU, magOTU_genefam_cov)
+    print_to_file(outfile, magOTU, magOTU_genefam_cov, sample)

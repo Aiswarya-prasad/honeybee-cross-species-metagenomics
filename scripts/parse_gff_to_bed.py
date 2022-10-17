@@ -12,14 +12,13 @@ only tested on prokka (Prodigal:002006) gff files
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--gff', action='store', help='gff file as input')
-parser.add_argument('--outfile', action='store', help='genes file for MIDAS database creation')
+parser.add_argument('--faa', action='store', help='faa file as input')
+parser.add_argument('--outfile', action='store', help='Bed file for database')
 args = parser.parse_args()
 faa = args.faa
 gff = args.gff
 outfile = args.outfile
-# faa = "MAG_C2.2_4.faa"
-# gff = "MAG_C2.2_4.gff"
-# outfile = "MAG_C2.2_4.bed"
+
 genes_present_in_faa = set()
 for seq_record in SeqIO.parse(faa, "fasta"):
     locustag = seq_record.id

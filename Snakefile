@@ -1682,6 +1682,7 @@ rule select_cluster_ref_genomes_mag_database:
     output:
         mapfile = "database/MAGs_database_ref_info.txt"
     params:
+        mags_list = lambda wildcards: get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags_filt, full_list = True),
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         account="pengel_spirit",
@@ -1689,6 +1690,7 @@ rule select_cluster_ref_genomes_mag_database:
     benchmark: "logs/select_cluster_ref_genomes_mag_database.benchmark"
     log: "logs/select_cluster_ref_genomes_mag_database.log"
     run:
+        MAGs_selected = set(params.mags_list)
         genome_scores = {}
         with open(input.genome_scores, "r") as win_fh:
             for line in win_fh:
@@ -1705,6 +1707,8 @@ rule select_cluster_ref_genomes_mag_database:
                     continue
                 genome_id = line.split("\t")[0]
                 if "MAG_" not in genome_id:
+                    continue
+                if genome_id not in MAGs_selected:
                     continue
                 cluster = line.split("\t")[11]
                 # genus = line.split("\t")[13]
@@ -1977,12 +1981,11 @@ rule make_bed_files_mag_database:
         account="pengel_spirit",
     log: "logs/{genome}_make_bed_files_mag_database.log"
     benchmark: "logs/{genome}_make_bed_files_mag_database.benckmark"
-    # needs biopython
-    # convert to shell accorsingly
-    #  re-run summarise after filter - consider re-running filter
-    # with the additional info
-    script:
-        "scripts/parse_gff_to_bed.py"
+    conda: "envs/core-cov-env.yaml"
+    shell:
+        """
+        python3 scripts/parse_gff_to_bed.py --faa {input.faa_file} --gff {input.gff_file} --outfile {output.outfile}
+        """
 
 rule map_to_MAGs:
     input:
@@ -2034,13 +2037,12 @@ rule map_to_MAGs:
 rule core_cov:
     input:
         bed_files = lambda wildcards: expand("database/bed_files/{genome}.bed", genome=get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt)[wildcards.group]),
-        bam_file = "09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_mapped.bam",
         ortho_file = "database/MAGs_database_Orthofinder/{group}/OrthoFinder/{group}_single_ortho_filt.txt",
-        ref_info = "database/MAGs_database_ref_info.txt"
+        bam_file = "09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_mapped.bam",
+        ref_info = "database/MAGs_database_ref_info.txt",
     output:
-        txt = "09_MagDatabaseProfiling/CoverageEstimation/{sample}/{group}_corecov.txt"
+        core_cov_txt = "09_MagDatabaseProfiling/CoverageEstimation/{sample}/{group}_corecov.txt"
     params:
-        out_dir = lambda wildcards: "09_MagDatabaseProfiling/CoverageEstimation/"+wildcards.sample,
         bedfiles_dir = "database/bed_files/",
         mailto="aiswarya.prasad@unil.ch",
         account="pengel_spirit",
@@ -2053,14 +2055,14 @@ rule core_cov:
     threads: 5
     shell:
         """
-        python3 scripts/core_cov.py --info {input.ref_info} --bamfile {input.bam_file} --ortho {input.ortho_file} --beddir {params.bedfiles_dir} --outfile {params.out_dir} --group {wildcards.phylotype} --sample {wildcards.sample}
+        python3 scripts/core_cov.py --info {input.ref_info} --bamfile {input.bam_file} --ortho {input.ortho_file} --beddir {params.bedfiles_dir} --outfile {output.core_cov_txt} --group {wildcards.group} --sample {wildcards.sample}
         """
 
 rule merge_core_cov:
     input:
         core_cov_per_sample = expand("09_MagDatabaseProfiling/CoverageEstimation/{sample}/{{group}}_corecov.txt", sample=SAMPLES)
     output:
-        core_cov_merged = "09_MagDatabaseProfiling/CoverageEstimation/{group}_corecov.txt"
+        core_cov_merged = "09_MagDatabaseProfiling/CoverageEstimationMerged/{group}_corecov.txt"
     params:
         mailto="aiswarya.prasad@unil.ch",
         account="pengel_spirit",
@@ -2069,36 +2071,40 @@ rule merge_core_cov:
         mem_mb = 8000
     log: "logs/{group}_merge_core_cov.log"
     benchmark: "logs/{group}_merge_core_cov.benchmark"
+    run:
+        for file in input.core_cov_per_sample:
+            with open(output.core_cov_merged, "w") as out_fh:
+                header_done = False
+                with open(file, "r") as in_fh:
+                    for line in in_fh:
+                        if "Coverage" in line and line.startswith("magOTU"):
+                            if header_done:
+                                continue
+                            else:
+                                out_fh.write(line)
+                                header_done = True
+                        out_fh.write(line)
+
+rule core_cov_plots:
+    input:
+        txt = "09_MagDatabaseProfiling/CoverageEstimationMerged/{group}_corecov.txt",
+    output:
+        txt = "09_MagDatabaseProfiling/CoverageEstimationMerged/{group}_corecov_coord.txt",
+        pdf = "09_MagDatabaseProfiling/CoverageEstimationMerged/{group}_corecov_coord.pdf"
+    params:
+        mailto="aiswarya.prasad@unil.ch",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-1:10:00"),
+    resources:
+        mem_mb = 8000
     conda: "envs/core-cov-env.yaml"
+    log: "logs/{group}_core_cov_plots.log"
+    benchmark: "logs/{group}_core_cov_plots.benchmark"
+    threads: 1
     shell:
         """
-        cat {input.core_cov_per_sample} > {output.core_cov_merged}
+        ./scripts/core_cov.R {input.txt};
         """
-
-
-# rule core_cov_plots:
-#     input:
-#         txt = "04_CoreCov_"+ProjectIdentifier+"/{phylotype}_corecov.txt",
-#         core_covR = "scripts/core_cov.R",
-#     output:
-#         txt = "04_CoreCov_"+ProjectIdentifier+"/{phylotype}_corecov_coord.txt",
-#         pdf = "04_CoreCov_"+ProjectIdentifier+"/{phylotype}_corecov_coord.pdf"
-#     params:
-#         mailto="aiswarya.prasad@unil.ch",
-#         account="pengel_spirit",
-#         runtime_s=convertToSec("0-1:10:00"),
-#     resources:
-#         mem_mb = 8000
-#     conda: "envs/core-cov-env.yaml"
-#     log: "logs/{phylotype}_core_cov_plots.log"
-#     threads: 1
-#     # at some point do:
-#     # script:
-#     #     "scripts/core_cov.R"
-#     shell:
-#         """
-#         {input.core_covR} {input.txt};
-#         """
 
 rule setup_midas_parse_gff:
     input:
@@ -2857,85 +2863,23 @@ rule compile_report:
         trees = lambda wildcards: ["07_AnnotationAndPhylogenies/05_IQTree/"+group+"/"+group+"_Phylogeny.contree" for group in [x for x in GROUPS if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_tree) > 4]],
         single_ortho_MAGs = expand("07_AnnotationAndPhylogenies/02_orthofinder/{group}/OrthoFinder/{group}_single_ortho_MAGs.txt", group=GROUPS),
         ortho_summary = expand("07_AnnotationAndPhylogenies/02_orthofinder/{group}_Orthogroups_summary.csv", group=GROUPS),
-        midas_species_prevalence = "11_MIDAS/MidasProfiling/species_prevalence.txt",
-        midas_genes_summary = "11_MIDAS/midas_genes_summary.done",
-        snps_summary = "11_MIDAS/snps_summary.done",
-        midas_genus_species_prevalence = "11_MIDAS_genus_level/MidasProfiling/species_prevalence.txt",
-        midas_genus_genes_summary = "11_MIDAS_genus_level/midas_genes_summary.done",
-        snps_summary_genus = "11_MIDAS_genus_level/snps_summary.done",
+        # midas_species_prevalence = "11_MIDAS/MidasProfiling/species_prevalence.txt",
+        # midas_genes_summary = "11_MIDAS/midas_genes_summary.done",
+        # snps_summary = "11_MIDAS/snps_summary.done",
+        # midas_genus_species_prevalence = "11_MIDAS_genus_level/MidasProfiling/species_prevalence.txt",
+        # midas_genus_genes_summary = "11_MIDAS_genus_level/midas_genes_summary.done",
+        # snps_summary_genus = "11_MIDAS_genus_level/snps_summary.done",
         # snp_intra = lambda wildcards: expand("11_MIDAS/snp_diversity_intra/snp_diversity_{cluster}.info", cluster = get_cluster_dict(checkpoints.make_phylo_table.get().output.out_all).keys()),
         # snp_inter = lambda wildcards: expand("11_MIDAS/snp_diversity_inter/snp_diversity_{cluster}.info", cluster = get_cluster_dict(checkpoints.make_phylo_table.get().output.out_all).keys())
-        # mag_mapping_flagstat = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_flagstat.tsv", sample=SAMPLES),
-        # mag_mapping_hostfiltered_flagstat = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_host-filtered_flagstat.tsv", sample=SAMPLES),
+        mag_mapping_flagstat = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_flagstat.tsv", sample=SAMPLES),
+        mag_mapping_hostfiltered_flagstat = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_host-filtered_flagstat.tsv", sample=SAMPLES),
         summarise_db_ortho = lambda wildcards: ["database/MAGs_database_Orthofinder/"+group+"_Orthogroups_summary.csv" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
         summarise_db_ortho_filt = lambda wildcards: ["database/MAGs_database_Orthofinder/"+group+"_Orthogroups_filtered_summary.csv" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
         bam_mapped_mag_database = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_mapped.bam", sample=SAMPLES),
-        core_cov_merged = lambda wildcards: ["09_MagDatabaseProfiling/CoverageEstimation/"+group+"_corecov.txt" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
+        core_cov_plots = lambda wildcards: ["09_MagDatabaseProfiling/CoverageEstimationMerged/"+group+"_corecov_coord.txt" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
+        core_cov_txt = lambda wildcards: ["09_MagDatabaseProfiling/CoverageEstimationMerged/"+group+"_corecov_coord.pdf" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
     output:
         html = PROJECT_IDENTIFIER+"_Report.html",
-        # fig_00a = "Figures/00a-Total_reads_trimming.pdf",
-        # fig_00b = "Figures/00b-Total_reads_species_after_trimming.pdf",
-        # fig_00c = "Figures/00c-Mapped_Unmapped_reads_prop.pdf",
-        # fig_00d = "Figures/00d-Mapping_non_specific.pdf",
-        # fig_04b = "Figures/04b-motus_filt.pdf",
-        # fig_04a = "Figures/04a-motus.pdf",
-        # fig_03a = "Figures/03a-NumberOfFilteredcontigs.pdf",
-        # fig_03b = "Figures/03b-Assembly_summary.pdf",
-        # fig_05c_am = "Figures/05c-contig_length_histogram_am.pdf",
-        # fig_05d_am = "Figures/05d-contig_length_histogram_am_passed.pdf",
-        # fig_05c_ac = "Figures/05c-contig_length_histogram_ac.pdf",
-        # fig_05d_ac = "Figures/05d-contig_length_histogram_ac_passed.pdf",
-        # fig_05c_ad = "Figures/05c-contig_length_histogram_ad.pdf",
-        # fig_05d_ad = "Figures/05d-contig_length_histogram_ad_passed.pdf",
-        # fig_05c_af = "Figures/05c-contig_length_histogram_af.pdf",
-        # fig_05d_af = "Figures/05d-contig_length_histogram_af_passed.pdf",
-        # fig_05g_am = "Figures/05g-length_vs_depth_contigs_all_am.pdf",
-        # fig_05h_am = "Figures/05h-length_vs_depth_contigs_binned_am.pdf",
-        # fig_05g_ac = "Figures/05g-length_vs_depth_contigs_all_ac.pdf",
-        # fig_05h_ac = "Figures/05h-length_vs_depth_contigs_binned_ac.pdf",
-        # fig_05g_ad = "Figures/05g-length_vs_depth_contigs_all_ad.pdf",
-        # fig_05h_ad = "Figures/05h-length_vs_depth_contigs_binned_ad.pdf",
-        # fig_05g_af = "Figures/05g-length_vs_depth_contigs_all_af.pdf",
-        # fig_05h_af = "Figures/05h-length_vs_depth_contigs_binned_af.pdf",
-        # fig_05a = "Figures/05a-data-contigs_passed_failed.pdf",
-        # fig_05b = "Figures/05b-contigs_binned_unbinned.pdf",
-        # fig_05e_1 = "Figures/05e-contigs_binned_unbinned_by_genus.pdf",
-        # fig_05e_2 = "Figures/05e-contigs_binned_unbinned_by_genus_scaled.pdf",
-        # fig_05f_1 = "Figures/05f-contigs_by_genus_binned.pdf",
-        # fig_05f_2 = "Figures/05f-contigs_by_genus_binned_scaled.pdf",
-        # fig_07a_1 = "Figures/07a-prev_vs_coverage_all_MAGs_genus_by_host.pdf",
-        # fig_07a_2 = "Figures/07a-prev_vs_coverage_filtered_MAGs_genus_by_host.pdf",
-        # fig_07a_3 = "Figures/07a-prev_vs_coverage_all_MAGs_genus_by_host_no_size.pdf",
-        # fig_07a_4 = "Figures/07a-prev_vs_coverage_filtered_MAGs_genus_by_host_no_size.pdf",
-        # fig_06a = "Figures/06a-QC_MAG_histogram.pdf",
-        # fig_06b = "Figures/06b-QC_MAG_per_sample.pdf",
-        # fig_07a_5 = "Figures/07a-prev_vs_coverage_MAGs_genus.pdf",
-        # fig_07a_6 = "Figures/07a-prev_overall_vs_coverage_MAGs_genus.pdf",
-        # fig_07_1 = "Figures/07-QC_per_Genus_per_host_all.pdf",
-        # fig_07_2 = "Figures/07-QC_per_Genus_per_host_passed.pdf",
-        # fig_08a = "Figures/08a-magOTUs_per_sample.pdf",
-        # fig_08b = "Figures/08b-magOTU_per_sample_genus.pdf",
-        # fig_08c_1 = "Figures/08c-magOTU_by_host_genus.pdf",
-        # fig_08c_2 = "Figures/08c-magOTU_by_host_MAGs_coverage.pdf",
-        # fig_08c_3 = "Figures/08c-magOTU_by_host_MAGs_prevalence.pdf",
-        # fig_08d_1 = "Figures/08d-magOTU_shared_per_sample_genus.pdf",
-        # fig_08d_2 = "Figures/08d-magOTUs_shared_per_sample_prev_abund.pdf",
-        # fig_08e = "Figures/08e-magOTUs_by_host_completeness.pdf",
-        # fig_08f_1 = "Figures/08f-mags_prev_vs_abd_by_genus_completeness.pdf",
-        # fig_08f_2 = "Figures/08f-mags_prev_vs_abd_by_genus_host.pdf",
-        # fig_09a_1 = "Figures/09a-magOTU_number_per_sample_all.pdf",
-        # fig_09a_2 = "Figures/09a-magOTU_number_per_sample_passed.pdf",
-        # fig_09c = "Figures/09c-magOTUs_accumulation_curve.pdf",
-        # fig_09d_1 = "Figures/09d-magOTUs_pcoa.pdf",
-        # fig_09d_2 = "Figures/09d-magOTUs_pcoa_location.pdf",
-        # fig_09d_3 = "Figures/09d-magOTUs_pcoa_colony.pdf",
-        # fig_09d_4 = "Figures/09d-magOTUs_pcoa_country.pdf",
-        # fig_09d_5 = "Figures/09d-magOTUs_pcoa_run_id.pdf",
-        # fig_10a = "Figures/10a-Number_of_genomes_per_group.pdf",
-        # fig_10b = "Figures/10b-Number_of_orthogroups_per_group.pdf",
-        # fig_10c = "Figures/10c-Orthogroups_status_per_group.pdf",
-        # fig_11a = "Figures/11a-mag_drep_scores_histogram.pdf",
-        # fig_11b = "Figures/11b-cluster_size_histogram.pdf",
     conda: "envs/rmd-env.yaml"
     threads: 2
     params:
@@ -2975,21 +2919,22 @@ rule backup:
         trees = lambda wildcards: ["07_AnnotationAndPhylogenies/05_IQTree/"+group+"/"+group+"_Phylogeny.contree" for group in [x for x in GROUPS if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_tree) > 4]],
         single_ortho_MAGs = expand("07_AnnotationAndPhylogenies/02_orthofinder/{group}/OrthoFinder/{group}_single_ortho_MAGs.txt", group=GROUPS),
         ortho_summary = expand("07_AnnotationAndPhylogenies/02_orthofinder/{group}_Orthogroups_summary.csv", group=GROUPS),
-        midas_species_prevalence = "11_MIDAS/MidasProfiling/species_prevalence.txt",
-        midas_genes_summary = "11_MIDAS/midas_genes_summary.done",
-        snps_summary = "11_MIDAS/snps_summary.done",
-        midas_genus_species_prevalence = "11_MIDAS_genus_level/MidasProfiling/species_prevalence.txt",
-        midas_genus_genes_summary = "11_MIDAS_genus_level/midas_genes_summary.done",
-        snps_summary_genus = "11_MIDAS_genus_level/snps_summary.done",
+        # midas_species_prevalence = "11_MIDAS/MidasProfiling/species_prevalence.txt",
+        # midas_genes_summary = "11_MIDAS/midas_genes_summary.done",
+        # snps_summary = "11_MIDAS/snps_summary.done",
+        # midas_genus_species_prevalence = "11_MIDAS_genus_level/MidasProfiling/species_prevalence.txt",
+        # midas_genus_genes_summary = "11_MIDAS_genus_level/midas_genes_summary.done",
+        # snps_summary_genus = "11_MIDAS_genus_level/snps_summary.done",
         # snp_intra = lambda wildcards: expand("11_MIDAS/snp_diversity_intra/snp_diversity_{cluster}.info", cluster = get_cluster_dict(checkpoints.make_phylo_table.get().output.out_all).keys()),
         # snp_inter = lambda wildcards: expand("11_MIDAS/snp_diversity_inter/snp_diversity_{cluster}.info", cluster = get_cluster_dict(checkpoints.make_phylo_table.get().output.out_all).keys())
         # mOTUlize = "06_MAG_binning/mOTUlizer/mOTUlizer_output.tsv",
-        # mag_mapping_flagstat = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_flagstat.tsv", sample=SAMPLES),
-        # mag_mapping_hostfiltered_flagstat = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_host-filtered_flagstat.tsv", sample=SAMPLES),
+        mag_mapping_flagstat = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_flagstat.tsv", sample=SAMPLES),
+        mag_mapping_hostfiltered_flagstat = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_host-filtered_flagstat.tsv", sample=SAMPLES),
         summarise_db_ortho = lambda wildcards: ["database/MAGs_database_Orthofinder/"+group+"_Orthogroups_summary.csv" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
         summarise_db_ortho_filt = lambda wildcards: ["database/MAGs_database_Orthofinder/"+group+"_Orthogroups_filtered_summary.csv" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
         bam_mapped_mag_database = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_mapped.bam", sample=SAMPLES),
-        core_cov_merged = lambda wildcards: ["09_MagDatabaseProfiling/CoverageEstimation/"+group+"_corecov.txt" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
+        core_cov_plots = lambda wildcards: ["09_MagDatabaseProfiling/CoverageEstimationMerged/"+group+"_corecov_coord.txt" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
+        core_cov_txt = lambda wildcards: ["09_MagDatabaseProfiling/CoverageEstimationMerged/"+group+"_corecov_coord.pdf" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
     output:
         outfile = touch("logs/backup.done")
     threads: 2
