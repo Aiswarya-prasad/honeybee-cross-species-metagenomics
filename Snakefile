@@ -97,6 +97,46 @@ def get_g_dict_for_groups_from_data(path):
                 g_list_dict[group] = [genome]
     return(g_list_dict)
 
+def get_g_dict_for_groups_from_data_reduced_db(path, ref_info):
+    """
+    Returns dictionary of genomes and groups with each value being a list of
+    genomes corresponding to a given group (and only those that are rep genomes)
+    """
+    rep_genomes = {}
+    with open(ref_info, "w") as ref_info_fh:
+        header = ref_info_fh.readline()
+        for line in ref_info_fh:
+            line = line.strip()
+            genome_id = line.split("\t")[0]
+            rep_genome_status = int(line.split("\t")[2])
+            group = line.split("\t")[3]
+            if rep_genome_status == 1:
+                if group in rep_genomes.keys():
+                    rep_genomes[group].add(genome_id)
+                else:
+                    rep_genomes[group] = set(genome_id)
+    g_list_dict = {}
+    if os.path.isfile(path):
+        pass
+    else:
+        print(f"Could not find file at {path}")
+    with open(path, "r", encoding='utf-8-sig') as info_fh:
+        for line in info_fh:
+            line = line.strip()
+            if line.startswith("ID"):
+                continue
+            genome = line.split("\t")[0]
+            cluster = line.split("\t")[11]
+            group = line.split("\t")[18]
+            # only include groups of interest!
+            if group == "g__":
+                group = "g__"+cluster
+            if group in g_list_dict.keys():
+                g_list_dict[group].append(genome)
+            else:
+                g_list_dict[group] = [genome]
+    return(g_list_dict)
+
 def convertToMb(string):
     """
     This function can convert text in the form
@@ -1923,6 +1963,7 @@ rule calc_perc_id_mag_database:
         done
         """
 
+# consider using median perc_id? For bifidos all the perc ids are > 0.95 max.
 rule filter_orthologs_mag_database:
     input:
         single_ortho = "database/MAGs_database_Orthofinder/{group}/OrthoFinder/{group}_single_ortho.txt",
@@ -1931,6 +1972,7 @@ rule filter_orthologs_mag_database:
         single_ortho_seq_done = "database/MAGs_database_Orthofinder/{group}/single_ortholog_sequences.done",
     output:
         ortho_filt = "database/MAGs_database_Orthofinder/{group}/OrthoFinder/{group}_single_ortho_filt.txt",
+        ortho_filt_perc_id = "database/MAGs_database_Orthofinder/{group}/OrthoFinder/{group}_single_ortho_filt_perc_id.txt",
     params:
         ortho_seq_dir = lambda wildcards: "database/MAGs_database_Orthofinder/"+wildcards.group+"/single_ortholog_sequences/",
         mailto = "aiswarya.prasad@unil.ch",
@@ -2037,7 +2079,7 @@ rule map_to_MAGs:
 rule core_cov:
     input:
         bed_files = lambda wildcards: expand("database/bed_files/{genome}.bed", genome=get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt)[wildcards.group]),
-        ortho_file = "database/MAGs_database_Orthofinder/{group}/OrthoFinder/{group}_single_ortho_filt.txt",
+        ortho_file = "database/MAGs_database_Orthofinder/{group}/OrthoFinder/{group}_single_ortho.txt",
         bam_file = "09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_mapped.bam",
         ref_info = "database/MAGs_database_ref_info.txt",
     output:
@@ -2072,25 +2114,23 @@ rule merge_core_cov:
     log: "logs/{group}_merge_core_cov.log"
     benchmark: "logs/{group}_merge_core_cov.benchmark"
     run:
-        for file in input.core_cov_per_sample:
-            with open(output.core_cov_merged, "w") as out_fh:
-                header_done = False
+        header_done = False
+        with open(output.core_cov_merged, "w") as out_fh:
+            for file in input.core_cov_per_sample:
                 with open(file, "r") as in_fh:
+                    header = in_fh.readline()
+                    if not header_done:
+                        out_fh.write(header)
+                        header_done = True
                     for line in in_fh:
-                        if "Coverage" in line and line.startswith("magOTU"):
-                            if header_done:
-                                continue
-                            else:
-                                out_fh.write(line)
-                                header_done = True
                         out_fh.write(line)
 
 rule core_cov_plots:
     input:
         txt = "09_MagDatabaseProfiling/CoverageEstimationMerged/{group}_corecov.txt",
     output:
-        txt = "09_MagDatabaseProfiling/CoverageEstimationMerged/{group}_corecov_coord.txt",
-        pdf = "09_MagDatabaseProfiling/CoverageEstimationMerged/{group}_corecov_coord.pdf"
+        txt = "09_MagDatabaseProfiling/CoverageEstimationMerged/{group}_coord.txt",
+        pdf = "09_MagDatabaseProfiling/CoverageEstimationMerged/{group}_coord.pdf"
     params:
         mailto="aiswarya.prasad@unil.ch",
         account="pengel_spirit",
@@ -2106,732 +2146,241 @@ rule core_cov_plots:
         ./scripts/core_cov.R {input.txt};
         """
 
-rule setup_midas_parse_gff:
+rule make_MAG_reduced_db:
     input:
-        gff_file = "07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.gff",
+        mag_database = "database/MAGs_database",
+        ref_info = "database/MAGs_database_ref_info.txt",
     output:
-        outfile = "11_MIDAS/MAGs_database/{genome}/{genome}.genes",
+        mag_database_reduced = "database/MAGs_database_reduced",
+        index = multiext("database/MAGs_database_reduced", ".amb", ".ann", ".bwt", ".pac", ".sa")
     params:
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         account="pengel_spirit",
         runtime_s=convertToSec("0-2:10:00"),
-    benchmark: "logs/setup_midas_parse_gff_{genome}.benchmark"
-    log: "logs/setup_midas_parse_gff_{genome}.log"
+    resources:
+        mem_mb = convertToMb("8G")
+    threads: 8
+    log: "logs/make_MAG_reduced_db.log"
+    benchmark: "logs/make_MAG_reduced_db.benchmark"
+    conda: "envs/core-cov-env.yaml"
     shell:
         """
-        python3 scripts/parse_gff_for_midas.py --outfile {output.outfile} --gff {input.gff_file}
+        python3 scripts/subset_metagenome_db.py --input {input.mag_database} --ref_info {input.ref_info}
+        bwa index {output.mag_database_reduced}
         """
 
-rule setup_midas_for_custom_db_prepare_files:
+rule subset_orthofiles_for_reduced_database:
     input:
-        fna_file = "07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.fna",
-        faa_file = "07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.faa",
-        ffn_file = "07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.ffn",
+        ref_info = "database/MAGs_database_ref_info.txt",
+        ortho_file = "database/MAGs_database_Orthofinder/{group}/OrthoFinder/{group}_single_ortho.txt",
     output:
-        fna_file = "11_MIDAS/MAGs_database/{genome}/{genome}.fna",
-        faa_file = "11_MIDAS/MAGs_database/{genome}/{genome}.faa",
-        ffn_file = "11_MIDAS/MAGs_database/{genome}/{genome}.ffn"
+        ortho_file = "database/MAGs_database_Orthofinder/{group}/OrthoFinder/{group}_single_ortho_reduced.txt",
     params:
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         account="pengel_spirit",
         runtime_s=convertToSec("0-2:10:00"),
-    log: "logs/setup_midas_for_custom_db_prepare_files_{genome}.log"
+    resources:
+        mem_mb = convertToMb("8G")
+    threads: 8
+    log: "logs/{group}_subset_orthofiles_for_reduced_database.log"
+    benchmark: "logs/{group}_subset_orthofiles_for_reduced_database.benchmark"
+    conda: "envs/core-cov-env.yaml"
     shell:
         """
-        mkdir -p 11_MIDAS/MAGs_database/
-        mkdir -p 11_MIDAS/MAGs_database/{wildcards.genome}
-        rsync -av {input.fna_file} {output.fna_file}
-        rsync -av {input.faa_file} {output.faa_file}
-        rsync -av {input.ffn_file} {output.ffn_file}
+        python3 scripts/subset_orthofiles.py --input {input.orthofile} --ref_info {input.ref_info} --output {output.orthofile} --group {wildcards.group}
         """
 
-rule setup_midas_for_custom_db_write_mapfile:
+rule map_to_MAGs_reduced:
     input:
-        genomes_info = lambda wildcards: checkpoints.make_phylo_table.get().output.out_mags_filt,
-        genome_scores = lambda wildcards: rules.drep.output.drep_S
+        reads1 = rules.trim.output.reads1,
+        reads2 = rules.trim.output.reads2,
+        index = multiext("database/MAGs_database_reduced", ".amb", ".ann", ".bwt", ".pac", ".sa"),
+        genome_db = "database/MAGs_database_reduced"
     output:
-        mapfile = "11_MIDAS/midas_mapfile.tsv"
+        bam_mapped_reduced_temp = "09_MagDatabaseProfiling/SNVProfiling/{sample}_mapped_temp.bam",
+        bam_mapped_reduced = temp("09_MagDatabaseProfiling/SNVProfiling/{sample}_mapped.bam"),
+        bam_mapped_reduced_index = temp("09_MagDatabaseProfiling/SNVProfiling/{sample}_mapped.bam.bai"),
+        bam_reduced = temp("09_MagDatabaseProfiling/SNVProfiling/{sample}.bam"),
+        sam_reduced = temp("09_MagDatabaseProfiling/SNVProfiling/{sample}.sam"),
+        sam_mapped_reduced = temp("09_MagDatabaseProfiling/SNVProfiling/{sample}_mapped.sam"),
+        mag_mapping_flagstat_reduced = "09_MagDatabaseProfiling/SNVProfiling/{sample}_flagstat.tsv",
     params:
+        perl_extract_mapped = "scripts/filter_sam_aln_length.pl",
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        jobname="{sample}_microbiomedb_mapping",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-4:10:00"),
+    resources:
+        mem_mb = convertToMb("20G")
+    threads: 8
+    log: "logs/{sample}_map_to_mags_reduced.log"
+    benchmark: "logs/{sample}_map_to_mags_reduced.benchmark"
+    conda: "envs/mapping-env.yaml"
+    shell:
+        """
+        bwa mem -t {threads} {input.genome_db} {input.reads1} {input.reads2} > {output.sam_reduced}
+        samtools view -bh {output.sam_reduced} | samtools sort - > {output.bam_reduced}
+        samtools flagstat -O tsv {output.bam_reduced} > {output.mag_mapping_flagstat_reduced}
+        samtools view -h -F4 -@ {threads} {output.sam_reduced} | samtools view - -F 0x800 -h | grep -E "NM:i:[0-4][[:blank:]]|^\@" | perl {params.perl_extract_mapped} - > {output.sam_mapped_reduced}
+        samtools view -bh {output.sam_mapped_reduced} | samtools sort - > {output.bam_mapped_reduced_temp}
+        picard -Xmx8g AddOrReplaceReadGroups I={output.bam_mapped_reduced_temp} O={output.bam_mapped_reduced} RGID={wildcards.sample} RGLB=lib1 RGPL=illumina RGPU=none RGSM={wildcards.sample}
+        samtools index {output.bam_mapped_reduced}
+        """
+
+rule de_duplicate:
+    input:
+        bam_red = rules.map_to_MAGs_reduced.output.bam_mapped_reduced,
+    output:
+        bam_red = temp("09_MagDatabaseProfiling/SNVProfiling/{sample}_mapped_red_dedup.bam"),
+        bam_red_index = temp("09_MagDatabaseProfiling/SNVProfiling/{sample}_mapped_red_dedup.bam.bai"),
+        txt = "09_MagDatabaseProfiling/SNVProfiling/{sample}_dedup_metrics.txt"
+    params:
+        perl_extract_mapped = "scripts/filter_sam_aln_length.pl",
+        mailto="aiswarya.prasad@unil.ch",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-6:10:00"),
+    resources:
+        mem_mb = 8000
+    threads:
+        20
+    conda: "envs/mapping-env.yaml"
+    log: "logs/{sample}_de_duplicate.log"
+    benchmark: "logs/{sample}_de_duplicate.benchmark"
+    shell:
+        """
+        picard -Xmx8g MarkDuplicates INPUT={input.bam_red} OUTPUT={output.bam_red} METRICS_FILE={output.txt};
+        samtools index {output.bam_red}
+        """
+
+rule core_cov_red:
+    input:
+        ortho_file = "database/OrthoFiles_"+DBs["microbiome_red"]+"/{phylotype}_single_ortho_filt.txt",
+        bam_files = expand("07_SNVProfiling/Mapping_red/{sample}_mapped_red_dedup.bam", sample=config["SAMPLES"]),
+        bed_files = expand("database/bed_files/{genome}.bed", genome=get_g_list(DBs["microbiome_red"])),
+        genome_db_meta = "database/"+DBs["microbiome"]+"_metafile.txt",
+        core_cov = "scripts/core_cov.py",
+    output:
+        corecovred_txt = "07_SNVProfiling/CoreCov_"+ProjectIdentifier+"/{phylotype}_corecov.txt"
+    params:
+        bed_files = "database/bed_files",
+        out_dir = "07_SNVProfiling/CoreCov_"+ProjectIdentifier,
+        mailto="aiswarya.prasad@unil.ch",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-7:10:00")
+    resources:
+        mem_mb = 8000
+    log: "logs/{phylotype}_core_cov.log"
+    conda: "envs/core-cov-env.yaml"
+    threads: 5
+    shell:
+        """
+        {input.core_cov} -d {input.genome_db_meta} -L {input.bam_files} -g {input.ortho_file} -b {params.bed_files} -o {params.out_dir} -n {wildcards.phylotype};
+        """
+rule core_cov_red:
+    input:
+        bed_files = lambda wildcards: expand("database/bed_files/{genome}.bed", genome=get_g_dict_for_groups_from_data_reduced_db(checkpoints.make_phylo_table.get().output.out_mags_filt, rules.select_cluster_ref_genomes_mag_database.output.mapfile)[wildcards.group]),
+        ortho_file = "database/MAGs_database_Orthofinder/{group}/OrthoFinder/{group}_single_ortho_reduced.txt",
+        bam_file = "09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_mapped.bam",
+        ref_info = "database/MAGs_database_ref_info.txt",
+    output:
+        core_cov_txt = "09_MagDatabaseProfiling/CoverageEstimation/{sample}/{group}_corecov.txt"
+    params:
+        bedfiles_dir = "database/bed_files/",
+        mailto="aiswarya.prasad@unil.ch",
         account="pengel_spirit",
         runtime_s=convertToSec("0-2:10:00"),
-    benchmark: "logs/setup_midas_for_custom_db_write_mapfile.benchmark"
-    log: "logs/setup_midas_for_custom_db_write_mapfile.log"
-    run:
-        genome_scores = {}
-        with open(input.genome_scores, "r") as win_fh:
-            for line in win_fh:
-                line = line.strip()
-                if line.startswith("genome"):
-                    continue
-                genome_scores[line.split(",")[0].split(".fa")[0]] = float(line.split(",")[1])
-        with open(input.genomes_info, "r") as info_fh:
-            # make rep genomes set
-            group_max_score = {}
-            rep_genome_dict = {}
-            for line in info_fh:
-                if line.startswith("ID"):
-                    continue
-                genome_id = line.split("\t")[0]
-                if "MAG_" not in genome_id:
-                    continue
-                cluster = line.split("\t")[11]
-                # genus = line.split("\t")[13]
-                # genus = genus+cluster if genus == "g__" else genus
-                if cluster in group_max_score.keys():
-                    if int(genome_scores[genome_id]) > group_max_score[cluster]:
-                        group_max_score[cluster] = genome_scores[genome_id]
-                        rep_genome_dict[cluster] = genome_id
-                else:
-                    group_max_score[cluster] = genome_scores[genome_id]
-                    rep_genome_dict[cluster] = genome_id
-        with open(input.genomes_info, "r") as info_fh:
-            with open(output.mapfile, "w") as out_fh:
-                out_fh.write("genome_id\tspecies_id\trep_genome\n")
-                for line in info_fh:
-                    if line.startswith("ID"):
-                        continue
-                    genome_id = line.split("\t")[0]
-                    if "MAG_" not in genome_id:
-                        continue
-                    cluster = line.split("\t")[11]
-                    # genus = line.split("\t")[13]
-                    # if genus == "NA":
-                    #     print(f"genus for {genome_id} is {genus}. This group may not make sense.")
-                    #     continue
-                    species_id = cluster
-                    # species_id = genus+cluster if genus == "g__" else genus
-                    rep_genome = 1 if genome_id in rep_genome_dict.values() else 0
-                    out_fh.write(f"{genome_id}\t{species_id}\t{rep_genome}\n")
-
-rule create_midas_for_custom_db:
-    input:
-        fna_files = lambda wildcards: expand("11_MIDAS/MAGs_database/{genome}/{genome}.fna", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags_filt, full_list = True)),
-        faa_files = lambda wildcards: expand("11_MIDAS/MAGs_database/{genome}/{genome}.faa", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags_filt, full_list = True)),
-        ffn_files = lambda wildcards: expand("11_MIDAS/MAGs_database/{genome}/{genome}.ffn", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags_filt, full_list = True)),
-        genes_file = lambda wildcards: expand("11_MIDAS/MAGs_database/{genome}/{genome}.genes", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags_filt, full_list = True)),
-        mapfile = "11_MIDAS/midas_mapfile.tsv"
-    output:
-        done = touch("11_MIDAS/Midas_DB.done")
-    params:
-        outdir = "11_MIDAS/MAGs_database/Midas_DB",
-        # consider putting these paths in config
-        midas_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/",
-        midas_scripts_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/scripts/",
-        midas_db = "11_MIDAS/MAGs_database/Midas_DB",
-        # midas_db_default = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/midas_db_v1.2/",
-        indir = "11_MIDAS/MAGs_database/",
-        mailto="aiswarya.prasad@unil.ch",
-        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        account="pengel_spirit",
-        runtime_s=convertToSec("0-23:10:00"),
-    benchmark: "logs/create_midas_for_custom_db.benchmark"
-    log: "logs/create_midas_for_custom_db.log"
-    threads: 8
     resources:
         mem_mb = 8000
-    conda: "envs/midas-env.yaml"
+    log: "logs/{sample}_{group}_core_cov.log"
+    benchmark: "logs/{sample}_{group}_core_cov.benchmark"
+    conda: "envs/core-cov-env.yaml"
+    threads: 5
     shell:
         """
-        export PYTHONPATH={params.midas_path}
-        export PATH=$PATH:{params.midas_scripts_path}
-        build_midas_db.py {params.indir} {input.mapfile} {params.outdir} --threads {threads} --resume
-        if [ ! -f {params.midas_db}/marker_genes/phyeco.fa.bwt ];
-        then
-            hs-blastn index {params.midas_db}/marker_genes/phyeco.fa
-        fi
+        python3 scripts/core_cov.py --info {input.ref_info} --bamfile {input.bam_file} --ortho {input.ortho_file} --beddir {params.bedfiles_dir} --outfile {output.core_cov_txt} --group {wildcards.group} --sample {wildcards.sample}
         """
 
-rule midas_species_abundance:
-    input:
-        reads1 = rules.host_mapping_extract_host_filtered_reads.output.reads1,
-        reads2 = rules.host_mapping_extract_host_filtered_reads.output.reads2,
-        done = "11_MIDAS/Midas_DB.done"
-    output:
-        output = "11_MIDAS/MidasProfiling/{sample}/species/species_profile.txt",
-    params:
-        outdir = "11_MIDAS/MidasProfiling/{sample}/",
-        midas_db = "11_MIDAS/MAGs_database/Midas_DB",
-        midas_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/",
-        midas_scripts_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/scripts/",
-        mailto="aiswarya.prasad@unil.ch",
-        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        account="pengel_spirit",
-        runtime_s=convertToSec("0-5:10:00"),
-    benchmark: "logs/midas_species_abundance_{sample}.benchmark"
-    log: "logs/midas_species_abundance_{sample}.log"
-    threads: 8
-    resources:
-        mem_mb = 8000
-    conda: "envs/midas-env.yaml"
-    shell:
-        """
-        export PYTHONPATH={params.midas_path}
-        export PATH=$PATH:{params.midas_scripts_path}
-        run_midas.py species {params.outdir} -1 {input.reads1} -2 {input.reads2} -t {threads} -d {params.midas_db} --remove_temp
-        """
-
-rule midas_species_abundance_merge:
-    input:
-        per_sample_output = expand("11_MIDAS/MidasProfiling/{sample}/species/species_profile.txt", sample=SAMPLES)
-    output:
-        relative_abundance = "11_MIDAS/MidasProfiling/relative_abundance.txt",
-        count_reads = "11_MIDAS/MidasProfiling/count_reads.txt",
-        coverage = "11_MIDAS/MidasProfiling/coverage.txt",
-        species_prevalence = "11_MIDAS/MidasProfiling/species_prevalence.txt",
-    params:
-        outdir = "11_MIDAS/MidasProfiling/",
-        midas_db = "11_MIDAS/MAGs_database/Midas_DB",
-        midas_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/",
-        midas_scripts_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/scripts/",
-        mailto="aiswarya.prasad@unil.ch",
-        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        account="pengel_spirit",
-        runtime_s=convertToSec("0-5:10:00"),
-    benchmark: "logs/midas_species_abundance_merged.benchmark"
-    log: "logs/midas_species_abundance_merged.log"
-    threads: 8
-    resources:
-        mem_mb = 8000
-    conda: "envs/midas-env.yaml"
-    shell:
-        """
-        export PYTHONPATH={params.midas_path}
-        export PATH=$PATH:{params.midas_scripts_path}
-        export MIDAS_DB={params.midas_db}
-        merge_midas.py species {params.outdir} -i {params.outdir} -t dir
-        """
-
-rule midas_gene_content:
-    input:
-        reads1 = rules.host_mapping_extract_host_filtered_reads.output.reads1,
-        reads2 = rules.host_mapping_extract_host_filtered_reads.output.reads2,
-        output = "11_MIDAS/MidasProfiling/{sample}/species/species_profile.txt",
-        done = "11_MIDAS/Midas_DB.done",
-    output:
-        output = "11_MIDAS/MidasProfiling/{sample}/genes/summary.txt",
-    params:
-        outdir = "11_MIDAS/MidasProfiling/{sample}/",
-        midas_db = "11_MIDAS/MAGs_database/Midas_DB",
-        midas_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/",
-        midas_scripts_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/scripts/",
-        species_cov = 10, # default is 3 use later if needed
-        mailto="aiswarya.prasad@unil.ch",
-        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        account="pengel_spirit",
-        runtime_s=convertToSec("0-5:10:00"),
-    benchmark: "logs/midas_gene_content_{sample}.benchmark"
-    log: "logs/midas_gene_content_{sample}.log"
-    threads: 8
-    resources:
-        mem_mb = 8000
-    conda: "envs/midas-env.yaml"
-    shell:
-        """
-        export PYTHONPATH={params.midas_path}
-        export PATH=$PATH:{params.midas_scripts_path}
-        export MIDAS_DB={params.midas_db}
-        run_midas.py genes {params.outdir} -1 {input.reads1} -2 {input.reads2} -t {threads} -d {params.midas_db} --remove_temp
-        """
-
-rule midas_gene_content_merge:
-    input:
-        per_sample_output = expand("11_MIDAS/MidasProfiling/{sample}/genes/summary.txt", sample=SAMPLES)
-    output:
-        # genes_coverage = "11_MIDAS/MidasProfiling/{cluster}/genes_coverage.txt",
-        # genes_presence = "11_MIDAS/MidasProfiling/{cluster}/genes_presence_absence.txt",
-        # genes_summary = "11_MIDAS/MidasProfiling/{cluster}/genes_summary.txt",
-        # genes_copy_number = "11_MIDAS/MidasProfiling/{cluster}/genes_copy_number.txt"
-        outdone = touch("11_MIDAS/midas_genes_summary.done")
-    params:
-        outdir = "11_MIDAS/MidasProfiling/",
-        midas_db = "11_MIDAS/MAGs_database/Midas_DB",
-        midas_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/",
-        midas_scripts_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/scripts/",
-        mailto="aiswarya.prasad@unil.ch",
-        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        account="pengel_spirit",
-        runtime_s=convertToSec("0-5:10:00"),
-    benchmark: "logs/midas_gene_content_merged.benchmark"
-    log: "logs/midas_gene_content_merged.log"
-    threads: 8
-    resources:
-        mem_mb = 8000
-    conda: "envs/midas-env.yaml"
-    shell:
-        """
-        export PYTHONPATH={params.midas_path}
-        export PATH=$PATH:{params.midas_scripts_path}
-        export MIDAS_DB={params.midas_db}
-        merge_midas.py genes {params.outdir} -i {params.outdir} -t dir
-        for readme in 11_MIDAS/MidasProfiling/*/readme.txt;
-        do
-            cp ${{readme%%readme.txt}}/readme.txt ${{readme%%readme.txt}}/genes_readme.txt
-        done
-        """
-
-rule midas_profile_snps:
-    input:
-        reads1 = rules.host_mapping_extract_host_filtered_reads.output.reads1,
-        reads2 = rules.host_mapping_extract_host_filtered_reads.output.reads2,
-        output = "11_MIDAS/MidasProfiling/{sample}/species/species_profile.txt",
-        done = "11_MIDAS/Midas_DB.done"
-    output:
-        summary = "11_MIDAS/MidasProfiling/{sample}/snps/summary.txt",
-    params:
-        outdir = "11_MIDAS/MidasProfiling/{sample}/",
-        midas_db = "11_MIDAS/MAGs_database/Midas_DB",
-        midas_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/",
-        midas_scripts_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/scripts/",
-        species_cov = 1, # default is 3 use later if needed
-        mailto="aiswarya.prasad@unil.ch",
-        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        account="pengel_spirit",
-        runtime_s=convertToSec("0-5:10:00"),
-    benchmark: "logs/midas_profile_snps_{sample}.benchmark"
-    log: "logs/midas_profile_snps_{sample}.log"
-    threads: 8
-    resources:
-        mem_mb = 8000
-    conda: "envs/midas-env.yaml"
-    shell:
-        """
-        export PYTHONPATH={params.midas_path}
-        export PATH=$PATH:{params.midas_scripts_path}
-        export MIDAS_DB={params.midas_db}
-        run_midas.py snps {params.outdir} -1 {input.reads1} -2 {input.reads2} -t {threads} -d {params.midas_db} --remove_temp
-        """
-
-rule midas_profile_snps_merge:
-    input:
-        per_sample_output = expand("11_MIDAS/MidasProfiling/{sample}/snps/summary.txt", sample=SAMPLES)
-    output:
-        # snps_freq = "11_MIDAS/MidasProfiling/{cluster}/snps_freq.txt",
-        # snps_depth = "11_MIDAS/MidasProfiling/{cluster}/snps_depth.txt",
-        # snps_summary = "11_MIDAS/MidasProfiling/{cluster}/snps_summary.txt",
-        # snps_info = "11_MIDAS/MidasProfiling/{cluster}/snps_info.txt"
-        outdone = touch("11_MIDAS/snps_summary.done")
-    params:
-        outdir = "11_MIDAS/MidasProfiling/",
-        midas_db = "11_MIDAS/MAGs_database/Midas_DB",
-        midas_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/",
-        midas_scripts_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/scripts/",
-        mailto="aiswarya.prasad@unil.ch",
-        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        account="pengel_spirit",
-        runtime_s=convertToSec("0-5:10:00"),
-    benchmark: "logs/midas_profile_snps_merged.benchmark"
-    log: "logs/midas_profile_snps_merged.log"
-    threads: 8
-    resources:
-        mem_mb = 8000
-    conda: "envs/midas-env.yaml"
-    shell:
-        """
-        export PYTHONPATH={params.midas_path}
-        export PATH=$PATH:{params.midas_scripts_path}
-        export MIDAS_DB={params.midas_db}
-        merge_midas.py snps {params.outdir} -i {params.outdir} -t dir
-        for readme in 11_MIDAS/MidasProfiling/*/readme.txt;
-        do
-            cp ${{readme%%readme.txt}}/readme.txt ${{readme%%readme.txt}}/snps_readme.txt
-        done
-        """
-
-rule setup_midas_genus_parse_gff:
-    input:
-        gff_file = "07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.gff",
-    output:
-        outfile = "11_MIDAS_genus_level/MAGs_database/{genome}/{genome}.genes",
-    params:
-        mailto="aiswarya.prasad@unil.ch",
-        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        account="pengel_spirit",
-        runtime_s=convertToSec("0-2:10:00"),
-    benchmark: "logs/setup_midas_genus_parse_gff_{genome}.benchmark"
-    log: "logs/setup_midas_genus_parse_gff_{genome}.log"
-    shell:
-        """
-        python3 scripts/parse_gff_for_midas.py --outfile {output.outfile} --gff {input.gff_file}
-        """
-
-rule setup_midas_genus_for_custom_db_prepare_files:
-    input:
-        fna_file = "07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.fna",
-        faa_file = "07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.faa",
-        ffn_file = "07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.ffn",
-    output:
-        fna_file = "11_MIDAS_genus_level/MAGs_database/{genome}/{genome}.fna",
-        faa_file = "11_MIDAS_genus_level/MAGs_database/{genome}/{genome}.faa",
-        ffn_file = "11_MIDAS_genus_level/MAGs_database/{genome}/{genome}.ffn"
-    params:
-        mailto="aiswarya.prasad@unil.ch",
-        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        account="pengel_spirit",
-        runtime_s=convertToSec("0-2:10:00"),
-    log: "logs/setup_midas_genus_for_custom_db_prepare_files_{genome}.log"
-    shell:
-        """
-        mkdir -p 11_MIDAS_genus_level/MAGs_database/
-        mkdir -p 11_MIDAS_genus_level/MAGs_database/{wildcards.genome}
-        rsync -av {input.fna_file} {output.fna_file}
-        rsync -av {input.faa_file} {output.faa_file}
-        rsync -av {input.ffn_file} {output.ffn_file}
-        """
-
-rule setup_midas_genus_for_custom_db_write_mapfile:
-    input:
-        genomes_info = lambda wildcards: checkpoints.make_phylo_table.get().output.out_mags_filt,
-        genome_scores = lambda wildcards: rules.drep.output.drep_S,
-    output:
-        mapfile = "11_MIDAS_genus_level/midas_mapfile.tsv"
-    params:
-        mailto="aiswarya.prasad@unil.ch",
-        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        account="pengel_spirit",
-        runtime_s=convertToSec("0-2:10:00"),
-    benchmark: "logs/setup_midas_genus_for_custom_db_write_mapfile.benchmark"
-    log: "logs/setup_midas_genus_for_custom_db_write_mapfile.log"
-    run:
-        genome_scores = {}
-        with open(input.genome_scores, "r") as win_fh:
-            for line in win_fh:
-                line = line.strip()
-                if line.startswith("genome"):
-                    continue
-                genome_scores[line.split(",")[0].split(".fa")[0]] = float(line.split(",")[1])
-        with open(input.genomes_info, "r") as info_fh:
-            # make rep genomes set
-            group_max_score = {}
-            rep_genome_dict = {}
-            for line in info_fh:
-                if line.startswith("ID"):
-                    continue
-                genome_id = line.split("\t")[0]
-                if "MAG_" not in genome_id:
-                    continue
-                cluster = line.split("\t")[11]
-                genus = line.split("\t")[13]
-                genus = genus+cluster if genus == "g__" else genus
-                if genus in group_max_score.keys():
-                    if int(genome_scores[genome_id]) > group_max_score[genus]:
-                        group_max_score[genus] = genome_scores[genome_id]
-                        rep_genome_dict[genus] = genome_id
-                else:
-                    group_max_score[genus] = genome_scores[genome_id]
-                    rep_genome_dict[genus] = genome_id
-        with open(input.genomes_info, "r") as info_fh:
-            with open(output.mapfile, "w") as out_fh:
-                out_fh.write("genome_id\tspecies_id\trep_genome\n")
-                for line in info_fh:
-                    if line.startswith("ID"):
-                        continue
-                    genome_id = line.split("\t")[0]
-                    if "MAG_" not in genome_id:
-                        continue
-                    cluster = line.split("\t")[11]
-                    genus = line.split("\t")[13]
-                    # if genus == "NA":
-                    #     print(f"genus for {genome_id} is {genus}.")
-                    #     continue
-                    species_id = genus+cluster if genus == "g__" else genus
-                    rep_genome = 1 if genome_id in rep_genome_dict.values() else 0
-                    out_fh.write(f"{genome_id}\t{species_id}\t{rep_genome}\n")
-
-rule create_midas_genus_for_custom_db:
-    input:
-        fna_files = lambda wildcards: expand("11_MIDAS_genus_level/MAGs_database/{genome}/{genome}.fna", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags_filt, full_list = True)),
-        faa_files = lambda wildcards: expand("11_MIDAS_genus_level/MAGs_database/{genome}/{genome}.faa", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags_filt, full_list = True)),
-        ffn_files = lambda wildcards: expand("11_MIDAS_genus_level/MAGs_database/{genome}/{genome}.ffn", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags_filt, full_list = True)),
-        genes_file = lambda wildcards: expand("11_MIDAS_genus_level/MAGs_database/{genome}/{genome}.genes", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags_filt, full_list = True)),
-        mapfile = "11_MIDAS_genus_level/midas_mapfile.tsv"
-    output:
-        done = touch("11_MIDAS_genus_level/Midas_DB.done")
-    params:
-        outdir = "11_MIDAS_genus_level/MAGs_database/Midas_DB",
-        # consider putting these paths in config
-        midas_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/",
-        midas_scripts_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/scripts/",
-        midas_db = "11_MIDAS_genus_level/MAGs_database/Midas_DB",
-        # midas_db_default = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/midas_db_v1.2/",
-        indir = "11_MIDAS_genus_level/MAGs_database/",
-        mailto="aiswarya.prasad@unil.ch",
-        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        account="pengel_spirit",
-        runtime_s=convertToSec("0-23:10:00"),
-    benchmark: "logs/create_midas_genus_for_custom_db.benchmark"
-    log: "logs/create_midas_genus_for_custom_db.log"
-    threads: 8
-    resources:
-        mem_mb = 8000
-    conda: "envs/midas-env.yaml"
-    shell:
-        """
-        export PYTHONPATH={params.midas_path}
-        export PATH=$PATH:{params.midas_scripts_path}
-        build_midas_db.py {params.indir} {input.mapfile} {params.outdir} --threads {threads} --resume
-        if [ ! -f {params.midas_db}/marker_genes/phyeco.fa.bwt ];
-        then
-            hs-blastn index {params.midas_db}/marker_genes/phyeco.fa
-        fi
-        """
-
-rule midas_genus_species_abundance:
-    input:
-        reads1 = rules.host_mapping_extract_host_filtered_reads.output.reads1,
-        reads2 = rules.host_mapping_extract_host_filtered_reads.output.reads2,
-        done = "11_MIDAS_genus_level/Midas_DB.done"
-    output:
-        output = "11_MIDAS_genus_level/MidasProfiling/{sample}/species/species_profile.txt",
-    params:
-        outdir = "11_MIDAS_genus_level/MidasProfiling/{sample}/",
-        midas_db = "11_MIDAS_genus_level/MAGs_database/Midas_DB",
-        midas_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/",
-        midas_scripts_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/scripts/",
-        mailto="aiswarya.prasad@unil.ch",
-        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        account="pengel_spirit",
-        runtime_s=convertToSec("0-5:10:00"),
-    benchmark: "logs/midas_genus_species_abundance_{sample}.benchmark"
-    log: "logs/midas_genus_species_abundance_{sample}.log"
-    threads: 8
-    resources:
-        mem_mb = 8000
-    conda: "envs/midas-env.yaml"
-    shell:
-        """
-        export PYTHONPATH={params.midas_path}
-        export PATH=$PATH:{params.midas_scripts_path}
-        run_midas.py species {params.outdir} -1 {input.reads1} -2 {input.reads2} -t {threads} -d {params.midas_db} --remove_temp
-        """
-
-rule midas_genus_species_abundance_merge:
-    input:
-        per_sample_output = expand("11_MIDAS_genus_level/MidasProfiling/{sample}/species/species_profile.txt", sample=SAMPLES)
-    output:
-        relative_abundance = "11_MIDAS_genus_level/MidasProfiling/relative_abundance.txt",
-        count_reads = "11_MIDAS_genus_level/MidasProfiling/count_reads.txt",
-        coverage = "11_MIDAS_genus_level/MidasProfiling/coverage.txt",
-        species_prevalence = "11_MIDAS_genus_level/MidasProfiling/species_prevalence.txt",
-    params:
-        outdir = "11_MIDAS_genus_level/MidasProfiling/",
-        midas_db = "11_MIDAS_genus_level/MAGs_database/Midas_DB",
-        midas_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/",
-        midas_scripts_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/scripts/",
-        mailto="aiswarya.prasad@unil.ch",
-        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        account="pengel_spirit",
-        runtime_s=convertToSec("0-5:10:00"),
-    benchmark: "logs/midas_genus_species_abundance_merged.benchmark"
-    log: "logs/midas_genus_species_abundance_merged.log"
-    threads: 8
-    resources:
-        mem_mb = 8000
-    conda: "envs/midas-env.yaml"
-    shell:
-        """
-        export PYTHONPATH={params.midas_path}
-        export PATH=$PATH:{params.midas_scripts_path}
-        export MIDAS_DB={params.midas_db}
-        merge_midas.py species {params.outdir} -i {params.outdir} -t dir
-        """
-
-rule midas_genus_gene_content:
-    input:
-        reads1 = rules.host_mapping_extract_host_filtered_reads.output.reads1,
-        reads2 = rules.host_mapping_extract_host_filtered_reads.output.reads2,
-        output = "11_MIDAS_genus_level/MidasProfiling/{sample}/species/species_profile.txt",
-        done = "11_MIDAS_genus_level/Midas_DB.done",
-    output:
-        output = "11_MIDAS_genus_level/MidasProfiling/{sample}/genes/summary.txt",
-    params:
-        outdir = "11_MIDAS_genus_level/MidasProfiling/{sample}/",
-        midas_db = "11_MIDAS_genus_level/MAGs_database/Midas_DB",
-        midas_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/",
-        midas_scripts_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/scripts/",
-        species_cov = 10, # default is 3 use later if needed
-        mailto="aiswarya.prasad@unil.ch",
-        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        account="pengel_spirit",
-        runtime_s=convertToSec("0-5:10:00"),
-    benchmark: "logs/midas_genus_gene_content_{sample}.benchmark"
-    log: "logs/midas_genus_gene_content_{sample}.log"
-    threads: 8
-    resources:
-        mem_mb = 8000
-    conda: "envs/midas-env.yaml"
-    shell:
-        """
-        export PYTHONPATH={params.midas_path}
-        export PATH=$PATH:{params.midas_scripts_path}
-        export MIDAS_DB={params.midas_db}
-        run_midas.py genes {params.outdir} -1 {input.reads1} -2 {input.reads2} -t {threads} -d {params.midas_db} --remove_temp
-        """
-
-rule midas_genus_gene_content_merge:
-    input:
-        per_sample_output = expand("11_MIDAS_genus_level/MidasProfiling/{sample}/genes/summary.txt", sample=SAMPLES)
-    output:
-        # genes_coverage = "11_MIDAS_genus_level/MidasProfiling/{cluster}/genes_coverage.txt",
-        # genes_presence = "11_MIDAS_genus_level/MidasProfiling/{cluster}/genes_presence_absence.txt",
-        # genes_summary = "11_MIDAS_genus_level/MidasProfiling/{cluster}/genes_summary.txt",
-        # genes_copy_number = "11_MIDAS_genus_level/MidasProfiling/{cluster}/genes_copy_number.txt"
-        outdone = touch("11_MIDAS_genus_level/midas_genes_summary.done")
-    params:
-        outdir = "11_MIDAS_genus_level/MidasProfiling/",
-        midas_db = "11_MIDAS_genus_level/MAGs_database/Midas_DB",
-        midas_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/",
-        midas_scripts_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/scripts/",
-        mailto="aiswarya.prasad@unil.ch",
-        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        account="pengel_spirit",
-        runtime_s=convertToSec("0-5:10:00"),
-    benchmark: "logs/midas_genus_gene_content_merged.benchmark"
-    log: "logs/midas_genus_gene_content_merged.log"
-    threads: 8
-    resources:
-        mem_mb = 8000
-    conda: "envs/midas-env.yaml"
-    shell:
-        """
-        export PYTHONPATH={params.midas_path}
-        export PATH=$PATH:{params.midas_scripts_path}
-        export MIDAS_DB={params.midas_db}
-        merge_midas.py genes {params.outdir} -i {params.outdir} -t dir
-        for readme in 11_MIDAS_genus_level/MidasProfiling/*/readme.txt;
-        do
-            cp ${{readme%%readme.txt}}/readme.txt ${{readme%%readme.txt}}/genes_readme.txt
-        done
-        """
-
-rule midas_genus_profile_snps:
-    input:
-        reads1 = rules.host_mapping_extract_host_filtered_reads.output.reads1,
-        reads2 = rules.host_mapping_extract_host_filtered_reads.output.reads2,
-        output = "11_MIDAS_genus_level/MidasProfiling/{sample}/species/species_profile.txt",
-        done = "11_MIDAS_genus_level/Midas_DB.done"
-    output:
-        summary = "11_MIDAS_genus_level/MidasProfiling/{sample}/snps/summary.txt",
-    params:
-        outdir = "11_MIDAS_genus_level/MidasProfiling/{sample}/",
-        midas_db = "11_MIDAS_genus_level/MAGs_database/Midas_DB",
-        midas_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/",
-        midas_scripts_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/scripts/",
-        species_cov = 1, # default is 3 use later if needed
-        mailto="aiswarya.prasad@unil.ch",
-        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        account="pengel_spirit",
-        runtime_s=convertToSec("0-5:10:00"),
-    benchmark: "logs/midas_genus_profile_snps_{sample}.benchmark"
-    log: "logs/midas_genus_profile_snps_{sample}.log"
-    threads: 8
-    resources:
-        mem_mb = 8000
-    conda: "envs/midas-env.yaml"
-    shell:
-        """
-        export PYTHONPATH={params.midas_path}
-        export PATH=$PATH:{params.midas_scripts_path}
-        export MIDAS_DB={params.midas_db}
-        run_midas.py snps {params.outdir} -1 {input.reads1} -2 {input.reads2} -t {threads} -d {params.midas_db} --remove_temp
-        """
-
-rule midas_genus_profile_snps_merge:
-    input:
-        per_sample_output = expand("11_MIDAS_genus_level/MidasProfiling/{sample}/snps/summary.txt", sample=SAMPLES)
-    output:
-        # snps_freq = "11_MIDAS_genus_level/MidasProfiling/{cluster}/snps_freq.txt",
-        # snps_depth = "11_MIDAS_genus_level/MidasProfiling/{cluster}/snps_depth.txt",
-        # snps_summary = "11_MIDAS_genus_level/MidasProfiling/{cluster}/snps_summary.txt",
-        # snps_info = "11_MIDAS_genus_level/MidasProfiling/{cluster}/snps_info.txt"
-        outdone = touch("11_MIDAS_genus_level/snps_summary.done")
-    params:
-        outdir = "11_MIDAS_genus_level/MidasProfiling/",
-        midas_db = "11_MIDAS_genus_level/MAGs_database/Midas_DB",
-        midas_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/",
-        midas_scripts_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/scripts/",
-        mailto="aiswarya.prasad@unil.ch",
-        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        account="pengel_spirit",
-        runtime_s=convertToSec("0-5:10:00"),
-    benchmark: "logs/midas_genus_profile_snps_merged.benchmark"
-    log: "logs/midas_genus_profile_snps_merged.log"
-    threads: 8
-    resources:
-        mem_mb = 8000
-    conda: "envs/midas-env.yaml"
-    shell:
-        """
-        export PYTHONPATH={params.midas_path}
-        export PATH=$PATH:{params.midas_scripts_path}
-        export MIDAS_DB={params.midas_db}
-        merge_midas.py snps {params.outdir} -i {params.outdir} -t dir
-        for readme in 11_MIDAS_genus_level/MidasProfiling/*/readme.txt;
-        do
-            cp ${{readme%%readme.txt}}/readme.txt ${{readme%%readme.txt}}/snps_readme.txt
-        done
-        """
-
-rule midas_genus_snp_diversity_intra:
-    input:
-        done = rules.midas_profile_snps_merge.output.outdone
-    output:
-        outfile = "11_MIDAS_genus_level/snp_diversity_intra/snp_diversity_{cluster}.info"
-    params:
-        indir = "11_MIDAS_genus_level/MidasProfiling/{cluster}/",
-        maf = 0.01, #minimum minor allele frequency to be considered polymorphic
-        midas_db = "11_MIDAS_genus_level/MAGs_database/Midas_DB",
-        midas_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/",
-        midas_scripts_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/scripts/",
-        mailto="aiswarya.prasad@unil.ch",
-        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        account="pengel_spirit",
-        runtime_s=convertToSec("0-5:10:00"),
-    benchmark: "logs/midas_snp_diversity_intra_{cluster}.benchmark"
-    log: "logs/midas_snp_diversity_intra_{cluster}.log"
-    threads: 8
-    resources:
-        mem_mb = 8000
-    conda: "envs/midas-env.yaml"
-    shell:
-        """
-        export PYTHONPATH={params.midas_path}
-        export PATH=$PATH:{params.midas_scripts_path}
-        export MIDAS_DB={params.midas_db}
-        snp_diversity.py {params.indir} --genomic_type genome-wide --sample_type per-sample --out {output.outfile} --snp_maf {params.maf}
-        """
-
-rule midas_genus_snp_diversity_inter:
-    input:
-        done = rules.midas_profile_snps_merge.output.outdone
-    output:
-        outfile = "11_MIDAS_genus_level/snp_diversity_inter/snp_diversity_{cluster}.info"
-    params:
-        indir = "11_MIDAS_genus_level/MidasProfiling/{cluster}/",
-        maf = 0.01, #minimum minor allele frequency to be considered polymorphic
-        midas_db = "11_MIDAS_genus_level/MAGs_database/Midas_DB",
-        midas_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/",
-        midas_scripts_path = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/Software/MIDAS/scripts/",
-        mailto="aiswarya.prasad@unil.ch",
-        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        account="pengel_spirit",
-        runtime_s=convertToSec("0-5:10:00"),
-    benchmark: "logs/midas_snp_diversity_inter_{cluster}.benchmark"
-    log: "logs/midas_snp_diversity_inter_{cluster}.log"
-    threads: 8
-    resources:
-        mem_mb = 8000
-    conda: "envs/midas-env.yaml"
-    shell:
-        """
-        export PYTHONPATH={params.midas_path}
-        export PATH=$PATH:{params.midas_scripts_path}
-        export MIDAS_DB={params.midas_db}
-        snp_diversity.py {params.indir} --genomic_type genome-wide --sample_type pooled-samples --out {output.outfile} --snp_maf {params.maf}
-        """
+# rule merge_core_cov:
+#     input:
+#         core_cov_per_sample = expand("09_MagDatabaseProfiling/CoverageEstimation/{sample}/{{group}}_corecov.txt", sample=SAMPLES)
+#     output:
+#         core_cov_merged = "09_MagDatabaseProfiling/CoverageEstimationMerged/{group}_corecov.txt"
+#     params:
+#         mailto="aiswarya.prasad@unil.ch",
+#         account="pengel_spirit",
+#         runtime_s=convertToSec("0-2:10:00"),
+#     resources:
+#         mem_mb = 8000
+#     log: "logs/{group}_merge_core_cov.log"
+#     benchmark: "logs/{group}_merge_core_cov.benchmark"
+#     run:
+#         header_done = False
+#         with open(output.core_cov_merged, "w") as out_fh:
+#             for file in input.core_cov_per_sample:
+#                 with open(file, "r") as in_fh:
+#                     header = in_fh.readline()
+#                     if not header_done:
+#                         out_fh.write(header)
+#                         header_done = True
+#                     for line in in_fh:
+#                         out_fh.write(line)
+#
+# rule core_cov_plots:
+#     input:
+#         txt = "09_MagDatabaseProfiling/CoverageEstimationMerged/{group}_corecov.txt",
+#     output:
+#         txt = "09_MagDatabaseProfiling/CoverageEstimationMerged/{group}_coord.txt",
+#         pdf = "09_MagDatabaseProfiling/CoverageEstimationMerged/{group}_coord.pdf"
+#     params:
+#         mailto="aiswarya.prasad@unil.ch",
+#         account="pengel_spirit",
+#         runtime_s=convertToSec("0-1:10:00"),
+#     resources:
+#         mem_mb = 8000
+#     conda: "envs/core-cov-env.yaml"
+#     log: "logs/{group}_core_cov_plots.log"
+#     benchmark: "logs/{group}_core_cov_plots.benchmark"
+#     threads: 1
+#     shell:
+#         """
+#         ./scripts/core_cov.R {input.txt};
+#         """
+""""""
+# rule corecov_split_by_sdp:
+#     input:
+#         coords = expand("07_SNVProfiling/CoreCov_"+ProjectIdentifier+"/{phylotype}_coord.txt", phylotype=Phylos),
+#         corecovs = expand("07_SNVProfiling/CoreCov_"+ProjectIdentifier+"/{phylotype}_corecov.txt", phylotype=Phylos),
+#     output:
+#         sdp_coords = expand("07_SNVProfiling/CoreCov_"+ProjectIdentifier+"/{sdp}_split_coord.txt", sdp=get_g_sdp_dict(DBs["microbiome"]).keys()),
+#         sdp_corecovs = expand("07_SNVProfiling/CoreCov_"+ProjectIdentifier+"/{sdp}_split_corecov.txt", sdp=get_g_sdp_dict(DBs["microbiome"]).keys()),
+#     log: "logs/corecov_split_by_sdp.log"
+#     threads: 1
+#     script:
+#         "scripts/corecov_split_by_sdp.py"
+#
+# rule core_cov_red_plots:
+#     input:
+#         corecovred_txt = "07_SNVProfiling/CoreCov_"+ProjectIdentifier+"/{phylotype}_corecov.txt",
+#         core_covR = "scripts/core_cov.R",
+#     output:
+#         corecovred_pdf = "07_SNVProfiling/CoreCov_"+ProjectIdentifier+"/{phylotype}_coord.pdf",
+#         corecovred_txt = "07_SNVProfiling/CoreCov_"+ProjectIdentifier+"/{phylotype}_coord.txt"
+#     params:
+#         mailto="aiswarya.prasad@unil.ch",
+#         account="pengel_spirit",
+#         runtime_s=convertToSec("0-1:10:00"),
+#     resources:
+#         mem_mb = 4000
+#     conda: "envs/core-cov-env.yaml"
+#     log: "logs/{phylotype}_core_cov_red_plots.log"
+#     threads: 1
+#     shell:
+#         """
+#         {input.core_covR} {input.corecovred_txt};
+#         """
 
 ###############################
 ###############################
@@ -2854,7 +2403,7 @@ rule compile_report:
         qc_raw = expand("fastqc/raw/{sample}_{read}_fastqc.html", sample=SAMPLES, read=config["READS"]),
         qc_trimmed = expand("fastqc/trim/{sample}_{read}_trim_fastqc.html", sample=SAMPLES, read=config["READS"]),
         motus_merged = "08_motus_profile/samples_merged.motus",
-        summary_assembly = "05_Assembly/host_unmapped/check_assembly/Assembly_mapping_summary.csv",
+        # summary_assembly = "05_Assembly/host_unmapped/check_assembly/Assembly_mapping_summary.csv",
         contig_fates = expand("06_MAG_binning/contig_fates/{sample}_contig_fates.csv", sample=SAMPLES),
         sample_contig_coverages = expand("06_MAG_binning/contig_fates/backmapping_coverages/{sample}_contig_coverages.csv", sample=SAMPLES),
         out_all = "06_MAG_binning/all_GenomeInfo_auto.tsv",
@@ -2863,21 +2412,15 @@ rule compile_report:
         trees = lambda wildcards: ["07_AnnotationAndPhylogenies/05_IQTree/"+group+"/"+group+"_Phylogeny.contree" for group in [x for x in GROUPS if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_tree) > 4]],
         single_ortho_MAGs = expand("07_AnnotationAndPhylogenies/02_orthofinder/{group}/OrthoFinder/{group}_single_ortho_MAGs.txt", group=GROUPS),
         ortho_summary = expand("07_AnnotationAndPhylogenies/02_orthofinder/{group}_Orthogroups_summary.csv", group=GROUPS),
-        # midas_species_prevalence = "11_MIDAS/MidasProfiling/species_prevalence.txt",
-        # midas_genes_summary = "11_MIDAS/midas_genes_summary.done",
-        # snps_summary = "11_MIDAS/snps_summary.done",
-        # midas_genus_species_prevalence = "11_MIDAS_genus_level/MidasProfiling/species_prevalence.txt",
-        # midas_genus_genes_summary = "11_MIDAS_genus_level/midas_genes_summary.done",
-        # snps_summary_genus = "11_MIDAS_genus_level/snps_summary.done",
-        # snp_intra = lambda wildcards: expand("11_MIDAS/snp_diversity_intra/snp_diversity_{cluster}.info", cluster = get_cluster_dict(checkpoints.make_phylo_table.get().output.out_all).keys()),
-        # snp_inter = lambda wildcards: expand("11_MIDAS/snp_diversity_inter/snp_diversity_{cluster}.info", cluster = get_cluster_dict(checkpoints.make_phylo_table.get().output.out_all).keys())
         mag_mapping_flagstat = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_flagstat.tsv", sample=SAMPLES),
         mag_mapping_hostfiltered_flagstat = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_host-filtered_flagstat.tsv", sample=SAMPLES),
         summarise_db_ortho = lambda wildcards: ["database/MAGs_database_Orthofinder/"+group+"_Orthogroups_summary.csv" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
+        ortho_filt_perc_id = lambda wildcards: ["database/MAGs_database_Orthofinder/"+group+"/OrthoFinder/"+group+"_single_ortho_filt_perc_id.txt" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
         summarise_db_ortho_filt = lambda wildcards: ["database/MAGs_database_Orthofinder/"+group+"_Orthogroups_filtered_summary.csv" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
         bam_mapped_mag_database = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_mapped.bam", sample=SAMPLES),
-        core_cov_plots = lambda wildcards: ["09_MagDatabaseProfiling/CoverageEstimationMerged/"+group+"_corecov_coord.txt" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
-        core_cov_txt = lambda wildcards: ["09_MagDatabaseProfiling/CoverageEstimationMerged/"+group+"_corecov_coord.pdf" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
+        core_cov_plots = lambda wildcards: ["09_MagDatabaseProfiling/CoverageEstimationMerged/"+group+"_coord.txt" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
+        core_cov_txt = lambda wildcards: ["09_MagDatabaseProfiling/CoverageEstimationMerged/"+group+"_coord.pdf" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
+        mag_mapping_flagstat_reduced = expand("09_MagDatabaseProfiling/SNVProfiling/{sample}_flagstat.tsv", sample=SAMPLES),
     output:
         html = PROJECT_IDENTIFIER+"_Report.html",
     conda: "envs/rmd-env.yaml"
@@ -2908,33 +2451,26 @@ rule backup:
         qc_raw = expand("fastqc/raw/{sample}_{read}_fastqc.html", sample=SAMPLES, read=config["READS"]),
         qc_trimmed = expand("fastqc/trim/{sample}_{read}_trim_fastqc.html", sample=SAMPLES, read=config["READS"]),
         motus_merged = "08_motus_profile/samples_merged.motus",
-        summary_assembly = "05_Assembly/host_unmapped/check_assembly/Assembly_mapping_summary.csv",
+        # summary_assembly = "05_Assembly/host_unmapped/check_assembly/Assembly_mapping_summary.csv",
         contig_fates = expand("06_MAG_binning/contig_fates/{sample}_contig_fates.csv", sample=SAMPLES),
         sample_contig_coverages = expand("06_MAG_binning/contig_fates/backmapping_coverages/{sample}_contig_coverages.csv", sample=SAMPLES),
         out_all = "06_MAG_binning/all_GenomeInfo_auto.tsv",
         out_tree = "06_MAG_binning/ForTree_GenomeInfo_auto.tsv",
-        assembly_mapped = expand("05_Assembly/MapToAssembly/{sample}.bam", sample=SAMPLES),
         checkpoint_tree = lambda wildcards: checkpoints.make_phylo_table.get().output.out_tree,
         checkpoint_all = lambda wildcards: checkpoints.make_phylo_table.get().output.out_all,
         trees = lambda wildcards: ["07_AnnotationAndPhylogenies/05_IQTree/"+group+"/"+group+"_Phylogeny.contree" for group in [x for x in GROUPS if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_tree) > 4]],
         single_ortho_MAGs = expand("07_AnnotationAndPhylogenies/02_orthofinder/{group}/OrthoFinder/{group}_single_ortho_MAGs.txt", group=GROUPS),
         ortho_summary = expand("07_AnnotationAndPhylogenies/02_orthofinder/{group}_Orthogroups_summary.csv", group=GROUPS),
-        # midas_species_prevalence = "11_MIDAS/MidasProfiling/species_prevalence.txt",
-        # midas_genes_summary = "11_MIDAS/midas_genes_summary.done",
-        # snps_summary = "11_MIDAS/snps_summary.done",
-        # midas_genus_species_prevalence = "11_MIDAS_genus_level/MidasProfiling/species_prevalence.txt",
-        # midas_genus_genes_summary = "11_MIDAS_genus_level/midas_genes_summary.done",
-        # snps_summary_genus = "11_MIDAS_genus_level/snps_summary.done",
-        # snp_intra = lambda wildcards: expand("11_MIDAS/snp_diversity_intra/snp_diversity_{cluster}.info", cluster = get_cluster_dict(checkpoints.make_phylo_table.get().output.out_all).keys()),
-        # snp_inter = lambda wildcards: expand("11_MIDAS/snp_diversity_inter/snp_diversity_{cluster}.info", cluster = get_cluster_dict(checkpoints.make_phylo_table.get().output.out_all).keys())
         # mOTUlize = "06_MAG_binning/mOTUlizer/mOTUlizer_output.tsv",
         mag_mapping_flagstat = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_flagstat.tsv", sample=SAMPLES),
         mag_mapping_hostfiltered_flagstat = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_host-filtered_flagstat.tsv", sample=SAMPLES),
         summarise_db_ortho = lambda wildcards: ["database/MAGs_database_Orthofinder/"+group+"_Orthogroups_summary.csv" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
+        ortho_filt_perc_id = lambda wildcards: ["database/MAGs_database_Orthofinder/"+group+"/OrthoFinder/"+group+"_single_ortho_filt_perc_id.txt" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
         summarise_db_ortho_filt = lambda wildcards: ["database/MAGs_database_Orthofinder/"+group+"_Orthogroups_filtered_summary.csv" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
         bam_mapped_mag_database = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_mapped.bam", sample=SAMPLES),
-        core_cov_plots = lambda wildcards: ["09_MagDatabaseProfiling/CoverageEstimationMerged/"+group+"_corecov_coord.txt" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
-        core_cov_txt = lambda wildcards: ["09_MagDatabaseProfiling/CoverageEstimationMerged/"+group+"_corecov_coord.pdf" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
+        core_cov_plots = lambda wildcards: ["09_MagDatabaseProfiling/CoverageEstimationMerged/"+group+"_coord.txt" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
+        core_cov_txt = lambda wildcards: ["09_MagDatabaseProfiling/CoverageEstimationMerged/"+group+"_coord.pdf" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
+        mag_mapping_flagstat_reduced = expand("09_MagDatabaseProfiling/SNVProfiling/{sample}_flagstat.tsv", sample=SAMPLES),
     output:
         outfile = touch("logs/backup.done")
     threads: 2
@@ -2959,158 +2495,7 @@ rule backup:
 # ###############################
 # ###############################
 #
-# rule mapping_red_db:
-#     input:
-#         db_red = os.path.join(os.getcwd(), "database/"+DBs["microbiome_red"]),
-#         reads1 = ancient(rules.trim.output.reads1),
-#         reads2 = ancient(rules.trim.output.reads2),
-#         index =  multiext("database/"+DBs["microbiome_red"], ".amb", ".ann", ".bwt", ".pac", ".sa"),
-#     output:
-#         bam_red = temp("07_SNVProfiling/Mapping_red/{sample}_mapped_red.bam"),
-#         bam_red1 = temp("07_SNVProfiling/Mapping_red/{sample}_mapped_red1.bam"),
-#         sam_red1 = temp("07_SNVProfiling/Mapping_red/{sample}_mapped_red1.sam"),
-#         sam_red2 = temp("07_SNVProfiling/Mapping_red/{sample}_mapped_red2.sam"),
-#     params:
-#         perl_extract_mapped = "scripts/filter_sam_aln_length.pl",
-#         picard = "picard",
-#         mailto="aiswarya.prasad@unil.ch",
-#         account="pengel_spirit",
-#         runtime_s=convertToSec("0-6:10:00"),
-#     resources:
-#         mem_mb = 8000
-#     threads:
-#         20
-#     log: "logs/{sample}_mapping_red_db.log"
-#     conda: "envs/mapping-env.yaml"
-#     shell:
-#         """
-#         bwa mem -t {threads} {input.db_red} {input.reads1} {input.reads2} > {output.sam_red1}
-#         samtools view -h -F4 -@ {threads} {output.sam_red1} | samtools view - -F 0x800 -h | grep -E "NM:i:[0-4]|^\@" | perl {params.perl_extract_mapped} - > {output.sam_red2}
-#         samtools view -bh {output.sam_red2} | samtools sort - > {output.bam_red1}
-#         {params.picard} -Xmx8g AddOrReplaceReadGroups I={output.bam_red1} O={output.bam_red} RGID={wildcards.sample} RGLB=lib1 RGPL=illumina RGPU=none RGSM={wildcards.sample}
-#         samtools index {output.bam_red}
-#         """
 #
-# rule de_duplicate:
-#     input:
-#         bam_red = rules.mapping_red_db.output.bam_red,
-#     output:
-#         bam_red = temp("07_SNVProfiling/Mapping_red/{sample}_mapped_red_dedup.bam"),
-#         txt = "07_SNVProfiling/Mapping_red/{sample}_dedup_metrics.txt"
-#     params:
-#         db_red = "database/"+DBs["microbiome_red"],
-#         perl_extract_mapped = "scripts/filter_sam_aln_length.pl",
-#         picard = "picard",
-#         mailto="aiswarya.prasad@unil.ch",
-#         account="pengel_spirit",
-#         runtime_s=convertToSec("0-6:10:00"),
-#     resources:
-#         mem_mb = 8000
-#     threads:
-#         20
-#     conda: "envs/mapping-env.yaml"
-#     log: "logs/{sample}_de_duplicate.log"
-#     shell:
-#         """
-#         picard -Xmx8g MarkDuplicates INPUT={input.bam_red} OUTPUT={output.bam_red} METRICS_FILE={output.txt};
-#         """
-#
-# rule de_duplicate_index:
-#     input:
-#         bam_red = rules.de_duplicate.output.bam_red,
-#     output:
-#         bam_red = "07_SNVProfiling/Mapping_red/{sample}_mapped_red_dedup.bam.bai",
-#     params:
-#         mailto="aiswarya.prasad@unil.ch",
-#         account="pengel_spirit",
-#         runtime_s=convertToSec("0-6:10:00"),
-#     resources:
-#         mem_mb = 8000
-#     threads:
-#         20
-#     conda: "envs/mapping-env.yaml"
-#     log: "logs/{sample}_de_duplicate_index.log"
-#     shell:
-#         """
-#         samtools index {input.bam_red}
-#         """
-#
-# rule subset_ortho_and_db:
-#     input:
-#         db = "database/"+DBs["microbiome"],
-#         metafile = "database/"+DBs["microbiome"]+"_metafile.txt",
-#         orthofiles = expand("database/OrthoFiles_"+DBs["microbiome"]+"/{phylotype}_single_ortho_filt.txt", phylotype=Phylos),
-#     output:
-#         db = "database/"+DBs["microbiome_red"],
-#         orthofiles = expand("database/OrthoFiles_"+DBs["microbiome_red"]+"/{phylotype}_single_ortho_filt.txt", phylotype=Phylos),
-#         orthodir = directory("database/OrthoFiles_"+DBs["microbiome_red"]+"/")
-#     log: "logs/subset_ortho_and_meta.log"
-#     params:
-#         mailto="aiswarya.prasad@unil.ch",
-#         account="pengel_spirit",
-#         runtime_s=convertToSec("0-2:10:00"),
-#     resources:
-#         mem_mb = 4000
-#     script:
-#         "scripts/subset_metagenome_db.py"
-#
-# rule core_cov_red:
-#     input:
-#         ortho_file = "database/OrthoFiles_"+DBs["microbiome_red"]+"/{phylotype}_single_ortho_filt.txt",
-#         bam_files = expand("07_SNVProfiling/Mapping_red/{sample}_mapped_red_dedup.bam", sample=config["SAMPLES"]),
-#         bed_files = expand("database/bed_files/{genome}.bed", genome=get_g_list(DBs["microbiome_red"])),
-#         genome_db_meta = "database/"+DBs["microbiome"]+"_metafile.txt",
-#         core_cov = "scripts/core_cov.py",
-#     output:
-#         corecovred_txt = "07_SNVProfiling/CoreCov_"+ProjectIdentifier+"/{phylotype}_corecov.txt"
-#     params:
-#         bed_files = "database/bed_files",
-#         out_dir = "07_SNVProfiling/CoreCov_"+ProjectIdentifier,
-#         mailto="aiswarya.prasad@unil.ch",
-#         account="pengel_spirit",
-#         runtime_s=convertToSec("0-7:10:00")
-#     resources:
-#         mem_mb = 8000
-#     log: "logs/{phylotype}_core_cov.log"
-#     conda: "envs/core-cov-env.yaml"
-#     threads: 5
-#     shell:
-#         """
-#         {input.core_cov} -d {input.genome_db_meta} -L {input.bam_files} -g {input.ortho_file} -b {params.bed_files} -o {params.out_dir} -n {wildcards.phylotype};
-#         """
-#
-# rule corecov_split_by_sdp:
-#     input:
-#         coords = expand("07_SNVProfiling/CoreCov_"+ProjectIdentifier+"/{phylotype}_corecov_coord.txt", phylotype=Phylos),
-#         corecovs = expand("07_SNVProfiling/CoreCov_"+ProjectIdentifier+"/{phylotype}_corecov.txt", phylotype=Phylos),
-#     output:
-#         sdp_coords = expand("07_SNVProfiling/CoreCov_"+ProjectIdentifier+"/{sdp}_split_corecov_coord.txt", sdp=get_g_sdp_dict(DBs["microbiome"]).keys()),
-#         sdp_corecovs = expand("07_SNVProfiling/CoreCov_"+ProjectIdentifier+"/{sdp}_split_corecov.txt", sdp=get_g_sdp_dict(DBs["microbiome"]).keys()),
-#     log: "logs/corecov_split_by_sdp.log"
-#     threads: 1
-#     script:
-#         "scripts/corecov_split_by_sdp.py"
-#
-# rule core_cov_red_plots:
-#     input:
-#         corecovred_txt = "07_SNVProfiling/CoreCov_"+ProjectIdentifier+"/{phylotype}_corecov.txt",
-#         core_covR = "scripts/core_cov.R",
-#     output:
-#         corecovred_pdf = "07_SNVProfiling/CoreCov_"+ProjectIdentifier+"/{phylotype}_corecov_coord.pdf",
-#         corecovred_txt = "07_SNVProfiling/CoreCov_"+ProjectIdentifier+"/{phylotype}_corecov_coord.txt"
-#     params:
-#         mailto="aiswarya.prasad@unil.ch",
-#         account="pengel_spirit",
-#         runtime_s=convertToSec("0-1:10:00"),
-#     resources:
-#         mem_mb = 4000
-#     conda: "envs/core-cov-env.yaml"
-#     log: "logs/{phylotype}_core_cov_red_plots.log"
-#     threads: 1
-#     shell:
-#         """
-#         {input.core_covR} {input.corecovred_txt};
-#         """
 #
 # CHROMS = get_chroms("database/"+DBs["microbiome"])
 #
@@ -3194,7 +2579,7 @@ rule backup:
 # rule filt_bedfiles:
 #     input:
 #         metafile = "database/"+DBs["microbiome"]+"_metafile.txt",
-#         sdp_coords = expand("07_SNVProfiling/CoreCov_"+ProjectIdentifier+"/{sdp}_split_corecov_coord.txt", sdp=get_g_sdp_dict(DBs["microbiome"]).keys()),
+#         sdp_coords = expand("07_SNVProfiling/CoreCov_"+ProjectIdentifier+"/{sdp}_split_coord.txt", sdp=get_g_sdp_dict(DBs["microbiome"]).keys()),
 #         sdp_corecovs = expand("07_SNVProfiling/CoreCov_"+ProjectIdentifier+"/{sdp}_split_corecov.txt", sdp=get_g_sdp_dict(DBs["microbiome"]).keys()),
 #         bedfile = "database/bed_files/{genome}.bed",
 #         ortho_dir = "database/OrthoFiles_"+DBs["microbiome_red"]
@@ -3278,7 +2663,7 @@ rule backup:
 # rule vcf_filter_samples:
 #     input:
 #         vcf = "07_SNVProfiling/{sdp}_all_samples.vcf",
-#         coord = "07_SNVProfiling/CoreCov_"+ProjectIdentifier+"/{sdp}_split_corecov_coord.txt",
+#         coord = "07_SNVProfiling/CoreCov_"+ProjectIdentifier+"/{sdp}_split_coord.txt",
 #     output:
 #         vcf = "07_SNVProfiling/{sdp}.vcf",
 #     params:
@@ -3323,7 +2708,7 @@ rule backup:
 #         metadata = "Metadata_"+ProjectIdentifier+".csv",
 #         lengths = "07_SNVProfiling/table_core_length.txt",
 #         freq = rules.vcf_filter_missing.output.freq,
-#         coord = "07_SNVProfiling/CoreCov_"+ProjectIdentifier+"/{sdp}_split_corecov_coord.txt",
+#         coord = "07_SNVProfiling/CoreCov_"+ProjectIdentifier+"/{sdp}_split_coord.txt",
 #     output:
 #         txt_sample = "07_SNVProfiling/{sdp}_sample_var_host.txt",
 #         txt_host = "07_SNVProfiling/{sdp}_tot_var.txt",

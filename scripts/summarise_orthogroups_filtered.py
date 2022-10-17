@@ -51,6 +51,7 @@ with open(orthofile_filt, "r") as fh_orthofile_filt:
 percid_dict = {}
 with open(perc_id, "r") as percid_fh:
     for line in percid_fh:
+        line = line.strip()
         og_name = line.split("\t")[0]
         # report max perc_id
         percid_dict[og_name] = line.split("\t")[3]

@@ -205,7 +205,6 @@ for magOTU in magOTU_genomes.keys():
             OG_ref_pos[magOTU][OG_id] = int(start_pos)
 
 #Prepare for outfile, print the header
-fh_outfile = open(outfile, 'w')
 with open(outfile, 'w') as fh_outfile:
     header = ["magOTU","Sample","OG", "Ref_pos", "Coverage"]
     header_str = "\t".join(header)

@@ -25,6 +25,7 @@ single_ortho = args.single_ortho
 perc_id = args.perc_id
 extracted_ffndir = args.extracted_ffndir
 ortho_filt = args.ortho_filt
+ortho_filt_perc_id = ortho_filt.split(".txt")[0]+"_perc_id"+".txt"
 
 #Read the orthofinder-file, save genes as lists in dict
 OG_fams = dict()
@@ -57,12 +58,16 @@ with open(perc_id) as fh_perc_id:
 
 #Filter the ortholog file by seq-length (min 300bp) and max inter-SDP perc-id is applicable  (95%)
 filt_outfile = ortho_filt
-fh_outfile = open(filt_outfile, 'w')
-for OG in OG_fam_list:
-    if OG in filt_perc_id:  continue
-    ffn_file = os.path.join(extracted_ffndir, OG + ".ffn")
-    nb_small_seq = get_min_seq_length(ffn_file)
-    if nb_small_seq == 0:
-        OG_genes = " ".join(OG_fams[OG])
-        fh_outfile.write(f"{OG}:{OG_genes}\n")
-fh_outfile.close()
+filt_outfile_perc_id = ortho_filt_perc_id
+with open(filt_outfile, "w") as out_fh:
+    with open(filt_outfile_perc_id, "w") as out_fh_perc_id:
+        for OG in OG_fam_list:
+            ffn_file = os.path.join(extracted_ffndir, OG + ".ffn")
+            nb_small_seq = get_min_seq_length(ffn_file)
+            if nb_small_seq == 0:
+                OG_genes = " ".join(OG_fams[OG])
+                out_fh.write(f"{OG}:{OG_genes}\n")
+                if OG in filt_perc_id:
+                    continue
+                else:
+                    out_fh_perc_id.write(f"{OG}:{OG_genes}\n")
