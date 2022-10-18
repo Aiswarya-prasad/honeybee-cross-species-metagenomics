@@ -6,7 +6,23 @@ channels:
   - hcc
 
 dependencies:
-  - freebayes
-  - vcftools
-  - vcflib
-  - metapop
+  - bcftools
+  - samtools
+  - prodigal
+  - numpy
+  - pysam
+  - r-data.table
+  - r-ggplot2
+  - r-rcolorbrewer
+  - r-doparallel
+  - r-cowplot
+  - r-bit64
+  - r-gggenes
+  - r-stringr
+  - r-vegan
+  - r-compositions
+  - r-pheatmap
+  - r-ggrepel
+  - pip
+  - pip:
+    - metapop
