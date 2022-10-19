@@ -39,9 +39,12 @@ database/*
 07_AnnotationAndPhylogenies/*
 08_motus_profile/*
 09_MagDatabaseProfiling
+10_*/*
+09_*/*
+11_*/*
 11_MIDAS*/*
 *_files/*
 *_cache/*
 *backup_*.log
-
+*MetaPop*
 assembly_summary_genbank.txt

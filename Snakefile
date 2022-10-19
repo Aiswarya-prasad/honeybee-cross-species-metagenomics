@@ -2218,90 +2218,60 @@ rule core_cov_plots:
         ./scripts/core_cov.R {input.txt};
         """
 
-rule prepare_genomes_for_metapop:
+rule prep_for_instrain:
     input:
-        mag = "07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.fna",
+        genome = "database/MAGs_database",
+        all_mags = lambda wildcards: expand("07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.fna", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags_filt, full_list = True)),
     output:
-        mag = "database/MAGs_database_genomes/{genome}.fna"
+        genome = "10_instrain/all_mags.fasta",
+        stb = "10_instrain/all_mags_stb.tsv",
+        genes = "10_instrain/all_mags_genes.fna"
     params:
         mailto="aiswarya.prasad@unil.ch",
         account="pengel_spirit",
         runtime_s=convertToSec("0-1:10:00"),
     resources:
         mem_mb = 8000
-    log: "logs/{genome}_prepare_genomes_for_metapop.log"
-    threads: 4
-    shell:
-        """
-        cat {input.mag} > {output.mag}
-        """
-
-rule make_norm_file_metapop:
-    input:
-        flagstats = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_flagstat.tsv", sample=SAMPLES)
-    output:
-        norm = "10_metapop/norm_file.tsv"
-    log: "logs/make_norm_file_metapop.log"
-    run:
-        with open(output.norm, "w") as out_fh:
-            for flagstat in input.flagstats:
-                sample = flagstat.split("/")[-1].split("_flagstat.tsv")[0]
-                with open(flagstat, "r") as flagstat_fh:
-                    for line in flagstat_fh:
-                        line = line.strip()
-                        line_split = line.split("\t")
-                        if line_split[2] == "primary":
-                            reads = line_split[0]
-                    out_fh.write(f"{sample}\t{reads}\n")
-
-rule prepare_bams_metapop:
-    input:
-        bam_file = "09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_mapped.bam",
-    output:
-        # move away file and touch to trick snakemake
-        bam_file = "10_metapop/Bamfiles/{sample}.bam"
-    params:
-        bam_files_dir = "10_metapop/Bamfiles/",
-        mailto="aiswarya.prasad@unil.ch",
-        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        account="pengel_spirit",
-        runtime_s=convertToSec("1-4:10:00"),
-    resources:
-        mem_mb = convertToMb("4G")
-    threads: 4
-    log: "logs/{sample}_prepare_bams_metapop.log"
-    shell:
-        """
-        mkdir -p {params.bam_files_dir}
-        cp -n {input.bam_file} {output.bam_file}
-        """
-
-rule run_metapop:
-    input:
-        bam_files = expand("10_metapop/Bamfiles/{sample}.bam", sample=SAMPLES),
-        norm = "10_metapop/norm_file.tsv",
-        reference_genomes = lambda wildcards: expand("database/MAGs_database_genomes/{genome}.fna", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags_filt, full_list = True)),
-    output:
-        out = touch("10_metapop/metapop.done")
-    params:
-        prefix = os.getcwd(),
-        reference_genomes_dir = "database/MAGs_database_genomes/",
-        bam_files_dir = "10_metapop/Bamfiles/",
-        aln_length = 50, # default is 30
-        min_cov = 10, # contigs with breadth of coverage (#bases covered/contig length) less than this are removed from microdiversity.  default 20
-        mailto="aiswarya.prasad@unil.ch",
-        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        account="pengel_spirit",
-        runtime_s=convertToSec("1-4:10:00"),
-    resources:
-        mem_mb = convertToMb("50G")
-    threads: 8
-    log: "logs/run_metapop.log"
-    benchmark: "logs/run_metapop.benchmark"
     conda: "envs/snv-env.yaml"
+    log: "logs/prep_for_instrain.log"
+    benchmark: "logs/prep_for_instrain.benchmark"
+    threads: 4
     shell:
         """
-        metapop --input_samples {params.prefix}/{params.bam_files_dir} --reference {params.prefix}/{params.reference_genomes_dir} --norm {params.prefix}/{input.norm} --threads {threads} --min_len {params.aln_length} --library $CONDA_PREFIX/lib/R/library
+        for mag in {input.all_mags};
+        do
+            mag_name=$(basename ${{mag}})
+            echo "running parse_stb for ${{mag}}"
+            parse_stb.py --reverse -f ${{mag}} -o 10_instrain/${{mag_name%%.fna}}_stb.temp
+        done
+        cat 10_instrain/*_stb.temp > {output.stb}
+        rm 10_instrain/*_stb.temp
+        awk ' /^>/ {{ printf(\"\\n%s\\n\",$0);next; }} {{ printf(\"%s\",$0); }} END {{ printf(\"\\n\"); }}' {input.genome} | tail -n +2 > {output.genome}
+        prodigal -p meta all_mags.fasta -d {output.genome} -o {log}
+        """
+
+rule instrain_profile:
+    input:
+        bam = rules.map_to_MAGs.output.bai_mapped,
+        genomes = "10_instrain/all_mags.fasta",
+        stb = "10_instrain/all_mags_stb.tsv",
+        genes = "10_instrain/all_mags_genes.fna"
+    output:
+        mapping_info = directory("10_instrain/{sample}_profile.IS/"),
+        done = touch("10_instrain/tracking_files/{sample}_profile.done")
+    params:
+        mailto="aiswarya.prasad@unil.ch",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-1:10:00"),
+    resources:
+        mem_mb = 10000
+    conda: "envs/snv-env.yaml"
+    log: "logs/{sample}_instrain_profile.log"
+    benchmark: "logs/{sample}_instrain_profile.benchmark"
+    threads: 8
+    shell:
+        """
+        inStrain profile {input.bam} {input.genomes} -o {wildcards.sample}_profile.IS -p {threads} -g {input.genes} -s {input.stb} --database_mode
         """
 
 
@@ -2343,7 +2313,7 @@ rule compile_report:
         bam_mapped_mag_database = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_mapped.bam", sample=SAMPLES),
         core_cov_plots = lambda wildcards: ["09_MagDatabaseProfiling/CoverageEstimation/Merged/"+group+"_coord.txt" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
         core_cov_txt = lambda wildcards: ["09_MagDatabaseProfiling/CoverageEstimation/Merged/"+group+"_coord.pdf" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
-        metapop = "10_metapop/metapop.done"
+        instrain_done = expand("10_instrain/tracking_files/{sample}_profile.done", sample=SAMPLES)
     output:
         html = PROJECT_IDENTIFIER+"_Report.html",
     conda: "envs/rmd-env.yaml"
@@ -2393,7 +2363,7 @@ rule backup:
         bam_mapped_mag_database = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_mapped.bam", sample=SAMPLES),
         core_cov_plots = lambda wildcards: ["09_MagDatabaseProfiling/CoverageEstimation/Merged/"+group+"_coord.txt" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
         core_cov_txt = lambda wildcards: ["09_MagDatabaseProfiling/CoverageEstimation/Merged/"+group+"_coord.pdf" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
-        metapop = "10_metapop/metapop.done"
+        instrain_done = expand("10_instrain/tracking_files/{sample}_profile.done", sample=SAMPLES)
     output:
         outfile = touch("logs/backup.done")
     threads: 2

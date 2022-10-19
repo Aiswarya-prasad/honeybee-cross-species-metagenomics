@@ -399,3 +399,100 @@ rule midas_genus_snp_diversity_inter:
         export MIDAS_DB={params.midas_db}
         snp_diversity.py {params.indir} --genomic_type genome-wide --sample_type pooled-samples --out {output.outfile} --snp_maf {params.maf}
         """
+
+
+rule prepare_genomes_for_metapop:
+    input:
+        mag = "07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.fna",
+    output:
+        mag = "database/MAGs_database_genomes/{genome}.fna"
+    params:
+        mailto="aiswarya.prasad@unil.ch",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-1:10:00"),
+    resources:
+        mem_mb = 8000
+    log: "logs/{genome}_prepare_genomes_for_metapop.log"
+    threads: 4
+    shell:
+        """
+        cat {input.mag} > {output.mag}
+        """
+
+rule make_norm_file_metapop:
+    input:
+        flagstats = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_flagstat.tsv", sample=SAMPLES)
+    output:
+        norm = "10_metapop/norm_file.tsv"
+    log: "logs/make_norm_file_metapop.log"
+    run:
+        with open(output.norm, "w") as out_fh:
+            for flagstat in input.flagstats:
+                sample = flagstat.split("/")[-1].split("_flagstat.tsv")[0]
+                with open(flagstat, "r") as flagstat_fh:
+                    for line in flagstat_fh:
+                        line = line.strip()
+                        line_split = line.split("\t")
+                        if line_split[2] == "primary":
+                            reads = line_split[0]
+                    out_fh.write(f"{sample}\t{reads}\n")
+
+rule prepare_bams_metapop:
+    input:
+        bam_file = "09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_mapped.bam",
+    output:
+        # move away file and touch to trick snakemake
+        bam_file = "10_metapop/Bamfiles/{sample}.bam"
+    params:
+        bam_files_dir = "10_metapop/Bamfiles/",
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("1-4:10:00"),
+    resources:
+        mem_mb = convertToMb("4G")
+    threads: 4
+    log: "logs/{sample}_prepare_bams_metapop.log"
+    shell:
+        """
+        mkdir -p {params.bam_files_dir}
+        cp -n {input.bam_file} {output.bam_file}
+        """
+
+rule run_metapop:
+    input:
+        bam_files = expand("10_metapop/Bamfiles/{sample}.bam", sample=SAMPLES),
+        norm = "10_metapop/norm_file.tsv",
+        reference_genomes = lambda wildcards: expand("database/MAGs_database_genomes/{genome}.fna", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags_filt, full_list = True)),
+    output:
+        out = touch("10_metapop/metapop.done")
+    params:
+        prefix = os.getcwd(),
+        outdir = "10_metapop/",
+        reference_genomes_dir = "database/MAGs_database_genomes/",
+        bam_files_dir = "10_metapop/Bamfiles/",
+        aln_length = 50, # default is 30
+        min_cov = 10, # contigs with breadth of coverage (#bases covered/contig length) less than this are removed from microdiversity.  default 20
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("1-4:10:00"),
+    resources:
+        mem_mb = convertToMb("50G")
+    threads: 16
+    log: "logs/run_metapop.log"
+    benchmark: "logs/run_metapop.benchmark"
+    conda: "envs/snv-env.yaml"
+    shell:
+        """
+        #
+        # some lines to run because metapop fails to do this for some reason
+        mkdir -p 10_metapop
+        mkdir -p 10_metapop/MetaPop
+        mkdir -p 10_metapop/MetaPop/01.Genomes_and_Genes
+        # ran on the from end
+        # awk \'/^>/ {{printf(\"\\n%s\\n\",$0);next; }} {{ printf(\"%s\",$0);}}  END {{printf(\"\\n\");}}\' < database/MAGs_database | tail -n +2 > 10_metapop/MetaPop/01.Genomes_and_Genes/all_genomes.fasta
+        prodigal -p meta -i 10_metapop/MetaPop/01.Genomes_and_Genes/all_genomes.fasta -d 10_metapop/MetaPop/01.Genomes_and_Genes/all_genomes_genes.fasta -o 10_metapop/MetaPop/01.Genomes_and_Genes/temp.txt
+        #
+        metapop --input_samples {params.prefix}/{params.bam_files_dir} --reference {params.prefix}/{params.reference_genomes_dir} --norm {params.prefix}/{input.norm} --threads {threads} --min_len {params.aln_length} --library $CONDA_PREFIX/lib/R/library --output {params.outdir}
+        """
