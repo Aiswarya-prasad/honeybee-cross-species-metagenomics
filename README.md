@@ -1,3 +1,48 @@
+Note that this pipeline is a work in progress so some parts of the documentation may not be up-to-date yet. If you would like to use it and / or have questions, contact me! Aiswarya Prasad (aiswarya.prasad@unil.ch)
+
+# honeybee-MAGs
+
+The aim of this pipeline is to start from raw data (R1 and R2 fastq reads), assemble and bin scaffolds into MAGs, cluster them into magOTUs (slightly different from Kirsten's SDPs!), estimate the "core" coverage of each of the magOTUs and then finally also SNP profiling across samples based on the high quality MAGs chosen. There are also a lot of stats and comparisons made along the way.
+
+In this file, each of the rules in the Snakefile and the associated are explained in more detail. Every step is taken care of by Snakemake as instructed in the Snakefile. None of the scripts are expected to be run independently. The overall approach is to have to ultimate rules, `compile_report` and `backup` which will ask for all the desired outputs and the rules themselves compile an Rmd report that contains code for the visualization of outputs from various files in the pipeline and copy important files (currently it copies the entire working directory but the backup script will be modified to only copy import checkpoints) to a specified local or remote backup location.
+
+If you wish to not run any rules, remove the entries correponding to their outputs from the list of inputs to these rules.
+
+## Getting started
+
+All paths are specified with respect to the working directory. Snakemake also happily understands this. In the process of writing this pipeline "211018_Medgenome_india_samples" was the name of my project and the working directory, `/scratch/aprasad/211018_Medgenome_india_samples` on curnagl. So if you see this appear anywhere, you know what to do!
+
+To get started with this pipeline you will need (some of) the following files.
+
++ config/config.yaml
+  + This is used by Snakemake to get some important information.
+    + The list of samples is used by snakemake to decide which samples are to be processed
+    + The Adapters section specifies the adapters.fa file to be given to trimmmomatic for each group of samples
+    + The section READS and TYPES are used to infer the names/paths of certain files
+    + GENOME_DBs specifies the path to various databases if they are used in any rules
+    + ProjectPath is the absolute path to the project working directory and may be used sometimes as a prefix to provide the absolute path in some places.
+    + BackupPath is the string describing the path to where the backups should be written and if it is remote, the <username>@xx.x.xx.xx: part as well
+    + LocalBackup is the variable that will used to decide whether to submit the backup job to the cluster or run it locally. Eg. if you want backup on the /nas partition on curnagl, it can only be accessed from login nodes and if you do not run it locally, the job will fail as /nas will not be found.
++ config/NexteraPE-PE.fa
+  + This is the file to provide to trimmomatic for trimming
++ config/index_table.csv (optional)
+  + In some cases the library prep may hae involved complicated combinations of indices and the adapters (eg. Kapa HyperPrep kit) to be trimmed will have to be inferred from this information. There used to be a script for this but it was lost. So it will have to be re-written at some point. config/Adapters-PE.fa is the output made by the script that parses the index table. For now, since the script does not exist, Adapters.fa is just kept as initial input an the rule to make it is commented out.
++ config/Adapters-PE.fa (not needed if to be created from index_table.csv)
++ config/Metadata_211018_Medgenome_india_samples.csv
++ config/initialize_project-211018_Medgenome_india_samples.sh - not important
+  + This might eventually be expanded into a complete scripts to enable quick and pain-free project initialisation. Currently it is more or less a bunch of `rsync` commands to copy raw files and important starting point files from a remote location and into the working directory to get started.
++ config/reinitialize_project-211018_Medgenome_india_samples.sh - not important
+  + A list of rsync commands to copy files back from a remote backup to resume the analyses.
++ 00_RawData/<sample>_R*.fastq.gz
+  + Raw data in fastq.gz format kept in the directory called 00_RawData
++ 211018_Medgenome_india_samples_Report.Rmd
++ database/4_host_db
+  + This is required for host mapping. It is a fasta file with host genomes concatenated. Currently the pipeline only assembles host-filtered reads. But if the host genomes is unavailable or you would like to skip this step, ignore these steps and change the inputs of dependent rules to take the trimmed files directly.
++ envs/<env>.yaml
+  + The conda environments needed for each rule will be created based on the yaml files in this directory. So at least the files corresponding to the conda environments that your rules will use must be present.
++ scripts/<script>.xxx
+  + The scripts used by various rules are all to be in this directory. The list of all scripts and theit use can be found later in this file.
+
 # Summary of contents
 
 # Directory organization
@@ -1038,3 +1083,5 @@ io_in | float (MB) | the number of MB read (cumulative).
 io_out | float (MB) | the number of MB written (cumulative).
 mean_load | float (-) | CPU usage over time, divided by the total running time (first row)
 cpu_time | float(-) | CPU time summed for user and system
+
+[how to setup snakemake profile](https://github.com/RomainFeron/snakemake-slurm)

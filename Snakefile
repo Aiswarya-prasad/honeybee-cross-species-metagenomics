@@ -2266,22 +2266,22 @@ rule instrain_profile:
         stb = "10_instrain/all_mags_stb.tsv",
         genes = "10_instrain/all_mags_genes.fna"
     output:
-        mapping_info = directory("10_instrain/{sample}_profile.IS/"),
+        outdir = directory("10_instrain/{sample}_profile.IS/"),
         done = touch("10_instrain/tracking_files/{sample}_profile.done")
     params:
         mailto="aiswarya.prasad@unil.ch",
         account="pengel_spirit",
-        runtime_s=convertToSec("0-3:10:00"),
+        runtime_s=convertToSec("0-10:10:00"),
     resources:
-        mem_mb = 10000
+        mem_mb = convertToMb("200G")
     conda: "envs/snv-env.yaml"
     log: "logs/{sample}_instrain_profile.log"
     benchmark: "logs/{sample}_instrain_profile.benchmark"
     threads: 16
     shell:
         """
-        inStrain profile {input.bam} {input.genomes} -o {wildcards.sample}_profile.IS -p {threads} -g {input.genes} -s {input.stb} --database_mode
-        # inStrain profile {input.bam} {input.genomes} -o {wildcards.sample}_profile.IS -p {threads} -g {input.genes} -s {input.stb}
+        inStrain profile {input.bam} {input.genomes} -o {output.outdir} -p {threads} -g {input.genes} -s {input.stb} --database_mode
+        # inStrain profile {input.bam} {input.genomes} -o  {output.outdir} -p {threads} -g {input.genes} -s {input.stb}
         """
 
 
