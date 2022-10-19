@@ -2229,7 +2229,7 @@ rule prep_for_instrain:
     params:
         mailto="aiswarya.prasad@unil.ch",
         account="pengel_spirit",
-        runtime_s=convertToSec("0-1:10:00"),
+        runtime_s=convertToSec("0-6:10:00"),
     resources:
         mem_mb = 8000
     conda: "envs/snv-env.yaml"
@@ -2238,21 +2238,30 @@ rule prep_for_instrain:
     threads: 4
     shell:
         """
-        for mag in {input.all_mags};
-        do
-            mag_name=$(basename ${{mag}})
-            echo "running parse_stb for ${{mag}}"
-            parse_stb.py --reverse -f ${{mag}} -o 10_instrain/${{mag_name%%.fna}}_stb.temp
-        done
-        cat 10_instrain/*_stb.temp > {output.stb}
-        rm 10_instrain/*_stb.temp
-        awk ' /^>/ {{ printf(\"\\n%s\\n\",$0);next; }} {{ printf(\"%s\",$0); }} END {{ printf(\"\\n\"); }}' {input.genome} | tail -n +2 > {output.genome}
-        prodigal -p meta all_mags.fasta -d {output.genome} -o {log}
+        if [ ! -f {output.stb} ];
+        then
+            for mag in {input.all_mags};
+            do
+                mag_name=$(basename ${{mag}})
+                echo "running parse_stb for ${{mag}}"
+                parse_stb.py --reverse -f ${{mag}} -o 10_instrain/${{mag_name%%.fna}}_stb.temp
+            done
+            cat 10_instrain/*_stb.temp > {output.stb}
+            rm 10_instrain/*_stb.temp
+        fi
+        if [ ! -f {output.genome} ];
+        then
+            awk ' /^>/ {{ printf(\"\\n%s\\n\",$0);next; }} {{ printf(\"%s\",$0); }} END {{ printf(\"\\n\"); }}' {input.genome} | tail -n +2 > {output.genome}
+        fi
+        if [ ! -f {output.genes} ];
+        then
+            prodigal -p meta -i {output.genome} -d {output.genes} -o {log}
+        fi
         """
 
 rule instrain_profile:
     input:
-        bam = rules.map_to_MAGs.output.bai_mapped,
+        bam = rules.map_to_MAGs.output.bam_mapped,
         genomes = "10_instrain/all_mags.fasta",
         stb = "10_instrain/all_mags_stb.tsv",
         genes = "10_instrain/all_mags_genes.fna"
@@ -2262,16 +2271,17 @@ rule instrain_profile:
     params:
         mailto="aiswarya.prasad@unil.ch",
         account="pengel_spirit",
-        runtime_s=convertToSec("0-1:10:00"),
+        runtime_s=convertToSec("0-3:10:00"),
     resources:
         mem_mb = 10000
     conda: "envs/snv-env.yaml"
     log: "logs/{sample}_instrain_profile.log"
     benchmark: "logs/{sample}_instrain_profile.benchmark"
-    threads: 8
+    threads: 16
     shell:
         """
         inStrain profile {input.bam} {input.genomes} -o {wildcards.sample}_profile.IS -p {threads} -g {input.genes} -s {input.stb} --database_mode
+        # inStrain profile {input.bam} {input.genomes} -o {wildcards.sample}_profile.IS -p {threads} -g {input.genes} -s {input.stb}
         """
 
 
