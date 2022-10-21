@@ -40,5 +40,5 @@ with open(ref_info, "r") as ref_info_fh:
             if rep_genome_status == 1:
                 rep_genomes.add(genome_id)
 
-print(f"making db_red {db_red}")
+print(f"making db_red {input_database}")
 make_db_red(input_database, rep_genomes)

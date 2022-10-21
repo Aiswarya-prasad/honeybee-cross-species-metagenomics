@@ -48,3 +48,4 @@ database/*
 *backup_*.log
 *MetaPop*
 assembly_summary_genbank.txt
+*OLD*
