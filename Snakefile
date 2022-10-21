@@ -347,8 +347,14 @@ def get_cluster_dict(path):
 if LOCAL_BACKUP:
     localrules: backup, concat_all_mags
 
-rule all:
+rule targets:
     input:
+        isolates = "config/IsolateGenomeInfo.csv",
+        coverage_host = expand("02_HostMapping/{sample}_coverage.tsv", sample=SAMPLES),
+        coverage_host_hist = expand("02_HostMapping/{sample}_coverage_histogram.txt", sample=SAMPLES),
+        trees = lambda wildcards: ["07_AnnotationAndPhylogenies/05_IQTree/"+group+"/"+group+"_Phylogeny.contree" for group in [x for x in GROUPS if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_tree) > 4]],
+        core_cov_plots = lambda wildcards: ["09_MagDatabaseProfiling/CoverageEstimation/Merged/"+group+"_coord.txt" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
+        instrain_done = "10_instrain/rep_mags.IS.COMPARE/",
         html = PROJECT_IDENTIFIER+"_Report.html",
         backup_log = "logs/backup.log",
 
@@ -581,31 +587,6 @@ rule host_mapping:
         samtools flagstat -O tsv {output.bam} > {output.flagstat_02}
         """
 
-rule host_mapping_extract_host_mapped_reads:
-    input:
-        bam_mapped=rules.host_mapping.output.bam_mapped
-    output:
-        reads1 = temp("02_HostMapping/{sample}_R1_host_mapped.fastq"),
-        reads2 = temp("02_HostMapping/{sample}_R2_host_mapped.fastq"),
-        bai_mapped=temp("02_HostMapping/{sample}_host_mapped.bam.bai")
-    params:
-        mailto="aiswarya.prasad@unil.ch",
-        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        jobname="{sample}_host_mapping_extract_host_mapped_reads",
-        account="pengel_spirit",
-        runtime_s=convertToSec("0-2:10:00"),
-    resources:
-        mem_mb = 8000
-    threads: 4
-    log: "logs/{sample}_host_mapping_extract_host_mapped_reads.log"
-    benchmark: "logs/{sample}_host_mapping_extract_host_mapped_reads.benchmark"
-    conda: "envs/mapping-env.yaml"
-    shell:
-        """
-        samtools index {input.bam_mapped}
-        picard -Xmx8g SamToFastq I={input.bam_mapped} F={output.reads1} F2={output.reads2} VALIDATION_STRINGENCY=SILENT
-        """
-
 rule host_mapping_extract_host_filtered_reads:
     input:
         bam_unmapped=rules.host_mapping.output.bam_unmapped
@@ -630,61 +611,6 @@ rule host_mapping_extract_host_filtered_reads:
         samtools index {input.bam_unmapped}
         picard -Xmx8g SamToFastq I={input.bam_unmapped} F={output.reads1} F2={output.reads2} VALIDATION_STRINGENCY=SILENT
         """
-
-rule assemble_host_mapped:
-    input:
-        reads1 = rules.host_mapping_extract_host_mapped_reads.output.reads1,
-        reads2 = rules.host_mapping_extract_host_mapped_reads.output.reads2,
-    output:
-        scaffolds_unparsed = "05_Assembly/host_mapped/{sample}_scaffolds_unparsed.fasta",
-        scaffolds = "05_Assembly/host_mapped/{sample}_scaffolds.fasta",
-        graph = "05_Assembly/host_mapped/{sample}_assembly_graph.fastg",
-        spades_log = "05_Assembly/host_mapped/{sample}_spades.log",
-    params:
-        outdir = lambda wildcards: "05_Assembly/host_mapped/"+wildcards.sample,
-        filt_py = "scripts/parse_spades_metagenome.py",
-        length_t = 1000,
-        cov_t = 1,
-        memory_limit = 350,
-        mailto="aiswarya.prasad@unil.ch",
-        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        jobname="{sample}_assemble_host_mapped",
-        account="pengel_spirit",
-        runtime_s=convertToSec("0-20:00:00"),
-    resources:
-        mem_mb = convertToMb("200G"),
-    retries: 3
-    threads: 4
-    log: "logs/{sample}_assemble_host_mapped.log"
-    benchmark: "logs/{sample}_assemble_host_mapped.benchmark"
-    conda: "envs/spades-env.yaml"
-    shell:
-        """
-        if [ -f \"{params.outdir}/scaffolds.fasta\" ]; then
-          echo {params.outdir}/scaffolds.fasta\" exists copying and cleaning\"
-        else
-          if [ -d \"{params.outdir}/\" ]; then
-            echo {params.outdir}\" exists resuming spades\"
-            spades.py --continue -o {params.outdir} || true
-          else
-            echo \"{params.outdir} not found. Starting new spades run.\"
-            spades.py -m {params.memory_limit} --meta -1 {input.reads1} -2 {input.reads2} -t {threads} -o {params.outdir} || true
-          fi
-        fi
-        if [ -f \"{params.outdir}/scaffolds.fasta\" ]; then
-          cp {params.outdir}/scaffolds.fasta {output.scaffolds_unparsed}
-        else
-          echo \"assembly may have failed for \"{wildcards.sample}
-          echo \"touching file \"{output.scaffolds_unparsed}
-          touch {output.scaffolds_unparsed}
-        fi
-        python3 {params.filt_py} -i {output.scaffolds_unparsed} -o {output.scaffolds} -l {params.length_t} -c {params.cov_t}
-        cp {params.outdir}/assembly_graph.fastg {output.graph}
-        cp {params.outdir}/spades.log {output.spades_log}
-        rm -rf {params.outdir}
-        """
-
-# use metaeuk to annotate scaffolds
 
 rule microbiomedb_mapping:
     input:
@@ -720,31 +646,6 @@ rule microbiomedb_mapping:
         samtools flagstat -O tsv {output.bam} > {output.flagstat_03}
         """
 
-rule microbiomedb_extract_reads:
-    input:
-        bam_mapped=rules.microbiomedb_mapping.output.bam_mapped
-    output:
-        reads1=temp("03_MicrobiomeMapping/{sample}_R1_microbiome_mapped.fastq"),
-        reads2=temp("03_MicrobiomeMapping/{sample}_R2_microbiome_mapped.fastq"),
-        bai_mapped=temp("03_MicrobiomeMapping/{sample}_microbiome_mapped.bam.bai"),
-    params:
-        mailto="aiswarya.prasad@unil.ch",
-        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        jobname="{sample}_microbiomedb_extract_reads",
-        account="pengel_spirit",
-        runtime_s=convertToSec("0-2:10:00"),
-    resources:
-        mem_mb = 8000
-    threads: 4
-    log: "logs/{sample}_microbiomedb_extract_reads.log"
-    benchmark: "logs/{sample}_microbiomedb_extract_reads.benchmark"
-    conda: "envs/mapping-env.yaml"
-    shell:
-        """
-        samtools index {input.bam_mapped}
-        picard -Xmx8g SamToFastq I={input.bam_mapped} F={output.reads1} F2={output.reads2} VALIDATION_STRINGENCY=SILENT
-        """
-
 rule microbiomedb_direct_mapping:
     input:
         reads1=rules.trim.output.reads1,
@@ -777,31 +678,6 @@ rule microbiomedb_direct_mapping:
         samtools view -bh {output.sam_mapped} | samtools sort - > {output.bam_mapped}
         samtools view -bh {output.sam} | samtools sort - > {output.bam}
         samtools flagstat -O tsv {output.bam} > {output.flagstat_04}
-        """
-
-rule microbiomedb_direct_extract_reads:
-    input:
-        bam_mapped=rules.microbiomedb_direct_mapping.output.bam_mapped
-    output:
-        reads1=temp("04_MicrobiomeMappingDirect/{sample}_R1_microbiome_mapped.fastq"),
-        reads2=temp("04_MicrobiomeMappingDirect/{sample}_R2_microbiome_mapped.fastq"),
-        bai_mapped=temp("04_MicrobiomeMappingDirect/{sample}_microbiome_mapped.bam.bai"),
-    params:
-        mailto="aiswarya.prasad@unil.ch",
-        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        jobname="{sample}_microbiomedb_direct__extract_reads",
-        account="pengel_spirit",
-        runtime_s=convertToSec("0-2:10:00"),
-    resources:
-        mem_mb = 8000
-    threads: 4
-    log: "logs/{sample}_microbiomedb_extract_reads.log"
-    benchmark: "logs/{sample}_microbiomedb_extract_reads.benchmark"
-    conda: "envs/mapping-env.yaml"
-    shell:
-        """
-        samtools index {input.bam_mapped}
-        picard -Xmx8g SamToFastq I={input.bam_mapped} F={output.reads1} F2={output.reads2} VALIDATION_STRINGENCY=SILENT
         """
 
 ###############################
@@ -877,10 +753,9 @@ rule map_to_assembly:
         reads2 = rules.host_mapping_extract_host_filtered_reads.output.reads2,
         scaffolds = rules.assemble_host_unmapped.output.scaffolds
     output:
-        assembly_mapped = temp("05_Assembly/MapToAssembly/{sample}.bam"),
-        mapped = "05_Assembly/host_unmapped/check_assembly/{sample}_assembly_mapped_counts.txt",
-        sam = temp("05_Assembly/host_unmapped/check_assembly/{sample}_assembly.sam"),
-        bam = temp("05_Assembly/host_unmapped/check_assembly/{sample}_assembly.bam"),
+        flagstat = "05_Assembly/MapToAssembly/{sample}_assembly_mapping_flagstat.tsv",
+        sam = temp("05_Assembly/MapToAssembly/{sample}_assembly.sam"),
+        bam = temp("05_Assembly/MapToAssembly/{sample}_assembly.bam"),
     params:
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
@@ -899,35 +774,21 @@ rule map_to_assembly:
         bwa index {input.scaffolds}
         bwa mem -t {threads} {input.scaffolds} {input.reads1} {input.reads2} > {output.sam}
         samtools view -bh {output.sam} | samtools sort - > {output.bam}
-        cp {output.bam} {output.assembly_mapped}
-        samtools view -c -f 65 -F 2308 {output.bam} | sed \"s/^/{wildcards.sample} /\" >> {output.mapped};
         rm 05_Assembly/host_unmapped/{wildcards.sample}_scaffolds.fasta.amb
         rm 05_Assembly/host_unmapped/{wildcards.sample}_scaffolds.fasta.ann
         rm 05_Assembly/host_unmapped/{wildcards.sample}_scaffolds.fasta.bwt
         rm 05_Assembly/host_unmapped/{wildcards.sample}_scaffolds.fasta.pac
         rm 05_Assembly/host_unmapped/{wildcards.sample}_scaffolds.fasta.sa
-        """
-
-rule cat_and_clean_counts_assembly:
-    input:
-        mapped = expand("05_Assembly/host_unmapped/check_assembly/{sample}_assembly_mapped_counts.txt", sample=SAMPLES)
-    output:
-        mapped = "05_Assembly/host_unmapped/check_assembly/Assembly_mapped_counts.txt"
-    log:
-        "logs/cat_and_clean_counts_assembly.log"
-    shell:
-        """
-        cat {input.mapped} > {output.mapped}
+        samtools flagstat -O tsv {output.bam} > {output.flagstat}
         """
 
 rule summarize_mapping_assembly:
     input:
-        reads1 = expand("02_HostMapping/{sample}_R1_host_unmapped.fastq", sample=SAMPLES),
         scaffolds = expand("05_Assembly/host_unmapped/{sample}_scaffolds.fasta", sample=SAMPLES),
         scaffolds_unparsed = expand("05_Assembly/host_unmapped/{sample}_scaffolds_unparsed.fasta", sample=SAMPLES),
-        counts = "05_Assembly/host_unmapped/check_assembly/Assembly_mapped_counts.txt"
+        flagstat = expand("05_Assembly/MapToAssembly/{sample}_assembly_mapping_flagstat.tsv", sample=SAMPLES)
     output:
-        summary_assembly = "05_Assembly/host_unmapped/check_assembly/Assembly_mapping_summary.csv",
+        summary_assembly = "05_Assembly/MapToAssembly/Assembly_mapping_summary.csv",
     params:
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
@@ -940,8 +801,22 @@ rule summarize_mapping_assembly:
     log: "logs/summarize_mapping_assembly.log"
     benchmark: "logs/summarize_mapping_assembly.benchmark"
     run:
-        mapped_dict = make_count_dict("05_Assembly/host_unmapped/check_assembly/Assembly_mapped_counts.txt")
-
+        counts_dict = {}
+        mapped_dict = {}
+        for file in input.flagstat:
+            if "_assembly_mapping_flagstat.tsv":
+                sample = file.split("/")[-1].split("_assembly_mapping_flagstat.tsv")[0]
+            else:
+                sys.exit(f"Trying to parse sample name out of {file} but it is not in the format expected <sample>_assembly_mapping_flagstat.tsv.")
+            with open(file, "r") as fh:
+                for line in fh:
+                    line_split = line.strip().split("\t")
+                    if line_split[2] == "mapped":
+                        count = line_split[0]
+                        mapped_dict[sample] = int(count)
+                    if "primary" in line_split[2]:
+                        count = line_split[0]
+                        counts_dict[sample] = int(count)
         Sample_list = list()
         MinContigLen_list = list()
         MaxContigLen_list = list()
@@ -952,9 +827,9 @@ rule summarize_mapping_assembly:
         AssemblyMapped_list = list()
         ProportionMapped_list = list()
 
-        for i in range(len(input.reads1)):
+        for i in range(len(input.flagstat)):
             print(i)
-            Sample = input.reads1[i].split("/")[1].split("_R1")[0]
+            Sample = file.split("/")[-1].split("_assembly_mapping_flagstat.tsv")[0]
             print(Sample)
             Sample_list.append(Sample)
 
@@ -973,7 +848,7 @@ rule summarize_mapping_assembly:
             AssemblySize = int(os.popen("echo $(cat "+input.scaffolds[i]+" | grep -v \'>\' | tr -d \'\n\' | wc -m)").read())
             AssemblySize_list.append(AssemblySize)
 
-            NumReads = int(os.popen("echo $(cat "+input.reads1[i]+" | wc -l)").read())/4
+            NumReads = counts_dict[Sample]
             NumReads_list.append(NumReads)
 
             AssemblyMapped = mapped_dict[Sample]
@@ -2237,29 +2112,29 @@ rule core_cov_plots:
         """
         ./scripts/core_cov.R {input.txt};
         """
-#
-# rule make_MAG_reduced_db:
-#     input:
-#         mag_database = "database/MAGs_database",
-#         genomes = lambda wildcards: expand("07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.fna", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags_filt, rep_only = True, ref_info = checkpoints.select_cluster_ref_genomes_mag_database.get().output.ref_info)),
-#         ref_info = lambda wildcards: checkpoints.select_cluster_ref_genomes_mag_database.get().output.ref_info,
-#     output:
-#         mag_database_reduced = "database/MAGs_database_reduced",
-#     params:
-#         mailto="aiswarya.prasad@unil.ch",
-#         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-#         account="pengel_spirit",
-#         runtime_s=convertToSec("0-2:10:00"),
-#     resources:
-#         mem_mb = convertToMb("8G")
-#     threads: 8
-#     log: "logs/make_MAG_reduced_db.log"
-#     benchmark: "logs/make_MAG_reduced_db.benchmark"
-#     conda: "envs/core-cov-env.yaml"
-#     shell:
-#         """
-#         python3 scripts/subset_metagenome_db.py --input {input.mag_database} --ref_info {input.ref_info}
-#         """
+
+rule make_MAG_reduced_db:
+    input:
+        mag_database = "database/MAGs_database",
+        genomes = lambda wildcards: expand("07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.fna", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags_filt, rep_only = True, ref_info = checkpoints.select_cluster_ref_genomes_mag_database.get().output.ref_info)),
+        ref_info = lambda wildcards: checkpoints.select_cluster_ref_genomes_mag_database.get().output.ref_info,
+    output:
+        mag_database_reduced = "database/MAGs_database_reduced",
+    params:
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-2:10:00"),
+    resources:
+        mem_mb = convertToMb("8G")
+    threads: 8
+    log: "logs/make_MAG_reduced_db.log"
+    benchmark: "logs/make_MAG_reduced_db.benchmark"
+    conda: "envs/core-cov-env.yaml"
+    shell:
+        """
+        python3 scripts/subset_metagenome_db.py --input {input.mag_database} --ref_info {input.ref_info}
+        """
 
 rule prep_for_instrain:
     input:
@@ -2387,37 +2262,24 @@ rule instrain_compare:
 ###############################
 ###############################
 
-
 rule compile_report:
     input:
         rmd = PROJECT_IDENTIFIER+"_Report.Rmd",
-        isolates = "config/IsolateGenomeInfo.csv",
-        coverage_host = expand("02_HostMapping/{sample}_coverage.tsv", sample=SAMPLES),
-        coverage_host_hist = expand("02_HostMapping/{sample}_coverage_histogram.txt", sample=SAMPLES),
         flagstat_02 = expand("02_HostMapping/{sample}_flagstat.tsv", sample=SAMPLES),
         flagstat_03 = expand("03_MicrobiomeMapping/{sample}_flagstat.tsv", sample=SAMPLES),
         flagstat_04 = expand("04_MicrobiomeMappingDirect/{sample}_flagstat.tsv", sample=SAMPLES),
         qc_raw = expand("fastqc/raw/{sample}_{read}_fastqc.html", sample=SAMPLES, read=config["READS"]),
         qc_trimmed = expand("fastqc/trim/{sample}_{read}_trim_fastqc.html", sample=SAMPLES, read=config["READS"]),
         motus_merged = "08_motus_profile/samples_merged.motus",
-        # summary_assembly = "05_Assembly/host_unmapped/check_assembly/Assembly_mapping_summary.csv",
+        summary_assembly = "05_Assembly/MapToAssembly/Assembly_mapping_summary.csv",
         contig_fates = expand("06_MAG_binning/contig_fates/{sample}_contig_fates.csv", sample=SAMPLES),
         sample_contig_coverages = expand("06_MAG_binning/contig_fates/backmapping_coverages/{sample}_contig_coverages.csv", sample=SAMPLES),
-        out_all = "06_MAG_binning/all_GenomeInfo_auto.tsv",
-        out_tree = "06_MAG_binning/ForTree_GenomeInfo_auto.tsv",
-        checkpoint = lambda wildcards: checkpoints.make_phylo_table.get().output.out_tree,
-        trees = lambda wildcards: ["07_AnnotationAndPhylogenies/05_IQTree/"+group+"/"+group+"_Phylogeny.contree" for group in [x for x in GROUPS if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_tree) > 4]],
-        single_ortho_MAGs = expand("07_AnnotationAndPhylogenies/02_orthofinder/{group}/OrthoFinder/{group}_single_ortho_MAGs.txt", group=GROUPS),
         ortho_summary = expand("07_AnnotationAndPhylogenies/02_orthofinder/{group}_Orthogroups_summary.csv", group=GROUPS),
         mag_mapping_flagstat = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_flagstat.tsv", sample=SAMPLES),
         mag_mapping_hostfiltered_flagstat = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_host-filtered_flagstat.tsv", sample=SAMPLES),
         summarise_db_ortho = lambda wildcards: ["database/MAGs_database_Orthofinder/"+group+"_Orthogroups_summary.csv" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
-        ortho_filt_perc_id = lambda wildcards: ["database/MAGs_database_Orthofinder/"+group+"/OrthoFinder/"+group+"_single_ortho_filt_perc_id.txt" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
         summarise_db_ortho_filt = lambda wildcards: ["database/MAGs_database_Orthofinder/"+group+"_Orthogroups_filtered_summary.csv" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
-        bam_mapped_mag_database = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_mapped.bam", sample=SAMPLES),
-        core_cov_plots = lambda wildcards: ["09_MagDatabaseProfiling/CoverageEstimation/Merged/"+group+"_coord.txt" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
         core_cov_txt = lambda wildcards: ["09_MagDatabaseProfiling/CoverageEstimation/Merged/"+group+"_coord.pdf" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
-        instrain_done = "10_instrain/rep_mags.IS.COMPARE/"
     output:
         html = PROJECT_IDENTIFIER+"_Report.html",
     conda: "envs/rmd-env.yaml"
@@ -2438,36 +2300,6 @@ rule compile_report:
 rule backup:
     input:
         html = PROJECT_IDENTIFIER+"_Report.html",
-        rmd = PROJECT_IDENTIFIER+"_Report.Rmd",
-        isolates = "config/IsolateGenomeInfo.csv",
-        coverage_host = expand("02_HostMapping/{sample}_coverage.tsv", sample=SAMPLES),
-        coverage_host_hist = expand("02_HostMapping/{sample}_coverage_histogram.txt", sample=SAMPLES),
-        flagstat_02 = expand("02_HostMapping/{sample}_flagstat.tsv", sample=SAMPLES),
-        flagstat_03 = expand("03_MicrobiomeMapping/{sample}_flagstat.tsv", sample=SAMPLES),
-        flagstat_04 = expand("04_MicrobiomeMappingDirect/{sample}_flagstat.tsv", sample=SAMPLES),
-        qc_raw = expand("fastqc/raw/{sample}_{read}_fastqc.html", sample=SAMPLES, read=config["READS"]),
-        qc_trimmed = expand("fastqc/trim/{sample}_{read}_trim_fastqc.html", sample=SAMPLES, read=config["READS"]),
-        motus_merged = "08_motus_profile/samples_merged.motus",
-        # summary_assembly = "05_Assembly/host_unmapped/check_assembly/Assembly_mapping_summary.csv",
-        contig_fates = expand("06_MAG_binning/contig_fates/{sample}_contig_fates.csv", sample=SAMPLES),
-        sample_contig_coverages = expand("06_MAG_binning/contig_fates/backmapping_coverages/{sample}_contig_coverages.csv", sample=SAMPLES),
-        out_all = "06_MAG_binning/all_GenomeInfo_auto.tsv",
-        out_tree = "06_MAG_binning/ForTree_GenomeInfo_auto.tsv",
-        checkpoint_tree = lambda wildcards: checkpoints.make_phylo_table.get().output.out_tree,
-        checkpoint_all = lambda wildcards: checkpoints.make_phylo_table.get().output.out_all,
-        trees = lambda wildcards: ["07_AnnotationAndPhylogenies/05_IQTree/"+group+"/"+group+"_Phylogeny.contree" for group in [x for x in GROUPS if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_tree) > 4]],
-        single_ortho_MAGs = expand("07_AnnotationAndPhylogenies/02_orthofinder/{group}/OrthoFinder/{group}_single_ortho_MAGs.txt", group=GROUPS),
-        ortho_summary = expand("07_AnnotationAndPhylogenies/02_orthofinder/{group}_Orthogroups_summary.csv", group=GROUPS),
-        # mOTUlize = "06_MAG_binning/mOTUlizer/mOTUlizer_output.tsv",
-        mag_mapping_flagstat = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_flagstat.tsv", sample=SAMPLES),
-        mag_mapping_hostfiltered_flagstat = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_host-filtered_flagstat.tsv", sample=SAMPLES),
-        summarise_db_ortho = lambda wildcards: ["database/MAGs_database_Orthofinder/"+group+"_Orthogroups_summary.csv" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
-        ortho_filt_perc_id = lambda wildcards: ["database/MAGs_database_Orthofinder/"+group+"/OrthoFinder/"+group+"_single_ortho_filt_perc_id.txt" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
-        summarise_db_ortho_filt = lambda wildcards: ["database/MAGs_database_Orthofinder/"+group+"_Orthogroups_filtered_summary.csv" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
-        bam_mapped_mag_database = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_mapped.bam", sample=SAMPLES),
-        core_cov_plots = lambda wildcards: ["09_MagDatabaseProfiling/CoverageEstimation/Merged/"+group+"_coord.txt" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
-        core_cov_txt = lambda wildcards: ["09_MagDatabaseProfiling/CoverageEstimation/Merged/"+group+"_coord.pdf" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
-        instrain_done = "10_instrain/rep_mags.IS.COMPARE/"
     output:
         outfile = touch("logs/backup.done")
     threads: 2
@@ -2475,7 +2307,7 @@ rule backup:
     benchmark: "logs/backup.benchmark"
     params:
         account="pengel_spirit",
-        runtime_s=convertToSec("0-2:10:00"),
+        runtime_s=convertToSec("0-6:10:00"),
     resources:
         mem_mb = convertToMb("4G")
     run:

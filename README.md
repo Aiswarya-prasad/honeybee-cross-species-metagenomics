@@ -67,87 +67,69 @@ Some functions in the script are used to provide inputs to various rules and to 
 
 ## Rules
 
-+ `rule raw_qc`
-  - This rule runs [fastqc](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/) on raw files and saves the output in "/fastqc/raw".
-+ `rule make_adapters`
-  - This rule uses the script `scripts/write_adapters.py` (absent for now).
-  - It uses the index_table.csv files to make the Adapters-PE.fa file containing indexed adapters.
+  + `rule targets`
+    + This is the master rule that specifies all the output files / directories desired and accoringly runs the rules that provide the specified output. Most of the outputs from the different rules are used for making the report. Just the ones that are not used by the report are mentioned here.
+  + `rule raw_qc`
+    + Uses raw reads and produces fastqc outputs
+    + This rule runs [fastqc](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/) on raw files and saves the output in "/fastqc/raw".
+  + `rule make_adapters`
+    + Uses the "config/index_table.csv" and the script `scripts/write_adapters.py` (absent for now) and produces the "Adapters-PE.fa" file containing indexed adapters.
   + `rule trim`
-    - This rules trims reads using [trimmomatic](http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/TrimmomaticManual_V0.32.pdf).
-    - The _Adapters-PE.fa_ files is used.
-    - The trimming parameters are.
+    + This rules trims reads using [trimmomatic](http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/TrimmomaticManual_V0.32.pdf).
+    + The _Adapters-PE.fa_ files is used.
   + `rule trim_qc`
-    - This rule runs [fastqc](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/) on trimmed files and saves the output in `./fastqc/trim`.
+    + This rule runs [fastqc](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/) on trimmed files and saves the output in `fastqc/trim`.
   + `rule index_bwa`
-    - Indexes genomes in `./database` for use by [bwa](http://bio-bwa.sourceforge.net/) using [bwa index](http://bio-bwa.sourceforge.net/bwa.shtml#3).
+    + Indexes genomes in `database` for use by [bwa](http://bio-bwa.sourceforge.net/) using [bwa index](http://bio-bwa.sourceforge.net/bwa.shtml#3).
   + `rule index_samtools`
-    - Indexes genomes in `./database` for use by [samtools](http://www.htslib.org/doc/#manual-pages).
+    + Indexes genomes in `database` for use by [samtools](http://www.htslib.org/doc/#manual-pages).
   + `rule make_genome_list`
-    - Creats a text file corresponding to each set of genomes in `./database` to be used when we need to know which genomes are present in given genome database.
+    + Creates a text file corresponding to each set of genomes in `database` to be used when we need to know which genomes are present in given genome database.
+  + `rule run_motus`
+    + Uses the trimmed reads "01_Trimmed/{sample}_R*_trim.fastq.gz" to produce an [motus](https://github.com/motu-tool/mOTUs) output.
+  + `rule merge_motus`
+    + merges all the motu outputs from the previous rule and creates the merged output "08_motus_profile/samples_merged.motus" to be parsed later for visualization.
   + `rule host_mapping`
-    - Uses [bwa mem](http://bio-bwa.sourceforge.net/bwa.shtml#:~:text=BWA%20is%20a%20software%20package,such%20as%20the%20human%20genome.&text=BWA%2DMEM%20also%20has%20better,genome%20(the%20index%20command)) to map reads for each sample to a database containing host genomes, `./database/4_host_db`.
-    - Unmapped reads identified by samtools with the option `-f4` are stored in a seperate bam file.
-    - The bam file with all alignments is used later by the counting rule and then deleted after counting.
-  + `rule host_mapping_extract_reads`
-    - Reads that did not map to the host database are extracted and then mapped to the microbiome database.
-    - They are extracted using [picard](https://broadinstitute.github.io/picard/).
-    - The option `-Xmx8g` ensures that java is given 8 GB memory. If suffecient memory is not allocated, the job will fail.
-  + `rule host_mapping_count`
-    - Counts the number of mapped, properly and unmapped reads from host mapping.
-    - It uses the following flags to identify each kind of read:
-      - **count number of properly mapped reads: `-f 67 -F 2304`**
-          - 67 (include -f) flags
-              + read paired (0x1)
-              + read mapped in proper pair (0x2)
-              + first in pair (0x40)
-          - 2308 (exclude -F) flags
-              + read unmapped (0x4)
-              + supplementary alignment (0x800)
-              + not primary (0x100)
-      - **count number of mapped reads: `-f 67 -F 2304`**
-          - 65 (include -f) flags
-              + read paired (0x1)
-              + first in pair (0x40)
-          - 2308 (exclude -F) flags
-              + read unmapped (0x4)
-              + supplementary alignment (0x800)
-              + not primary (0x100)
-      - **count number of unmapped reads: `-f 67 -F 2304`**
-          - 69 (include -f) flags
-              + read paired (0x1)
-              + read unmapped (0x4)
-              + first in pair (0x40)
-          - 2304 (exclude -F) flags
-              + supplementary alignment (0x800)
-              + not primary (0x100)
-    - After counting, the bam file is deleted and an empty file is touched to mark that counting is complete for said file.
+    + Uses [bwa mem](http://bio-bwa.sourceforge.net/bwa.shtml#:~:text=BWA%20is%20a%20software%20package,such%20as%20the%20human%20genome.&text=BWA%2DMEM%20also%20has%20better,genome%20(the%20index%20command)) to map reads for each sample to a database containing host genomes, `database/4_host_db`.
+    + Unmapped alignments identified by samtools with the option `-f4` are stored in a seperate bam file to be used later. All others will be deleted.
+    + The bam file with all alignments is used to create a flagstat output which will be parsed later. It also creates a coverage histogram and a tsv file summarising coverage.
+  + `rule host_mapping_extract_host_filtered_reads`
+    + Reads that did not map to the host database are extracted and then mapped to the microbiome database.
+    + They are extracted using [picard](https://broadinstitute.github.io/picard/).
+    + The option `-Xmx8g` ensures that java is given 8 GB memory. If suffecient memory is not allocated, the job will fail. The extracted reads will be used later "02_HostMapping/{sample}_R*_host_unmapped.fastq" and also referred to as host-filtered reads.
+    + This is done in order to make the assembly a little easier.
   + `rule microbiomedb_mapping`
-    - The host unmapped reads extracted earlier are mapped to the microbiome database.
-    - Mapped reads are extracted using a perls script as follows. First, unmapped reads are excluded using `-F4` and then supplementary reads are excluded `-F 0x800`. Finally, the remaining reads are sent through `./scripts/filter_sam_aln_length.pl`. The script filters away reads that have less than 50bps matching in the alignment.
-  + `rule microbiomedb_extract_reads`
-    - Extracts mapped reads identified as mentioned in the previous rule and saves them as fastq files.
-  + `rule microbiome_mapping_count`
-    - Counts reads as explained in the other counting rule, _host_mapping_count_.
-  + `rule cat_and_clean_counts`
-    - Compiles all the counts into 1 file for easier parsing by the summarize rule.
-  + `rule summarize_mapping`
-    - Summarizes counts in a csv file using the results of earlier rules and by counting fastq files.
+    + The host unmapped reads extracted earlier are mapped to the microbiome database.
+    + Mapped reads are extracted using a perls script as follows. First, unmapped reads are excluded using `-F4` and then supplementary reads are excluded `-F 0x800`. Finally, the remaining reads are sent through `scripts/filter_sam_aln_length.pl`. The script filters away reads that have less than 50bps matching in the alignment.
+    + It keeps the [samtools](http://www.htslib.org/doc/samtools.html) [flagstat](https://www.biostars.org/p/84396/) result but removes all the others.
+  + `rule microbiomedb_direct_mapping`
+    + trimmed reads are directly mapped to the microbiome database to see how much of the reads map in this way as compared to after host-filtering. Some reads that are of microbial origin may map to the host database due to contamination in the host database or even non-specifically by chance. To ensure that we do not lose too many reads in this way, upon host filtering, the flagstat output from this mapping is useful.
+  + `rule assemble_host_unmapped`
+    + Uses the host-filtered reads to give to spades using the meta option to assemble.
+    + The bash script is eritten to make sure assemblies are resumed if an older output directory exists.
+    + The script `scripts/parse_spades_metagenome.py` is then used to extract only scaffolds that pass the coverage and length threshold that can be specified in the parameters section of the rule.
+    + The scffolds, log and assembly graphs are copied out of the output directory and kept but the rest of the directory is deleted.
+  + `rule map_to_assembly`
+    + This rule maps the host-filtered reads to the assembly and creates the flagstat output used to visualise how well the assembly is represented by the reads for each sample.
+  + `rule summarize_mapping_assembly`
+    + It used the scaffolds and the flagstat output from mapping create a summary across all samples that can be parsed and visualized by the script making the report.
+<!-- + "Continue readme update here - need to clean up utility functions and update make_phylo_table.R" -->
   + `rule run_orthofinder`
-    - Runs [Orthofinder](https://github.com/davidemms/OrthoFinder) for each phylotype.
-    - **Before** running this, group genomes by phylotype in directories for Orthofinder to be able to get which groups to consider together. When the genomes for the database are downloaded at `./database/faa_files/{genome}`, they are all in one directory. Grouping was done using `./scripts/rearange_faa.py`. As written, it is to be run from the scripts directory in which it resides (!! it uses relative paths !!).
-    - faa files for each genome comes from the respective databese (NCBI for example)
-    - When orthofinder finishes, the following file will be generated and used for the following steps, `./database/faa_files/{phylotype}/OrthoFinder/Results_dir/Orthogroups/Orthogroups.txt`.
-    - The file _Orthogroups.txt_ contains a list of orthogroups. Eg, each line would look like
+    + Runs [Orthofinder](https://github.com/davidemms/OrthoFinder) for each phylotype.
+    + **Before** running this, group genomes by phylotype in directories for Orthofinder to be able to get which groups to consider together. When the genomes for the database are downloaded at `database/faa_files/{genome}`, they are all in one directory. Grouping was done using `scripts/rearange_faa.py`. As written, it is to be run from the scripts directory in which it resides (!! it uses relative paths !!).
+    + faa files for each genome comes from the respective databese (NCBI for example)
+    + When orthofinder finishes, the following file will be generated and used for the following steps, `database/faa_files/{phylotype}/OrthoFinder/Results_dir/Orthogroups/Orthogroups.txt`.
+    + The file _Orthogroups.txt_ contains a list of orthogroups. Eg, each line would look like
       - **OG0000003**: C4S76_01365 C4S76_01370 C4S76_01375 C4S77_06100 C4S77_06130 C4S77_06135 C4S77_06775 C4S77_06780 C4S77_06785 C4S77_06790 C4S77_06795 C4S77_06800 C4S77_06805 C4S77_06810 C4S77_09595 C4S77_09600 C4S77_09605 C4S77_09610 **C4S77_09615 C4S77_09620 C4S77_10540 Ga0307799_111506**
       - where, **OG0000003** is an orthogroup for this group of genomes (phylotype) and **C4S77**, **Ga0307799** etc. are genomes that belong to that group. **09615, 09620, 10540** are genes from **C4S77** and **111506** from **Ga0307799** that belong to orthogroup OG0000003.
   + `rule get_single_ortho`
-    - The files _Orthogroups.txt_ is parsed by `./scripts/get_single_ortho.py` and single-copy orthologs are written to `./database/Orthofinder/{phylotype}_single_ortho.txt`
-    - The script reads each orthogroup and counts the number of genomes present in genes of that orthogroup. If the number of genes in the orthogroup and the number of genomes in the orthogroup are the same as the total number of genomes in the database for said phylotype, the genes in the group are considered single-copy core genes and included for core coverage estimation.
+    + The files _Orthogroups.txt_ is parsed by `scripts/get_single_ortho.py` and single-copy orthologs are written to `database/Orthofinder/{phylotype}_single_ortho.txt`
+    + The script reads each orthogroup and counts the number of genomes present in genes of that orthogroup. If the number of genes in the orthogroup and the number of genomes in the orthogroup are the same as the total number of genomes in the database for said phylotype, the genes in the group are considered single-copy core genes and included for core coverage estimation.
   + `rule extract_orthologs`
-    - This rule prepares files with sequences of orthologs in order to calculate percentage identity (perc_id).
-    - First, it reads the file `./database/Orthofinder/{phylotype}_single_ortho.txt` and gets all the genome-ids present in the ortholog-file, and all the gene-ids associated with each gene-family. Using this list it extracts and stores the sequences of each of the genes of an orthogroup in an faa file and ffn file corresponding to each group in the directory`./database/Orthofinder/{phylotype}_ortho_sequences/`.
+    + This rule prepares files with sequences of orthologs in order to calculate percentage identity (perc_id).
+    + First, it reads the file `database/Orthofinder/{phylotype}_single_ortho.txt` and gets all the genome-ids present in the ortholog-file, and all the gene-ids associated with each gene-family. Using this list it extracts and stores the sequences of each of the genes of an orthogroup in an faa file and ffn file corresponding to each group in the directory`database/Orthofinder/{phylotype}_ortho_sequences/`.
     EXAMPLE:
-    - `cat ./database/Orthofinder/firm5_ortho_sequences/OG0001034.faa` \
+    + `cat ./database/Orthofinder/firm5_ortho_sequences/OG0001034.faa` \
       **\>Ga0061073_1479** \
       MTKYQTLIFVPEGSLLNEKTAEQVALRQTLKELGHDFGPAERLKYSSLQGQVKMMGFSER \
       IALTLQNFCTDDLAEAEKIFKTKLGGQRQLVKDAIPFLDQITNQVKLILLAKEERELISA \
@@ -163,7 +145,7 @@ Some functions in the script are used to provide inputs to various rules and to 
       IQLILQTFFHENWQDAGQIFIKELQKQNRLNKEVLPFLNKVNCKVKLILLAKENKKVALQ \
       RMKNTELVNYFPFAYFKDDFTEKLPHKKVLTTILQKQNLAFATSLVIGTDLADEIQAAEN \
       AKIQSLWLAPKKVKMPISPHPTLHLNKLNDLLFYLELS
-    - `cat ./database/Orthofinder/firm5_ortho_sequences/OG0001034.ffa` \
+    + `cat ./database/Orthofinder/firm5_ortho_sequences/OG0001034.ffa` \
       **\>Ga0061073_1479** \
       GTGACTAAATATCAAACGTTAATTTTTGTTCCTGAAGGTAGTTTATTAAATGAAAAAACG \
       GCTGAACAAGTCGCACTCAGGCAAACTTTAAAAGAACTCGGACATGATTTTGGACCAGCT \
@@ -202,7 +184,7 @@ Some functions in the script are used to provide inputs to various rules and to 
       GCCAAAATACAGTCACTCTGGCTAGCGCCTAAGAAAGTAAAAATGCCGATTAGCCCGCAC \
       CCAACTTTACATTTAAATAAATTAAACGATTTATTATTTTACCTAGAATTAAGCTAG
   + `rule calc_perc_id`
-    - this rule relies on various tools and scripts tied together by `./scripts/aln_calc.sh`. The scripts are:
+    + this rule relies on various tools and scripts tied together by `scripts/aln_calc.sh`. The scripts are:
       + [mafft](https://mafft.cbrc.jp/alignment/software/manual/manual.html#index) for alignment
         + The aligned result is in a multi-fasta file called {OrthogroupID}_aln.fasta.
         EXAMPLE:
@@ -305,9 +287,9 @@ Some functions in the script are used to provide inputs to various rules and to 
           GCCAAAATACAGTCACTCTGGCTAGCGCCTAAGAAAGTAAAAATGCCGATTAGCCCGCAC \
           CCAACTTTACATTTAAATAAATTAAACGATTTATTATTTTACCTAGAATTAAGC
       + **calc_perc_id_orthologs.py**
-        + Uses as input, trimmed aligned sequences and a metafile (`./database/genome_db_210402_metafile.txt`) which is a tab-delim file with genome-id in tab1 and SDP-affiliation in tab 3
+        + Uses as input, trimmed aligned sequences and a metafile (`database/genome_db_210402_metafile.txt`) which is a tab-delim file with genome-id in tab1 and SDP-affiliation in tab 3
         + First, it checks the number of SDPs contained within the alignment. If more than one, it continues by calculating alignment percentage identity stats across SDPs. If only one SDP, exits script.
-        + Next, it Compares the genomes in each SDP to all other genomes in the alignment: calculates percentage identity for all pairwise combinations. Calculates the max, min, and mean values, prints to file `./database/Orthofinder/{phylotype}_perc_id.txt` showing one orthogroup per line.
+        + Next, it Compares the genomes in each SDP to all other genomes in the alignment: calculates percentage identity for all pairwise combinations. Calculates the max, min, and mean values, prints to file `database/Orthofinder/{phylotype}_perc_id.txt` showing one orthogroup per line.
         EXAMPLE:
         + `cat ./database/Orthofinder/firm5_perc_id.txt` \
           ... \
@@ -315,16 +297,16 @@ Some functions in the script are used to provide inputs to various rules and to 
           ... \
 
   + `rule filter_orthogroups`
-    - orthogroups are filtered based on:
+    + orthogroups are filtered based on:
       - Minimum gene-length 300bp (applied to all members of each gene-family)
       - Inter-SDP max alignment identity 95% (only if the phylotype contain multiple SDPs)
-    - Short genes are filtered off, because they are likley to be less reliable for accurate coverage estimates. Similarly, the inter-SDP similarity threshold is used to ensure that there is enough divergence between the SDPs for reliable mapping (at least as estimated from the currently availabe genomes). It is worthwhile to check the number of gene-families before/after filtering. If a lot of gene-families were filtered off, this could be an indication that the SDPs are not properly discrete.
-    - This finally results in the single-copy core genes that have been filtered to be used for core coverage estimation. `./database/Orthofinder/{phylotype}_single_ortho_filt.txt`.
+    + Short genes are filtered off, because they are likley to be less reliable for accurate coverage estimates. Similarly, the inter-SDP similarity threshold is used to ensure that there is enough divergence between the SDPs for reliable mapping (at least as estimated from the currently availabe genomes). It is worthwhile to check the number of gene-families before/after filtering. If a lot of gene-families were filtered off, this could be an indication that the SDPs are not properly discrete.
+    + This finally results in the single-copy core genes that have been filtered to be used for core coverage estimation. `database/Orthofinder/{phylotype}_single_ortho_filt.txt`.
   + `rule core_cov`
-    - takes as input bam files with the alignments for each sample to be considered (as a text file containing a list of these files) and the _\_single_ortho_filt_ file. Outputs are written to `./04_CoreCov_"+ProjectIdentifier+"/{phylotype}_corecov.txt`.
-    - The script reads the filtered orthofile `./database/Orthofinder/{phylotype}_single_ortho_filt.txt` and gets the gene-famililes and genome-ids for each SDP.
-    - Then, from bed files, it finds the start and end positions of each of the genes in an orthogroup for each of the genomes of the orthogroup. It writes these to the file, `./04_CoreCov_*/{phylotype}_corecov.txt` each SDP in the phylotype, start position for each gene family in the genome marked reference for that SDP.
-    - The coverage is also written to this file.
+    + takes as input bam files with the alignments for each sample to be considered (as a text file containing a list of these files) and the _\_single_ortho_filt_ file. Outputs are written to `04_CoreCov_"+ProjectIdentifier+"/{phylotype}_corecov.txt`.
+    + The script reads the filtered orthofile `database/Orthofinder/{phylotype}_single_ortho_filt.txt` and gets the gene-famililes and genome-ids for each SDP.
+    + Then, from bed files, it finds the start and end positions of each of the genes in an orthogroup for each of the genomes of the orthogroup. It writes these to the file, `04_CoreCov_*/{phylotype}_corecov.txt` each SDP in the phylotype, start position for each gene family in the genome marked reference for that SDP.
+    + The coverage is also written to this file.
     Example:
       + SDP	Sample	OG	Ref_pos	Coverage \
         firm5_1	DrY1_N1_microbiome_mapped	OG0000932	448	18.81 \
@@ -338,13 +320,13 @@ Some functions in the script are used to provide inputs to various rules and to 
         firm5_bombus	M1.5_microbiome_mapped	OG0000936	1674767	0.0 \
         firm5_bombus	M1.5_microbiome_mapped	OG0000935	1676256	0.0 \
         firm5_bombus	M1.5_microbiome_mapped	OG0000934	1677124	0.0
-    - SDP abundance is estimated based on mapped read coverage of core genes. It sums up gene coverages of all the genes og OG families associated with said SDP across genomes belogining to the SDP.
-    - It also reports PTR (Peak-Trough Ratio).
-    - Most species in the database are represented by multiple genomes (< 98.5% gANI between genomes). Core genes are inferred at the phylotype. More accurate estimates can be obtained by using a large number (+700) of core genes.
+    + SDP abundance is estimated based on mapped read coverage of core genes. It sums up gene coverages of all the genes og OG families associated with said SDP across genomes belogining to the SDP.
+    + It also reports PTR (Peak-Trough Ratio).
+    + Most species in the database are represented by multiple genomes (< 98.5% gANI between genomes). Core genes are inferred at the phylotype. More accurate estimates can be obtained by using a large number (+700) of core genes.
   + `rule core_cov_plots`
-    - This R-script will estimate the coverage at the terminus, using the summed core gene family coverages. If the cov-ter cannot be properly estimated (fx. due to draft genome status or lack of replication), an estimate will be generated using the median coverage across core gene families, and the PTR is set to NA. If more than 20\% of the core gene families have no coverage, the abundance will be set to zero. As output, a tabular file is generated (including the cov-ter/median cov, and PTR), and a pdf-file with plots for visual validation.
-    - First, filter for samples with coverage of at least 1 on > 80% of the core genes. Next, values that are deviating no more than 2 times the median are kept others are discarded as outliers.
-    - Next, gets fitted coordinates and append values to coord-table. It does this by using the segmented package. As explained below,
+    + This R-script will estimate the coverage at the terminus, using the summed core gene family coverages. If the cov-ter cannot be properly estimated (fx. due to draft genome status or lack of replication), an estimate will be generated using the median coverage across core gene families, and the PTR is set to NA. If more than 20\% of the core gene families have no coverage, the abundance will be set to zero. As output, a tabular file is generated (including the cov-ter/median cov, and PTR), and a pdf-file with plots for visual validation.
+    + First, filter for samples with coverage of at least 1 on > 80% of the core genes. Next, values that are deviating no more than 2 times the median are kept others are discarded as outliers.
+    + Next, gets fitted coordinates and append values to coord-table. It does this by using the segmented package. As explained below,
 
   ```{r eval=FALSE}
       x <- data_filt$Ref_pos
@@ -411,19 +393,19 @@ Some functions in the script are used to provide inputs to various rules and to 
   ```
   For `cor_ter` is the coverage $y = ax + b$ where x is psi (the breakpoint on the x axis) and the `cor_ori2` is the coverage at the ori which is the section with maximum coverage and at the `tail`. The condition `(psi<psi_min) || (psi>psi_max) || (min_ori_cov<cov_ter)` checks: **First**; If the break-point is too far from the expected place (+/-50% of break-point estimate), ptr is set to `NA`. **Second**; If the coverage at ori (either beginning or end of dataframe) is lower than the estimated coverage at ter, ptr is also set to `NA`. Finally, if the coverage of the origin is not greater than the terminus, ptr is set to `NA`.
 
-    - the PTR was set to `NA`, the median will be plotted and used for quantification. Else, the segmented regression line is plotted, and the terminus coverage is used for quantification.
+    + the PTR was set to `NA`, the median will be plotted and used for quantification. Else, the segmented regression line is plotted, and the terminus coverage is used for quantification.
 
   + rule assemble_host_unmapped
-    - Takes as input the R1 and R2 reads that were not mapped to the host and assembles them using [spades](https://cab.spbu.ru/software/meta-spades/) with the `--meta` tag and default parameters.
-    - Memory allocation is not obvious. More documentation on this soon.
+    + Takes as input the R1 and R2 reads that were not mapped to the host and assembles them using [spades](https://cab.spbu.ru/software/meta-spades/) with the `--meta` tag and default parameters.
+    + Memory allocation is not obvious. More documentation on this soon.
   + rule map_to_assembly
-    - Map reads that were assembled against the contigs that they were assembled into using [bwa mem](http://bio-bwa.sourceforge.net).
+    + Map reads that were assembled against the contigs that they were assembled into using [bwa mem](http://bio-bwa.sourceforge.net).
   + rule cat_and_clean_counts_assembly
-    - Compiles counts into one file for summarizing
+    + Compiles counts into one file for summarizing
   + rule summarize_mapping_assembly
-    - similar to earlier rule "summarize_mapping"
+    + similar to earlier rule "summarize_mapping"
   + rule backmapping
-    - NxN mapping for
+    + NxN mapping for
   + rule merge_depths
   + rule binning
   + rule process_metabat2
@@ -469,7 +451,7 @@ Some functions in the script are used to provide inputs to various rules and to 
   + `rearange_faa.py`
   + `subset_orthofile.py`
   + `trim_aln.py`
-  + `./scripts/write_adapters.py`
+  + `scripts/write_adapters.py`
 
   ## Envs
 
@@ -527,7 +509,7 @@ The samples used in this analysis are mentioned below.
 
 50 samples were first mapped to a host database and then the unmapped reads to a microbiome database.
 
-The raw reads and trimmed reads were checked for quality using the tool [fastqc](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/). The report (html format) also summarises basic statistics including number of reads. The QC results can be found in their respective folders at `./fastqc/raw/{SAMPLE}_R*_fastqc.html` and `./fastqc/trim/{SAMPLE}_R*_trim_fastqc.html`.
+The raw reads and trimmed reads were checked for quality using the tool [fastqc](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/). The report (html format) also summarises basic statistics including number of reads. The QC results can be found in their respective folders at `fastqc/raw/{SAMPLE}_R*_fastqc.html` and `fastqc/trim/{SAMPLE}_R*_trim_fastqc.html`.
 
 # Data description
 
@@ -670,20 +652,20 @@ Run the pipeline in the conda environment called `snakmake_with_samtools` in the
 
 Directory names are largely self-explanatory.
 
->`./00_rawdata`, `./01_Trimmed`, `./02_HostMapping`, `./03_MicrobiomeMapping`
->`database` contains databases to be used for mapping. It also contains `./Orthofinder` files. These are described later in the sections describing associated rules.
->`./envs` contains all yaml files required for this pipeline. They contain a list of packages needed to specify the conda environment for various rules to work within.
->`./logs` contains log files
->`./scripts` contains all scripts needed for the snakemake pipeline. Many of these scripts are adapted from Kirsten's scripts from the zenodo directories, github or from the lab_resources directories.
+>`00_rawdata`, `01_Trimmed`, `02_HostMapping`, `03_MicrobiomeMapping`
+>`database` contains databases to be used for mapping. It also contains `Orthofinder` files. These are described later in the sections describing associated rules.
+>`envs` contains all yaml files required for this pipeline. They contain a list of packages needed to specify the conda environment for various rules to work within.
+>`logs` contains log files
+>`scripts` contains all scripts needed for the snakemake pipeline. Many of these scripts are adapted from Kirsten's scripts from the zenodo directories, github or from the lab_resources directories.
 The **results** of the core coverage estimation are stored in,
-> `./04_CoreCov_211018_Medgenome_india_samples`
-> `./07_SNVProfiling` is not fully implemented (yet) for these samples as it is not relevant at this time.
->`./fastqc` contains fastqc **results** for trimmed and raw files
+> `04_CoreCov_211018_Medgenome_india_samples`
+> `07_SNVProfiling` is not fully implemented (yet) for these samples as it is not relevant at this time.
+>`fastqc` contains fastqc **results** for trimmed and raw files
 + bamfile_list_red.txt - required by KE's core coverage pipeline
 + bamfile_list.txt - required by KE's core coverage pipeline
-+ Adapters-PE.fa - is generated based on index sequences by the script `./scripts/write_adapters.py` (was deleted earlier as it was on scratch. Needs to be re-written.)
++ Adapters-PE.fa - is generated based on index sequences by the script `scripts/write_adapters.py` (was deleted earlier as it was on scratch. Needs to be re-written.)
 + config.yaml - comprises information including list of samples
-+ index_table.csv - used by the script `./scripts/write_adapters.py` to make indexed adapters
++ index_table.csv - used by the script `scripts/write_adapters.py` to make indexed adapters
 + Mapping_summary.csv - result from the rule summarize_mapping
 + rulegraph.pdf - summary DAG of rules in the pipeline (made using `snakemake --forceall --rulegraph | dot -Tpdf > Figuers/rulegraph.pdf`)
 + Report.Rmd - this report !
