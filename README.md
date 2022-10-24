@@ -57,9 +57,30 @@ Snakemake uses the file/path provided to the final rule (targets) and then looks
 + `checkpoint make_phylo_table`
   - The inputs that this rule takes for are "config/IsolateGenomeInfo.csv", "06_MAG_binning/all_genomes.csv" (provided by rule extract_mag_lists), "06_MAG_binning/gtdbtk_out_dir/classify/gtdbtk.bac120.summary.tsv" (provided by rule gtdb_annotate) and "06_MAG_binning/drep_results/data_tables/Cdb.csv" (provided by rule drep).
   - It uses the script `scripts/make_phylo_table.R` and `scripts/csv_to_tsv.py` to make tsv files which will be parsed later to obtain information about which MAGs downstream processes should run on.
+  - The various outputs made by this rule are as follows:
+    - They all have at least the headers:
+      - ID - name of the MAG or stain name (modified) of the genome.
+      - Accession - Genbank ID (for isolate genomes only - same as in config/IsolateGenomeInfo.csv)
+      - Locus_tag (for isolate genomes only - same as in config/IsolateGenomeInfo.csv)
+      - Strain_name (for isolate genomes only - same as in config/IsolateGenomeInfo.csv)
+      - Phylotype (for isolate genomes only - same as in config/IsolateGenomeInfo.csv)
+      - SDP (for isolate genomes only - same as in config/IsolateGenomeInfo.csv)
+      - Species (for isolate genomes only - same as in config/IsolateGenomeInfo.csv)
+      - Host - for MAGs, the host from which the MAG was assembled and for Isolates, the source from which it was isolated.
+      - Study - (for isolate genomes only - same as in config/IsolateGenomeInfo.csv)
+      - Origin - (for isolate genomes only - same as in config/IsolateGenomeInfo.csv)
+      - Source_database (for isolate genomes only - same as in config/IsolateGenomeInfo.csv)
+      - Cluster - The name of the 95% dereplicated cluster that it was assigned to by drep (refer to <rule drep>)
+      - Group - This field was used for assigning isolates to appropriate genus-level groups with MAGs for the sake of the tree. This tree is filled manually for isolated genomes when making "config/IsolateGenomeInfo.csv"
+      - Genus, Family, Order, Class - Taxonomic information assigned for MAGs by gtdb (see <rule gtdb_annotate>) (only for MAGs)
+      - Sample - The sample from which the MAG was assembled (only for MAGs)
+      - Group_auto - The Group assigned to each row automatically by the script. For isolates, it is inferred either from the information from the Group column of "config/IsolateGenomeInfo.csv" file or the phylotype. Make sure that the way this is done (based on a pre-defined dictionary written in the script) makes sense for your inputs. For the MAGs, it is the Genus assigned by gtdb.
+      - Ref_status - 1 if the MAG is a representative genome for its respective drep cluster, 0 otherwise. The MAG with the highest score within a given drep cluster is designated as the representative genome of the cluster (no matter how low the score). The method in which this is currently done assumes that, upon filtering by completeness and contamination, the MAG with the highest score will only be filtered out if all of the other members of its cluster are also filtered out. This makes sense because the score is weighted in such a way that completeness and contamination are given heavy weightage.
+    - "06_MAG_binning/all_GenomeInfo_auto.tsv" : This file contains the information for all Isolates and all MAGs
+    - "06_MAG_binning/ForTree_GenomeInfo_auto.tsv" : This file contains the information for all Isolates and filtered MAGs (Completeness > 50, Contamination < 5)
+    - "06_MAG_binning/MAGs_GenomeInfo_auto.tsv" : This file contains the information for and all MAGs
+    - "06_MAG_binning/MAGs_filt_GenomeInfo_auto.tsv" : This file contains the information filtered MAGs (Completeness > 50, Contamination < 5)
 
-+ `checkpoint select_cluster_ref_genomes_mag_database`
-  -
 
 ## Utility functions
 
@@ -113,6 +134,17 @@ Some functions in the script are used to provide inputs to various rules and to 
     + This rule maps the host-filtered reads to the assembly and creates the flagstat output used to visualise how well the assembly is represented by the reads for each sample.
   + `rule summarize_mapping_assembly`
     + It used the scaffolds and the flagstat output from mapping create a summary across all samples that can be parsed and visualized by the script making the report.
+  + `rule backmapping`
+    + Carries out NxN mapping of all N samples and only keeps the depth file that needs to be supplied to metabat2 for binning after the mapping for each sample (to be merged before being given to metabat2). It works on 1 sample at a time and maps the assembly of that sample against the reads from all the samples. Each iteration of the rule will result in N files. For example, when there are 50 samples in total and the rule runs on sample X, there will 50 files called "<sample>_mapped_to_X.depth". The rule only creates one bam file at a time. However, if the rule is run on 10 samples simultaneously, there will be about 10 bam files at a time.
+  + `rule merge_depths`
+    + All depth files of all the samples mapped to a given sample will be merged into 1 file that will be given to metabat2.
+  + `rule binning`
+    + For each sample, this rule provides the set of scaffolds assembled and the merged depth file with the coverages in each sample of these scaffolds to metabat2.
+    + The output is a directory containing as many MAG.*.fa files as there are bins with the scaffolds distributed across them.
+  + `rule process_metabat2`
+    + Since the names given to bins by metabat2 is duplicated across samples, this rule renames them by including the name of the sample from which the bin was made.
+  + `rule summarize_metabat2_contig_fates`
+    + It creates sample-wise summaries with sample, contig_name, length, coverage, passed_filter (whether the scaffold was >1000 length and >1 coverage), binned (whether it was binned) and bin_name.
 <!-- + "Continue readme update here - need to clean up utility functions and update make_phylo_table.R" -->
   + `rule run_orthofinder`
     + Runs [Orthofinder](https://github.com/davidemms/OrthoFinder) for each phylotype.

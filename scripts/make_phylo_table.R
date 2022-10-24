@@ -128,21 +128,25 @@ phy_group_dict = c("firm4" = "g__Bombilactobacillus",
 get_group_phy <- function(phy){
   return(c(phy_group_dict[phy][[1]]))
 }
+format_name <- function(genome){
+  MAG = strsplit(genome, ".fa")[[1]]
+  return(MAG)
+}
 # setwd("/Volumes/Storage/Work/Temp-From-NAS/cross-species-analysis")
 # project_dir_prefix="/Volumes/Storage/Work/Temp-From-NAS/cross-species-analysis"
 MAG_taxonomy_info <- read.csv(paste0(project_dir_prefix, "/06_MAG_binning/gtdbtk_out_dir/classify/gtdbtk.bac120.summary.tsv"), sep = "\t")
 MAG_info <- read.csv(paste0(project_dir_prefix, "/06_MAG_binning/all_genomes.csv"), sep = "\t")
 
 isolates <- read.csv(paste0(project_dir_prefix, "/config/IsolateGenomeInfo.csv"))
-
 MAG_clusters_info <- read.csv(paste0(project_dir_prefix, "/06_MAG_binning/drep_results/data_tables/Cdb.csv"))
-format_name <- function(genome){
-  MAG = strsplit(genome, ".fa")[[1]]
-  return(MAG)
-}
 MAG_clusters_info <- MAG_clusters_info %>% mutate(genome = Vectorize(format_name)(genome))
+MAG_score_info <- read.csv(paste0(project_dir_prefix, "/06_MAG_binning/drep_results/data_tables/Sdb.csv"))
+MAG_score_info <- MAG_score_info %>% mutate(genome = Vectorize(format_name)(genome))
 clusters <- MAG_clusters_info %>%
-              select(genome, secondary_cluster)
+                left_join(MAG_score_info, by = "genome") %>%
+                  group_by(secondary_cluster) %>%
+                    mutate(Ref_status = ifelse(score == max(score), 1, 0)) %>%
+                    ungroup()
 genomes_info <- MAG_info %>%
                   select(Bin.Id, Completeness, Contamination)
 colnames(genomes_info) = c("Genome", "Completeness", "Contamination")
@@ -150,11 +154,8 @@ taxonomy <- MAG_taxonomy_info %>%
               select(user_genome, classification) %>%
                 separate(classification, c("domain","phylum","class","order","family","genus","species"), sep = ";")
 
-MAGs_collated <- left_join(clusters, taxonomy, by = c("genome"="user_genome"))
+MAGs_collated <- left_join(clusters %>% select(genome, secondary_cluster), taxonomy, by = c("genome"="user_genome"))
 MAGs_collated <- left_join(genomes_info, MAGs_collated, by = c("Genome"="genome"))
-
-MAGs_collated_for_tree <- MAGs_collated %>%
-                        filter(Completeness > 50, Contamination < 5)
 
 MAGs_collated_filt <- MAGs_collated %>%
                         filter(Completeness > 50, Contamination < 5)
@@ -177,30 +178,32 @@ final_genome_info <- data.frame("ID" = isolates$ID,
                                  "Order" = rep(NA, length(isolates$ID)),
                                  "Class" = rep(NA, length(isolates$ID)),
                                  "Sample" = rep(NA, length(isolates$ID)),
-                                 "Group_auto" = rep("EMPTY", length(isolates$ID)))
+                                 "Group_auto" = rep("EMPTY", length(isolates$ID)),
+                                 "Ref_status" = rep(NA, length(isolates$ID))
+                               )
 
 final_genome_info <- final_genome_info %>%
                       mutate("Group_auto" = ifelse(is.na(Phylotype), Vectorize(get_group_phy)(Group), Vectorize(get_group_phy)(Phylotype)))
 final_genome_info$Group_auto <- as.character(final_genome_info$Group_auto)
 
-MAGs_collated_for_tree_info <- data.frame("ID" = MAGs_collated_for_tree$Genome,
-                                 "Accession" = rep(NA, length(MAGs_collated_for_tree$Genome)),
-                                 "Locus_tag" = rep(NA, length(MAGs_collated_for_tree$Genome)),
-                                 "Strain_name" = MAGs_collated_for_tree$Genome,
-                                 "Phylotype" = rep(NA, length(MAGs_collated_for_tree$Genome)),
-                                 "SDP" = rep(NA, length(MAGs_collated_for_tree$Genome)),
-                                 "Species" = MAGs_collated_for_tree$species,
-                                 "Host" = rep("EMPTY", length(MAGs_collated_for_tree$Genome)),
-                                 "Study" = rep(NA, length(MAGs_collated_for_tree$Genome)),
-                                 "Origin" = rep("EMPTY", length(MAGs_collated_for_tree$Genome)),
-                                 "Source_database" = rep("MAGs", length(MAGs_collated_for_tree$Genome)),
-                                 "Cluster" = MAGs_collated_for_tree$secondary_cluster,
-                                 "Group" = rep("EMPTY", length(MAGs_collated_for_tree$Genome)),
-                                 "Genus" = MAGs_collated_for_tree$genus,
-                                 "Family" = MAGs_collated_for_tree$family,
-                                 "Order" = MAGs_collated_for_tree$order,
-                                 "Class" = MAGs_collated_for_tree$class,
-                                 "Sample" = rep("EMPTY", length(MAGs_collated_for_tree$Genome)))
+MAGs_collated_for_tree_info <- data.frame("ID" = MAGs_collated_filt$Genome,
+                                 "Accession" = rep(NA, length(MAGs_collated_filt$Genome)),
+                                 "Locus_tag" = rep(NA, length(MAGs_collated_filt$Genome)),
+                                 "Strain_name" = MAGs_collated_filt$Genome,
+                                 "Phylotype" = rep(NA, length(MAGs_collated_filt$Genome)),
+                                 "SDP" = rep(NA, length(MAGs_collated_filt$Genome)),
+                                 "Species" = MAGs_collated_filt$species,
+                                 "Host" = rep("EMPTY", length(MAGs_collated_filt$Genome)),
+                                 "Study" = rep(NA, length(MAGs_collated_filt$Genome)),
+                                 "Origin" = rep("EMPTY", length(MAGs_collated_filt$Genome)),
+                                 "Source_database" = rep("MAGs", length(MAGs_collated_filt$Genome)),
+                                 "Cluster" = MAGs_collated_filt$secondary_cluster,
+                                 "Group" = rep("EMPTY", length(MAGs_collated_filt$Genome)),
+                                 "Genus" = MAGs_collated_filt$genus,
+                                 "Family" = MAGs_collated_filt$family,
+                                 "Order" = MAGs_collated_filt$order,
+                                 "Class" = MAGs_collated_filt$class,
+                                 "Sample" = rep("EMPTY", length(MAGs_collated_filt$Genome)))
 
 MAGs_collated_info <- data.frame("ID" = MAGs_collated$Genome,
                                  "Accession" = rep(NA, length(MAGs_collated$Genome)),
@@ -244,19 +247,26 @@ MAGs_collated_info <- MAGs_collated_info %>%
   mutate(Group_auto = Genus) %>%
     mutate(Host = Vectorize(get_host_name)(ID)) %>%
       mutate(Origin = Vectorize(get_origin_name)(ID)) %>%
-        mutate(Sample = Vectorize(get_sample_name)(ID))
+        mutate(Sample = Vectorize(get_sample_name)(ID)) %>%
+          left_join(clusters %>% select(genome, Ref_status), by = c("ID" = "genome"))
 
 MAGs_collated_for_tree_info <- MAGs_collated_for_tree_info %>%
   mutate("Group_auto" = Genus) %>%
     mutate("Host" = Vectorize(get_host_name)(ID)) %>%
       mutate(Origin = Vectorize(get_origin_name)(ID)) %>%
-        mutate(Sample = Vectorize(get_sample_name)(ID))
+        mutate(Sample = Vectorize(get_sample_name)(ID)) %>%
+          left_join(clusters %>% select(genome, Ref_status), by = c("ID" = "genome"))
 
 MAGs_collated_filt_info <- MAGs_collated_filt_info %>%
   mutate("Group_auto" = Genus) %>%
     mutate("Host" = Vectorize(get_host_name)(ID)) %>%
       mutate(Origin = Vectorize(get_origin_name)(ID)) %>%
-        mutate(Sample = Vectorize(get_sample_name)(ID))
+        mutate(Sample = Vectorize(get_sample_name)(ID)) %>%
+          left_join(clusters %>% select(genome, Ref_status), by = c("ID" = "genome"))
+
+if (! endsWith(project_dir_prefix, "/")) {
+  project_dir_prefix <- paste0(project_dir_prefix, "/")
+}
 
 write.csv(rbind(final_genome_info, MAGs_collated_for_tree_info), paste0(project_dir_prefix, "06_MAG_binning/ForTree_GenomeInfo_auto.csv"), row.names = F, quote = T)
 write.csv(rbind(final_genome_info, MAGs_collated_info), paste0(project_dir_prefix, "06_MAG_binning/all_GenomeInfo_auto.csv"), row.names = F, quote = T)

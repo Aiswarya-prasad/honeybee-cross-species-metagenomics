@@ -2006,7 +2006,7 @@ rule map_to_MAGs:
         genome_db = "database/MAGs_database"
     output:
         bam_mapped = "09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_mapped.bam",
-        # bam = "09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}.bam",
+        bam = "09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}.bam",
         sam = temp("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}.sam"),
         sam_mapped = temp("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}mapped.sam"),
         mag_mapping_flagstat = "09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_flagstat.tsv",
