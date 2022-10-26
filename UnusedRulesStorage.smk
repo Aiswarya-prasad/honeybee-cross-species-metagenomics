@@ -963,3 +963,67 @@ rule run_metapop:
 #     log: "logs/{sdp}_make_dist_matrix.log"
 #     script:
 #         "scripts/distance_matrix.R"
+
+checkpoint select_cluster_ref_genomes_mag_database:
+    input:
+        genomes_info = lambda wildcards: checkpoints.make_phylo_table.get().output.out_mags_filt,
+        genome_scores = lambda wildcards: rules.drep.output.drep_S
+    output:
+        ref_info = "database/MAGs_database_ref_info.txt"
+    params:
+        mags_list = lambda wildcards: get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags_filt, full_list = True),
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-2:10:00"),
+    benchmark: "logs/select_cluster_ref_genomes_mag_database.benchmark"
+    log: "logs/select_cluster_ref_genomes_mag_database.log"
+    run:
+        MAGs_selected = set(params.mags_list)
+        genome_scores = {}
+        with open(input.genome_scores, "r") as win_fh:
+            for line in win_fh:
+                line = line.strip()
+                if line.startswith("genome"):
+                    continue
+                genome_scores[line.split(",")[0].split(".fa")[0]] = float(line.split(",")[1])
+        with open(input.genomes_info, "r") as info_fh:
+            # make rep genomes set
+            group_max_score = {}
+            rep_genome_dict = {}
+            for line in info_fh:
+                if line.startswith("ID"):
+                    continue
+                genome_id = line.split("\t")[0]
+                if "MAG_" not in genome_id:
+                    continue
+                if genome_id not in MAGs_selected:
+                    continue
+                cluster = line.split("\t")[11]
+                # genus = line.split("\t")[13]
+                # genus = genus+cluster if genus == "g__" else genus
+                if cluster in group_max_score.keys():
+                    if int(genome_scores[genome_id]) > group_max_score[cluster]:
+                        group_max_score[cluster] = genome_scores[genome_id]
+                        rep_genome_dict[cluster] = genome_id
+                else:
+                    group_max_score[cluster] = genome_scores[genome_id]
+                    rep_genome_dict[cluster] = genome_id
+        with open(input.genomes_info, "r") as info_fh:
+            with open(output.ref_info, "w") as out_fh:
+                out_fh.write("genome_id\tcluster\trep_genome\tgroup\n")
+                for line in info_fh:
+                    if line.startswith("ID"):
+                        continue
+                    genome_id = line.split("\t")[0]
+                    if "MAG_" not in genome_id:
+                        continue
+                    cluster = line.split("\t")[11]
+                    genus = line.split("\t")[13]
+                    if genus == "NA":
+                        print(f"genus for {genome_id} is {genus}. This group may not make sense.")
+                        continue
+                    species_id = cluster
+                    group_name = genus+cluster if genus == "g__" else genus
+                    rep_genome = 1 if genome_id in rep_genome_dict.values() else 0
+                    out_fh.write(f"{genome_id}\t{species_id}\t{rep_genome}\t{group_name}\n")

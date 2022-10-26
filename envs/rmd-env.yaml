@@ -31,3 +31,4 @@ dependencies:
   - r-ggforce
   - bioconductor-phyloseq
   - bioconductor-biostrings
+  - bioconductor-complexheatmap

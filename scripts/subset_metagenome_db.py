@@ -34,9 +34,9 @@ with open(ref_info, "r") as ref_info_fh:
         for line in ref_info_fh:
             line = line.strip()
             genome_id = line.split("\t")[0]
-            cluster = line.split("\t")[1]
-            rep_genome_status = int(line.split("\t")[2])
-            group = line.split("\t")[3]
+            cluster = line.split("\t")[11]
+            group = line.split("\t")[18]
+            rep_genome_status = int(line.split("\t")[19])
             if rep_genome_status == 1:
                 rep_genomes.add(genome_id)
 

@@ -158,9 +158,48 @@ Some functions in the script are used to provide inputs to various rules and to 
       + drep requires a file with the columns genome, completeness and contamination. This rule compiles this information from across samples to create the file "06_MAG_binning/evaluate_bins/checkm_drep_summary.txt".
     + `rule drep`
       + Runs drep dereplicate on **all** the MAGs. It creates various outputs that are described [here](https://drep.readthedocs.io/en/latest/advanced_use.html) and will used by various rules downstream.
-    + `rule ani_heatmap`
+    <!-- + `rule ani_heatmap` -->
     + `rule extract_mag_lists`
-<!-- + "Continue readme update here - need to clean up utility functions" -->
+    + `rule gtdb_annotate`
+    + `rule prepare_genomes`
+    + `rule annotate`
+    + `rule prepare_faa`
+      + For phylogenies (includes specified isolate genomes)
+    + `rule run_orthofinder_phylo`
+      + For phylogenies (includes specified isolate genomes)
+    + `rule summarise_orthogroups`
+      + For phylogenies (includes specified isolate genomes)
+    + `rule get_single_ortho_phylo`
+      + For phylogenies (includes specified isolate genomes)
+    + `rule extract_orthologs_phylo`
+      + For phylogenies (includes specified isolate genomes)
+    + `rule align_orthologs`
+      + For phylogenies (includes specified isolate genomes)
+    + `rule prune_and_concat`
+      + For phylogenies (includes specified isolate genomes)
+    + `rule make_tree`
+      + For phylogenies (includes specified isolate genomes)
+    + `rule concat_all_mags`
+      + Create and index "database/MAGs_database" and index to map reads to see how much the MAGs recruit and how well they are covered
+    + `rule copy_mag_database_annotation`
+      + To create a compiled directory of annotation outputs for all MAGs which Kirsten's scripts expect (also it is neat if the other previous directories are then removed - To be implemented later)
+    + `rule prepare_faa_mag_database`
+      + Prepare faa files in groups (genus-level) for orthofinder to run.
+    + `rule run_orthofinder_mag_database`
+    + `rule summarise_orthogroups_mag_database`
+    + `rule get_single_ortho_mag_database`
+    + `rule extract_orthologs_mag_database`
+    + `rule calc_perc_id_mag_database`
+    + `rule filter_orthologs_mag_database`
+    + `rule summarise_orthogroups_filtered_mag_database`
+    + `rule make_bed_files_mag_database`
+    + `rule map_to_MAGs`
+    + `rule core_cov`
+    + `rule merge_core_cov`
+    + `rule core_cov_plots`
+    + `rule make_MAG_reduced_db`
+      + Read the checkpoint output and use biopython to only include rep genomes in the final database called "database/MAGs_rep_database" which only contains the representative genomes.
+<!-- + "Continue readme update here - need to finish function to get rep genomes and then rerun everything after backmapping!" -->
   + `rule run_orthofinder`
     + Runs [Orthofinder](https://github.com/davidemms/OrthoFinder) for each phylotype.
     + **Before** running this, group genomes by phylotype in directories for Orthofinder to be able to get which groups to consider together. When the genomes for the database are downloaded at `database/faa_files/{genome}`, they are all in one directory. Grouping was done using `scripts/rearange_faa.py`. As written, it is to be run from the scripts directory in which it resides (!! it uses relative paths !!).

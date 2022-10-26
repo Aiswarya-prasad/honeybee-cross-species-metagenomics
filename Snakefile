@@ -48,6 +48,7 @@ def get_g_dict_for_defined_groups(path):
     """
     Returns dictionary of genomes and groups with each value being a list of
     genomes corresponding to a given group
+    used for the phylogenies because trees are only made for requested groups
     """
     g_list_dict = {}
     for group in GROUPS:
@@ -74,6 +75,7 @@ def get_g_dict_for_groups_from_data(path):
     """
     Returns dictionary of genomes and groups with each value being a list of
     genomes corresponding to a given group
+    used to get all MAGs from checkpoint output for all downstream steps
     """
     g_list_dict = {}
     if os.path.isfile(path):
@@ -97,93 +99,23 @@ def get_g_dict_for_groups_from_data(path):
                 g_list_dict[group] = [genome]
     return(g_list_dict)
 
-def get_magOTU_of_mag(mag, ref_info):
+def get_rep_genomes_dict(path):
     """
-    get magOTU corresponding to a given mag
-    """
-    magOTU = None
-    with open(ref_info, "r") as ref_info_fh:
-        header = ref_info_fh.readline()
-        for line in ref_info_fh:
-            line = line.strip()
-            genome_id = line.split("\t")[0]
-            cluster = line.split("\t")[1]
-            if genome_id == mag:
-                return(cluster)
+    Returns dictionary of genomes and groups with each value being the a dict
+    of magOTUs and corresponding representative genome from checkpoint output
+    group1:
+        cluster1: rep_genome
+        cluster2: rep_genome
+        cluster3: rep_genome
+    group2:
+        cluster4: rep_genome
 
-def mag_is_rep(mag, ref_info):
+    remember:
+        import itertools
+        people = {1: {'name': 'John', 'age': '27', 'sex': 'Male'},
+         2: {'name': 'Marie', 'age': '22', 'sex': 'Female'}}
+        list(itertools.chain.from_iterable(list(y.values()) for y in people.values()))
     """
-    get true or false if mag is a representative genome
-    """
-    is_ref = False
-    with open(ref_info, "r") as ref_info_fh:
-        header = ref_info_fh.readline()
-        for line in ref_info_fh:
-            line = line.strip()
-            genome_id = line.split("\t")[0]
-            rep_genome_status = int(line.split("\t")[2])
-            if genome_id == mag:
-                is_ref = True if rep_genome_status == 1 else False
-                return(is_ref)
-
-
-def get_g_magOTU_dict_from_data(path):
-    """
-    Returns dictionary of genomes and groups with each value being a list of
-    genomes corresponding to a given magOTU
-    """
-    rep_genomes = {}
-    with open(ref_info, "r") as ref_info_fh:
-        header = ref_info_fh.readline()
-        for line in ref_info_fh:
-            line = line.strip()
-            genome_id = line.split("\t")[0]
-            rep_genome_status = int(line.split("\t")[2])
-            cluster = line.split("\t")[1]
-            if rep_genome_status == 1:
-                if magOTU in rep_genomes.keys():
-                    rep_genomes[magOTU].add(genome_id)
-                else:
-                    rep_genomes[magOTU] = set(genome_id)
-    g_list_dict = {}
-    if os.path.isfile(path):
-        pass
-    else:
-        print(f"Could not find file at {path}")
-    with open(path, "r", encoding='utf-8-sig') as info_fh:
-        for line in info_fh:
-            line = line.strip()
-            if line.startswith("ID"):
-                continue
-            genome = line.split("\t")[0]
-            cluster = line.split("\t")[11]
-            if cluster in g_list_dict.keys():
-                g_list_dict[cluster].append(genome)
-            else:
-                g_list_dict[cluster] = [genome]
-    return(g_list_dict)
-
-def get_g_dict_for_groups_from_data_reduced_db(path, ref_info):
-    """
-    Returns dictionary of genomes and groups with each value being a list of
-    genomes corresponding to a given group (and only those that are rep genomes)
-    """
-    rep_genomes = {}
-    with open(ref_info, "r") as ref_info_fh:
-        header = ref_info_fh.readline()
-        for line in ref_info_fh:
-            line = line.strip()
-            genome_id = line.split("\t")[0]
-            rep_genome_status = int(line.split("\t")[2])
-            group = line.split("\t")[3]
-            cluster = line.split("\t")[1]
-            if group == "g__":
-                group = "g__"+cluster
-            if rep_genome_status == 1:
-                if group in rep_genomes.keys():
-                    rep_genomes[group].add(genome_id)
-                else:
-                    rep_genomes[group] = set(genome_id)
     g_list_dict = {}
     if os.path.isfile(path):
         pass
@@ -197,16 +129,15 @@ def get_g_dict_for_groups_from_data_reduced_db(path, ref_info):
             genome = line.split("\t")[0]
             cluster = line.split("\t")[11]
             group = line.split("\t")[18]
-            # only include groups of interest!
+            rep_status = int(line.split("\t")[19])
+            if rep_status != 1:
+                continue
             if group == "g__":
                 group = "g__"+cluster
-            if genome in rep_genomes[group]:
-                if group in g_list_dict.keys():
-                        g_list_dict[group].append(genome)
-                else:
-                    g_list_dict[group] = [genome]
+            if group in g_list_dict.keys():
+                g_list_dict[group] = {cluster: genome}
             else:
-                continue
+                g_list_dict[group].update({cluster: genome})
     return(g_list_dict)
 
 def convertToMb(string):
@@ -1165,9 +1096,11 @@ rule drep:
     output:
         drep_S = "06_MAG_binning/drep_results/data_tables/Sdb.csv",
         drep_C = "06_MAG_binning/drep_results/data_tables/Cdb.csv",
+        drep_W = "06_MAG_binning/drep_results/data_tables/Wdb.csv",
         drep_N = "06_MAG_binning/drep_results/data_tables/Ndb.csv",
         drep_Wi = "06_MAG_binning/drep_results/data_tables/Widb.csv",
         drep_gI = "06_MAG_binning/drep_results/data_tables/genomeInformation.csv",
+        # file with ani values (fastani output)
     params:
         bins = expand("06_MAG_binning/bins_renamed/{sample}/*.fa", sample=SAMPLES),
         overlap = 0.2, # ask Lucas why
@@ -1189,6 +1122,31 @@ rule drep:
         dRep dereplicate ${{out_file/\/data_tables\/Sdb.csv/}} -g {params.bins} --genomeInfo {input.compiled_checkm_summary} -comp 0 -con 1000 -sa {params.ani} -nc {params.overlap} -p {threads}
         """
 
+# rule ani_heatmap:
+#     input:
+#         ani from drep
+#     output:
+#         heatmap pdf
+#     shell:
+#         R script to include
+#         # add ComplexHeatmap to r env
+#         library("reshape2")
+#         library("ComplexHeatmap")
+#         library("gplots")
+#
+#         ### get data, convert to matrix
+#         x <- read.table("fastani.out")
+#         matrix <- acast(x, V1~V2, value.var="V3")
+#         matrix[is.na(matrix)] <- 70
+#
+#         ### define the colors within 2 zones
+#         breaks = seq(min(matrix), max(100), length.out=100)
+#         gradient1 = colorpanel( sum( breaks[-1]<=95 ), "red", "white" )
+#         gradient2 = colorpanel( sum( breaks[-1]>95 & breaks[-1]<=100), "white", "blue" )
+#
+#         hm.colors = c(gradient1, gradient2)
+#         heatmap.2(matrix, scale = "none", trace = "none", col = hm.colors, cexRow=.30, cexCol=.30)
+
 rule extract_mag_lists:
     input:
         checkm_summary = expand("06_MAG_binning/evaluate_bins/{sample}_checkm.summary", sample=SAMPLES),
@@ -1196,9 +1154,7 @@ rule extract_mag_lists:
         drep_W = "06_MAG_binning/drep_results/data_tables/Wdb.csv",
         drep_gI = "06_MAG_binning/drep_results/data_tables/genomeInformation.csv"
     output:
-        all_list = "06_MAG_binning/all_genomes.csv",
-        high_quality = "06_MAG_binning/all_hq_genomes.csv",
-        med_quality = "06_MAG_binning/all_medq_genomes.csv",
+        all_list = "06_MAG_binning/all_genomes.csv"
     log: "logs/extract_mag_list.log"
     benchmark: "logs/extract_mag_list.benchmark"
     run:
@@ -1234,28 +1190,28 @@ rule extract_mag_lists:
                             length = line.split(",")[3]
                             N50 = line.split(",")[4]
                             lengths[genome] = [length, N50]
-                    with open(output.high_quality, "w+") as hq_fh:
-                        hq_fh.write(f"genome, lineage, completeness, contamination, length, N50, cluster\n")
-                        with open(output.med_quality, "w+") as mq_fh:
-                            mq_fh.write(f"genome, lineage, completeness, contamination, length, N50, cluster\n")
-                            for line in all_fh:
-                                if line.startswith("MAG_"):
-                                    print(line)
-                                    genome = line.split()[0]
-                                    lineage = line.split()[1]
-                                    completeness = line.split()[12]
-                                    contamination = line.split()[13]
-                                    g_length = lengths[genome][0]
-                                    N50 = lengths[genome][1]
-                                    print(f"{clusters}")
-                                    if genome in clusters.keys():
-                                        cluster = clusters[genome]
-                                    else:
-                                        clusters[genome] = "NA"
-                                    if float(completeness) >= 95 and float(contamination) <= 5:
-                                        hq_fh.write(f"{genome}, {lineage}, {completeness}, {contamination}, {g_length}, {N50}, {cluster}\n")
-                                    if float(completeness) >= 50 and float(contamination) <= 10:
-                                        mq_fh.write(f"{genome}, {lineage}, {completeness}, {contamination}, {g_length}, {N50}, {cluster}\n")
+                    # with open(output.high_quality, "w+") as hq_fh:
+                    #     hq_fh.write(f"genome, lineage, completeness, contamination, length, N50, cluster\n")
+                    #     with open(output.med_quality, "w+") as mq_fh:
+                    #         mq_fh.write(f"genome, lineage, completeness, contamination, length, N50, cluster\n")
+                    #         for line in all_fh:
+                    #             if line.startswith("MAG_"):
+                    #                 print(line)
+                    #                 genome = line.split()[0]
+                    #                 lineage = line.split()[1]
+                    #                 completeness = line.split()[12]
+                    #                 contamination = line.split()[13]
+                    #                 g_length = lengths[genome][0]
+                    #                 N50 = lengths[genome][1]
+                    #                 print(f"{clusters}")
+                    #                 if genome in clusters.keys():
+                    #                     cluster = clusters[genome]
+                    #                 else:
+                    #                     clusters[genome] = "NA"
+                    #                 if float(completeness) >= 95 and float(contamination) <= 5:
+                    #                     hq_fh.write(f"{genome}, {lineage}, {completeness}, {contamination}, {g_length}, {N50}, {cluster}\n")
+                    #                 if float(completeness) >= 50 and float(contamination) <= 10:
+                    #                     mq_fh.write(f"{genome}, {lineage}, {completeness}, {contamination}, {g_length}, {N50}, {cluster}\n")
 
 rule gtdb_annotate:
     input:
@@ -1682,70 +1638,6 @@ rule concat_all_mags:
         samtools faidx {output.mag_database}
         """
 
-checkpoint select_cluster_ref_genomes_mag_database:
-    input:
-        genomes_info = lambda wildcards: checkpoints.make_phylo_table.get().output.out_mags_filt,
-        genome_scores = lambda wildcards: rules.drep.output.drep_S
-    output:
-        ref_info = "database/MAGs_database_ref_info.txt"
-    params:
-        mags_list = lambda wildcards: get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags_filt, full_list = True),
-        mailto="aiswarya.prasad@unil.ch",
-        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        account="pengel_spirit",
-        runtime_s=convertToSec("0-2:10:00"),
-    benchmark: "logs/select_cluster_ref_genomes_mag_database.benchmark"
-    log: "logs/select_cluster_ref_genomes_mag_database.log"
-    run:
-        MAGs_selected = set(params.mags_list)
-        genome_scores = {}
-        with open(input.genome_scores, "r") as win_fh:
-            for line in win_fh:
-                line = line.strip()
-                if line.startswith("genome"):
-                    continue
-                genome_scores[line.split(",")[0].split(".fa")[0]] = float(line.split(",")[1])
-        with open(input.genomes_info, "r") as info_fh:
-            # make rep genomes set
-            group_max_score = {}
-            rep_genome_dict = {}
-            for line in info_fh:
-                if line.startswith("ID"):
-                    continue
-                genome_id = line.split("\t")[0]
-                if "MAG_" not in genome_id:
-                    continue
-                if genome_id not in MAGs_selected:
-                    continue
-                cluster = line.split("\t")[11]
-                # genus = line.split("\t")[13]
-                # genus = genus+cluster if genus == "g__" else genus
-                if cluster in group_max_score.keys():
-                    if int(genome_scores[genome_id]) > group_max_score[cluster]:
-                        group_max_score[cluster] = genome_scores[genome_id]
-                        rep_genome_dict[cluster] = genome_id
-                else:
-                    group_max_score[cluster] = genome_scores[genome_id]
-                    rep_genome_dict[cluster] = genome_id
-        with open(input.genomes_info, "r") as info_fh:
-            with open(output.ref_info, "w") as out_fh:
-                out_fh.write("genome_id\tcluster\trep_genome\tgroup\n")
-                for line in info_fh:
-                    if line.startswith("ID"):
-                        continue
-                    genome_id = line.split("\t")[0]
-                    if "MAG_" not in genome_id:
-                        continue
-                    cluster = line.split("\t")[11]
-                    genus = line.split("\t")[13]
-                    if genus == "NA":
-                        print(f"genus for {genome_id} is {genus}. This group may not make sense.")
-                        continue
-                    species_id = cluster
-                    group_name = genus+cluster if genus == "g__" else genus
-                    rep_genome = 1 if genome_id in rep_genome_dict.values() else 0
-                    out_fh.write(f"{genome_id}\t{species_id}\t{rep_genome}\t{group_name}\n")
-
 rule copy_mag_database_annotation:
     input:
         ffn_file = "07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.ffn",
@@ -1964,7 +1856,7 @@ rule summarise_orthogroups_filtered_mag_database:
         perc_id = "database/MAGs_database_Orthofinder/{group}/{group}_perc_id.txt",
         done = "database/MAGs_database_Orthofinder/{group}/{group}_perc_id_all.done",
         genomes_list = lambda wildcards: checkpoints.make_phylo_table.get().output.out_mags_filt,
-        ref_info = lambda wildcards: checkpoints.select_cluster_ref_genomes_mag_database.get().output.ref_info
+        ref_info = lambda wildcards: checkpoints.make_phylo_table.get().output.out_mags_filt
     output:
         summary_orthogroups_filt = "database/MAGs_database_Orthofinder/{group}_Orthogroups_filtered_summary.csv"
     params:
@@ -2048,7 +1940,7 @@ rule core_cov:
         bed_files = lambda wildcards: expand("database/bed_files/{genome}.bed", genome=get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt)[wildcards.group]),
         ortho_file = "database/MAGs_database_Orthofinder/{group}/OrthoFinder/{group}_single_ortho.txt",
         bam_file = "09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_mapped.bam",
-        ref_info = lambda wildcards: checkpoints.select_cluster_ref_genomes_mag_database.get().output.ref_info,
+        ref_info = lambda wildcards: checkpoints.make_phylo_table.get().output.out_mags_filt,
     output:
         core_cov_txt = "09_MagDatabaseProfiling/CoverageEstimation/{sample}/{group}_corecov.txt"
     params:
@@ -2116,10 +2008,10 @@ rule core_cov_plots:
 rule make_MAG_reduced_db:
     input:
         mag_database = "database/MAGs_database",
-        genomes = lambda wildcards: expand("07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.fna", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags_filt, rep_only = True, ref_info = checkpoints.select_cluster_ref_genomes_mag_database.get().output.ref_info)),
-        ref_info = lambda wildcards: checkpoints.select_cluster_ref_genomes_mag_database.get().output.ref_info,
+        genomes = lambda wildcards: expand("07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.fna", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags_filt, rep_only = True, ref_info = checkpoints.make_phylo_table.get().output.out_mags_filt)),
+        ref_info = lambda wildcards: checkpoints.make_phylo_table.get().output.out_mags_filt,
     output:
-        mag_database_reduced = "database/MAGs_database_reduced",
+        mag_database_reduced = "database/MAGs_rep_database",
     params:
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
@@ -2138,8 +2030,8 @@ rule make_MAG_reduced_db:
 
 rule prep_for_instrain:
     input:
-        genome = "database/MAGs_database_reduced",
-        rep_mags = lambda wildcards: expand("07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.fna", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags_filt ,rep_only = True, ref_info = checkpoints.select_cluster_ref_genomes_mag_database.get().output.ref_info))
+        genome = "database/MAGs_rep_database",
+        rep_mags = lambda wildcards: expand("07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.fna", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags_filt ,rep_only = True, ref_info = checkpoints.make_phylo_table.get().output.out_mags_filt))
     output:
         genome = "10_instrain/rep_mags.fasta",
         stb = "10_instrain/rep_mags_stb.tsv",
