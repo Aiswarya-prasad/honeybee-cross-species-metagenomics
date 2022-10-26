@@ -145,7 +145,22 @@ Some functions in the script are used to provide inputs to various rules and to 
     + Since the names given to bins by metabat2 is duplicated across samples, this rule renames them by including the name of the sample from which the bin was made.
   + `rule summarize_metabat2_contig_fates`
     + It creates sample-wise summaries with sample, contig_name, length, coverage, passed_filter (whether the scaffold was >1000 length and >1 coverage), binned (whether it was binned) and bin_name.
-<!-- + "Continue readme update here - need to clean up utility functions and update make_phylo_table.R" -->
+  + `rule summarize_metabat2_contig_coverages`
+    + It creates sample-wise summaries with the columns bin_name , contig (or scaffold name), avg_coverage (from depth file made by jgi_summarize_bam_contig_depths for metabat2. it is actually  median not mean), variance avg_coverage (from depth file made by jgi_summarize_bam_contig_depths for metabat2), sample
+    + More information about how these depths are calculated can be found [here](https://gitlab.com/robegan21/MetaBAT). Briefly (as summarised [here](https://bitbucket.org/berkeleylab/metabat/issues/48/jgi_summarize_bam_contig_depths-coverage)),
+      + The edges of a contig are generally excluded from the coverage counts up to a default of 75 bases or the average read length (--includeEdgeBases, --maxEdgeBases). This is because, generally mappers have a difficult time aligning a partial read to a contig when it would extend off edge and the coverage ramps up from 0 to the true coverage in this region
+      + reads that map imperfectly are excluded when the %ID of the mapping drops below a threshold (--percentIdentity=97). MetaBAT is designed to resolve strain variation and mapping reads with low %ID indicate that the read actually came from a different strain/species.
+      + clips/insertions/deletions/mismatches are excluded from the coverage count -- only the read bases that exactly match the reference are counted as coverage. This generally has a small effect, except in the case of long reads from PacBio and Nanopore.
+    + `rule checkm_evaluation`
+      + This rule creates a checkm summary of each bin (MAG) from each sample, one sample at a time. The output contains an entry for each MAG from the sample with the columns, Bin Id, Marker lineage , # genomes, # markers, # marker sets, 0 , 1, 2, 5+, Completeness, Contamination, Strain heterogeneity
+      + A detailed description of each column can be found [here](https://github.com/Ecogenomics/CheckM/wiki/Reported-Statistics#qa)
+    + `rule prepare_info_for_drep`
+      + drep requires a file with the columns genome, completeness and contamination. This rule compiles this information from across samples to create the file "06_MAG_binning/evaluate_bins/checkm_drep_summary.txt".
+    + `rule drep`
+      + Runs drep dereplicate on **all** the MAGs. It creates various outputs that are described [here](https://drep.readthedocs.io/en/latest/advanced_use.html) and will used by various rules downstream.
+    + `rule ani_heatmap`
+    + `rule extract_mag_lists`
+<!-- + "Continue readme update here - need to clean up utility functions" -->
   + `rule run_orthofinder`
     + Runs [Orthofinder](https://github.com/davidemms/OrthoFinder) for each phylotype.
     + **Before** running this, group genomes by phylotype in directories for Orthofinder to be able to get which groups to consider together. When the genomes for the database are downloaded at `database/faa_files/{genome}`, they are all in one directory. Grouping was done using `scripts/rearange_faa.py`. As written, it is to be run from the scripts directory in which it resides (!! it uses relative paths !!).
