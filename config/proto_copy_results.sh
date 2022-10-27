@@ -34,6 +34,7 @@ do
 done
 rsync -r --progress -v $prefix/06_MAG_binning/contig_fates/*_contig_fates.csv $outdir/06_MAG_binning/contig_fates/
 mkdir -p 06_MAG_binning/
+rsync -r --progress -v $prefix/06_MAG_binning/*_auto.tsv $outdir/06_MAG_binning
 mkdir -p 06_MAG_binning/contig_fates
 mkdir -p 06_MAG_binning/contig_fates/backmapping_coverages/
 rsync -r --progress -v $prefix/06_MAG_binning/contig_fates/backmapping_coverages/*_contig_coverages.csv $outdir/06_MAG_binning/contig_fates/backmapping_coverages/
@@ -71,6 +72,17 @@ rsync -r --progress -v $prefix/09_MagDatabaseProfiling/CoverageEstimation/Merged
 mkdir -p 10_instrain
 rsync -r --progress -v $prefix/10_instrain/rep_mags.IS.COMPARE $outdir/10_instrain
 rsync -r --progress -v $prefix/*_Report.html $outdir
+# other results not (currently) explicitly mentioned in snakefile ...
+mkdir -p 06_MAG_binning/drep_results/
+mkdir -p 06_MAG_binning/drep_results/data_tables
+rsync -r --progress -v $prefix/06_MAG_binning/drep_results/data_tables/*.csv $outdir/06_MAG_binning/drep_results/data_tables
+mkdir -p 06_MAG_binning/drep_results/figures
+rsync -r --progress -v $prefix/06_MAG_binning/drep_results/figures/* $outdir/06_MAG_binning/drep_results/figures
+mkdir -p 06_MAG_binning/gtdbtk_out_dir/
+mkdir -p 06_MAG_binning/gtdbtk_out_dir/classify/
+rsync -r --progress -v $prefix/06_MAG_binning/gtdbtk_out_dir/classify/*.summary.tsv $outdir/06_MAG_binning/gtdbtk_out_dir/classify/
+mkdir -p 06_MAG_binning/evaluate_bins
+rsync -r --progress -v $prefix/06_MAG_binning/evaluate_bins/*.summary $outdir/06_MAG_binning/evaluate_bins
 # parsed outputs - this script does not do it but this can be run on remote and the result can be copied
 echo "benchmarks" > benchmarks_cat.txt; for file in logs/*.benchmark; do echo $file >> benchmarks_cat.txt; cat $file | cut -f2,3,4,5 >> benchmarks_cat.txt; done
 mkdir -p logs
