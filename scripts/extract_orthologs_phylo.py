@@ -68,7 +68,7 @@ print('reading single_ortho file')
 genome_ids = dict()
 OG_fams = dict()
 with open(ortho_single, "r") as fh_ortho_in:
-    for line in fh_ortho_in
+    for line in fh_ortho_in:
         line = line.strip()
         split_line = line.split()
         OG_id = split_line.pop(0)[:-1]

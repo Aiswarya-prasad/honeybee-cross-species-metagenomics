@@ -90,18 +90,12 @@ genomes = [genome for genome in genomesAndMAGs if "MAG_" not in genome]
 
 #Go through each ortholog-family, print to file if single-copy
 outfile = snakemake.output.single_ortho
-outfile_MAG = snakemake.output.single_ortho_MAGs
 with open(orthofile, "r") as fh_orthofile:
     with open(outfile, "w") as fh_outfile:
-        with open(outfile_MAG, "w") as fh_outfile_MAG:
-            for og in fh_orthofile:
-                og = og.strip()
-                og_split = og.split(" ")
-                og_split.pop(0)
-                core_status = is_scp_core(og_split, genomes, MAGs)
-                core_mag_status = is_scp_MAG(og_split, genomes, MAGs)
-                if core_status == 1:
-                    fh_outfile.write(f"{og}\n")
-                if len(genomes) > 0:
-                    if core_mag_status == 1:
-                        fh_outfile_MAG.write(f"{og}\n")
+        for og in fh_orthofile:
+            og = og.strip()
+            og_split = og.split(" ")
+            og_split.pop(0)
+            core_status = is_scp_core(og_split, genomes, MAGs)
+            if core_status == 1:
+                fh_outfile.write(f"{og}\n")

@@ -1345,7 +1345,6 @@ rule annotate:
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         account="pengel_spirit",
         runtime_s=convertToSec("0-4:10:00"),
-        # jobname="annotate_{genome}"
     resources:
         mem_mb = 8000
     threads: 8
@@ -1426,7 +1425,6 @@ rule get_single_ortho_phylo:
         genomes_list = lambda wildcards: checkpoints.make_phylo_table.get().output.out_tree,
     output:
         single_ortho = "07_AnnotationAndPhylogenies/02_orthofinder/{group}/OrthoFinder/{group}_single_ortho.txt",
-        single_ortho_MAGs = "07_AnnotationAndPhylogenies/02_orthofinder/{group}/OrthoFinder/{group}_single_ortho_MAGs.txt",
     params:
         group = lambda wildcards: wildcards.group,
         mailto="aiswarya.prasad@unil.ch",
@@ -1440,7 +1438,6 @@ rule get_single_ortho_phylo:
     benchmark: "logs/{group}_get_single_ortho_phylo.benchmark"
     script:
         "scripts/get_single_ortho_phylo.py"
-
 
 # eventually use this instead of single ortho (if present in more than half the MAGs cut-off) for core genes
 # rule motupan:
@@ -1498,7 +1495,7 @@ rule extract_orthologs_phylo:
     threads: 5
     shell:
         """
-        python3 scripts/extract_orthologs_phylo.py --orthofile {input.ortho_single} --outdir {output.ortho_seq_dir} --extracted_ffndir {params.faaffndir}
+        python3 scripts/extract_orthologs_phylo.py --orthofile {input.ortho_single} --outdir {output.ortho_seq_dir} --faaffndir {params.faaffndir}
         """
 
 rule align_orthologs:
@@ -2001,7 +1998,9 @@ rule core_cov_plots:
 rule make_MAG_reduced_db:
     input:
         mag_database = "database/MAGs_database",
-        genomes = lambda wildcards: expand("07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.fna", genome=list(itertools.chain.from_iterable([x.values() for x in get_rep_genomes_dict(checkpoints.make_phylo_table.get().output.out_mags_filt).values()])))
+        genomes = lambda wildcards: expand("07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.fna", genome=list(itertools.chain.from_iterable([x.values() for x in get_rep_genomes_dict(checkpoints.make_phylo_table.get().output.out_mags_filt).values()]))),
+        ref_info = lambda wildcards: checkpoints.make_phylo_table.get().output.out_mags_filt
+
     output:
         mag_database_reduced = "database/MAGs_rep_database",
     params:
