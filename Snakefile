@@ -2030,8 +2030,7 @@ rule core_cov_plots:
 rule make_MAG_reduced_db:
     input:
         mag_database = "database/MAGs_database",
-        genomes = lambda wildcards: expand("07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.fna", genome=#stuff to do get_rep_genomes_dict(checkpoints.make_phylo_table.get().output.out_mags_filt)),
-        ref_info = lambda wildcards: checkpoints.make_phylo_table.get().output.out_mags_filt,
+        genomes = lambda wildcards: expand("07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.fna", genome=list(itertools.chain.from_iterable([x.values() for x in get_rep_genomes_dict(checkpoints.make_phylo_table.get().output.out_mags_filt).values()])))
     output:
         mag_database_reduced = "database/MAGs_rep_database",
     params:
