@@ -173,5 +173,6 @@ GENOME_DBs:
   microbiome_red: "honeybee_gut_microbiota_db_red"
   microbiome: "genome_db_220315_AP"
 ProjectPath: "/scratch/aprasad/211018_Medgenome_india_samples"
-BackupPath: "aiswarya@130.223.110.124:/home/aiswarya/mnt/aprasad/Backups/working_dir_backup/Cluster"
+BackupPath: "/work/FAC/FBM/DMF/pengel/spirit/aprasad/"
+# BackupPath: "aiswarya@130.223.110.124:/home/aiswarya/mnt/aprasad/Backups/working_dir_backup/Cluster"
 LocalBackup: False

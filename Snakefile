@@ -109,13 +109,13 @@ def get_rep_genomes_dict(path):
         cluster3: rep_genome
     group2:
         cluster4: rep_genome
-
     remember:
         import itertools
         people = {1: {'name': 'John', 'age': '27', 'sex': 'Male'},
          2: {'name': 'Marie', 'age': '22', 'sex': 'Female'}}
         list(itertools.chain.from_iterable(list(y.values()) for y in people.values()))
     """
+    path = "06_MAG_binning/MAGs_filt_GenomeInfo_auto.tsv"
     g_list_dict = {}
     if os.path.isfile(path):
         pass
@@ -134,7 +134,7 @@ def get_rep_genomes_dict(path):
                 continue
             if group == "g__":
                 group = "g__"+cluster
-            if group in g_list_dict.keys():
+            if group not in g_list_dict.keys():
                 g_list_dict[group] = {cluster: genome}
             else:
                 g_list_dict[group].update({cluster: genome})
@@ -1274,7 +1274,7 @@ rule prepare_genomes:
     threads: 4
     params:
         info = "config/IsolateGenomeInfo.csv",
-        sample_name = lambda wildcards: "_".join(wildcards.genome.split("MAG_")[1].split("_")[:-1]),
+        sample_name = lambda wildcards: "_".join(wildcards.genome.split("MAG_")[1].split("_")[:-1]) if "MAG_" in wildcards.genome else wildcards.genome,
         mags_dir = "06_MAG_binning/bins_renamed/",
         ftp_summary = "https://ftp.ncbi.nih.gov/genomes/ASSEMBLY_REPORTS/assembly_summary_genbank.txt",
         assembly_summary_genbank = "assembly_summary_genbank.txt",
