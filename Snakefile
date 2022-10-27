@@ -1213,9 +1213,34 @@ rule extract_mag_lists:
                     #                 if float(completeness) >= 50 and float(contamination) <= 10:
                     #                     mq_fh.write(f"{genome}, {lineage}, {completeness}, {contamination}, {g_length}, {N50}, {cluster}\n")
 
+rule prep_gtdb_annotate:
+    input:
+        genomes_dir = "06_MAG_binning/bins_renamed/",
+    output:
+        batchfile = "06_MAG_binning/gtdb_inputs_batchfile.tsv"
+    params:
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-00:10:00"),
+    resources:
+        mem_mb = convertToMb("4G") # needs at least roughly 40G
+    threads: 2
+    log: "logs/prep_gtdb_annotate.log"
+    run:
+        with open(output.batchfile, "w") as out_fh:
+            for (dirpath, dirnames, filenames) in os.walk(input.genomes_dir):
+                for filename in filenames:
+                    if not filename.endswith(".fa"):
+                        continue
+                    fasta_path = os.path.join(os.getcwd(), dirpath, filename)
+                    genome_id = filename.split(".fa")[0]
+                    out_fh.write(f"{fasta_path}\t{genome_id}\n")
+
+
 rule gtdb_annotate:
     input:
-        genomes = expand("06_MAG_binning/bins_renamed/{sample}", sample=SAMPLES),
+        batchfile = "06_MAG_binning/gtdb_inputs_batchfile.tsv",
         all_list = "06_MAG_binning/all_genomes.csv",
     output:
         tax_info = "06_MAG_binning/gtdbtk_out_dir/classify/gtdbtk.bac120.summary.tsv",
@@ -1236,11 +1261,8 @@ rule gtdb_annotate:
         """
         # set up path to database
         export GTDBTK_DATA_PATH={params.path_to_db}
-        # find a more snakemakey way to do this
-        ln -sf {PROJECT_PATH}/06_MAG_binning/bins_renamed/*/*.fa 06_MAG_binning/bins_renamed/
-        genomes_dir="06_MAG_binning/bins_renamed/"
         out_file={output.tax_info}
-        gtdbtk classify_wf --genome_dir ${{genomes_dir}} --out_dir ${{out_file/\/classify\/gtdbtk.bac120.summary.tsv/}} --extension ".fa" --write_single_copy_genes --keep_intermediates
+        gtdbtk classify_wf --batchfile {input.batchfile} --out_dir ${{out_file/\/classify\/gtdbtk.bac120.summary.tsv/}} --extension ".fa" --write_single_copy_genes --keep_intermediates
         """
 
 checkpoint make_phylo_table:
@@ -1616,9 +1638,9 @@ rule make_tree:
 rule concat_all_mags:
     input:
         all_mags = lambda wildcards: expand("07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.fna", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags_filt, full_list = True)),
-        ffn_files = lambda wildcards: expand("database/ffn_files/{genome}.ffn", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags_filt, full_list = True)),
-        gff_files = lambda wildcards: expand("database/gff_files/{genome}.gff", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags_filt, full_list = True)),
-        faa_files = lambda wildcards: expand("database/faa_files/{genome}.faa", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags_filt, full_list = True)),
+        ffn_files = lambda wildcards: expand("database/MAGs_database_ffn_files/{genome}.ffn", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags_filt, full_list = True)),
+        gff_files = lambda wildcards: expand("database/MAGs_database_gff_files/{genome}.gff", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags_filt, full_list = True)),
+        faa_files = lambda wildcards: expand("database/MAGs_database_faa_files/{genome}.faa", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags_filt, full_list = True)),
     output:
         mag_database = "database/MAGs_database",
         bwa_index = multiext("database/MAGs_database", ".amb", ".ann", ".bwt", ".pac", ".sa"),
@@ -1644,9 +1666,9 @@ rule copy_mag_database_annotation:
         gff_file = "07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.gff",
         faa_file = "07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.faa",
     output:
-        ffn_file = "database/ffn_files/{genome}.ffn",
-        gff_file = "database/gff_files/{genome}.gff",
-        faa_file = "database/faa_files/{genome}.faa",
+        ffn_file = "database/MAGs_database_ffn_files/{genome}.ffn",
+        gff_file = "database/MAGs_database_gff_files/{genome}.gff",
+        faa_file = "database/MAGs_database_faa_files/{genome}.faa",
     params:
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
@@ -1742,15 +1764,15 @@ rule get_single_ortho_mag_database:
 rule extract_orthologs_mag_database:
     input:
         ortho_single = "database/MAGs_database_Orthofinder/{group}/OrthoFinder/{group}_single_ortho.txt",
-        ffn_files = lambda wildcards: expand("database/ffn_files/{genome}.ffn", genome=get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt)[wildcards.group]),
-        faa_files = lambda wildcards: expand("database/faa_files/{genome}.faa", genome=get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt)[wildcards.group]),
+        ffn_files = lambda wildcards: expand("database/MAGs_database_ffn_files/{genome}.ffn", genome=get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt)[wildcards.group]),
+        faa_files = lambda wildcards: expand("database/MAGs_database_faa_files/{genome}.faa", genome=get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt)[wildcards.group]),
     output:
         done = touch("database/MAGs_database_Orthofinder/{group}/single_ortholog_sequences.done")
     params:
         # to the prefix, script adds, "genome/genome.xxx"
         ortho_seq_dir = lambda wildcards: "database/MAGs_database_Orthofinder/"+wildcards.group+"/single_ortholog_sequences/",
-        ffndir = "database/ffn_files/",
-        faadir = "database/faa_files/",
+        ffndir = "database/MAGs_database_ffn_files/",
+        faadir = "database/MAGs_database_faa_files/",
         # faaffndir = "07_AnnotationAndPhylogenies/01_prokka/",
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
@@ -1872,10 +1894,10 @@ rule summarise_orthogroups_filtered_mag_database:
 
 rule make_bed_files_mag_database:
     input:
-        gff_file = "database/gff_files/{genome}.gff",
-        faa_file = "database/faa_files/{genome}.faa",
+        gff_file = "database/MAGs_database_gff_files/{genome}.gff",
+        faa_file = "database/MAGs_database_faa_files/{genome}.faa",
     output:
-        outfile = "database/bed_files/{genome}.bed",
+        outfile = "database/MAGs_database_bed_files/{genome}.bed",
     params:
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
@@ -1937,14 +1959,14 @@ rule map_to_MAGs:
 
 rule core_cov:
     input:
-        bed_files = lambda wildcards: expand("database/bed_files/{genome}.bed", genome=get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt)[wildcards.group]),
+        bed_files = lambda wildcards: expand("database/MAGs_database_bed_files/{genome}.bed", genome=get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt)[wildcards.group]),
         ortho_file = "database/MAGs_database_Orthofinder/{group}/OrthoFinder/{group}_single_ortho.txt",
         bam_file = "09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_mapped.bam",
         ref_info = lambda wildcards: checkpoints.make_phylo_table.get().output.out_mags_filt,
     output:
         core_cov_txt = "09_MagDatabaseProfiling/CoverageEstimation/{sample}/{group}_corecov.txt"
     params:
-        bedfiles_dir = "database/bed_files/",
+        bedfiles_dir = "database/MAGs_database_bed_files/",
         mailto="aiswarya.prasad@unil.ch",
         account="pengel_spirit",
         runtime_s=convertToSec("0-2:10:00"),
@@ -2008,7 +2030,7 @@ rule core_cov_plots:
 rule make_MAG_reduced_db:
     input:
         mag_database = "database/MAGs_database",
-        genomes = lambda wildcards: expand("07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.fna", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags_filt, rep_only = True, ref_info = checkpoints.make_phylo_table.get().output.out_mags_filt)),
+        genomes = lambda wildcards: expand("07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.fna", genome=#stuff to do get_rep_genomes_dict(checkpoints.make_phylo_table.get().output.out_mags_filt)),
         ref_info = lambda wildcards: checkpoints.make_phylo_table.get().output.out_mags_filt,
     output:
         mag_database_reduced = "database/MAGs_rep_database",

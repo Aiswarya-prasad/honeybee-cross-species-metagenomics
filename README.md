@@ -160,7 +160,9 @@ Some functions in the script are used to provide inputs to various rules and to 
       + Runs drep dereplicate on **all** the MAGs. It creates various outputs that are described [here](https://drep.readthedocs.io/en/latest/advanced_use.html) and will used by various rules downstream.
     <!-- + `rule ani_heatmap` -->
     + `rule extract_mag_lists`
+    + `rule prep_gtdb_annotate`
     + `rule gtdb_annotate`
+      + Need to make sure that the database is set up as explained [here](https://ecogenomics.github.io/GTDBTk/installing/index.html) and provide the path to the database in the params section to the rule.
     + `rule prepare_genomes`
     + `rule annotate`
     + `rule prepare_faa`
