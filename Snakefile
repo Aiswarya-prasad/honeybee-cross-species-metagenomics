@@ -197,35 +197,14 @@ def num_genomes_in_group(group, path):
         return len(get_g_dict_for_groups_from_data(path)[group])
 
 
-def get_MAGs_list_dict(path, full_list=False, rep_only=False, ref_info=None):
+def get_MAGs_list(path):
     """
     read list of MAGs from checkpoint output
     (06_MAG_binning/MAGs_filt_GenomeInfo_auto.tsv) and return the list of Mags
     of a given sample either as a list per sample, as a complete list including
     all samples or a dictonary
     """
-    if rep_only:
-        rep_genomes = {}
-        with open(ref_info, "r") as ref_info_fh:
-            header = ref_info_fh.readline()
-            for line in ref_info_fh:
-                line = line.strip()
-                genome_id = line.split("\t")[0]
-                rep_genome_status = int(line.split("\t")[2])
-                group = line.split("\t")[3]
-                cluster = line.split("\t")[1]
-                if group == "g__":
-                    group = "g__"+cluster
-                if rep_genome_status == 1:
-                    if group in rep_genomes.keys():
-                        rep_genomes[group].add(genome_id)
-                    else:
-                        rep_genomes[group] = set(genome_id)
-    g_paths_list = []
     g_list = []
-    g_list_dict = {}
-    for sample in SAMPLES:
-        g_list_dict[sample] = []
     if os.path.isfile(path):
         pass
     else:
@@ -236,17 +215,9 @@ def get_MAGs_list_dict(path, full_list=False, rep_only=False, ref_info=None):
             if line.startswith("ID"):
                 continue
             genome = line.split("\t")[0]
-            sample = "_".join(genome.split("MAG_")[1].split("_")[:-1])
-            # only include samples of interest!
-            if sample not in SAMPLES:
-                continue
-            g_list_dict[sample].append(genome)
+            # sample = "_".join(genome.split("MAG_")[1].split("_")[:-1])
             g_list.append(genome)
-        if full_list:
-            return(g_list)
-        if rep_only:
-            return([g for g in g_list if g in rep_genomes])
-        return(g_list_dict)
+        return(g_list)
 
 def get_cluster_dict(path):
     """
@@ -1474,7 +1445,7 @@ rule get_single_ortho_phylo:
 # eventually use this instead of single ortho (if present in more than half the MAGs cut-off) for core genes
 # rule motupan:
 #     input:
-#         fnas = lambda wildcards: expand("07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.fna", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags, full_list = True)),
+#         fnas = lambda wildcards: expand("07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.fna", genome=get_MAGs_list(checkpoints.make_phylo_table.get().output.out_mags)),
 #         checkm_files = expand("06_MAG_binning/evaluate_bins/{sample}_checkm.summary", sample=SAMPLES),
 #     output:
 #         outfile = "06_MAG_binning/mOTUlizer/mOTUlizer_output.tsv",
@@ -1637,10 +1608,10 @@ rule make_tree:
 
 rule concat_all_mags:
     input:
-        all_mags = lambda wildcards: expand("07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.fna", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags_filt, full_list = True)),
-        ffn_files = lambda wildcards: expand("database/MAGs_database_ffn_files/{genome}.ffn", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags_filt, full_list = True)),
-        gff_files = lambda wildcards: expand("database/MAGs_database_gff_files/{genome}.gff", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags_filt, full_list = True)),
-        faa_files = lambda wildcards: expand("database/MAGs_database_faa_files/{genome}.faa", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags_filt, full_list = True)),
+        all_mags = lambda wildcards: expand("07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.fna", genome=get_MAGs_list(checkpoints.make_phylo_table.get().output.out_mags_filt)),
+        ffn_files = lambda wildcards: expand("database/MAGs_database_ffn_files/{genome}.ffn", genome=get_MAGs_list(checkpoints.make_phylo_table.get().output.out_mags_filt)),
+        gff_files = lambda wildcards: expand("database/MAGs_database_gff_files/{genome}.gff", genome=get_MAGs_list(checkpoints.make_phylo_table.get().output.out_mags_filt)),
+        faa_files = lambda wildcards: expand("database/MAGs_database_faa_files/{genome}.faa", genome=get_MAGs_list(checkpoints.make_phylo_table.get().output.out_mags_filt)),
     output:
         mag_database = "database/MAGs_database",
         bwa_index = multiext("database/MAGs_database", ".amb", ".ann", ".bwt", ".pac", ".sa"),
@@ -2052,7 +2023,7 @@ rule make_MAG_reduced_db:
 rule prep_for_instrain:
     input:
         genome = "database/MAGs_rep_database",
-        rep_mags = lambda wildcards: expand("07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.fna", genome=get_MAGs_list_dict(checkpoints.make_phylo_table.get().output.out_mags_filt ,rep_only = True, ref_info = checkpoints.make_phylo_table.get().output.out_mags_filt))
+        rep_mags = lambda wildcards: expand("07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.fna", genome=list(itertools.chain.from_iterable([x.values() for x in get_rep_genomes_dict(checkpoints.make_phylo_table.get().output.out_mags_filt).values()]))),
     output:
         genome = "10_instrain/rep_mags.fasta",
         stb = "10_instrain/rep_mags_stb.tsv",
