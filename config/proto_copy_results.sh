@@ -1,5 +1,5 @@
 prefix="aprasad@curnagl.dcsr.unil.ch:/scratch/aprasad/211018_Medgenome_india_samples"
-outdir="/Volumes/Storage/Work/Temp-From-NAS/cross-species-analysis"
+outdir="/nas/FAC/FBM/DMF/pengel/spirit/D2c/aprasad/20211018_aprasad_ApisCrossSpeciesAnalysis/Analysis/211018_Medgenome_india_samples"
 # config / input files
 mkdir -p config
 rsync -r --progress -v $prefix/config/* $outdir/config

@@ -4,20 +4,26 @@ import os
 from Bio import SeqIO
 import argparse
 
-def parse_prokka_MAG_header(header):
+def parse_prokka_get_MAG_name(header):
     """
     read header with prokka prefix and contig number
     and get MAG name eg. MAG_C1.1_12 from gnl|Prokka|MAG_C1.1_12_1
+    it removes the final number after the underscore which goes from 1 to n
+    where n is the number of contigs in that MAG numbered by prokka
     """
     if "|" in header:
-        parsed_header = header.split("|")[-1]
+        parsed_header = "_".join(header.split("|")[-1].split("_")[:-1])
     else:
         parsed_header = header
     return(parsed_header)
 
 def make_db_red(input_fasta, glist):
     output_fasta = input_fasta+"_reduced"
-    records = (r for r in SeqIO.parse(input_fasta, "fasta") if parse_prokka_MAG_header(r.id) in glist)
+    for seq in SeqIO.parse(input_fasta, "fasta"):
+        print(seq)
+        print(parse_prokka_get_MAG_name(seq.id))
+        break
+    records = (r for r in SeqIO.parse(input_fasta, "fasta") if parse_prokka_get_MAG_name(r.id) in glist)
     number_red = SeqIO.write(records, output_fasta, "fasta")
     print(f"adding {number_red} records to reduced database")
 
@@ -31,6 +37,7 @@ input_database = args.input
 ref_info = args.ref_info
 
 rep_genomes = set()
+# ref_info = "06_MAG_binning/MAGs_filt_GenomeInfo_auto.tsv"
 with open(ref_info, "r") as ref_info_fh:
     for line in ref_info_fh:
         line = line.strip()
