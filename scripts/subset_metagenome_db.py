@@ -17,8 +17,7 @@ def parse_prokka_get_MAG_name(header):
         parsed_header = header
     return(parsed_header)
 
-def make_db_red(input_fasta, glist):
-    output_fasta = input_fasta+"_reduced"
+def make_db_red(input_fasta, glist, output_fasta):
     for seq in SeqIO.parse(input_fasta, "fasta"):
         print(seq)
         print(parse_prokka_get_MAG_name(seq.id))
@@ -31,10 +30,12 @@ parser = argparse.ArgumentParser()
 requiredNamed = parser.add_argument_group('required arguments')
 requiredNamed.add_argument('--input', metavar="mag_database", required=True, help="Database of concatenated mags", action="store")
 requiredNamed.add_argument('--ref_info',metavar="ref_info",required=True, help="Info about MAG status with MAG name in first column and 1 0r 0 denating if it is ref id in the third (tsv format)", action="store") # same as 06_MAG_binning/MAGs_filt_GenomeInfo_auto.tsv
+requiredNamed.add_argument('--output',metavar="ref_info",required=True, help="Info about MAG status with MAG name in first column and 1 0r 0 denating if it is ref id in the third (tsv format)", action="store") # same as 06_MAG_binning/MAGs_filt_GenomeInfo_auto.tsv
 args = parser.parse_args()
 
 input_database = args.input
 ref_info = args.ref_info
+output_database = args.output
 
 rep_genomes = set()
 # ref_info = "06_MAG_binning/MAGs_filt_GenomeInfo_auto.tsv"
@@ -52,4 +53,4 @@ with open(ref_info, "r") as ref_info_fh:
             rep_genomes.add(genome_id)
 
 print(f"making db_red {input_database}")
-make_db_red(input_database, rep_genomes)
+make_db_red(input_database, rep_genomes, output_database)

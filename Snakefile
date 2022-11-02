@@ -2013,6 +2013,7 @@ rule make_MAG_rep_db:
         ref_info = lambda wildcards: checkpoints.make_phylo_table.get().output.out_mags_filt
     output:
         mag_database_reduced = "database/MAGs_rep_database",
+        genome_indices = multiext("database/MAGs_rep_database", ".amb", ".ann", ".bwt", ".pac", ".sa")
     params:
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
@@ -2026,12 +2027,14 @@ rule make_MAG_rep_db:
     conda: "envs/core-cov-env.yaml"
     shell:
         """
-        python3 scripts/subset_metagenome_db.py --input {input.mag_database} --ref_info {input.ref_info}
+        python3 scripts/subset_metagenome_db.py --input {input.mag_database} --ref_info {input.ref_info} --output {output.mag_database_reduced}
+        bwa index {output.mag_database_reduced}
         """
 
 rule prep_for_instrain:
     input:
         genome = "database/MAGs_rep_database",
+        genome_indices = multiext("database/MAGs_rep_database", ".amb", ".ann", ".bwt", ".pac", ".sa"),
         rep_mags = lambda wildcards: expand("07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.fna", genome=list(itertools.chain.from_iterable([x.values() for x in get_rep_genomes_dict(checkpoints.make_phylo_table.get().output.out_mags_filt).values()]))),
     output:
         genome = "10_instrain/rep_mags.fasta",
@@ -2094,7 +2097,6 @@ rule map_to_rep_MAGs:
     conda: "envs/mapping-env.yaml"
     shell:
         """
-        bwa index {input.genome_db}
         bwa mem -t {threads} {input.genome_db} {input.reads1} {input.reads2} > {output.sam}
         samtools view -bh {output.sam} | samtools sort - > {output.bam}
         samtools index {output.bam}
