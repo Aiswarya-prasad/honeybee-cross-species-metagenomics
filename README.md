@@ -158,7 +158,6 @@ Some functions in the script are used to provide inputs to various rules and to 
       + drep requires a file with the columns genome, completeness and contamination. This rule compiles this information from across samples to create the file "06_MAG_binning/evaluate_bins/checkm_drep_summary.txt".
     + `rule drep`
       + Runs drep dereplicate on **all** the MAGs. It creates various outputs that are described [here](https://drep.readthedocs.io/en/latest/advanced_use.html) and will used by various rules downstream.
-    <!-- + `rule ani_heatmap` -->
     + `rule extract_mag_lists`
     + `rule prep_gtdb_annotate`
     + `rule gtdb_annotate`
@@ -201,6 +200,10 @@ Some functions in the script are used to provide inputs to various rules and to 
     + `rule core_cov_plots`
     + `rule make_MAG_reduced_db`
       + Read the checkpoint output and use biopython to only include rep genomes in the final database called "database/MAGs_rep_database" which only contains the representative genomes.
+    + `rule prep_for_instrain`
+    + `rule map_to_rep_MAGs`
+    + `rule instrain_profile`
+    + `rule instrain_compare`
 <!-- + "Continue readme update here - need to finish function to get rep genomes and then rerun everything after backmapping!" -->
   + `rule run_orthofinder`
     + Runs [Orthofinder](https://github.com/davidemms/OrthoFinder) for each phylotype.
@@ -483,42 +486,8 @@ Some functions in the script are used to provide inputs to various rules and to 
 
     + the PTR was set to `NA`, the median will be plotted and used for quantification. Else, the segmented regression line is plotted, and the terminus coverage is used for quantification.
 
-  + rule assemble_host_unmapped
-    + Takes as input the R1 and R2 reads that were not mapped to the host and assembles them using [spades](https://cab.spbu.ru/software/meta-spades/) with the `--meta` tag and default parameters.
-    + Memory allocation is not obvious. More documentation on this soon.
-  + rule map_to_assembly
-    + Map reads that were assembled against the contigs that they were assembled into using [bwa mem](http://bio-bwa.sourceforge.net).
-  + rule cat_and_clean_counts_assembly
-    + Compiles counts into one file for summarizing
-  + rule summarize_mapping_assembly
-    + similar to earlier rule "summarize_mapping"
-  + rule backmapping
-    + NxN mapping for
-  + rule merge_depths
-  + rule binning
-  + rule process_metabat2
-  + rule checkm_evaluation
-  + rule prepare_info_for_drep
-  + rule drep
-  + rule gtdb_annotate
-  + rule compile_report
-  + rule backup
-  <!-- + `rule assemble_host_unmapped`
-  + `rule mapping_red_db`
-  + `rule subset_ortho_and_meta`
-  + `rule core_cov_red`
-  + `rule core_cov_red_plots`
-  + `rule parse_core_cov_red`
-  + `rule de_duplicate`
-  + `rule freebayes_profiling`
-  + `rule vcf_summary_stats`
-  + `rule vcf_filtering1`
-  + `rule vcf_filtering2`
-  + `rule vcf_filtering3` -->
-  + `rule onsuccess`
-
   ## Scripts
-
+<!-- This list is not exhaustive. Make a complete list #TODO -->
   + `aln_aa_to_dna.py`
   + `aln_calc.sh`
   + `calc_perc_id_orthologs.py`
@@ -549,6 +518,8 @@ Some functions in the script are used to provide inputs to various rules and to 
 `snv-env.yaml`
 `trim-qc-env.yaml`
 ...
+
+`snakemake -p --use-conda --conda-prefix /scratch/aprasad/built-envs/ --conda-frontend mamba --profile slurm --restart-times 0 --cluster-cancel scancel --rerun-incomplete --keep-going --rerun-triggers mtime -r --scheduler greedy`
 
 # Introduction
 
@@ -788,292 +759,3 @@ mean_load | float (-) | CPU usage over time, divided by the total running time (
 cpu_time | float(-) | CPU time summed for user and system
 
 [how to setup snakemake profile](https://github.com/RomainFeron/snakemake-slurm)
-
-
-# Summary of contents
-
-# Directory organization
-
-The chunk below describes
-
-```{bash eval=FALSE}
-├── [ 237G]  00_RawData
-│   ├── [ 1.8G]  ${SAMPLE}_R1.fastq.gz
-│   └── [ 1.8G]  ${SAMPLE}_R2.fastq.gz
-├── [ 210G]  01_Trimmed
-│   ├── [ 1.6G]  ${SAMPLE}_R1_trim.fastq.gz
-│   └── [ 1.6G]  ${SAMPLE}_R2_trim.fastq.gz
-├── [ 1.7T]  02_HostMapping
-│   ├── [ 6.6K]  ${SAMPLE}_coverage_histogram.txt
-│   ├── [  425]  ${SAMPLE}_coverage.tsv
-│   ├── [  541]  ${SAMPLE}_flagstat.tsv
-│   ├── [ 3.3G]  ${SAMPLE}_R1_host_unmapped.fastq
-│   └── [ 3.2G]  ${SAMPLE}_R2_host_unmapped.fastq
-├── [ 150G]  03_MicrobiomeMapping
-│   ├── [  541]  ${SAMPLE}_flagstat.tsv
-│   ├── [ 3.1G]  ${SAMPLE}_R1_microbiome_mapped.fastq
-│   └── [ 3.1G]  ${SAMPLE}_R2_microbiome_mapped.fastq
-├── [  30K]  04_MicrobiomeMappingDirect
-│   └── [  542]  ${SAMPLE}_flagstat.tsv
-├── [  62G]  05_Assembly
-│   └── [  62G]  host_unmapped
-│       ├── [  88M]  ${SAMPLE}_assembly_graph.fastg
-│       ├── [  90M]  ${SAMPLE}_graph.fastg
-│       ├── [  34M]  ${SAMPLE}_scaffolds.fasta
-│       ├── [ 8.6K]  ${SAMPLE}_scaffolds.fasta.amb
-│       ├── [ 223K]  ${SAMPLE}_scaffolds.fasta.ann
-│       ├── [  34M]  ${SAMPLE}_scaffolds.fasta.bwt
-│       ├── [ 8.4M]  ${SAMPLE}_scaffolds.fasta.pac
-│       ├── [  17M]  ${SAMPLE}_scaffolds.fasta.sa
-│       ├── [  42M]  ${SAMPLE}_scaffolds_unparsed.fasta
-│       ├── [ 168K]  ${SAMPLE}_spades.log
-│       ├── [  35G]  check_assembly
-│       │   ├── [  670]  Assembly_mapped_counts.txt
-│       │   ├── [ 3.5K]  Assembly_mapping_summary.csv
-│       │   ├── [ 5.0G]  ${SAMPLE}_assembly.bam
-│       │   ├── [   14]  ${SAMPLE}_assembly_mapped_counts.txt
-│       │   ├── [  30G]  ${SAMPLE}_assembly.sam
-│       ├── [  97M]  ${SAMPLE}_assembly_graph.fastg
-│       ├── [  34M]  ${SAMPLE}_scaffolds.fasta
-│       ├── [ 8.5K]  ${SAMPLE}_scaffolds.fasta.amb
-│       ├── [ 329K]  ${SAMPLE}_scaffolds.fasta.ann
-│       ├── [  34M]  ${SAMPLE}_scaffolds.fasta.bwt
-│       ├── [ 8.4M]  ${SAMPLE}_scaffolds.fasta.pac
-│       ├── [  17M]  ${SAMPLE}_scaffolds.fasta.sa
-│       ├── [  45M]  ${SAMPLE}_scaffolds_unparsed.fasta
-│       └── [ 174K]  ${SAMPLE}_spades.log
-├── [  10G]  06_MAG_binning
-│   ├── [ 181K]  all_GenomeInfo_auto.tsv
-│   ├── [ 2.2G]  backmapping
-│   │   └── [  18M]  M1.5
-│   │       ├── [ 304K]  ${SAMPLE}_mapped_to_${SAMPLE}.depth
-│   │       ├── [ 304K]  ${OTHER_SAMPLE}_mapped_to_${SAMPLE}.depth
-│   │       └── [ 3.1M]  ${SAMPLE}_merged.depth
-│   ├── [ 1.6G]  bins
-│   │   └── [  22M]  ${SAMPLE}-metabat2
-│   │       ├── [ 2.6M]  MAG.10.fa
-│   │       └── [ 858K]  MAG.9.fa
-│   ├── [ 1.6G]  bins_renamed
-│   │   └── [  22M]  ${SAMPLE}
-│   │       ├── [ 2.6M]  MAG_${SAMPLE}_10.fa
-│   │       └── [ 858K]  MAG_${SAMPLE}_9.fa
-│   ├── [ 2.5G]  contig_fates
-│   │   ├── [ 1.9G]  backmapping_coverages
-│   │   │   └── [  15M]  ${SAMPLE}_contig_coverages.csv
-│   │   └── [ 2.1M]  ${SAMPLE}_contig_fates.csv
-│   ├── [  30M]  drep_results
-│   │   ├── [ 8.0K]  data
-│   │   │   └── [ 4.0K]  Clustering_files
-│   │   ├── [  30M]  data_tables
-│   │   │   ├── [ 102K]  Bdb.csv
-│   │   │   ├── [  33K]  genomeInfo.csv
-│   │   │   ├── [  29M]  Mdb.csv
-│   │   │   ├── [ 599K]  Ndb.csv
-│   │   │   ├── [  28K]  Sdb.csv
-│   │   │   └── [  20K]  Widb.csv
-│   │   ├── [ 4.0K]  dereplicated_genomes
-│   │   ├── [ 4.0K]  figures
-│   │   └── [  92K]  log
-│   │       └── [  88K]  logger.log
-│   ├── [ 2.4G]  evaluate_bins
-│   │   ├── [  38M]  ${SAMPLE}
-│   │   │   ├── [  35M]  bins
-│   │   │   │   ├── [ 3.8M]  MAG_${SAMPLE}_11
-│   │   │   │   │   ├── [ 888K]  genes.faa
-│   │   │   │   │   ├── [ 535K]  genes.gff
-│   │   │   │   │   ├── [ 2.3M]  hmmer.analyze.txt
-│   │   │   │   │   └── [  15K]  hmmer.tree.txt
-│   │   │   ├── [ 2.7K]  checkm.log
-│   │   │   ├── [1000K]  lineage.ms
-│   │   │   └── [ 1.7M]  storage
-│   │   │       ├── [  72K]  aai_qa
-│   │   │       │   └── [ 4.7K]  MAG_${SAMPLE}_9
-│   │   │       │       └── [  695]  PF01121.15.masked.faa
-│   │   │       ├── [ 6.7K]  bin_stats.analyze.tsv
-│   │   │       ├── [  54K]  bin_stats_ext.tsv
-│   │   │       ├── [ 6.7K]  bin_stats.tree.tsv
-│   │   │       ├── [ 621K]  checkm_hmm_info.pkl.gz
-│   │   │       ├── [ 184K]  marker_gene_stats.tsv
-│   │   │       ├── [ 4.6K]  phylo_hmm_info.pkl.gz
-│   │   │       └── [ 761K]  tree
-│   │   │           ├── [  96K]  concatenated.fasta
-│   │   │           ├── [ 327K]  concatenated.pplacer.json
-│   │   │           ├── [ 265K]  concatenated.tre
-│   │   │           ├── [  699]  PF00164.20.masked.faa
-│   │   │           ├── [ 1.0K]  pplacer.out
-│   │   └── [ 1.3K]  ${SAMPLE}_checkm.summary
-│   ├── [ 126K]  ForTree_GenomeInfo_auto.tsv
-│   └── [ 2.0M]  gtdbtk_out_dir
-│       └── [ 2.0M]  classify
-│           └── [ 2.0M]  gtdbtk.bac120.summary.tsv
-# examples of ${GENOME}: ESL0304.fa, MAG_M1.3_4.fa
-├── [  24G]  07_Phylogenies
-│   ├── [ 1.4G]  00_genomes
-│   │   ├── [ 2.4M]  ${GENOME}.fa
-│   ├── [  15G]  01_prokka
-│   │   ├── [  26M]  ${GENOME}
-│   │   │   ├── [ 203K]  ${GENOME}.err
-│   │   │   ├── [ 766K]  ${GENOME}.faa
-│   │   │   ├── [ 2.1M]  ${GENOME}.ffn
-│   │   │   ├── [ 2.4M]  ${GENOME}.fna
-│   │   │   ├── [ 2.4M]  ${GENOME}.fsa
-│   │   │   ├── [ 5.1M]  ${GENOME}.gbk
-│   │   │   ├── [ 3.2M]  ${GENOME}.gff
-│   │   │   ├── [  32K]  ${GENOME}.log
-│   │   │   ├── [ 8.7M]  ${GENOME}.sqn
-│   │   │   ├── [ 621K]  ${GENOME}.tbl
-│   │   │   ├── [ 200K]  ${GENOME}.tsv
-│   │   │   └── [  105]  ${GENOME}.txt
-# examples of ${GROUP}: g__Lactobacillus, g__Apibacter
-│   ├── [ 6.9G]  02_orthofinder
-│   │   ├── [ 249M]  ${GROUP}
-│   │   │   ├── [ 805K]  ${GENOME}.faa
-│   │   │   ├── [ 177M]  OrthoFinder
-│   │   │   │   ├── [ 215K]  ${GROUP}_single_ortho_MAGs.txt
-│   │   │   │   ├── [ 587K]  ${GROUP}_single_ortho.txt
-│   │   │   │   └── [ 176M]  Results_${GROUP}
-│   │   │   │       ├── [ 2.5K]  Citation.txt
-│   │   │   │       ├── [  25K]  Comparative_Genomics_Statistics
-│   │   │   │       │   ├── [ 6.0K]  Orthogroups_SpeciesOverlaps.tsv
-│   │   │   │       │   ├── [ 1.6K]  Statistics_Overall.tsv
-│   │   │   │       │   └── [  14K]  Statistics_PerSpecies.tsv
-│   │   │   │       ├── [ 1.2K]  Log.txt
-│   │   │   │       ├── [ 2.6M]  Orthogroups
-│   │   │   │       │   ├── [ 261K]  Orthogroups.GeneCount.tsv
-│   │   │   │       │   ├── [ 3.2K]  Orthogroups_SingleCopyOrthologues.txt
-│   │   │   │       │   ├── [ 1.1M]  Orthogroups.tsv
-│   │   │   │       │   ├── [ 1.1M]  Orthogroups.txt
-│   │   │   │       │   └── [  79K]  Orthogroups_UnassignedGenes.tsv
-│   │   │   │       └── [  23M]  Orthogroup_Sequences
-│   │   │   │           └── [  13K]  OG0000184.fa
-│   │   │   └── [    0]  single_ortholog_sequences.done
-│   │   └── [ 147K]  ${GROUP}_Orthogroups_summary.csv
-│   ├── [ 506M]  03_aligned_orthogroups
-│   │   ├── [  21M]  ${GROUP}
-│   │   │   ├── [  10M]  CoreGeneAlignment.fasta
-│   │   │   ├── [  31K]  OG0000184_aligned_pruned.fasta
-│   └── [ 1.8M]  05_IQTree
-│       ├── [ 325K]  ${GROUP}
-│       │   ├── [ 4.1K]  ${GROUP}_Phylogeny.bionj
-│       │   ├── [  92K]  ${GROUP}_Phylogeny.ckp.gz
-│       │   ├── [ 4.3K]  ${GROUP}_Phylogeny.contree
-│       │   ├── [  48K]  ${GROUP}_Phylogeny.iqtree
-│       │   ├── [  30K]  ${GROUP}_Phylogeny.log
-│       │   ├── [ 122K]  ${GROUP}_Phylogeny.mldist
-│       │   ├── [ 5.2K]  ${GROUP}_Phylogeny.model.gz
-│       │   ├── [  11K]  ${GROUP}_Phylogeny.splits.nex
-│       │   └── [ 4.3K]  ${GROUP}_Phylogeny.treefile
-├── [  23M]  08_motus_profile
-│   └── [  23M]  samples_merged.motus
-├── [  59G]  09_MapToAssembly
-│   └── [ 1.0G]  ${SAMPLE}.bam
-├── [ 172K]  211018_Medgenome_india_samples_Report.Rmd
-├── [ 419M]  assembly_summary_genbank.txt
-├── [ 155K]  config
-│   ├── [ 4.8K]  config.yaml
-│   ├── [  34K]  initialize_project-211018_Medgenome_india_samples.sh
-│   ├── [  32K]  IsolateGenomeInfo.csv
-│   ├── [  31K]  Metadata_211018_Medgenome_india_samples.csv
-│   └── [  51K]  reinitialize_project-211018_Medgenome_india_samples.sh
-├── [ 3.5G]  database
-│   ├── [ 869M]  4_host_db
-│   ├── [ 1.1M]  4_host_db.amb
-│   ├── [  298]  4_host_db.ann
-│   ├── [ 869M]  4_host_db.bwt
-│   ├── [  163]  4_host_db_list.txt
-│   ├── [ 217M]  4_host_db.pac
-│   ├── [ 435M]  4_host_db.sa
-│   ├── [ 448M]  genome_db_220315_AP
-│   ├── [10.0K]  genome_db_220315_AP.amb
-│   ├── [ 7.0K]  genome_db_220315_AP.ann
-│   ├── [ 441M]  genome_db_220315_AP.bwt
-│   ├── [ 6.0K]  genome_db_220315_AP.fai
-│   ├── [ 1.4K]  genome_db_220315_AP_list.txt
-│   ├── [ 8.8K]  genome_db_220315_AP_metafile.txt
-│   ├── [ 110M]  genome_db_220315_AP.pac
-│   ├── [ 220M]  genome_db_220315_AP.sa
-├── [ 6.2K]  envs
-│   ├── [  218]  core-cov-env.yaml
-│   ├── [   95]  gtdb-env.yaml
-│   ├── [  135]  mags-env.yaml
-│   ├── [  249]  mapping-env.yaml
-│   ├── [   68]  motus-env.yaml
-│   ├── [  179]  phylogenies-env.yaml
-│   ├── [  274]  popcogent-env.yaml
-│   ├── [  477]  rmd-env.yaml
-│   ├── [  153]  scripts-env.yaml
-│   ├── [  127]  snv-env.yaml
-│   ├── [  162]  spades-env.yaml
-│   └── [  129]  trim-qc-env.yaml
-├── [ 275M]  fastqc
-│   ├── [ 130M]  raw
-│   │   ├── [ 562K]  ${SAMPLE}_R1_fastqc.html
-│   │   ├── [ 765K]  ${SAMPLE}_R1_fastqc.zip
-│   │   ├── [ 566K]  ${SAMPLE}_R2_fastqc.html
-│   │   └── [ 772K]  ${SAMPLE}_R2_fastqc.zip
-│   └── [ 145M]  trim
-│       ├── [ 602K]  ${SAMPLE}_R1_trim_fastqc.html
-│       ├── [ 753K]  ${SAMPLE}_R1_trim_fastqc.zip
-│       ├── [ 606K]  ${SAMPLE}_R2_trim_fastqc.html
-│       └── [ 758K]  ${SAMPLE}_R2_trim_fastqc.zip
-├── [  15M]  Figures
-│   ├── [ 6.0K]  00a-Total_reads_trimming.pdf
-│   ├── [ 5.6K]  00b-Total_reads_species_after_trimming.pdf
-│   ├── [ 6.6K]  00c-Mapped_Unmapped_reads_prop.pdf
-├── [ 620M]  logs
-├── [ 172K]  README.md
-├── [ 190K]  scripts
-│   ├── [ 1.7K]  aln_aa_to_dna_phylo.py
-│   ├── [ 1.7K]  aln_aa_to_dna.py
-│   ├── [  795]  aln_calc.sh
-│   ├── [  878]  calc_assembly_length.pl
-│   ├── [ 1.9K]  calc_filt_core_length.py
-│   ├── [ 3.7K]  calc_jaccard.pl
-│   ├── [ 4.3K]  calc_perc_id_orthologs_phylo.py
-│   ├── [ 3.9K]  calc_shared_SNV_fraction.pl
-│   ├── [  26K]  copy_faa_files.sh
-│   ├── [ 1.3K]  copy_raw_data.sh
-│   ├── [ 9.5K]  core_cov.py
-│   ├── [ 8.1K]  core_cov.R
-│   ├── [ 2.0K]  corecov_split_by_sdp.py
-│   ├── [  749]  csv_to_tsv.py
-│   ├── [ 3.7K]  cum_curve_SNVs_host.pl
-│   ├── [ 8.7K]  cum_curve_SNVs_host.py
-│   ├── [ 1.3K]  distance_matrix.R
-│   ├── [ 4.5K]  download_data.py
-│   ├── [ 3.9K]  extract_orthologs_phylo.py
-│   ├── [ 2.7K]  fasta_generate_regions.py
-│   ├── [ 3.0K]  filt_core_bed.py
-│   ├── [ 2.1K]  filter_bam.py
-│   ├── [ 2.5K]  filter_orthologs_phylo.py
-│   ├── [ 1.8K]  filter_orthologs.py
-│   ├── [  965]  filter_sam_aln_length.pl
-│   ├── [ 1.2K]  filter_sam_aln_length_unmapped.pl
-│   ├── [ 3.8K]  filter_snvs.pl
-│   ├── [ 4.3K]  filter_snvs.py
-│   ├── [ 3.0K]  filt_vcf_samples.pl
-│   ├── [ 1.4K]  filt_vcf_samples.py
-│   ├── [ 1.4K]  filt_vcf_samples.py
-│   ├── [ 3.6K]  get_single_ortho_phylo.py
-│   ├── [ 1.5K]  get_single_ortho.py
-│   ├── [ 2.1K]  KEs_trim_aln.py
-│   ├── [ 4.0K]  Make_metadata.R
-│   ├── [  10K]  make_phylo_table.R
-│   ├── [ 1.4K]  merge_depths.pl
-│   ├── [ 8.2K]  my_core_cov.R
-│   ├── [ 2.8K]  parse_core_cov.py
-│   ├── [ 1.1K]  parse_spades_metagenome.pl
-│   ├── [ 1.6K]  parse_spades_metagenome.py
-│   ├── [ 7.5K]  prune_and_concat_alns.py
-│   ├── [  976]  rearange_faa.py
-│   ├── [ 3.8K]  subset_metagenome_db.py
-│   ├── [ 3.3K]  subset_orthofile.py
-│   ├── [  973]  summarise_filter_snvs.py
-│   ├── [ 6.6K]  summarise_orthogroups.py
-│   ├── [ 4.7K]  summarise_snps.pl
-│   ├── [ 2.1K]  trim_aln_phylo.py
-│   ├── [ 2.1K]  trim_aln.py
-│   ├── [ 1.2K]  vcf_split_by_sdp.py
-│   └── [ 1011]  write_adapters.py
-├── [  75K]  Snakefile
-```

@@ -410,7 +410,7 @@ rule run_motus:
         reads1 = "01_Trimmed/{sample}_R1_trim.fastq.gz",
         reads2 = "01_Trimmed/{sample}_R2_trim.fastq.gz",
     output:
-        motus_temp = "08_motus_profile/{sample}.motus"
+        motus_temp = temp("08_motus_profile/{sample}.motus")
     params:
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
@@ -1264,6 +1264,12 @@ checkpoint make_phylo_table:
         ./scripts/csv_to_tsv.py {output.out_t_tree}
         ./scripts/csv_to_tsv.py {output.out_t_mags}
         ./scripts/csv_to_tsv.py {output.out_t_mags_filt}
+        # below commands are only relavent for re-runs
+        # results from previous MAGs will be there
+        rm -rf database/MAGs_database*
+        rm -rf 07_AnnotationAndPhylogenies
+        rm -rf 09_MagDatabaseProfiling
+        rm -rf 10_instrain
         """
 
 rule prepare_genomes:
@@ -1478,9 +1484,7 @@ rule extract_orthologs_phylo:
         ffn_files = lambda wildcards: expand("07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.ffn", genome=get_g_dict_for_defined_groups(checkpoints.make_phylo_table.get().output.out_tree)[wildcards.group]),
     output:
         ortho_seq_dir = directory("07_AnnotationAndPhylogenies/02_orthofinder/{group}/single_ortholog_sequences/"),
-        done = touch("07_AnnotationAndPhylogenies/02_orthofinder/{group}/single_ortholog_sequences.done")
     params:
-        # to the prefix, script adds, "genome/genome.xxx"
         faaffndir = "07_AnnotationAndPhylogenies/01_prokka/",
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
@@ -1717,6 +1721,7 @@ rule get_single_ortho_mag_database:
         single_ortho = "database/MAGs_database_Orthofinder/{group}/OrthoFinder/{group}_single_ortho.txt",
     params:
         group = lambda wildcards: wildcards.group,
+        isolates_present = False,
         mailto = "aiswarya.prasad@unil.ch",
         mailtype = "BEGIN,END,FAIL,TIME_LIMIT_80",
         # jobname="{group}_extract_orthologs",
@@ -1735,7 +1740,7 @@ rule extract_orthologs_mag_database:
         ffn_files = lambda wildcards: expand("database/MAGs_database_ffn_files/{genome}.ffn", genome=get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt)[wildcards.group]),
         faa_files = lambda wildcards: expand("database/MAGs_database_faa_files/{genome}.faa", genome=get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt)[wildcards.group]),
     output:
-        done = touch("database/MAGs_database_Orthofinder/{group}/single_ortholog_sequences.done")
+        done = directory("database/MAGs_database_Orthofinder/{group}/single_ortholog_sequences")
     params:
         # to the prefix, script adds, "genome/genome.xxx"
         ortho_seq_dir = lambda wildcards: "database/MAGs_database_Orthofinder/"+wildcards.group+"/single_ortholog_sequences/",
@@ -1757,14 +1762,14 @@ rule extract_orthologs_mag_database:
         """
         python3 scripts/extract_orthologs_phylo.py --orthofile {input.ortho_single} --outdir {params.ortho_seq_dir} --faadir {params.faadir} --ffndir {params.ffndir}
         """
-
+# make this collect OGs from a checkpoint and process them and then follow with perc id filtering.
 rule calc_perc_id_mag_database:
     input:
-        single_ortho_seq_done = "database/MAGs_database_Orthofinder/{group}/single_ortholog_sequences.done",
+        single_ortho_seq_done = "database/MAGs_database_Orthofinder/{group}/single_ortholog_sequences",
         genome_info_path = lambda wildcards: checkpoints.make_phylo_table.get().output.out_mags_filt,
     output:
         perc_id = "database/MAGs_database_Orthofinder/{group}/{group}_perc_id.txt",
-        done = touch("database/MAGs_database_Orthofinder/{group}/{group}_perc_id_all.done")
+        perc_id_all_done = touch("database/MAGs_database_Orthofinder/{group}/{group}_perc_id.txt.all_done"),
     params:
         ortho_seq_dir = lambda wildcards: "database/MAGs_database_Orthofinder/"+wildcards.group+"/single_ortholog_sequences/",
         pwd_prefix = os.path.join(os.getcwd()),
@@ -1789,36 +1794,43 @@ rule calc_perc_id_mag_database:
             OG=${{j%.\"faa\"}}
             echo \"Processing: $OG\"
             aln_faa=$OG\"_aln.fasta\"
-            #Aligning amino-acid sequences
-            if [ ! -f $aln_faa ];
-            then
-                mafft --auto --quiet $j > $aln_faa
-            fi
-            #Back-translating alignment (codon-aligned nucleotide alignment)
+            mafft --auto --quiet $j > $aln_faa
             ffn_file=$OG\".ffn\"
             aln_nuc=$OG\"_aln_nuc.fasta\"
-            if [ ! -f $aln_nuc ];
-            then
-                python3 \"${{scripts_dir}}/aln_aa_to_dna.py\" \"$aln_faa\" \"$ffn_file\"
-            fi
-            #Trimming alignment for gaps
+            python3 \"${{scripts_dir}}/aln_aa_to_dna.py\" \"$aln_faa\" \"$ffn_file\"
             trim_file=$OG\"_aln_trim.fasta\"
-            if [ ! -f $trim_file ];
-            then
-                python3 \"${{scripts_dir}}/trim_aln.py\"  \"$aln_nuc\" \"$trim_file\"
-            fi
+            python3 \"${{scripts_dir}}/trim_aln.py\"  \"$aln_nuc\" \"$trim_file\"
             #Calculating inter-SDP alignment stats
             python3 \"${{scripts_dir}}/calc_perc_id_orthologs.py\" --meta \"$genome_db_meta\" --trim_file \"$trim_file\" --outfile \"$outfile\"
         done
         """
+# if resuming
+#Aligning amino-acid sequences
+# if [ ! -f $aln_faa ];
+# then
+#     mafft --auto --quiet $j > $aln_faa
+# fi
+# #Back-translating alignment (codon-aligned nucleotide alignment)
+# ffn_file=$OG\".ffn\"
+# aln_nuc=$OG\"_aln_nuc.fasta\"
+# if [ ! -f $aln_nuc ];
+# then
+#     python3 \"${{scripts_dir}}/aln_aa_to_dna.py\" \"$aln_faa\" \"$ffn_file\"
+# fi
+# #Trimming alignment for gaps
+# trim_file=$OG\"_aln_trim.fasta\"
+# if [ ! -f $trim_file ];
+# then
+#     python3 \"${{scripts_dir}}/trim_aln.py\"  \"$aln_nuc\" \"$trim_file\"
+# fi
+# else (takes longer but doing this until a way is found to check if resuming - with time stamp..)
 
-# consider using median perc_id? For bifidos all the perc ids are > 0.95 max.
 rule filter_orthologs_mag_database:
     input:
         single_ortho = "database/MAGs_database_Orthofinder/{group}/OrthoFinder/{group}_single_ortho.txt",
         perc_id = "database/MAGs_database_Orthofinder/{group}/{group}_perc_id.txt",
-        done = "database/MAGs_database_Orthofinder/{group}/{group}_perc_id_all.done",
-        single_ortho_seq_done = "database/MAGs_database_Orthofinder/{group}/single_ortholog_sequences.done",
+        perc_id_all_done = "database/MAGs_database_Orthofinder/{group}/{group}_perc_id.txt.all_done",
+        single_ortho_seq_done = "database/MAGs_database_Orthofinder/{group}/single_ortholog_sequences",
     output:
         ortho_filt = "database/MAGs_database_Orthofinder/{group}/OrthoFinder/{group}_single_ortho_filt.txt",
         ortho_filt_perc_id = "database/MAGs_database_Orthofinder/{group}/OrthoFinder/{group}_single_ortho_filt_perc_id.txt",
@@ -1844,7 +1856,7 @@ rule summarise_orthogroups_filtered_mag_database:
         ortho_file = "database/MAGs_database_Orthofinder/{group}/OrthoFinder/{group}_single_ortho.txt",
         ortho_file_filt = "database/MAGs_database_Orthofinder/{group}/OrthoFinder/{group}_single_ortho_filt.txt",
         perc_id = "database/MAGs_database_Orthofinder/{group}/{group}_perc_id.txt",
-        done = "database/MAGs_database_Orthofinder/{group}/{group}_perc_id_all.done",
+        perc_id_all_done = "database/MAGs_database_Orthofinder/{group}/{group}_perc_id.txt.all_done",
         genomes_list = lambda wildcards: checkpoints.make_phylo_table.get().output.out_mags_filt,
         ref_info = lambda wildcards: checkpoints.make_phylo_table.get().output.out_mags_filt
     output:
@@ -1928,6 +1940,7 @@ rule map_to_MAGs:
 rule core_cov:
     input:
         bed_files = lambda wildcards: expand("database/MAGs_database_bed_files/{genome}.bed", genome=get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt)[wildcards.group]),
+        # not using filtered orthologs here because bifidos have no OGs left after perc_id cutoff
         ortho_file = "database/MAGs_database_Orthofinder/{group}/OrthoFinder/{group}_single_ortho.txt",
         bam_file = "09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_mapped.bam",
         ref_info = lambda wildcards: checkpoints.make_phylo_table.get().output.out_mags_filt,
@@ -1995,12 +2008,11 @@ rule core_cov_plots:
         ./scripts/core_cov.R {input.txt};
         """
 
-rule make_MAG_reduced_db:
+rule make_MAG_rep_db:
     input:
         mag_database = "database/MAGs_database",
         genomes = lambda wildcards: expand("07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.fna", genome=list(itertools.chain.from_iterable([x.values() for x in get_rep_genomes_dict(checkpoints.make_phylo_table.get().output.out_mags_filt).values()]))),
         ref_info = lambda wildcards: checkpoints.make_phylo_table.get().output.out_mags_filt
-
     output:
         mag_database_reduced = "database/MAGs_rep_database",
     params:
@@ -2011,8 +2023,8 @@ rule make_MAG_reduced_db:
     resources:
         mem_mb = convertToMb("8G")
     threads: 8
-    log: "logs/make_MAG_reduced_db.log"
-    benchmark: "logs/make_MAG_reduced_db.benchmark"
+    log: "logs/make_MAG_rep_db.log"
+    benchmark: "logs/make_MAG_rep_db.benchmark"
     conda: "envs/core-cov-env.yaml"
     shell:
         """
@@ -2098,8 +2110,7 @@ rule instrain_profile:
         stb = "10_instrain/rep_mags_stb.tsv",
         genes = "10_instrain/rep_mags_genes.fna"
     output:
-        outdir = directory("10_instrain/{sample}_profile.IS/"),
-        done = touch("10_instrain/tracking_files/{sample}_profile.done")
+        outdir = directory("10_instrain/{sample}_profile.IS/")
     params:
         mailto="aiswarya.prasad@unil.ch",
         account="pengel_spirit",

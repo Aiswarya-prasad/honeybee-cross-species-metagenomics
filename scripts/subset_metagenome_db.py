@@ -9,7 +9,11 @@ def parse_prokka_MAG_header(header):
     read header with prokka prefix and contig number
     and get MAG name eg. MAG_C1.1_12 from gnl|Prokka|MAG_C1.1_12_1
     """
-    "_".join(header.split("|")[-1].split("_")[:-1])
+    if "|" in header:
+        parsed_header = header.split("|")[-1]
+    else:
+        parsed_header = header
+    return(parsed_header)
 
 def make_db_red(input_fasta, glist):
     output_fasta = input_fasta+"_reduced"
@@ -27,18 +31,18 @@ input_database = args.input
 ref_info = args.ref_info
 
 rep_genomes = set()
-out_ref = ref_info.split("_ref_info.txt")[0]+"_reduced_ref_info.txt"
 with open(ref_info, "r") as ref_info_fh:
-    with open(out_ref, "w") as out_ref_fh:
-        header = ref_info_fh.readline()
-        for line in ref_info_fh:
-            line = line.strip()
-            genome_id = line.split("\t")[0]
-            cluster = line.split("\t")[11]
-            group = line.split("\t")[18]
-            rep_genome_status = int(line.split("\t")[19])
-            if rep_genome_status == 1:
-                rep_genomes.add(genome_id)
+    for line in ref_info_fh:
+        line = line.strip()
+        if line.startswith("ID"):
+            header = line+"\n"
+            continue
+        genome_id = line.split("\t")[0]
+        cluster = line.split("\t")[11]
+        group = line.split("\t")[18]
+        rep_genome_status = int(line.split("\t")[19])
+        if rep_genome_status == 1:
+            rep_genomes.add(genome_id)
 
 print(f"making db_red {input_database}")
 make_db_red(input_database, rep_genomes)

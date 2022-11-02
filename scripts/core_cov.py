@@ -7,7 +7,6 @@ import subprocess
 
 def make_g_magOTU_dict(path):
     """
-    !!! modified to work with ref info (minimal information) rather than checkpoint output
     return the a dict with values as magOTU of a genome which are the keys
     by reading the checkpoint file from the path provided
     """
@@ -22,13 +21,12 @@ def make_g_magOTU_dict(path):
             if line.startswith("ID"):
                 continue
             genome = line.split("\t")[0]
-            magOTU = line.split("\t")[1]
+            magOTU = line.split("\t")[11]
             g_dict[genome] = magOTU
         return(g_dict)
 
 def make_magOTU_g_dict(path):
     """
-    !!! modified to work with ref info (minimal information) rather than checkpoint output
     return a dict with keys as magOTU magOTUs with list of corresponding MAGs
     as values by reading from checkpoint output where First column is MAGs names
     and 12th column is affiliated magOTU magOTU
@@ -44,11 +42,10 @@ def make_magOTU_g_dict(path):
             if line.startswith("ID"):
                 continue
             genome = line.split("\t")[0]
-            magOTU = line.split("\t")[1]
-            # only include groups of interest!
+            magOTU = line.split("\t")[11]
             if magOTU not in magOTU_list_dict.keys():
-                magOTU_list_dict[magOTU] = [genome]
-            else:
+                magOTU_list_dict[magOTU] = []
+            if genome not in magOTU_list_dict[magOTU]:
                 magOTU_list_dict[magOTU].append(genome)
     return(magOTU_list_dict)
 
@@ -63,7 +60,7 @@ def get_bedcov_genome(bedfile, bamfile):
     for line in bedcov_list:
         line = line.strip()
         split_line = line.split("\t")
-        print(split_line)
+        # print(split_line)
         gene_id = split_line[3]
         if gene_id not in gene_OG: continue
         OG_id = gene_OG[gene_id]
@@ -137,9 +134,20 @@ group = args.group
 sample = args.sample
 
 #Read the database metafile, store magOTU-affiliation and magOTU-ref ids in dictionaries
-magOTU_ref = make_magOTU_g_dict(database_metafile)
-genome_magOTU_ref = make_g_magOTU_dict(database_metafile)
-
+# database_metafile = "06_MAG_binning/MAGs_filt_GenomeInfo_auto.tsv"
+ref_magOTU_dict = dict()
+with open(database_metafile, "r") as database_metafile_fh:
+    for line in database_metafile_fh:
+        if line.startswith("genome"):
+            continue
+        line = line.strip()
+        split_line = line.split("\t")
+        genome_id = split_line[0]
+        ref_status = split_line[19]
+        magOTU = split_line[11]
+        if ref_status == "1":
+            ref_magOTU_dict[magOTU] = genome_id
+genome_magOTU_dict = make_g_magOTU_dict(database_metafile)
 #Read the orthofinder-file, get genome-ids per magOTU and gene-family members per magOTU. Store OG-family affiliation for all gene-ids.
 with open(ortho_file, "r") as fh_orthofile:
     magOTU_genomes = dict() #Genome-ids contained within each magOTU in orthofinder file (magOTU - genome_id - 1)
@@ -153,7 +161,7 @@ with open(ortho_file, "r") as fh_orthofile:
             gene_OG[gene] = OG_id
             split_gene = gene.split('_')
             genome_id = "_".join(split_gene[:-1])
-            magOTU = genome_magOTU_ref[genome_id]
+            magOTU = genome_magOTU_dict[genome_id]
             if magOTU not in magOTU_genomes:
                 magOTU_genomes[magOTU] = dict()
             magOTU_genomes[magOTU][genome_id] = 1
@@ -162,19 +170,6 @@ with open(ortho_file, "r") as fh_orthofile:
             if OG_id not in magOTU_OG_genes[magOTU]:
                 magOTU_OG_genes[magOTU][OG_id] = list()
             magOTU_OG_genes[magOTU][OG_id].append(gene)
-
-magOTU_ref = dict()
-with open(database_metafile, "r") as database_metafile_fh:
-    for line in database_metafile_fh:
-        if line.startswith("genome"):
-            continue
-        line = line.strip()
-        split_line = line.split("\t")
-        genome_id = split_line[0]
-        ref_status = split_line[2]
-        magOTU = split_line[1]
-        if ref_status == "1":
-            magOTU_ref[magOTU] = genome_id
 
 #Read the bed-files for the magOTU reference genomes, get the start-position for each gene-family
 
@@ -187,7 +182,9 @@ with open(database_metafile, "r") as database_metafile_fh:
 
 OG_ref_pos = dict()
 for magOTU in magOTU_genomes.keys():
-    ref_genome = magOTU_ref[magOTU]
+    print(f"magOTU is {magOTU}\n")
+    print(f"Looking in {ref_magOTU_dict}\n")
+    ref_genome = ref_magOTU_dict[magOTU]
     bedfile = os.path.join(bedfiles_dir, ref_genome + ".bed")
     check_file_exists(bedfile)
     with open(bedfile, "r") as fh_bedfile:

@@ -110,6 +110,7 @@ for record in aln:
     aln_index += 1
 
 #Identify the SDP-cluster contained within the alignment, save in dict
+
 cluster_genomes = dict()
 for genome_id in genome_ids:
     group = genome_cluster[genome_id]

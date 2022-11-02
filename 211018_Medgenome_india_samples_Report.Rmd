@@ -96,8 +96,9 @@ library(vegan)
 library(ape)
 library(ggforce)
 library(VennDiagram)
+
 # useful function(s)
-make_theme <- function(theme_name=theme_classic() ,max_colors=0, palettefill="Pastel1", palettecolor="Dark2",
+make_theme <- function(theme_name=theme_classic() ,max_colors=0, palettefill="Pastel1", palettecolor="Dark2", modify_guide = T,
                         setFill=TRUE, setCol=TRUE,
                         guide_nrow=2, guide_nrow_byrow=TRUE, leg_pos="top", leg_size=12,
                         x_angle=0 ,x_vj=0, x_hj=0, x_size=12,
@@ -144,21 +145,27 @@ make_theme <- function(theme_name=theme_classic() ,max_colors=0, palettefill="Pa
       legend.position=leg_pos,
       legend.text = element_text(size=leg_size)
     )
-  guide_params <- guides(fill = guide_legend(
-                                  nrow=guide_nrow,
-                                  byrow=guide_nrow_byrow
-                                ),
-                        col = guide_legend(
-                                  nrow=guide_nrow,
-                                  byrow=guide_nrow_byrow
-                                )
-                  )
+  if (modify_guide == T) {
+    guide_params <- guides(fill = guide_legend(
+                                    nrow=guide_nrow,
+                                    byrow=guide_nrow_byrow
+                                  ),
+                          col = guide_legend(
+                                    nrow=guide_nrow,
+                                    byrow=guide_nrow_byrow
+                                  )
+                    )
   my_theme <- list(
                 theme_name,
                 theme_params,
                 guide_params
               )
-
+  } else {
+    my_theme <- list(
+                  theme_name,
+                  theme_params
+                )
+  }
   if(setFill) {
     if (n_f < max_colors) {
       my_theme <- list(
@@ -334,7 +341,7 @@ get_only_legend <- function(plot) {
   # return legend
   return(legend)
 }
-format_name <- function(genome){
+format_genome_name <- function(genome){
   MAG = strsplit(genome, ".fa")[[1]]
   return(MAG)
 }
@@ -449,7 +456,29 @@ sdps <- c('firm4_1', 'firm4_2',
 # Family colors
 # species <- c('s__Bombilactobacillus mellis', 's__Lactobacillus panisapium', 's__', 's__Gilliamella apicola_E', 's__Bombilactobacillus mellifer', 's__Lactobacillus apis', 's__Snodgrassella alvi', 's__Lactobacillus melliventris', 's__Lactobacillus helsingborgensis', 's__Frischella perrara', 's__Enterobacter hormaechei_A', 's__Apibacter sp002964915', 's__Snodgrassella alvi_E', 's__Frischella japonica', 's__Gilliamella apicola_F', 's__Spiroplasma melliferum', 's__Bartonella apis', 's__Apibacter adventoris', 's__Apilactobacillus kunkeei_A', 's__Hafnia paralvei', 's__Pantoea vagans', 's__Gilliamella apicola_K', 's__Gilliamella apicola', 's__Snodgrassella alvi_G', 's__Bifidobacterium indicum', 's__Gilliamella apicola_N', 's__Klebsiella variicola', 's__Commensalibacter sp003202795', 's__Gilliamella apicola_Q')
 # speciesColors
-genera <- c("g__Bombilactobacillus", "g__Lactobacillus", "g__Bifidobacterium", "g__Gilliamella", "g__Snodgrassella", "g__Bartonella", "g__Frischella", "g__Enterobacter", "g__", "g__Pectinatus", "g__Apibacter", "g__Dysgonomonas", "g__Spiroplasma", "g__Zymobacter", "g__Entomomonas", "g__Saezia", "g__Parolsenella", "g__WRHT01", "g__Commensalibacter", "g__Apilactobacillus", "g__Bombella")
+genera <- c(
+    "g__Lactobacillus",
+    "g__Bifidobacterium",
+    "g__Bombilactobacillus",
+    "g__Snodgrassella",
+    "g__Gilliamella",
+    "g__Apibacter",
+    "g__Bartonella",
+    "g__Frischella",
+    "g__Commensalibacter",
+    "g__Apilactobacillus",
+    "g__Bombella",
+    "g__Dysgonomonas",
+    "g__Enterobacter",
+    "g__Pectinatus",
+    "g__Spiroplasma",
+    "g__Zymobacter",
+    "g__Entomomonas",
+    "g__Saezia",
+    "g__Parolsenella",
+    "g__WRHT01",
+    "g__"
+  )
 phy_group_dict = c("firm4" = "g__Bombilactobacillus",
             "g__Bombilactobacillus_outgroup" = "g__Bombilactobacillus",
             "firm5" = "g__Lactobacillus",
@@ -883,6 +912,18 @@ assigned_plot <- ggplot(df_assigned_plot, aes(y = factor(Sample, samples), x = p
                     )
                     # ggsave("Figures/04-motus_unassigned.pdf")
 
+extend_colors_motus <- function(names_vec){
+  final_list <- list()
+  for (a_name in names_vec) {
+    if (a_name %in% names(motuColors)) {
+      final_list[a_name] = motuColors[a_name]
+    } else {
+      final_list[a_name] = "grey"
+    }
+  }
+  return(final_list)
+}
+
 plot_motus_high_prev <- ggplot(df_motus_combined, aes(y = factor(Sample, samples), x = rel_ab, fill = factor(motu_condensed, motus))) +
                 geom_bar(position = "stack", stat = "identity") +
                 labs(fill = "mOTU", x = "mOTUs2 Relative abundance", y = "Sample") +
@@ -932,12 +973,12 @@ drep_Widb <- read.csv("06_MAG_binning/drep_results/data_tables/Widb.csv", sep = 
 cluster_info <- drep_Widb %>%
                   select(genome, score, cluster, cluster_members, furthest_cluster_member) %>%
                     rename(score_representative = score) %>%
-                    mutate(representative_genome = Vectorize(format_name)(genome)) %>%
+                    mutate(representative_genome = Vectorize(format_genome_name)(genome)) %>%
                       select(!genome)
 MAGs_collated <- read.csv("06_MAG_binning/all_GenomeInfo_auto.tsv", sep = "\t")
 
 # make sure that number per cluster is 1 for all
-MAGs_collated_info <- left_join(MAGs_collated, mutate(drep_gInformation, genome = Vectorize(format_name)(genome)), by = c("ID"="genome"))
+MAGs_collated_info <- left_join(MAGs_collated, mutate(drep_gInformation, genome = Vectorize(format_genome_name)(genome)), by = c("ID"="genome"))
 
 # Number of MAGs coming from each host species
 vis_magOTUs_df_all <- MAGs_collated_info %>%
@@ -1033,7 +1074,7 @@ for (sample in samples) {
   all_depths <- rbind(all_depths, rename(select(sample_contig_depths, contigName, all_of(depth_column)), depth = depth_column))
 }
 contigs_depths_df <- left_join(filter(contigs_length_df, passed == "P"), all_depths, by = c("contig" = "contigName"))
-
+rm(all_depths)
 vis_magOTUs_df_all <- vis_magOTUs_df_all %>%
                           group_by(Cluster) %>%
                             mutate(Num_mags = n()) %>%
@@ -1056,7 +1097,7 @@ vis_magOTUs_df_all <- vis_magOTUs_df_all %>%
 
 vis_magOTUs_df_all <- left_join(vis_magOTUs_df_all, cluster_info, by = c("Cluster" = "cluster")) %>%
                         left_join(drep_Sdb %>%
-                                    mutate(ID = Vectorize(format_name)(genome)) %>%
+                                    mutate(ID = Vectorize(format_genome_name)(genome)) %>%
                                     select(!genome)
                         )
 
@@ -1299,22 +1340,25 @@ contig_fates_df_am_mag_binned <- contig_fates_df_am %>%
                             group_by(sample, bin_name) %>%
                               summarise(num_contigs = n(), len_contigs = sum(length), .groups = "keep") %>%
                                 left_join(select(vis_magOTUs_df_all, ID, Host, Sample, Cluster, Family, Genus, N50, Prevalence), by = c("bin_name" = "ID"))
+rm(contig_fates_df_am)
 contig_fates_df_ac_mag_binned <- contig_fates_df_ac %>%
                             filter(binned == "Y") %>%
                             group_by(sample, bin_name) %>%
                               summarise(num_contigs = n(), len_contigs = sum(length), .groups = "keep") %>%
                                 left_join(select(vis_magOTUs_df_all, ID, Host, Sample, Cluster, Family, Genus, N50, Prevalence), by = c("bin_name" = "ID"))
+rm(contig_fates_df_ac)
 contig_fates_df_ad_mag_binned <- contig_fates_df_ad %>%
                             filter(binned == "Y") %>%
                             group_by(sample, bin_name) %>%
                               summarise(num_contigs = n(), len_contigs = sum(length), .groups = "keep") %>%
                                 left_join(select(vis_magOTUs_df_all, ID, Host, Sample, Cluster, Family, Genus, N50, Prevalence), by = c("bin_name" = "ID"))
+rm(contig_fates_df_ad)
 contig_fates_df_af_mag_binned <- contig_fates_df_af %>%
                             filter(binned == "Y") %>%
                             group_by(sample, bin_name) %>%
                               summarise(num_contigs = n(), len_contigs = sum(length), .groups = "keep") %>%
                                 left_join(select(vis_magOTUs_df_all, ID, Host, Sample, Cluster, Family, Genus, N50, Prevalence), by = c("bin_name" = "ID"))
-
+rm(contig_fates_df_af)
 contigs_binned_length_am_plot_genus_binned <- ggplot(contig_fates_df_am_mag_binned, aes(x = sample, y = len_contigs, fill = factor(Genus, genera))) +
                                   geom_bar(stat = "identity") +
                                     labs(x = "Sample", y = "Sum of length of scaffolds in bin", fill = "Genus") +
@@ -2039,20 +2083,6 @@ vis_magOTUs_df_numClusters_all_plot <- ggplot(vis_magOTUs_df_numClusters_all, ae
                                           scale_fill_manual(values=host_order_color)
                                           ggsave("Figures/09a-magOTU_number_per_sample_all.pdf")
 
-vis_magOTUs_df_numClusters_all_genus <- vis_magOTUs_df_all %>%
-                        group_by(sample, Genus) %>%
-                          summarise(sample, Host, number_of_clusters = n_distinct(Cluster), Genus = Genus, .groups="keep") %>%
-                            unique()
-
-vis_magOTUs_df_numClusters_all_plot_genus <- ggplot(vis_magOTUs_df_numClusters_all_genus, aes(x = factor(Host, levels = c("Apis florea", "Apis cerana", "Apis mellifera", "Apis dorsata")), y = number_of_clusters, fill = Host)) +
-                                        geom_boxplot(outlier.shape = NA) +
-                                        geom_jitter() +
-                                        labs(y = "Number of magOTUs per individual", x = "Host species") +
-                                          make_theme(leg_pos = "none", x_angle = 30, setFill = F, x_vj = 1, x_hj = 1, ) +
-                                          scale_fill_manual(values=host_order_color) +
-                                          facet_wrap(~ factor(Genus, genera))
-                                            ggsave("Figures/09a-magOTU_number_per_sample_all_per_genus.pdf")
-
 vis_magOTUs_df_numClusters <- vis_magOTUs_df %>%
                         group_by(sample) %>%
                           summarise(sample, Host, number_of_clusters = n_distinct(Cluster)) %>%
@@ -2069,24 +2099,6 @@ vis_magOTUs_df_numClusters_passed_plot <- ggplot(vis_magOTUs_df_numClusters, aes
                                           make_theme(leg_pos = "none", x_angle = 30, setFill = F, x_hj = 1, x_vj = 1) +
                                           scale_fill_manual(values=host_order_color)
                                           ggsave("Figures/09a-magOTU_number_per_sample_passed.pdf")
-
-vis_magOTUs_df_numClusters_genus <- vis_magOTUs_df %>%
-                        group_by(sample, Genus) %>%
-                          summarise(sample, Host, number_of_clusters = n_distinct(Cluster), Genus = Genus) %>%
-                            unique
-
-                        test_passed <- pairwise.wilcox.test(vis_magOTUs_df_numClusters$number_of_clusters, vis_magOTUs_df_numClusters$Host, p.adjust = "fdr")
-                        glm_passed <- summary(glm(data = vis_magOTUs_df_numClusters, number_of_clusters ~ Host, family = "poisson"))
-
-
-vis_magOTUs_df_numClusters_passed_plot_genus <- ggplot(vis_magOTUs_df_numClusters_genus, aes(x = factor(Host, levels = c("Apis florea", "Apis cerana", "Apis mellifera", "Apis dorsata")), y = number_of_clusters, fill = Host)) +
-                                        geom_boxplot(outlier.shape = NA) +
-                                        geom_jitter() +
-                                        labs(y = "Number of magOTUs per individual", x = "Host species") +
-                                          make_theme(leg_pos = "none", x_angle = 30, setFill = F, x_hj = 1, x_vj = 1) +
-                                          scale_fill_manual(values=host_order_color) +
-                                          facet_wrap(~ factor(Genus, genera))
-                                          ggsave("Figures/09a-magOTU_number_per_sample_passed_per_genus.pdf")
 ```
 
 ```{r magOTU_numbers_compare_plots,  dev = 'pdf', results='hold', fig.show = 'hold', out.width = '100%', fig.align = 'center', fig.height = 20}
@@ -2095,9 +2107,6 @@ glm_all
 test_all
 glm_passed
 test_passed
-
-vis_magOTUs_df_numClusters_all_plot_genus
-vis_magOTUs_df_numClusters_passed_plot_genus
 ```
 
 ```{r magOTU_clustering,  dev = 'pdf', results='hold', fig.show = 'hold', out.width = '100%', fig.align = 'center', fig.height = 20}
@@ -2108,6 +2117,13 @@ observations_host <- list(
    `Apis florea` = c(pivot_wider(summarise(group_by(vis_magOTUs_df, Host), Cluster, .groups = "keep"), names_from = Host, values_from = Cluster, values_fn = list) %>% pull(`Apis florea`) %>% unlist)
 )
 
+# magOTU_passed_venn <- ggVennDiagram(observations_host) +
+#                         scale_color_manual(values=host_order_color) +
+#                             scale_fill_gradient(low = brewer.pal(8, "Blues")[1], high = brewer.pal(8, "Blues")[6]) +
+#                               scale_color_manual(values=host_order_color) +
+#                                 make_theme(theme_name = theme_void(), setFill = F, setCol = F, guide_nrow = 1) +
+#                                 theme(axis.text.x=element_blank(), axis.text.y=element_blank())
+#                                 ggsave("Figures/09b-magOTUs_venn_passed_MAGs.pdf")
 venn.diagram(
   x = observations_host,
   category.names = names(observations_host),
@@ -2122,6 +2138,13 @@ observations_host_all <- list(
    `Apis dorsata` = c(pivot_wider(summarise(group_by(vis_magOTUs_df_all, Host), Cluster, .groups = "keep"), names_from = Host, values_from = Cluster, values_fn = list) %>% pull(`Apis dorsata`) %>% unlist),
    `Apis florea` = c(pivot_wider(summarise(group_by(vis_magOTUs_df_all, Host), Cluster, .groups = "keep"), names_from = Host, values_from = Cluster, values_fn = list) %>% pull(`Apis florea`) %>% unlist)
 )
+
+# magOTU_all_venn <- ggVennDiagram(observations_host_all) +
+#                     scale_fill_gradient(low = brewer.pal(8, "Blues")[1], high = brewer.pal(8, "Blues")[6]) +
+#                       scale_color_manual(values=host_order_color) +
+#                         make_theme(theme_name = theme_void(), setFill = F, setCol = F, guide_nrow = 1) +
+#                           theme(axis.text.x=element_blank(), axis.text.y=element_blank())
+#                           ggsave("Figures/09b-magOTUs_venn_all_MAGs.pdf")
 
 venn.diagram(
   x = observations_host_all,
@@ -2412,4 +2435,331 @@ paginate_save(cluster_completeness_number, "Cluster", "Figures/11x-clusters_comp
 ```
 ```{r show_winning_magOTUs, dev = 'pdf', results='hold', fig.show = 'hold', out.width = '100%', fig.align = 'center', fig.height = 20, }
 score_hist
+```
+
+```{r figures_for_the poster}
+cluster_tax_info <- vis_magOTUs_df %>%
+                      ungroup() %>%
+                      select(Genus, Species, Cluster, Num_mags) %>%
+                      unique() %>%
+                        mutate(cluster_name = paste0(Genus, "-", Cluster))
+Figures_dir <- "/Users/aiswarya/OneDrive\ -\ Université\ de\ Lausanne/Work/4-1-ConferencesWorkshops/2022010-CSHL_meetings_microbiome/Poster/Figures/Plots"
+corecov_data_dir <- "09_MagDatabaseProfiling/CoverageEstimation/Merged"
+coords_df <- data.frame()
+for (file in list.files(corecov_data_dir)) {
+  if (endsWith(file, "_coord.txt")) {
+    df_temp <- read.csv(paste0(corecov_data_dir, "/", file), sep = "\t", header = TRUE)
+    coords_df <- rbind(coords_df, df_temp)
+  }
+}
+
+coverage_df <- coords_df %>%
+  rename(Cluster = magOTU) %>%
+    left_join(cluster_tax_info) %>%
+      mutate(Host = Vectorize(get_host_name)(Sample)) %>%
+        mutate(Detected = ifelse(Cov > 0, 1, 0)) %>%
+          mutate(Detected = ifelse(is.na(Detected), 0, Detected)) %>%
+          mutate(Cov = ifelse(is.na(Cov), 0, Cov)) %>%
+          group_by(Host, Cluster) %>%
+            mutate(Present = sum(Detected)) %>%
+            mutate(Mean = mean(Cov)) %>%
+            mutate(Prevalence_host = ifelse(Host=="Apis mellifera", Present/length(samples_am), NA)) %>%
+            mutate(Prevalence_host = ifelse(Host=="Apis cerana", Present/length(samples_ac), Prevalence_host)) %>%
+            mutate(Prevalence_host = ifelse(Host=="Apis dorsata", Present/length(samples_ad), Prevalence_host)) %>%
+            mutate(Prevalence_host = ifelse(Host=="Apis florea", Present/length(samples_af), Prevalence_host))
+
+coverage_df_genus <- coords_df %>%
+                rename(Cluster = magOTU) %>%
+                  left_join(cluster_tax_info) %>%
+                      mutate(Detected = ifelse(Cov > 0, 1, 0)) %>%
+                        mutate(Detected = ifelse(is.na(Detected), 0, Detected)) %>%
+                        mutate(Cov = ifelse(is.na(Cov), 0, Cov)) %>%
+                        ungroup() %>%
+                          group_by(Genus, Sample) %>%
+                              summarise(Genus_Present = ifelse(any(Detected == 1), 1, 0), Num_mags = sum(Num_mags), Genus_cov = mean(Cov)) %>%
+                               mutate(Host = Vectorize(get_host_name)(Sample)) %>%
+                                group_by(Host, Genus) %>%
+                                  mutate(Mean = round(mean(Genus_cov)), 2) %>%
+                                  mutate(Present = sum(Genus_Present)) %>%
+                                  mutate(Prevalence_host = ifelse(Host=="Apis mellifera", Present/length(samples_am), NA)) %>%
+                                  mutate(Prevalence_host = ifelse(Host=="Apis cerana",Present/length(samples_ac), Prevalence_host)) %>%
+                                  mutate(Prevalence_host = ifelse(Host=="Apis dorsata",Present/length(samples_ad), Prevalence_host)) %>%
+                                  mutate(Prevalence_host = ifelse(Host=="Apis florea",Present/length(samples_af), Prevalence_host))
+
+ggplot(coverage_df, aes(y = factor(cluster_name), x = factor(Sample, samples), fill = Cov)) +
+                            geom_tile() +
+                              labs(x = "Sample", y = "Cluster")+
+                              # scale_fill_gradient(na.value = "transparent", low = "#ffffff" , high = "#1a88c9", guide = "colourbar", trans = "log10") +
+                              scale_fill_gradient(na.value = "transparent", low = "#ffffff" , high = "#ffc20e", guide = "colourbar", trans = "log10") +
+                                make_theme(setFill = F, modify_guide = F, y_size = 8,
+                                  x_size = 0, x_angle = 30, x_hj = 1 , x_vj = 1,
+                                  y_hj =1, leg_pos = "right"
+                                )
+                                ggsave(paste0(Figures_dir, "Host_magOTU_Coverage.pdf"))
+
+
+ggplot(coverage_df, aes(y = factor(cluster_name), x = factor(Host, host_order), fill = Prevalence_host)) +
+                            geom_tile() +
+                              labs(x = "Sample", y = "Cluster")+
+                              scale_fill_gradient(na.value = "transparent", low = "#ffffff" , high = "#ffc20e", guide = "colourbar") +
+                                coord_fixed(0.1) +
+                                make_theme(setFill = F, modify_guide = F, y_size = 8,
+                                  y_hj =1, leg_pos = "right"
+                                )
+                                ggsave(paste0(Figures_dir, "Host_magOTU_Prevalence.pdf"))
+
+ggplot(coverage_df_genus %>% filter(Genus != "g__"), aes(y = factor(Genus, genera), x = factor(Host, host_order), fill = Prevalence_host)) +
+                            geom_tile() +
+                            # geom_text(aes(label = Mean)) +
+                              labs(x = "Sample", y = "Cluster")+
+                              scale_fill_gradient(na.value = "transparent", low = "#fff5f0" , high = "#99000d", guide = "colourbar") +
+                              # scale_fill_gradient(na.value = "transparent", low = "#ffffe5" , high = "#005a32", guide = "colourbar") +
+                                guides(fill = guide_colourbar(nbin = 8)) +
+                                make_theme(setFill = F, modify_guide = F, y_size = 10,
+                                  x_hj= 0.5, x_size = 10,
+                                  y_hj =1, leg_pos = "right", leg_size = 10
+                                )
+                                ggsave(paste0(Figures_dir, "Host_Genus_Prevalence.pdf"))
+ggplot(coverage_df %>% filter(Genus != "g__"), aes(y = factor(Genus, genera), x = Cov, color =  factor(Genus, genera))) +
+                            geom_point() +
+                            # geom_text(aes(label = Mean)) +
+                              labs(x = "Sample", y = "Cluster")+
+                              # scale_fill_gradient(na.value = "transparent", low = "#ffffff" , high = "#ffc20e", guide = "colourbar") +
+                              scale_color_manual(values = genusColors) +
+                                # guides(fill = guide_colourbar(nbin = 8)) +
+                                facet_wrap(~ Host) +
+                                scale_x_continuous(trans = "log") +
+                                make_theme(setCol = F, modify_guide = F, y_size = 10,
+                                  x_hj= 0.5, x_size = 10,
+                                  y_hj =1, leg_pos = "right", leg_size = 10
+                                )
+
+ggplot(coverage_df %>% filter(Genus != "g__"), aes(y = factor(cluster_name), x = Cov, color =  factor(Genus, genera))) +
+                            geom_point() +
+                            # geom_text(aes(label = Mean)) +
+                              labs(x = "Sample", y = "Cluster")+
+                              # scale_fill_gradient(na.value = "transparent", low = "#ffffff" , high = "#ffc20e", guide = "colourbar") +
+                              scale_color_manual(values = genusColors) +
+                                # guides(fill = guide_colourbar(nbin = 8)) +
+                                facet_wrap(~ Host) +
+                                scale_x_continuous(trans = "log") +
+                                make_theme(setCol = F, modify_guide = F, y_size = 10,
+                                  x_hj= 0.5, x_size = 10,
+                                  y_hj =1, leg_pos = "none", leg_size = 0
+                                )
+
+abundance_df <- coords_df %>%
+  rename(Cluster = magOTU) %>%
+    left_join(cluster_tax_info) %>%
+      mutate(Host = Vectorize(get_host_name)(Sample)) %>%
+        mutate(Cov = ifelse(is.na(Cov), 0, Cov)) %>%
+          mutate(MedianCov = ifelse(is.na(MedianCov), 0, MedianCov)) %>%
+            select(Sample, Cov, cluster_name, Host) %>%
+              left_join(select(df_reads, Trimmed, Sample), by = "Sample") %>%
+                  rename(NumReads = Trimmed) %>%
+                    mutate(CovNorm = Cov/NumReads)
+
+abundance_df_matrix <-  abundance_df %>%
+                          mutate(PresAb = ifelse(CovNorm > 0, 1, 0)) %>%
+                          select(Sample, cluster_name, PresAb) %>%
+                            pivot_wider(names_from=cluster_name, values_from=PresAb) %>% remove_rownames %>%
+                            column_to_rownames(var="Sample")
+
+df_num_magOTUs <- abundance_df %>%
+                    group_by(Sample) %>%
+                      mutate(Detected = ifelse(CovNorm > 0, 1, 0)) %>%
+                      summarise(Sample, Host = Vectorize(get_host_name)(Sample), number = sum(Detected), .groups="keep") %>%
+                        unique()
+
+                            test_all <- pairwise.wilcox.test(df_num_magOTUs$number, df_num_magOTUs$Host, p.adjust = "fdr")
+                            glm_all <- summary(glm(data = df_num_magOTUs, number ~ Host, family = "poisson"))
+test_all
+glm_all
+
+
+df_num_magOTUs_plot <- ggplot(df_num_magOTUs, aes(x = factor(Host, levels = c("Apis florea", "Apis cerana", "Apis mellifera", "Apis dorsata")), y = number, fill = Host)) +
+                                        geom_boxplot(outlier.shape = NA) +
+                                        geom_jitter(width = .07) +
+                                        labs(y = "Number of magOTUs per individual", x = "Host species") +
+                                          make_theme(leg_pos = "none", x_angle = 30, setFill = F, x_vj = 1, x_hj = 1, ) +
+                                          scale_fill_manual(values=host_order_color)
+                                          ggsave(paste0(Figures_dir, "BoxPlot_across_species.pdf"))
+df_num_magOTUs_plot
+observations_host_df <- abundance_df %>%
+                    group_by(Sample) %>%
+                      mutate(Detected = ifelse(CovNorm > 0, 1, 0)) %>%
+                      filter(Detected == 1) %>%
+                      filter(!is.na(cluster_name)) %>%
+                      group_by(Host) %>%
+                        summarise(Host, cluster_name) %>%
+                        unique() %>%
+                          pivot_wider(names_from = Host, values_from = cluster_name, values_fn = list)
+
+observations_host <- list(
+   `Apis mellifera` = observations_host_df %>% pull(`Apis mellifera`) %>% unlist,
+   `Apis cerana` = observations_host_df %>% pull (`Apis cerana`) %>% unlist ,
+   `Apis dorsata` = observations_host_df %>% pull (`Apis dorsata`) %>% unlist ,
+   `Apis florea` = observations_host_df %>% pull (`Apis florea`) %>% unlist
+)
+
+venn.diagram(
+  x = observations_host,
+  category.names = names(observations_host),
+  output = T,
+  filename = paste0(Figures_dir, "venn_diagram.pdf"),
+  fill = host_order_color
+)
+
+observations <- abundance_df %>%
+                  group_by(Sample) %>%
+                    summarise(cluster_name, .groups="keep") %>%
+                      pivot_wider(names_from = Sample, values_from = cluster_name, values_fn = list)
+
+df_magOTUs_vegan <- abundance_df_matrix
+
+make_cum_curve <- function(samples_vector, pa_df, iterations, name = NA) {
+  num_clusters_matrix <- matrix(nrow = length(samples_vector), ncol = iterations)
+  for (iter in 1:iterations) {
+    clusters_found_cumulative <- c()
+    for (num_samples in 1:length(samples_vector)) {
+      num_new_clusters = 0
+      selected_samples <- sample(samples_vector, num_samples)
+      clusters_found <- colnames(pa_df[selected_samples, which(colSums(pa_df[selected_samples, ]) > 1)])
+      for (cluster in clusters_found) {
+        if (cluster %in% clusters_found_cumulative) {
+          invisible()
+        } else {
+          num_new_clusters <- num_new_clusters + 1
+          clusters_found_cumulative <- c(clusters_found_cumulative, cluster)
+        }
+      }
+      num_clusters_matrix[num_samples, iter] = length(clusters_found_cumulative)
+    }
+  }
+  num_clusters_df <- as.data.frame(num_clusters_matrix)
+  colnames(num_clusters_df) <- do.call(function(x) paste0("curve_", x), list(c(1:iterations)))
+  num_clusters_df <- cbind(sample_size = c(1:length(samples_vector)), num_clusters_df)
+  plot_cum_curve_df <- pivot_longer(num_clusters_df, !sample_size, values_to = "number_of_clusters", names_to = "curve")
+  plot_cum_curve_df <- cbind("name" = name, plot_cum_curve_df)
+  return(plot_cum_curve_df)
+}
+
+df_plot_cum_curve <- rbind(
+                        make_cum_curve(samples_am, df_magOTUs_vegan, 50, "Apis mellifera"),
+                        make_cum_curve(samples_ac, df_magOTUs_vegan, 50, "Apis cerana"),
+                        make_cum_curve(samples_ad, df_magOTUs_vegan, 50, "Apis dorsata"),
+                        make_cum_curve(samples_af, df_magOTUs_vegan, 50, "Apis florea")
+                      )
+
+magotu_accumulation_curve <- ggplot(data = df_plot_cum_curve, aes(x = sample_size, y = number_of_clusters, color = factor(name, host_order))) +
+                      geom_jitter(position = position_dodge(width=0.7)) +
+                        geom_smooth(se = FALSE) +
+                          labs(color = "Host species", x = "# Bees", y = "Number of magOTUs") +
+                          scale_color_manual(values=host_order_color) +
+                            make_theme(leg_pos = "bottom", setCol = F, guide_nrow = 1)
+                            # ggsave("Figures/09c-magOTUs_accumulation_curve.pdf")
+magotu_accumulation_curve
+pcoa_plot_by_host <- function(df_pcoa) {
+          matrix <- as.matrix(df_pcoa)
+          dist <- as.dist(matrix)
+          res_pcoa <- pcoa(dist)
+          ev1 <- res_pcoa$vectors[,1]
+          ev2 <- res_pcoa$vectors[,2]
+          df_pcoa_new <- data.frame(cbind(ev1,ev2))
+          df_pcoa_new$Sample <- rownames(df_pcoa_new)
+          rownames(df_pcoa_new) <- NULL
+          df_pcoa_new <- left_join(df_pcoa_new, select(df_meta, Sample, SpeciesID), by = "Sample")
+          perc_axis <- round(((res_pcoa$values$Relative_eig[c(1,2)])*100), digits=1)
+          axis_x_title <- paste0("PCo1 (",perc_axis[1],"%)")
+          axis_y_title <- paste0("PCo2 (",perc_axis[2],"%)")
+          p <- ggplot(df_pcoa_new, aes(x = ev1,
+                                       y = ev2,
+                                       colour = factor(SpeciesID, levels = host_order)))+
+                geom_point(stat="identity", size=2, shape=19) +
+                  labs(x=axis_x_title, y = axis_y_title, color = "Host") +
+                    make_theme(setCol = F, guide_nrow = 1) +
+                      scale_color_manual(values=host_order_color)
+          return(p)
+}
+
+pcoa_plot <- function(df_pcoa, variable=SpeciesID) {
+          matrix <- as.matrix(df_pcoa)
+          dist <- as.dist(matrix)
+          res_pcoa <- pcoa(dist)
+          ev1 <- res_pcoa$vectors[,1]
+          ev2 <- res_pcoa$vectors[,2]
+          df_pcoa_new <- data.frame(cbind(ev1,ev2))
+          df_pcoa_new$Sample <- rownames(df_pcoa_new)
+          rownames(df_pcoa_new) <- NULL
+          df_pcoa_new <- left_join(df_pcoa_new, select(df_meta, Sample, SpeciesID, matches(variable)), by = "Sample")
+          perc_axis <- round(((res_pcoa$values$Relative_eig[c(1,2)])*100), digits=1)
+          axis_x_title <- paste0("PCo1 (",perc_axis[1],"%)")
+          axis_y_title <- paste0("PCo2 (",perc_axis[2],"%)")
+          p <- ggplot(df_pcoa_new, aes(x = ev1,
+                                       y = ev2,
+                                       colour = get(variable)))+
+                geom_point(stat="identity", aes(size=15, shape=14)) +
+                  labs(x=axis_x_title, y = axis_y_title, color = variable) +
+                    make_theme( max_colors = length(unique(df_pcoa_new[, variable])), guide_nrow = 4 )
+          return(p)
+}
+
+dist_matrix <- as.matrix(vegdist(df_magOTUs_vegan, "jaccard"))
+
+pcoa_magotus <- pcoa_plot_by_host(dist_matrix)
+          # ggsave("Figures/09d-magOTUs_pcoa.pdf")
+variable="SpeciesID"
+df_pcoa <- dist_matrix
+matrix <- as.matrix(df_pcoa)
+dist <- as.dist(matrix)
+res_pcoa <- pcoa(dist)
+ev1 <- res_pcoa$vectors[,1]
+ev2 <- res_pcoa$vectors[,2]
+df_pcoa_new <- data.frame(cbind(ev1,ev2))
+df_pcoa_new$Sample <- rownames(df_pcoa_new)
+rownames(df_pcoa_new) <- NULL
+df_pcoa_new <- left_join(df_pcoa_new, select(df_meta, Sample, SpeciesID, matches(variable)), by = "Sample")
+perc_axis <- round(((res_pcoa$values$Relative_eig[c(1,2)])*100), digits=1)
+axis_x_title <- paste0("PCo1 (",perc_axis[1],"%)")
+axis_y_title <- paste0("PCo2 (",perc_axis[2],"%)")
+ggplot(df_pcoa_new, aes(x = ev1,
+                        y = ev2,
+                        color = SpeciesID))+
+                geom_point(stat="identity", size = 3, shape = 16) +
+                  labs(x=axis_x_title, y = axis_y_title, color = "Host") +
+                  scale_color_manual(values = host_order_color) +
+                    make_theme(setCol = F, guide_nrow = 4)
+                    ggsave(paste0(Figures_dir, "PCoA_host_colors.pdf"))
+```
+
+```{r ani_plots}
+drep_N <- read.csv("06_MAG_binning/drep_results/data_tables/Ndb.csv") %>%
+            mutate(reference = Vectorize(format_genome_name)(reference)) %>%
+              mutate(querry = Vectorize(format_genome_name)(querry))
+# maybe do this genus-wise
+matrix <- drep_N %>%
+                  select(reference, querry, ani) %>%
+                  filter(reference %in% vis_magOTUs_df$ID) %>%
+                    left_join(vis_magOTUs_df %>% ungroup() %>% select(ID, Cluster, Genus), by = c("reference" = "ID")) %>%
+                      # filter(Genus %in% c("g__Bifidobacterium")) %>%
+                      mutate(reference = paste0(Cluster, "_", Genus, "_", reference)) %>%
+                      mutate(querry = paste0(Cluster, "_", Genus, "_", querry)) %>%
+                      select(!c(Genus, Cluster)) %>%
+                        pivot_wider(names_from=querry, values_from=ani) %>%
+                          replace(is.na(.), 0.7) %>%
+                            column_to_rownames("reference") %>%
+                            select(rownames(.)) %>%
+                                as.matrix
+drep_dist_ordered <- matrix %>%
+                      as.data.frame() %>%
+                        rownames_to_column(var = "reference") %>%
+                          pivot_longer(!reference, values_to = "ani", names_to = "querry") %>%
+                            mutate(ani = as.numeric(ani))
+ggplot(drep_dist_ordered, aes(x = reference, y = querry)) +
+  geom_tile(aes(fill = ani)) %>%
+    make_theme(setFill = F, modify_guide = F, leg_pos = "right",
+               x_size = 0, y_size = 0
+  ) +
+    scale_fill_gradient2(low = muted("red"), mid = "white", high = muted("blue"), midpoint = 0.95, guide = "colourbar")
+    # scale_fill_gradientn(colors=brewer.pal(5, "Spectral"), guide = "colourbar")
 ```

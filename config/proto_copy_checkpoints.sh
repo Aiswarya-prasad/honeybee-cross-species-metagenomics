@@ -1,10 +1,12 @@
-prefix="aprasad@curnagl.dcsr.unil.ch:/scratch/aprasad/211018_Medgenome_india_samples"
-outdir="/Volumes/Storage/Work/Temp-From-NAS/cross-species-analysis"
+# prefix="aprasad@curnagl.dcsr.unil.ch:/scratch/aprasad/211018_Medgenome_india_samples"
+# outdir="/Volumes/Storage/Work/Temp-From-NAS/cross-species-analysis"
+prefix="/scratch/aprasad/211018_Medgenome_india_samples"
+outdir="/nas/FAC/FBM/DMF/pengel/spirit/D2c/aprasad/CheckpointFilesBackup/211018_Medgenome_india_samples"
 # checkpoints
-mkdir -p 01_Trimmed/
+mkdir -p $outdir/01_Trimmed/
 rsync -r --progress -v $prefix/01_Trimmed/*_R*_trim.fastq.gz $outdir/01_Trimmed/*_R*_trim.fastq.gz
-mkdir -p 05_Assembly/
-mkdir -p 05_Assembly/host_unmapped
+mkdir -p $outdir/05_Assembly/
+mkdir -p $outdir/05_Assembly/host_unmapped
 rsync -r --progress -v $prefix/05_Assembly/host_unmapped/*_scaffolds.fasta $outdir/05_Assembly/host_unmapped
 rsync -r --progress -v $prefix/05_Assembly/host_unmapped/*_assembly_graph.fastg $outdir/05_Assembly/host_unmapped
 rsync -r --progress -v $prefix/05_Assembly/host_unmapped/*_spades.log $outdir/05_Assembly/host_unmapped

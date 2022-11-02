@@ -145,7 +145,6 @@ MAG_score_info <- MAG_score_info %>% mutate(genome = Vectorize(format_name)(geno
 clusters <- MAG_clusters_info %>%
                 left_join(MAG_score_info, by = "genome") %>%
                   group_by(secondary_cluster) %>%
-                    mutate(Ref_status = ifelse(score == max(score), 1, 0)) %>%
                     ungroup()
 genomes_info <- MAG_info %>%
                   select(Bin.Id, Completeness, Contamination)
@@ -158,7 +157,12 @@ MAGs_collated <- left_join(clusters %>% select(genome, secondary_cluster), taxon
 MAGs_collated <- left_join(genomes_info, MAGs_collated, by = c("Genome"="genome"))
 
 MAGs_collated_filt <- MAGs_collated %>%
-                        filter(Completeness > 50, Contamination < 5)
+                        filter(Completeness > 50, Contamination < 5) %>%
+                          left_join(clusters %>% select(score, genome), by = c("Genome" = "genome")) %>%
+                          group_by(secondary_cluster) %>%
+                            mutate(Ref_status = ifelse(score == max(score), 1, 0)) %>%
+                              ungroup() %>%
+                                select(!score)
 
 final_genome_info <- data.frame("ID" = isolates$ID,
                                  "Accession" = isolates$Accession,
@@ -248,21 +252,21 @@ MAGs_collated_info <- MAGs_collated_info %>%
     mutate(Host = Vectorize(get_host_name)(ID)) %>%
       mutate(Origin = Vectorize(get_origin_name)(ID)) %>%
         mutate(Sample = Vectorize(get_sample_name)(ID)) %>%
-          left_join(clusters %>% select(genome, Ref_status), by = c("ID" = "genome"))
+          left_join(MAGs_collated_filt %>% select(Genome, Ref_status), by = c("ID" = "Genome"))
 
 MAGs_collated_for_tree_info <- MAGs_collated_for_tree_info %>%
   mutate("Group_auto" = Genus) %>%
     mutate("Host" = Vectorize(get_host_name)(ID)) %>%
       mutate(Origin = Vectorize(get_origin_name)(ID)) %>%
         mutate(Sample = Vectorize(get_sample_name)(ID)) %>%
-          left_join(clusters %>% select(genome, Ref_status), by = c("ID" = "genome"))
+          left_join(MAGs_collated_filt %>% select(Genome, Ref_status), by = c("ID" = "Genome"))
 
 MAGs_collated_filt_info <- MAGs_collated_filt_info %>%
   mutate("Group_auto" = Genus) %>%
     mutate("Host" = Vectorize(get_host_name)(ID)) %>%
       mutate(Origin = Vectorize(get_origin_name)(ID)) %>%
         mutate(Sample = Vectorize(get_sample_name)(ID)) %>%
-          left_join(clusters %>% select(genome, Ref_status), by = c("ID" = "genome"))
+          left_join(MAGs_collated_filt %>% select(Genome, Ref_status), by = c("ID" = "Genome"))
 
 if (! endsWith(project_dir_prefix, "/")) {
   project_dir_prefix <- paste0(project_dir_prefix, "/")

@@ -130,6 +130,7 @@ coord_and_plot <- function(x, do_plots) {
         coord <- get_coord(seg.mod,x$Ref_pos)
         print(paste0("coord is:", coord))
         median_cov <- median(x$Coverage)
+        mean_cov <- mean(x$Coverage)
         if (do_plots == 1) {
             magOTU <- levels(x$magOTU)
             sample <- levels(x$Sample)
@@ -149,10 +150,10 @@ coord_and_plot <- function(x, do_plots) {
                 plot(seg.mod,add=T,col="red",lwd=2)
             }
         }
-        return(c(coord,median_cov))
+        return(c(coord, median_cov, mean_cov))
     }
     else{
-      return(c(NA, NA, NA))
+      return(c(NA, NA, NA, NA))
     }
 }
 
@@ -172,8 +173,8 @@ samples <- levels(data$Sample)
 
 outfile_plot <- paste0(outfile_prefix,"_coord.pdf")
 outfile_table <- paste0(outfile_prefix,"_coord.txt")
-coord_table_header <- c("magOTU", "Sample", "Cov","PTR","MedianCov")
-coord_table <- data.frame(magOTU=character(),Sample=character(),Cov_ter=numeric(),Ptr=numeric(),MedianCov=numeric(),stringsAsFactors=FALSE)
+coord_table_header <- c("magOTU", "Sample", "Cov", "PTR", "MedianCov", "MeanCov")
+coord_table <- data.frame(magOTU=character(),Sample=character(),Cov_ter=numeric(),Ptr=numeric(),MedianCov=numeric(),MeanCov=numeric(),stringsAsFactors=FALSE)
 if (do_plots == 1) {
     CairoPDF(outfile_plot, onefile=TRUE) # problem with cairo fix later?
     # pdf(outfile_plot)
@@ -200,10 +201,11 @@ for (magOTU_selected in magOTUs) {
     magOTU_cov <- sapply(magOTU_coord, function(x) x[1])
     magOTU_ptr <- sapply(magOTU_coord, function(x) x[2])
     magOTU_MedianCov <- sapply(magOTU_coord, function(x) x[3])
+    magOTU_MeanCov <- sapply(magOTU_coord, function(x) x[4])
     print(magOTU_cov)
     print(magOTU_ptr)
     print(magOTU_MedianCov)
-    magOTU_coord_df <- data.frame(rep(magOTU_selected, length(samples)), samples, magOTU_cov, magOTU_ptr, magOTU_MedianCov)
+    magOTU_coord_df <- data.frame(rep(magOTU_selected, length(samples)), samples, magOTU_cov, magOTU_ptr, magOTU_MedianCov, magOTU_MeanCov)
     names(magOTU_coord_df) <- coord_table_header
     coord_table <- rbind(coord_table, magOTU_coord_df, row.names = NULL)
 }

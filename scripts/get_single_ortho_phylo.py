@@ -4,6 +4,13 @@ import os
 
 # adapted from Kirsten's get_singlecp_orthologs.py
 
+def is_MAG(genome_name):
+    split = genome_name.split("_")
+    if len(split) == 3 and split[0] == "MAG":
+        return(True)
+    else:
+        return(False)
+
 def is_scp_core(gene_list, genomes, MAGs):
     is_core = 0
     is_single = True
@@ -58,6 +65,7 @@ def get_g_dict_for_groups(path):
     Returns dictionary of genomes and groups with each value being a list of
     genomes corresponding to a given group
     """
+    linenum = 0
     g_list_dict = {}
     if os.path.isfile(path):
         pass
@@ -71,7 +79,6 @@ def get_g_dict_for_groups(path):
             genome = line.split("\t")[0]
             cluster = line.split("\t")[11]
             group = line.split("\t")[18]
-            # only include groups of interest!
             if group == "g__":
                 group = "g__"+cluster
             if group not in g_list_dict.keys():
@@ -80,6 +87,7 @@ def get_g_dict_for_groups(path):
     return(g_list_dict)
 
 #Get genome prefixes and nb of unique genomes from orthofile
+
 orthofile=snakemake.input.ortho_file
 genomes_file=snakemake.input.genomes_list
 group=snakemake.params.group

@@ -29,6 +29,9 @@ dependencies:
   - r-ggvenndiagram
   - r-venndiagram
   - r-ggforce
+  - r-ggdendro
+  - r-pheatmap
+  - r-heatmaply
   - bioconductor-phyloseq
   - bioconductor-biostrings
   - bioconductor-complexheatmap
