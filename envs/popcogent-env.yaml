@@ -17,3 +17,10 @@ dependencies:
  - snakemake=3.11.2
  - rpy2=2.8.5
  - r-tidyverse=1.0.0=r3.3.2_0
+ - r-ape
+ - mugsy
+ - phyml
+ - mmseqs2
+ - pip
+ - pip:
+   - infomap

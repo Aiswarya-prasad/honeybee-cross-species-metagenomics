@@ -2103,6 +2103,10 @@ rule map_to_rep_MAGs:
         samtools flagstat -O tsv {output.bam} > {output.mag_mapping_flagstat}
         """
 
+# Instrain says the 5 of my samples have not enough (at least 1)
+# coverage in samples,
+# F1.1 F1.5 F2.5 D2.2 D2.4
+# trying to check if relaxing parameters helps...
 rule instrain_profile:
     input:
         bam = rules.map_to_rep_MAGs.output.bam,
@@ -2112,9 +2116,10 @@ rule instrain_profile:
     output:
         outdir = directory("10_instrain/{sample}_profile.IS/")
     params:
+        # database_mode=lambda wildcards: "--database_mode" if wildcards.sample not in ["F1.1", "F1.5", "F2.5", "D2.2", "D2.4"] else "",
         mailto="aiswarya.prasad@unil.ch",
         account="pengel_spirit",
-        runtime_s=convertToSec("0-10:10:00"),
+        runtime_s=convertToSec("0-22:10:00"),
     resources:
         mem_mb = convertToMb("200G")
     conda: "envs/snv-env.yaml"
@@ -2123,7 +2128,76 @@ rule instrain_profile:
     threads: 16
     shell:
         """
-        inStrain profile {input.bam} {input.genomes} -o {output.outdir} -p {threads} -g {input.genes} -s {input.stb} --database_mode
+        inStrain profile {input.bam} {input.genomes} -o {output.outdir} -p {threads} -g {input.genes} -s {input.stb}
+        """
+
+rule instrain_profile_genes:
+    input:
+        genomes = "10_instrain/rep_mags.fasta",
+        stb = "10_instrain/rep_mags_stb.tsv",
+        genes = "10_instrain/rep_mags_genes.fna",
+        profile = "10_instrain/{sample}_profile.IS/",
+    output:
+        done = touch("10_instrain/{sample}_profile_genes.done")
+    params:
+        mailto="aiswarya.prasad@unil.ch",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-20:10:00"),
+    resources:
+        mem_mb = convertToMb("200G")
+    conda: "envs/snv-env.yaml"
+    log: "logs/{sample}_instrain_profile_genes.log"
+    benchmark: "logs/{sample}_instrain_profile_genes.benchmark"
+    threads: 16
+    shell:
+        """
+        inStrain profile_genes -i {input.profile} -g {input.genes} -p {threads}
+        """
+
+rule instrain_profile_genome_wide:
+    input:
+        genomes = "10_instrain/rep_mags.fasta",
+        stb = "10_instrain/rep_mags_stb.tsv",
+        genes = "10_instrain/rep_mags_genes.fna",
+        profile = "10_instrain/{sample}_profile.IS/",
+    output:
+        done = touch("10_instrain/{sample}_profile_genome_wide.done")
+    params:
+        database_mode=lambda wildcards: "--database_mode" if wildcards.sample not in ["F1.1", "F1.5", "F2.5", "D2.2", "D2.4"] else "",
+        mailto="aiswarya.prasad@unil.ch",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-20:10:00"),
+    resources:
+        mem_mb = convertToMb("200G")
+    conda: "envs/snv-env.yaml"
+    log: "logs/{sample}_instrain_profile_genome_wide.log"
+    benchmark: "logs/{sample}_instrain_profile_genome_wide.benchmark"
+    threads: 16
+    shell:
+        """
+        inStrain genome_wide -i {input.profile} -s {input.stb} -p {threads}
+        """
+
+rule instrain_profile_plot:
+    input:
+        profile_genes = "10_instrain/{sample}_profile_genes.done",
+        genome_wide = "10_instrain/{sample}_profile_genome_wide.done",
+        profile = "10_instrain/{sample}_profile.IS/",
+    output:
+        done = touch("10_instrain/{sample}_profile_plots.done")
+    params:
+        mailto="aiswarya.prasad@unil.ch",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-10:10:00"),
+    resources:
+        mem_mb = convertToMb("200G")
+    conda: "envs/snv-env.yaml"
+    log: "logs/{sample}_instrain_profile_plot.log"
+    benchmark: "logs/{sample}_instrain_profile_plot.benchmark"
+    threads: 16
+    shell:
+        """
+        inStrain plot -i {input.profile} -pl a
         """
 
 rule instrain_compare:
@@ -2135,7 +2209,7 @@ rule instrain_compare:
     params:
         mailto="aiswarya.prasad@unil.ch",
         account="pengel_spirit",
-        runtime_s=convertToSec("0-10:10:00"),
+        runtime_s=convertToSec("0-20:10:00"),
     resources:
         mem_mb = convertToMb("200G")
     conda: "envs/snv-env.yaml"
@@ -2144,9 +2218,28 @@ rule instrain_compare:
     threads: 16
     shell:
         """
-        inStrain compare -i {input.profiles} -s {input.stb} -p {threads} -o {output.outdir} --database_mode
+        inStrain compare -i {input.profiles} -s {input.stb} -p {threads} -o {output.outdir}
         """
 
+rule instrain_compare_plot:
+    input:
+        compare = "10_instrain/rep_mags.IS.COMPARE/",
+    output:
+        out = touch("10_instrain/compare_plot.done")
+    params:
+        mailto="aiswarya.prasad@unil.ch",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-20:10:00"),
+    resources:
+        mem_mb = convertToMb("200G")
+    conda: "envs/snv-env.yaml"
+    log: "logs/instrain_compare_plot.log"
+    benchmark: "logs/instrain_compare_plot.benchmark"
+    threads: 16
+    shell:
+        """
+        inStrain plot -i {input.compare} -pl a
+        """
 
 ###############################
 ###############################
@@ -2155,7 +2248,7 @@ rule instrain_compare:
 ###############################
 ###############################
 ###############################
-
+# most up-to-date Rmd in NAS_recherche
 rule compile_report:
     input:
         rmd = PROJECT_IDENTIFIER+"_Report.Rmd",
@@ -2175,7 +2268,9 @@ rule compile_report:
         summarise_db_ortho_filt = lambda wildcards: ["database/MAGs_database_Orthofinder/"+group+"_Orthogroups_filtered_summary.csv" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
         core_cov_txt = lambda wildcards: ["09_MagDatabaseProfiling/CoverageEstimation/Merged/"+group+"_coord.pdf" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
         core_cov_plots = lambda wildcards: ["09_MagDatabaseProfiling/CoverageEstimation/Merged/"+group+"_coord.txt" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
-        instrain_done = "10_instrain/rep_mags.IS.COMPARE/"
+        instrain_done = "10_instrain/rep_mags.IS.COMPARE/",
+        instrain_profile_plots = expand("10_instrain/{sample}_profile_plots.done", sample=SAMPLES),
+        instrain_compare_plots = "10_instrain/compare_plot.done"
     output:
         html = PROJECT_IDENTIFIER+"_Report.html",
     conda: "envs/rmd-env.yaml"
@@ -2210,3 +2305,76 @@ rule backup:
         if LOCAL_BACKUP:
             shell("echo \' ensure that "+BACKUP_PATH+" exists \'")
         shell("scripts/backup.sh "+PROJECT_PATH+" "+os.path.join(BACKUP_PATH, PROJECT_IDENTIFIER)+" logs/backup.log")
+
+# use for imports...
+# sys.path.append
+# from Bio import SeqIO
+# import glob
+# import pandas as pd
+# from itertools import combinations
+# import os
+# from length_bias_functions import *
+#
+#
+# configfile:
+#     "PopCOGenT_config.yml"
+#
+# genome_directory = config["genome_directory"]
+# genome_extension = config["genome_extension"]
+# alignment_dir = config["alignment_dir"]
+# base_name = config["base_name"]
+# output_dir = config["output_directory"]
+# mugsy_path = config["mugsy_path"]
+# clonal_cutoff = config["clonal_cutoff"]
+#
+# strains = [os.path.splitext(os.path.basename(g))[0] for g in glob.glob('%s/*%s'%(genome_directory, genome_extension))]
+# combos = combinations(strains, 2)
+# strains1, strains2 = zip(*combos)
+# seeds = {(g1, g2): random.randint(1, int(1e9)) for g1, g2 in combinations([g for g in glob.glob('%s/*%s'%(genome_directory, genome_extension))], 2)}
+#
+# rule target:
+#     input:
+#         '%s/%s_%s.txt.cluster.tab.txt'%(output_dir, base_name, clonal_cutoff)
+#
+# rule cluster:
+#     input:
+#         "%s/%s.length_bias.txt"%(output_dir, base_name)
+#     output:
+#         '%s/%s_%s.txt.cluster.tab.txt'%(output_dir, base_name, clonal_cutoff)
+#
+#     shell:
+#         "python cluster.py --base_name {config[base_name]} --length_bias_file {input} --clonal_cutoff {config[clonal_cutoff]} --infomap_path {config[infomap_path]} --output_directory {config[output_directory]}"
+#
+# rule concatenate_length_bias_files:
+#     input:
+#         expand(alignment_dir + "{g1}_@_{g2}.length_bias.txt", zip, g1=strains1, g2=strains2)
+#     output:
+#         "%s/%s.length_bias.txt"%(output_dir, base_name)
+#     run:
+#
+#         header = ['Strain 1',
+#          'Strain 2',
+#          'Initial divergence',
+#          'Alignment size',
+#          'Genome 1 size',
+#          'Genome 2 size',
+#          'Observed SSD',
+#          'SSD 95 CI low',
+#          'SSD 95 CI high']
+#         rows = [open(f).read().strip().split() for f in input]
+#         df = pd.DataFrame(rows, columns=header)
+#         df.to_csv(str(output), sep='\t', index=False)
+#
+# rule make_length_bias_file:
+#     input:
+#         g1 = genome_directory + "/{g1}" + genome_extension,
+#         g2 = genome_directory + "/{g2}" + genome_extension
+#     output:
+#         alignment_dir + "{g1}_@_{g2}.length_bias.txt"
+#     run:
+#         seed = seeds[(input['g1'], input['g2'])]
+#         g1 = rename_for_mugsy(input['g1'])
+#         g2 = rename_for_mugsy(input['g2'])
+#         aln = align_genomes(g1, g2, alignment_dir, mugsy_path, seed)
+#
+#         calculate_length_bias(aln, g1, g2, str(output))
