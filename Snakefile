@@ -674,7 +674,9 @@ rule prodigal_get_orfs:
     conda: "envs/snv-env.yaml"
     shell:
         """
-        prodigal -i {input.scaffolds} -o {output.scaffolds_gff} -f gff -a {output.scaffolds_faa} -d {output.scaffolds_ffn} -p meta
+        if [ ! -f {output.scaffolds_ffn} ]; then
+            prodigal -i {input.scaffolds} -o {output.scaffolds_gff} -f gff -a {output.scaffolds_faa} -d {output.scaffolds_ffn} -p meta
+        fi
         python scripts/filt_orfs.py --ffn_in {output.scaffolds_ffn} --ffn_out {output.orfs} --sample {wildcards.sample} --log {output.filt_log}
         """
 

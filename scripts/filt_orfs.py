@@ -25,16 +25,20 @@ count_records = 0
 count_records_filt = 0
 
 seq_records_filt = []
+
 for seq_record in SeqIO.parse(ffn_in, "fasta"):
     count_records += 1
     header = seq_record.id
+    # print(header)
     length = len(seq_record)
-    partial_flag = seq_record.description.split(";")[1].split("=")
-    sample_parsed = "o".join(sample.split("."))
-    new_header = sample_parsed+"_"+header
+    # print(length)
+    partial_flag = seq_record.description.split(";")[1].split("=")[1]
+    # print(partial_flag)
+    new_header = sample+"_"+header
     if length > 300 and partial_flag == "00":
         count_records_filt += 1
         seq_record.id = new_header
+        seq_record.description = ''
         seq_records_filt.append(seq_record)
 
 SeqIO.write(seq_records_filt, ffn_out, "fasta")
