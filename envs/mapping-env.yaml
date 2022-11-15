@@ -13,5 +13,6 @@ dependencies:
   - picard=2.26.2=hdfd78af_0
   - bwa=0.7.17=h5bf99c6_8
   - metabat2
-  # - blast
-  # - muscle
+  - blast
+  - bbmap
+  - muscle

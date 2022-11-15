@@ -255,6 +255,9 @@ rule targets:
         coverage_host = expand("02_HostMapping/{sample}_coverage.tsv", sample=SAMPLES),
         coverage_host_hist = expand("02_HostMapping/{sample}_coverage_histogram.txt", sample=SAMPLES),
         trees = lambda wildcards: ["07_AnnotationAndPhylogenies/05_IQTree/"+group+"/"+group+"_Phylogeny.contree" for group in [x for x in GROUPS if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_tree) > 4]],
+        dram_annotations_distill = expand("05_Assembly/DRAM_annotations_distill/{sample}/", sample=SAMPLES),
+        # annotate_mags = lambda wildcards: expand("07_AnnotationAndPhylogenies/06_DRAM_annotations_distill/{genome}/", genome=get_MAGs_list(checkpoints.make_phylo_table.get().output.out_mags_filt)),
+        # contig_tracker = expand("06_MAG_binning/contig_tracker_after_prokka/{genome}_contig_tracker.tsv", genome=get_MAGs_list(checkpoints.make_phylo_table.get().output.out_mags_filt)),
         html = PROJECT_IDENTIFIER+"_Report.html",
         backup_log = "logs/backup.log",
 
@@ -645,6 +648,65 @@ rule assemble_host_unmapped:
         cp {params.outdir}/assembly_graph.fastg {output.graph}
         cp {params.outdir}/spades.log {output.spades_log}
         rm -rf {params.outdir}
+        """
+
+rule annotate_scaffolds:
+    input:
+        scaffolds = "05_Assembly/host_unmapped/{sample}_scaffolds.fasta",
+        dram_config = "config/dram_config.json"
+    output:
+        dram_outdir = directory("05_Assembly/DRAM_annotations/{sample}/"),
+        dram_annotations = "05_Assembly/DRAM_annotations/{sample}/working_dir/{sample}_scaffolds/annotations.tsv",
+        dram_trnas = "05_Assembly/DRAM_annotations/{sample}/working_dir/{sample}_scaffolds/trnas.tsv",
+        dram_rrnas = "05_Assembly/DRAM_annotations/{sample}/working_dir/{sample}_scaffolds/rrnas.tsv",
+    params:
+        db_location = "/reference/dram",
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-20:00:00")
+    resources:
+        mem_mb = convertToMb("512G")
+    threads: 8
+    log: "logs/annotate_scaffolds_{sample}.log"
+    benchmark: "logs/annotate_scaffolds_{sample}.benchmark"
+    conda: "envs/dram-env.yaml"
+    shell:
+        """
+        DRAM-setup.py import_config --config_loc {input.dram_config}
+        rm -rf {output.dram_outdir} # snakemake creates it bt DRAM will complain
+        which DRAM.py
+        DRAM-setup.py version
+        DRAM.py annotate -i {input.scaffolds} -o {output.dram_outdir} --min_contig_size 999 --threads {threads} --verbose --config_loc {input.dram_config}
+        # DRAM.py distill -i {output.dram_outdir}/annotations.tsv -o {output.dram_outdir}/genome_summaries --trna_path {output.dram_outdir}/trnas.tsv --rrna_path {output.dram_outdir}/rrnas.tsv --config_loc {input.dram_config}
+        """
+
+rule distill_scaffolds_annotation:
+    input:
+        dram_annotations = rules.annotate_scaffolds.output.dram_annotations,
+        dram_trnas = rules.annotate_scaffolds.output.dram_trnas,
+        dram_rrnas = rules.annotate_scaffolds.output.dram_rrnas,
+        dram_config = "config/dram_config.json"
+    output:
+        dram_outdir = directory("05_Assembly/DRAM_annotations_distill/{sample}/")
+    params:
+        db_location = "/reference/dram",
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("1-20:00:00")
+    resources:
+        mem_mb = convertToMb("512G")
+    threads: 8
+    log: "logs/annotate_scaffolds_{sample}.log"
+    benchmark: "logs/annotate_scaffolds_{sample}.benchmark"
+    conda: "envs/dram-env.yaml"
+    shell:
+        """
+        which DRAM.py
+        DRAM-setup.py version
+        rm -rf {output.dram_outdir}
+        DRAM.py distill -i {input.dram_annotations} -o {output.dram_outdir} --trna_path {input.dram_trnas} --rrna_path {input.dram_rrnas} --config_loc {input.dram_config}
         """
 
 rule map_to_assembly:
@@ -1365,6 +1427,38 @@ rule annotate:
             {input.genome} 2>&1 | tee -a {log}
         """
 
+rule annotate_distill_dram:
+    input:
+        scaffolds = "07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.faa",
+        dram_config = "config/dram_config.json"
+    output:
+        dram_outdir = directory("07_AnnotationAndPhylogenies/06_DRAM_annotations/{genome}/"),
+        dram_outdir_distill = directory("07_AnnotationAndPhylogenies/06_DRAM_annotations_distill/{genome}/"),
+        dram_annotations = "07_AnnotationAndPhylogenies/06_DRAM_annotations/{genome}/working_dir/{genome}/annotations.tsv",
+        dram_trnas = "07_AnnotationAndPhylogenies/06_DRAM_annotations/{genome}/working_dir/{genome}/trnas.tsv",
+        dram_rrnas = "07_AnnotationAndPhylogenies/06_DRAM_annotations/{genome}/working_dir/{genome}/rrnas.tsv",
+    params:
+        db_location = "/reference/dram",
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-06:00:00")
+    resources:
+        mem_mb = convertToMb("256G")
+    threads: 8
+    log: "logs/annotate_scaffolds_{genome}.log"
+    benchmark: "logs/annotate_scaffolds_{genome}.benchmark"
+    conda: "envs/dram-env.yaml"
+    shell:
+        """
+        rm -rf {output.dram_outdir} # snakemake creates it bt DRAM will complain
+        which DRAM.py
+        DRAM-setup.py version
+        DRAM.py annotate -i {input.scaffolds} -o {output.dram_outdir} --min_contig_size 999 --threads {threads} --verbose --config_loc {input.dram_config}
+        rm -rf {output.dram_outdir_distill} # snakemake creates it bt DRAM will complain
+        DRAM.py distill -i {output.dram_annotations} -o {output.dram_outdir} --trna_path {output.dram_trnas} --rrna_path {output.dram_rrnas} --config_loc {input.dram_config}
+        """
+
 rule prepare_faa:
     input:
         info = lambda wildcards: checkpoints.make_phylo_table.get().output.out_tree,
@@ -1594,16 +1688,46 @@ rule make_tree:
         fi
         """
 
-# rule make_contig_tracker:
-#     input:
-#         faa_files = lambda wildcards: "07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.faa",
-#     output:
-#         outfile = "06_MAG_binning/contig_tracker_after_prokka/{genome}_contig_tracker.tsv"
-#     shell:
-#         """
-#         # prokka renames contigs
-#         # write the names of the contig according to spades and according to the prokka fna file here
-#         """
+rule make_contig_tracker:
+    input:
+        prokka_genome = "07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.faa",
+        genomes = "07_AnnotationAndPhylogenies/00_genomes/{genome}.fa",
+    output:
+        outfile = "06_MAG_binning/contig_tracker_after_prokka/{genome}_contig_tracker.tsv"
+    params:
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-1:10:00"),
+    run:
+        genome_headers = []
+        with open(input.genome) as genome_fh:
+            for line in genome_fh:
+                if not line.startswith(">"):
+                    continue
+                else:
+                    line = line.strip()
+                    contig = line.split(">")[1]
+                    genome_headers.append(contig)
+        prokka_headers = []
+        with open(input.prokka_genome) as prokka_fh:
+            for line in prokka_fh:
+                if not line.startswith(">"):
+                    continue
+                else:
+                    line = line.strip()
+                    contig = line.split(">")[1]
+                    prokka_headers.append(contig)
+        if len(prokka_headers) == len(genome_headers):
+            print("Genomes file and prokka fna file have the same number of headers.")
+        else:
+            print("The two files do not have the same number of headers.\n")
+            print(f"{input.genome}:{len(genome_headers)}, {input.prokka_genome}:{len(prokka_headers)}")
+            sys.exit("Unequal number of headers. Exiting...")
+        with open(output.outfile) as out_fh:
+            # out_fh.write(f"genome_header, prokka_header")
+            for genome, prokka in zip(genome_headers, prokka_headers):
+                out_fh.write(f"{genome}\t{prokka}\n")
 
 rule concat_all_mags:
     input:
@@ -1635,10 +1759,12 @@ rule copy_mag_database_annotation:
         ffn_file = "07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.ffn",
         gff_file = "07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.gff",
         faa_file = "07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.faa",
+        fna_file = "07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.fna",
     output:
         ffn_file = "database/MAGs_database_ffn_files/{genome}.ffn",
         gff_file = "database/MAGs_database_gff_files/{genome}.gff",
         faa_file = "database/MAGs_database_faa_files/{genome}.faa",
+        fna_file = "database/MAGs_database_faa_files/{genome}.fna",
     params:
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
@@ -1650,6 +1776,7 @@ rule copy_mag_database_annotation:
         rsync -av {input.ffn_file} {output.ffn_file}
         rsync -av {input.gff_file} {output.gff_file}
         rsync -av {input.faa_file} {output.faa_file}
+        rsync -av {input.fna_file} {output.fna_file}
         """
 
 rule prepare_faa_mag_database:
@@ -1802,6 +1929,7 @@ rule calc_perc_id_mag_database:
             python3 \"${{scripts_dir}}/calc_perc_id_orthologs.py\" --meta \"$genome_db_meta\" --trim_file \"$trim_file\" --outfile \"$outfile\"
         done
         """
+
 # if resuming
 #Aligning amino-acid sequences
 # if [ ! -f $aln_faa ];
@@ -2270,7 +2398,7 @@ rule compile_report:
         core_cov_plots = lambda wildcards: ["09_MagDatabaseProfiling/CoverageEstimation/Merged/"+group+"_coord.txt" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
         instrain_done = "10_instrain/rep_mags.IS.COMPARE/",
         instrain_profile_plots = expand("10_instrain/{sample}_profile_plots.done", sample=SAMPLES),
-        instrain_compare_plots = "10_instrain/compare_plot.done"
+        instrain_compare_plots = "10_instrain/compare_plot.done",
     output:
         html = PROJECT_IDENTIFIER+"_Report.html",
     conda: "envs/rmd-env.yaml"
@@ -2305,6 +2433,34 @@ rule backup:
         if LOCAL_BACKUP:
             shell("echo \' ensure that "+BACKUP_PATH+" exists \'")
         shell("scripts/backup.sh "+PROJECT_PATH+" "+os.path.join(BACKUP_PATH, PROJECT_IDENTIFIER)+" logs/backup.log")
+
+# rule popcogent:
+#     input:
+#         mags_dir = "database/MAGs_database_ffn_files/",
+#     output:
+#         table = touch("11_popcogent/done")
+#     conda: "envs/popcogent-env.yaml"
+#     threads: 2
+#     params:
+#         file_ext=".fna",
+#         account="pengel_spirit",
+#         runtime_s=convertToSec("0-2:10:00"),
+#     resources:
+#         mem_mb = convertToMb("15G")
+#     log: "logs/popcogent.log"
+#     benchmark: "logs/popcogent.benchmark"
+#     shell:
+#     """
+#     configfile=./config.sh
+#     bash ${configfile} {os.path.join(os.getcwd(), input.mags_dir)} {params.file_ext} {threads}
+#     source ${mugsy_env}
+#     cd scripts/PopCOGenT
+#     if [ "${slurm_str}" = "" ]
+#     	then
+#     		python get_alignment_and_length_bias.py --genome_dir ${genome_dir} --genome_ext ${genome_ext} --alignment_dir ${alignment_dir} --mugsy_path ${mugsy_path} --mugsy_env ${mugsy_env} --base_name ${base_name} --final_output_dir ${final_output_dir} --num_threads ${num_threads} ${keep_alignments}
+#     		python cluster.py --base_name ${base_name} --length_bias_file ${final_output_dir}/${base_name}.length_bias.txt --output_directory ${final_output_dir} --infomap_path ${infomap_path} ${single_cell}
+#     fi
+#     """
 
 # use for imports...
 # sys.path.append
