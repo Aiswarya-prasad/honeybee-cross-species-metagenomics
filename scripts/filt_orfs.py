@@ -40,6 +40,6 @@ for seq_record in SeqIO.parse(ffn_in, "fasta"):
 SeqIO.write(seq_records_filt, ffn_out, "fasta")
 
 with open(log, "w") as log_fh:
-    log_fh.write(f"sample\tcount_records)\tcount_records_filt\tfraction\n")
+    log_fh.write(f"sample\tcount_records\tcount_records_filt\tfraction\n")
     fraction = count_records_filt/count_records*100
-    log_fh.write(f"{sample}\t{count_records)}\t{count_records_filt}\t{fraction}\n")
+    log_fh.write(f"{sample}\t{count_records}\t{count_records_filt}\t{fraction}\n")
