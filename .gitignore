@@ -42,7 +42,10 @@ database*/*
 10_*/*
 09_*/*
 11_*/*
-11_MIDAS*/*
+12_*/*
+13_*/*
+14_*/*
+15_MIDAS*/*
 *_files/*
 *_cache/*
 *backup_*.log

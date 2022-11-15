@@ -255,9 +255,10 @@ rule targets:
         coverage_host = expand("02_HostMapping/{sample}_coverage.tsv", sample=SAMPLES),
         coverage_host_hist = expand("02_HostMapping/{sample}_coverage_histogram.txt", sample=SAMPLES),
         trees = lambda wildcards: ["07_AnnotationAndPhylogenies/05_IQTree/"+group+"/"+group+"_Phylogeny.contree" for group in [x for x in GROUPS if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_tree) > 4]],
-        dram_annotations_distill = expand("05_Assembly/DRAM_annotations_distill/{sample}/", sample=SAMPLES),
+        # dram_annotations_distill = expand("05_Assembly/DRAM_annotations_distill/{sample}/", sample=SAMPLES),
         # annotate_mags = lambda wildcards: expand("07_AnnotationAndPhylogenies/06_DRAM_annotations_distill/{genome}/", genome=get_MAGs_list(checkpoints.make_phylo_table.get().output.out_mags_filt)),
         # contig_tracker = expand("06_MAG_binning/contig_tracker_after_prokka/{genome}_contig_tracker.tsv", genome=get_MAGs_list(checkpoints.make_phylo_table.get().output.out_mags_filt)),
+        orfs = expand("12_species_validation/metagenomic_orfs/{sample}/{sample}_orfs.ffn", sample=SAMPLES),
         html = PROJECT_IDENTIFIER+"_Report.html",
         backup_log = "logs/backup.log",
 
@@ -650,6 +651,34 @@ rule assemble_host_unmapped:
         rm -rf {params.outdir}
         """
 
+rule prodigal_get_orfs:
+    input:
+        scaffolds = "05_Assembly/host_unmapped/{sample}_scaffolds.fasta"
+    output:
+        orfs = "12_species_validation/metagenomic_orfs/{sample}/{sample}_orfs.ffn",
+        filt_log = "12_species_validation/metagenomic_orfs/{sample}/{sample}_orfs_filt_sumary.log",
+        scaffolds_ffn = "12_species_validation/metagenomic_orfs/{sample}/{sample}.ffn",
+        scaffolds_faa = "12_species_validation/metagenomic_orfs/{sample}/{sample}.faa",
+        scaffolds_gff = "12_species_validation/metagenomic_orfs/{sample}/{sample}.gff"
+    params:
+        outdir = "12_species_validation/metagenomic_orfs/{sample}/",
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-2:10:00"),
+    resources:
+        mem_mb = 16000
+    threads: 8
+    log: "logs/{sample}_prodigal_get_orfs.log"
+    benchmark: "logs/{sample}_prodigal_get_orfs.benchmark"
+    conda: "envs/snv-env.yaml"
+    shell:
+        """
+        prodigal -i {input.scaffolds} -o {output.gff} -f gff -a {output.faa} -d {output.ffn} -p meta
+        python scripts/filt_orfs.py --ffn_in {output.scaffolds_ffn} --ffn_out {output.orfs} --sample {wildcards.sample} --log {output.filt_log}
+        """
+
+
 rule annotate_scaffolds:
     input:
         scaffolds = "05_Assembly/host_unmapped/{sample}_scaffolds.fasta",
@@ -664,10 +693,10 @@ rule annotate_scaffolds:
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         account="pengel_spirit",
-        runtime_s=convertToSec("0-20:00:00")
+        runtime_s=convertToSec("1-20:00:00")
     resources:
         mem_mb = convertToMb("512G")
-    threads: 8
+    threads: 2
     log: "logs/annotate_scaffolds_{sample}.log"
     benchmark: "logs/annotate_scaffolds_{sample}.benchmark"
     conda: "envs/dram-env.yaml"
@@ -677,7 +706,7 @@ rule annotate_scaffolds:
         rm -rf {output.dram_outdir} # snakemake creates it bt DRAM will complain
         which DRAM.py
         DRAM-setup.py version
-        DRAM.py annotate -i {input.scaffolds} -o {output.dram_outdir} --min_contig_size 999 --threads {threads} --verbose --config_loc {input.dram_config}
+        DRAM.py annotate -i {input.scaffolds} -o {output.dram_outdir} --min_contig_size 999 --threads {threads} --verbose --config_loc {input.dram_config} --keep_tmp_dir
         # DRAM.py distill -i {output.dram_outdir}/annotations.tsv -o {output.dram_outdir}/genome_summaries --trna_path {output.dram_outdir}/trnas.tsv --rrna_path {output.dram_outdir}/rrnas.tsv --config_loc {input.dram_config}
         """
 
@@ -1442,9 +1471,9 @@ rule annotate_distill_dram:
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         account="pengel_spirit",
-        runtime_s=convertToSec("0-06:00:00")
+        runtime_s=convertToSec("1-20:00:00")
     resources:
-        mem_mb = convertToMb("256G")
+        mem_mb = convertToMb("512")
     threads: 8
     log: "logs/annotate_scaffolds_{genome}.log"
     benchmark: "logs/annotate_scaffolds_{genome}.benchmark"
@@ -1454,7 +1483,7 @@ rule annotate_distill_dram:
         rm -rf {output.dram_outdir} # snakemake creates it bt DRAM will complain
         which DRAM.py
         DRAM-setup.py version
-        DRAM.py annotate -i {input.scaffolds} -o {output.dram_outdir} --min_contig_size 999 --threads {threads} --verbose --config_loc {input.dram_config}
+        DRAM.py annotate -i {input.scaffolds} -o {output.dram_outdir} --min_contig_size 999 --threads {threads} --verbose --config_loc {input.dram_config} --keep_tmp_dir
         rm -rf {output.dram_outdir_distill} # snakemake creates it bt DRAM will complain
         DRAM.py distill -i {output.dram_annotations} -o {output.dram_outdir} --trna_path {output.dram_trnas} --rrna_path {output.dram_rrnas} --config_loc {input.dram_config}
         """
@@ -2229,6 +2258,8 @@ rule map_to_rep_MAGs:
         samtools view -bh {output.sam} | samtools sort - > {output.bam}
         samtools index {output.bam}
         samtools flagstat -O tsv {output.bam} > {output.mag_mapping_flagstat}
+        # samtools depth -a file.bam | awk '{c++; if($3>0) total+=1}END{print (total/c)*100}'
+        # get 95% ani mappings
         """
 
 # Instrain says the 5 of my samples have not enough (at least 1)
