@@ -16,3 +16,4 @@ dependencies:
   - blast
   - bbmap
   - muscle
+  - biopython

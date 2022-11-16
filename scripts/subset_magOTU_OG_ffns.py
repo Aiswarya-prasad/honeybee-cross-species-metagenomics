@@ -35,18 +35,6 @@ def parse_MAG_name_from_gene_header(header):
         parsed_header = "_".join(header.split(" ")[0].split("_")[:-1])
     return(parsed_header)
 
-def get_magOTU(mag, ref_info):
-    with open(ref_info, "r") as ref_info_fh:
-        for line in ref_info_fh:
-            line = line.strip()
-            if line.startswith("ID"):
-                header = line+"\n"
-                continue
-            genome_id = line.split("\t")[0]
-            magOTU = line.split("\t")[11]
-            if mag == genome_id:
-                return(magOTU)
-
 def get_magOTUs_of_group(group_provided, ref_info):
     magOTU_list = []
     with open(ref_info, "r") as ref_info_fh:
