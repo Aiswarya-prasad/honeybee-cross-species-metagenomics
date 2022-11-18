@@ -15,5 +15,5 @@ dependencies:
   - metabat2
   - blast
   - bbmap
-  - muscle
+  - muscle=3.8.1551
   - biopython

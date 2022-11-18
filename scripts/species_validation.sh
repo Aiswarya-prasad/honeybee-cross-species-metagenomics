@@ -38,7 +38,8 @@
 group=g__Gilliamella
 project_path=/scratch/aprasad/211018_Medgenome_india_samples
 conda_env_midas=/scratch/aprasad/built-envs/36fa9795c7bb520ef68880086b2f369c
-conda_env_mapping=/scratch/aprasad/built-envs/17ad0633c9d4b928ee617c30e2bae4b5
+conda_env_mapping=/scratch/aprasad/built-envs/d9a6c36f05b352a49e2ad7fed4c52259
+# conda_env_mapping=/scratch/aprasad/built-envs/1c5cbf5f292d5200a343c355530053d1 delete that
 
 
 ref_info=06_MAG_binning/MAGs_filt_GenomeInfo_auto.tsv
@@ -115,6 +116,7 @@ echo 'Performing step3: recruiting ORF sequences from ORF database file, based o
 
 python scripts/recruit_orfs.py --group ${group} --ref_info ${ref_info} --orf_db ${orf_db} --magOTU_seqs_dir_path ${magOTU_seqs_dir_path} --log_path ${project_path}/12_species_validation/${group}_messages.log
 
+conda activate ${conda_env_mapping}
 
 echo 'Performing step4: adding recruited ORFs to core sequence gene alignments, and calculating max percentage identity'
 

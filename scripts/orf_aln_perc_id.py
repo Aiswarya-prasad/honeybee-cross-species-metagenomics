@@ -16,6 +16,23 @@ from shutil import copyfile
 import statistics
 import subprocess
 
+def perc_id(aln, orf_length):
+    nb_col = aln.get_alignment_length()
+    nb_col_ungapped = 0
+    nb_matches = 0
+    i = 0
+    perc_id = 0
+    while(i < nb_col): #iterate over all alignment columns
+        aln_col = aln[:,i]
+        if (aln_col.find('-') == -1): #no gap for this column
+            nb_col_ungapped += 1
+            if (aln_col[0] == aln_col[1]):
+                nb_matches += 1
+        i += 1
+    if (nb_col_ungapped/orf_length > 0.5): #only calculate perc-id if at least half of the ORF aligns to the core gene sequence, otherwise return perc_id value of zero
+        perc_id = (nb_matches/nb_col_ungapped)*100
+    return(perc_id)
+
 def get_magOTUs_of_group(group_provided, ref_info):
     magOTU_list = []
     with open(ref_info, "r") as ref_info_fh:
@@ -47,7 +64,7 @@ def magOTU_of_mag(mag, ref_info):
                 return(magOTU)
 
 def get_best_blast_hit(orf_file, db_file):
-    process = subprocess.Popen(["blastn", "-db", db_file, "-query", orf_file, "-outfmt", 5, "-evalue", 0.001, "-perc_identity", 70],
+    process = subprocess.Popen(["blastn", "-db", db_file, "-query", orf_file, "-outfmt", "5", "-evalue", "0.001", "-perc_identity", "70"],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         universal_newlines=True)
@@ -95,8 +112,8 @@ def get_orf_max_perc_id_in_magOTU(ref_aln_file, orf_file, magOTU, ref_info):
     max_perc_id_gene = None
     for ref_id_header in ref_aln_ids:
         ref_id = parse_MAG_name_from_gene_header(ref_id_header)
-        if magOTU_of_mag(ref_id, ref_info) == magOTU: #Only align orf to core-seqs of the recruiting species
-            sub_seq_objects = [all_seq_objects[ref_id], all_seq_objects[orf_id]]
+        if magOTU_of_mag(ref_id, ref_info) == magOTU: #Only align orf to core-seqs of the recruiting magOTU
+            sub_seq_objects = [all_seq_objects[ref_id_header], all_seq_objects[orf_id]]
             sub_aln = MultipleSeqAlignment(sub_seq_objects)
             sub_aln_perc_id = perc_id(sub_aln, orf_length)
             if (sub_aln_perc_id > max_perc_id and sub_aln_perc_id > 60):
@@ -134,39 +151,53 @@ magOTU_list = get_magOTUs_of_group(group, ref_info)
 
 magOTU_seqs_dir_dict = {}
 
-for magOTU in magOTU_list:
+# for magOTU in magOTU_list:
+for magOTU in ["167_1"]:
     print(f"Working on magOTU: {magOTU}")
     perc_id_file = os.path.join(perc_id_path, "_".join([group, magOTU, "perc_id.txt"]))
     with open(perc_id_file, "w") as perc_id_fh:
         header = "\t".join(["OG_group", "ORF_id","Gene_id","Perc_id","Closest_SDP"])
         perc_id_fh.write(f"{header}\n")
-    magOTU_seqs_dir = os.path.join(magOTU_seqs_dir_path, magOTU)
-    magOTU_seqs_dir_dict[magOTU] = magOTU_seqs_dir
-    orf_file_suffix = "*_orfs.ffn"
-    orf_files = glob.glob(os.path.join(magOTU_seqs_dir_path, orf_file_suffix))
-    print(f"For {group} and magOTU {magOTU}, {len(orf_files)} OG groups were found")
-    count_aln_results = 0
-    count_magOTU_recruits = dict()
-        # for now I consider all OGs regardless of whether they are present
-        # in one magOTU exclusively or in all of them the result of this
-        # will be that there will appear to be more ORFs specifically mapping
-        # to it not because the OG is well suited to uniquely match the magOTU
-        # but because it is simple not present elsewhere (missing genes in MAGs)
-        # I assume for now that this will only be a minority of cases
-    for orf_file in orf_files:
-         print(f"Processing orf-file: {orf_file}")
-         OG = os.path.basename(file).split("_orfs.ffn")[0]
-         core_aln_file = os.path.join(input_og_seq_dir, OG + "_aln_nuc.fasta")
-         core_ffn_file = os.path.join(input_og_seq_dir, OG + ".ffn")
-         temp_ffn = os.path.join(input_og_seq_dir, "temp.ffn")
-         temp_orf_ffn = os.path.join(input_og_seq_dir, "temp_orf.ffn")
-         # temp_ffn = OG + "_temp.ffn"
-         # temp_orf_ffn = OG + "_temp_orf.ffn"
-         copyfile(core_ffn_file, os.path.join(magOTU_seqs_dir, temp_ffn))
-         subprocess.run(["makeblastdb", "-in", temp_ffn, "-dbtype", "nucl"])
-         for seq_record in SeqIO.parse(orf_file, "fasta"):
-             SeqIO.write(seq_record, temp_orf_ffn, "fasta")
-             blast_result = get_best_blast_hit(temp_orf_ffn, temp_ffn)
-             if (blast_result == None): continue
-             # we are only interested in the max perc id with the current magOTU
-             aln_result = get_orf_max_perc_id_in_magOTU(core_aln_file, temp_orf_ffn, magOTU, ref_info)
+        magOTU_seqs_dir = os.path.join(magOTU_seqs_dir_path, magOTU)
+        magOTU_seqs_dir_dict[magOTU] = magOTU_seqs_dir
+        orf_file_suffix = "*_orfs.ffn"
+        orf_files = glob.glob(os.path.join(magOTU_seqs_dir, orf_file_suffix))
+        print(f"For {group} and magOTU {magOTU}, {len(orf_files)} OG groups were found")
+        count_aln_results = 0
+        count_magOTU_recruits = dict()
+            # for now I consider all OGs regardless of whether they are present
+            # in one magOTU exclusively or in all of them the result of this
+            # will be that there will appear to be more ORFs specifically mapping
+            # to it not because the OG is well suited to uniquely match the magOTU
+            # but because it is simple not present elsewhere (missing genes in MAGs)
+            # I assume for now that this will only be a minority of cases
+        for orf_file in orf_files:
+             print(f"Processing orf-file: {orf_file}")
+             OG = os.path.basename(orf_file).split("_orfs.ffn")[0]
+             core_aln_file = os.path.join(input_og_seq_dir, OG + "_aln_nuc.fasta")
+             core_ffn_file = os.path.join(input_og_seq_dir, OG + ".ffn")
+             temp_ffn = os.path.join(input_og_seq_dir, "temp.ffn")
+             temp_orf_ffn = os.path.join(input_og_seq_dir, "temp_orf.ffn")
+             # temp_ffn = OG + "_temp.ffn"
+             # temp_orf_ffn = OG + "_temp_orf.ffn"
+             copyfile(core_ffn_file, os.path.join(magOTU_seqs_dir, temp_ffn))
+             subprocess.run(["makeblastdb", "-in", temp_ffn, "-dbtype", "nucl"])
+             for seq_record in SeqIO.parse(orf_file, "fasta"):
+                 SeqIO.write(seq_record, temp_orf_ffn, "fasta")
+                 blast_result = get_best_blast_hit(temp_orf_ffn, temp_ffn)
+                 if (blast_result == None): continue
+                 # we are only interested in the max perc id with the current magOTU
+                 aln_result = get_orf_max_perc_id_in_magOTU(core_aln_file, temp_orf_ffn, magOTU, ref_info)
+             if (aln_result[2] != 0):
+                orf_max_perc_id = round(aln_result[2],2)
+                orf_id = aln_result[0]
+                best_hit_to_magOTU_gene_id = aln_result[1]
+                best_magOTU = "other"
+                # resume here
+                if blast_result in magOTU_dict: # in list of all magOTU
+                    best_magOTU = magOTU_dict[blast_result]
+                if (best_magOTU == magOTU):
+                    count_magOTU_recruits[orf_id] = orf_max_perc_id
+                out_str = "\t".join([OG, orf_id, best_hit_to_mag, str(orf_max_perc_id), best_magOTU])
+                fh_perc_id_out.write(out_str + "\n")
+                count_aln_results += 1
