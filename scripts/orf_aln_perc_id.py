@@ -24,7 +24,7 @@ def perc_id(aln, orf_length):
     perc_id = 0
     while(i < nb_col): #iterate over all alignment columns
         aln_col = aln[:,i]
-        if (aln_col.find('-') == -1): #no gap for this column
+        if (aln_col.find("-") == -1): #no gap for this column
             nb_col_ungapped += 1
             if (aln_col[0] == aln_col[1]):
                 nb_matches += 1
@@ -62,6 +62,7 @@ def magOTU_of_mag(mag, ref_info):
             magOTU = line.split("\t")[11]
             if mag == genome_id:
                 return(magOTU)
+    return("other")
 
 def get_best_blast_hit(orf_file, db_file):
     process = subprocess.Popen(["blastn", "-db", db_file, "-query", orf_file, "-outfmt", "5", "-evalue", "0.001", "-perc_identity", "70"],
@@ -73,8 +74,7 @@ def get_best_blast_hit(orf_file, db_file):
     top_hit_genome = None
     if (len(blast_obj) != 0):
         top_hit_id = blast_obj[0].id
-        split_hit_id = top_hit_id.split('_')
-        top_hit_genome = split_hit_id[0]
+        top_hit_genome = parse_MAG_name_from_gene_header(top_hit_id)
     return(top_hit_genome)
 
 def parse_MAG_name_from_gene_header(header):
@@ -139,7 +139,6 @@ input_og_seq_dir = args.input_og_seq_dir
 magOTU_seqs_dir_path = args.magOTU_seqs_dir_path
 orf_db = args.orf_db
 perc_id_path = args.perc_id_path
-
 log_path = args.log_path
 
 if (os.stat(log_path).st_size != 0):
@@ -151,18 +150,19 @@ magOTU_list = get_magOTUs_of_group(group, ref_info)
 
 magOTU_seqs_dir_dict = {}
 
-# for magOTU in magOTU_list:
-for magOTU in ["167_1"]:
-    print(f"Working on magOTU: {magOTU}")
+for magOTU in magOTU_list:
+    print(f"Working on magOTU: {magOTU}\n")
+    log_fh.write(f"Working on magOTU: {magOTU}\n")
     perc_id_file = os.path.join(perc_id_path, "_".join([group, magOTU, "perc_id.txt"]))
     with open(perc_id_file, "w") as perc_id_fh:
-        header = "\t".join(["OG_group", "ORF_id","Gene_id","Perc_id","Closest_SDP"])
+        header = "\t".join(["OG_group", "ORF_id","Genome","Perc_id","Closest_SDP"])
         perc_id_fh.write(f"{header}\n")
         magOTU_seqs_dir = os.path.join(magOTU_seqs_dir_path, magOTU)
         magOTU_seqs_dir_dict[magOTU] = magOTU_seqs_dir
         orf_file_suffix = "*_orfs.ffn"
         orf_files = glob.glob(os.path.join(magOTU_seqs_dir, orf_file_suffix))
-        print(f"For {group} and magOTU {magOTU}, {len(orf_files)} OG groups were found")
+        print(f"For {group} and magOTU {magOTU}, {len(orf_files)} OG groups were found\n")
+        log_fh.write(f"For {group} and magOTU {magOTU}, {len(orf_files)} OG groups were found\n")
         count_aln_results = 0
         count_magOTU_recruits = dict()
             # for now I consider all OGs regardless of whether they are present
@@ -171,8 +171,11 @@ for magOTU in ["167_1"]:
             # to it not because the OG is well suited to uniquely match the magOTU
             # but because it is simple not present elsewhere (missing genes in MAGs)
             # I assume for now that this will only be a minority of cases
+        num_files_progress = 0
         for orf_file in orf_files:
-             print(f"Processing orf-file: {orf_file}")
+             print(f"{num_files_progress} / {len(orf_files)} processed", end="\r")
+             # print(f"Processing orf-file: {orf_file}\n")
+             log_fh.write(f"Processing orf-file: {orf_file}\n")
              OG = os.path.basename(orf_file).split("_orfs.ffn")[0]
              core_aln_file = os.path.join(input_og_seq_dir, OG + "_aln_nuc.fasta")
              core_ffn_file = os.path.join(input_og_seq_dir, OG + ".ffn")
@@ -181,7 +184,10 @@ for magOTU in ["167_1"]:
              # temp_ffn = OG + "_temp.ffn"
              # temp_orf_ffn = OG + "_temp_orf.ffn"
              copyfile(core_ffn_file, os.path.join(magOTU_seqs_dir, temp_ffn))
-             subprocess.run(["makeblastdb", "-in", temp_ffn, "-dbtype", "nucl"])
+             out_message = subprocess.run(["makeblastdb", "-in", temp_ffn, "-dbtype", "nucl"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+             log_fh.write(out_message.stdout)
+             log_fh.write(out_message.stderr)
+             # To mix stdout and stderr into a single string
              for seq_record in SeqIO.parse(orf_file, "fasta"):
                  SeqIO.write(seq_record, temp_orf_ffn, "fasta")
                  blast_result = get_best_blast_hit(temp_orf_ffn, temp_ffn)
@@ -191,13 +197,31 @@ for magOTU in ["167_1"]:
              if (aln_result[2] != 0):
                 orf_max_perc_id = round(aln_result[2],2)
                 orf_id = aln_result[0]
-                best_hit_to_magOTU_gene_id = aln_result[1]
-                best_magOTU = "other"
+                best_hit_to_magOTU_genome_id = aln_result[1]
                 # resume here
-                if blast_result in magOTU_dict: # in list of all magOTU
-                    best_magOTU = magOTU_dict[blast_result]
+                best_magOTU = magOTU_of_mag(blast_result, ref_info)
                 if (best_magOTU == magOTU):
                     count_magOTU_recruits[orf_id] = orf_max_perc_id
-                out_str = "\t".join([OG, orf_id, best_hit_to_mag, str(orf_max_perc_id), best_magOTU])
-                fh_perc_id_out.write(out_str + "\n")
+                out_str = "\t".join([OG, orf_id, best_hit_to_magOTU_genome_id, str(orf_max_perc_id), best_magOTU])
+                perc_id_fh.write(out_str + "\n")
                 count_aln_results += 1
+             num_files_progress += 1
+
+#Final results and clean-up
+temp_files = glob.glob(os.path.join(input_og_seq_dir, "temp*"))
+for file in temp_files:
+    os.remove(file)
+log_fh.write(f"A total of {count_aln_results} ORFs were aligned, and printed to file perc_id.txt\n")
+print("A total of {count_aln_results} ORFs were aligned, and printed to file perc_id.txt\n")
+nb_magOTU_recruits = len(count_magOTU_recruits)
+if (nb_magOTU_recruits == 0):
+    log_fh.write(f"However, none of these had a best blast hit to the recruiting magOTU\n\n")
+    print(f"However, none of these had a best blast hit to the recruiting magOTU\n\n")
+else:
+    magOTU_recruit_values = list(count_magOTU_recruits.values())
+    median_magOTU_perc_id = magOTU_recruit_values[0]
+    if (nb_magOTU_recruits > 1):
+        median_magOTU_perc_id = statistics.median(magOTU_recruit_values)
+    log_fh.write(f"Out of these, {nb_magOTU_recruits} had a best blast hit to the recruiting magOTU, with a median perc-id of {round(median_magOTU_perc_id,2)}\n\n")
+    print(f"Out of these, {nb_magOTU_recruits} had a best blast hit to the recruiting magOTU, with a median perc-id of {round(median_magOTU_perc_id,2)}\n\n")
+print()

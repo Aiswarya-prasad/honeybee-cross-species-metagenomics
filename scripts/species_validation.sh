@@ -1,11 +1,11 @@
 ###
 #  For now testing this script interactively with:
 #  (base) aprasad@curnagl /scratch/aprasad/211018_Medgenome_india_samples-master$
-#  Sinteractive -A pengel_spirit -m 24G -t 2:00:00
+#  Sinteractive -A pengel_spirit -m 24G -t 6:00:00
 
 #  Sinteractive is running with the following options:
 
-# -A pengel_spirit -c 1 --mem 16G -J interactive -p interactive -t 2:00:00
+# -A pengel_spirit -c 1 --mem 16G -J interactive -p interactive -t 6:00:00
 #
 # salloc: Pending job allocation 21926775
 # salloc: job 21926775 queued and waiting for resources
@@ -86,11 +86,10 @@ if [ ! -f "$orf_db_INDEXFILE" ]; then
 fi
 
 
-# for DIR in ${magOTU_seqs_dir_path}/*;
 cd ${project_path}
-for DIR in  ${magOTU_seqs_dir_path}/163_2  ${magOTU_seqs_dir_path}/165_1  ${magOTU_seqs_dir_path}/166_1  ${magOTU_seqs_dir_path}/167_1;
+for DIR in ${magOTU_seqs_dir_path}/*;
 do
-  for magOTU_dir_iter in 12_species_validation/${group}/*; do echo ${magOTU_dir_iter}; ls ${magOTU_dir_iter}/*.ffn | wc -l; ls ${magOTU_dir_iter}/*.blastn | wc -l; done
+  # for magOTU_dir_iter in 12_species_validation/${group}/*; do echo ${magOTU_dir_iter}; ls ${magOTU_dir_iter}/*.ffn | wc -l; ls ${magOTU_dir_iter}/*.blastn | wc -l; done
   echo "Blasting core sequences in directory: "${DIR}
   cd ${DIR}
   COUNTER=0
@@ -120,4 +119,4 @@ conda activate ${conda_env_mapping}
 
 echo 'Performing step4: adding recruited ORFs to core sequence gene alignments, and calculating max percentage identity'
 
-python scripts/orf_aln_perc_id.py --group ${group} --ref_info ${ref_info} --orf_db ${orf_db} --magOTU_seqs_dir_path ${magOTU_seqs_dir_path} --log_path ${project_path}/12_species_validation/${group}_messages.log --perc_id ${project_path}/12_species_validation --input_og_seq_dir ${input_og_seq_dir}
+python scripts/orf_aln_perc_id.py --group ${group} --ref_info ${ref_info} --orf_db ${orf_db} --magOTU_seqs_dir_path ${magOTU_seqs_dir_path} --log_path ${project_path}/12_species_validation/${group}_messages.log --perc_id ${project_path}/12_species_validation/${group} --input_og_seq_dir ${input_og_seq_dir}

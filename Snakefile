@@ -249,7 +249,40 @@ def get_cluster_dict(path):
 if LOCAL_BACKUP:
     localrules: backup, concat_all_mags
 
-rule targets:
+# rule targets:
+#     input:
+#         flagstat_02 = expand("02_HostMapping/{sample}_flagstat.tsv", sample=SAMPLES),
+#         flagstat_03 = expand("03_MicrobiomeMapping/{sample}_flagstat.tsv", sample=SAMPLES),
+#         flagstat_04 = expand("04_MicrobiomeMappingDirect/{sample}_flagstat.tsv", sample=SAMPLES),
+#         qc_raw = expand("fastqc/raw/{sample}_{read}_fastqc.html", sample=SAMPLES, read=config["READS"]),
+#         qc_trimmed = expand("fastqc/trim/{sample}_{read}_trim_fastqc.html", sample=SAMPLES, read=config["READS"]),
+#         motus_merged = "08_motus_profile/samples_merged.motus",
+#         summary_assembly = "05_Assembly/MapToAssembly/Assembly_mapping_summary.csv",
+#         contig_fates = expand("06_MAG_binning/contig_fates/{sample}_contig_fates.csv", sample=SAMPLES),
+#         sample_contig_coverages = expand("06_MAG_binning/contig_fates/backmapping_coverages/{sample}_contig_coverages.csv", sample=SAMPLES),
+#         ortho_summary = expand("07_AnnotationAndPhylogenies/02_orthofinder/{group}_Orthogroups_summary.csv", group=GROUPS),
+#         mag_mapping_flagstat = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_flagstat.tsv", sample=SAMPLES),
+#         mag_mapping_hostfiltered_flagstat = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_host-filtered_flagstat.tsv", sample=SAMPLES),
+#         summarise_db_ortho = lambda wildcards: ["database/MAGs_database_Orthofinder/"+group+"_Orthogroups_summary.csv" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
+#         summarise_db_ortho_filt = lambda wildcards: ["database/MAGs_database_Orthofinder/"+group+"_Orthogroups_filtered_summary.csv" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
+#         core_cov_txt = lambda wildcards: ["09_MagDatabaseProfiling/CoverageEstimation/Merged/"+group+"_coord.pdf" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
+#         core_cov_plots = lambda wildcards: ["09_MagDatabaseProfiling/CoverageEstimation/Merged/"+group+"_coord.txt" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
+#         instrain_done = "10_instrain/rep_mags.IS.COMPARE/",
+#         instrain_profile_plots = expand("10_instrain/{sample}_profile_plots.done", sample=SAMPLES),
+#         instrain_compare_plots = "10_instrain/compare_plot.done",
+#         coverage_host = expand("02_HostMapping/{sample}_coverage.tsv", sample=SAMPLES),
+#         coverage_host_hist = expand("02_HostMapping/{sample}_coverage_histogram.txt", sample=SAMPLES),
+#         trees = lambda wildcards: ["07_AnnotationAndPhylogenies/05_IQTree/"+group+"/"+group+"_Phylogeny.contree" for group in [x for x in GROUPS if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_tree) > 4]],
+#         # dram_annotations_distill = expand("05_Assembly/DRAM_annotations_distill/{sample}/", sample=SAMPLES),
+#         # annotate_mags = lambda wildcards: expand("07_AnnotationAndPhylogenies/06_DRAM_annotations_distill/{genome}/", genome=get_MAGs_list(checkpoints.make_phylo_table.get().output.out_mags_filt)),
+#         # contig_tracker = expand("06_MAG_binning/contig_tracker_after_prokka/{genome}_contig_tracker.tsv", genome=get_MAGs_list(checkpoints.make_phylo_table.get().output.out_mags_filt)),
+#         orfs = expand("12_species_validation/metagenomic_orfs/{sample}/{sample}_orfs.ffn", sample=SAMPLES),
+#         # html = PROJECT_IDENTIFIER+"_Report.html",
+#         rmd = PROJECT_IDENTIFIER+"_Report.Rmd",
+#         isolates = "config/IsolateGenomeInfo.csv",
+        # backup_log = "logs/backup.done",
+
+rule backup:
     input:
         flagstat_02 = expand("02_HostMapping/{sample}_flagstat.tsv", sample=SAMPLES),
         flagstat_03 = expand("03_MicrobiomeMapping/{sample}_flagstat.tsv", sample=SAMPLES),
@@ -273,6 +306,7 @@ rule targets:
         coverage_host = expand("02_HostMapping/{sample}_coverage.tsv", sample=SAMPLES),
         coverage_host_hist = expand("02_HostMapping/{sample}_coverage_histogram.txt", sample=SAMPLES),
         trees = lambda wildcards: ["07_AnnotationAndPhylogenies/05_IQTree/"+group+"/"+group+"_Phylogeny.contree" for group in [x for x in GROUPS if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_tree) > 4]],
+        SDP_validation_done = lambda wildcards: ["12_species_validation/"+group+"/"+group+"_SDP_validation.done" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
         # dram_annotations_distill = expand("05_Assembly/DRAM_annotations_distill/{sample}/", sample=SAMPLES),
         # annotate_mags = lambda wildcards: expand("07_AnnotationAndPhylogenies/06_DRAM_annotations_distill/{genome}/", genome=get_MAGs_list(checkpoints.make_phylo_table.get().output.out_mags_filt)),
         # contig_tracker = expand("06_MAG_binning/contig_tracker_after_prokka/{genome}_contig_tracker.tsv", genome=get_MAGs_list(checkpoints.make_phylo_table.get().output.out_mags_filt)),
@@ -280,8 +314,20 @@ rule targets:
         # html = PROJECT_IDENTIFIER+"_Report.html",
         rmd = PROJECT_IDENTIFIER+"_Report.Rmd",
         isolates = "config/IsolateGenomeInfo.csv",
-        backup_log = "logs/backup.log",
-
+    output:
+        outfile = touch("logs/backup.done")
+    threads: 2
+    log: "logs/backup.log"
+    benchmark: "logs/backup.benchmark"
+    params:
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-6:10:00"),
+    resources:
+        mem_mb = convertToMb("4G")
+    run:
+        if LOCAL_BACKUP:
+            shell("echo \' ensure that "+BACKUP_PATH+" exists \'")
+        shell("scripts/backup.sh "+PROJECT_PATH+" "+os.path.join(BACKUP_PATH, PROJECT_IDENTIFIER)+" logs/backup.log")
 
 rule raw_qc:
     input:
@@ -2422,6 +2468,138 @@ rule instrain_compare_plot:
         inStrain plot -i {input.compare} -pl a
         """
 
+rule subset_orthofiles_by_magOTU:
+    input:
+        orfs = expand("12_species_validation/metagenomic_orfs/{sample}/{sample}_orfs.ffn", sample=SAMPLES),
+        ref_info = lambda wildcards: checkpoints.make_phylo_table.get().output.out_mags_filt,
+        og_seq_dir = "database/MAGs_database_Orthofinder/{group}/single_ortholog_sequences"
+    output:
+        magOTU_seqs_dir_path = directory("12_species_validation/{group}")
+    params:
+        orf_db = "12_species_validation/orfs_db.ffn",
+        mailto="aiswarya.prasad@unil.ch",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-20:10:00"),
+    resources:
+        mem_mb = convertToMb("50G")
+    conda: "envs/midas-env.yaml"
+    log: "logs/subset_orthofiles_by_magOTU_{group}.log"
+    benchmark: "logs/subset_orthofiles_by_magOTU_{group}.benchmark"
+    threads: 16
+    shell:
+        """
+        if [[ ! -f {params.orf_db} ]];
+        then
+          echo 'Creating ORF db which is a concatenated file of all identified genes from each sample'
+          cat {input.orfs} > {params.orf_db}
+        fi
+        python scripts/subset_magOTU_OG_ffns.py --group {wildcards.group} --ref_info {input.ref_info} --input_seq_dir {input.og_seq_dir} --magOTU_seqs_dir_path {output.magOTU_seqs_dir_path} --log_path {log}
+        """
+
+rule blast_orthogroups_against_orfs:
+    input:
+        ref_info = lambda wildcards: checkpoints.make_phylo_table.get().output.out_mags_filt,
+        og_seq_dir = "database/MAGs_database_Orthofinder/{group}/single_ortholog_sequences",
+        magOTU_seqs_dir_path = "12_species_validation/{group}"
+    output:
+        done = touch("12_species_validation/{group}/{group}_blast_orthogroups_against_orfs.done")
+    params:
+        orf_db = "12_species_validation/orfs_db.ffn",
+        mailto="aiswarya.prasad@unil.ch",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-20:10:00"),
+    resources:
+        mem_mb = convertToMb("50G")
+    conda: "envs/mapping-env.yaml"
+    log: "logs/blast_orthogroups_against_orfs_{group}.log"
+    benchmark: "logs/blast_orthogroups_against_orfs_{group}.benchmark"
+    threads: 16
+    shell:
+        """
+        echo total OGs for {wildcards.group} was $(ls {input.og_seq_dir}/*.ffn | wc -l)
+        for DIR in {input.magOTU_seqs_dir_path}/*/;
+        do
+          echo $(ls ${{DIR}}/*ffn | wc -l) OGs survived for $(basename ${{DIR}}) of {wildcards.group}
+        done
+
+        echo 'Performing step2: blasting species core sequences against ORF database'
+
+        orf_db_INDEXFILE={params.orf_db}.nhr
+        if [ ! -f ${{orf_db_INDEXFILE}} ]; then
+            echo Indexing MAG-db file for blasting
+            makeblastdb -in {params.orf_db} -dbtype nucl
+        fi
+
+        for DIR in {input.magOTU_seqs_dir_path}/*/;
+        do
+            echo Blasting core sequences in directory: ${{DIR}}
+            cd ${{DIR}}
+            COUNTER=0
+            for i in $(ls *ffn);
+            do
+            (( COUNTER++ ))
+            name=$(basename $i)
+            BLAST_OUTFILE=${{DIR}}/${{name%%.ffn}}.blastn
+            blastn -db {params.orf_db} -query $i -outfmt 5 -evalue 1e-5 -perc_identity 70 > ${{BLAST_OUTFILE}}
+            if (( ${{COUNTER}} % 10 == 0 ));
+            then
+                echo Finished blasting ${{COUNTER}} files.. out of $(ls ${{DIR}}/*.ffn | wc -l)
+            fi
+            done
+            echo Progress on magOTU directories:
+        done
+        """
+
+rule recruit_orfs:
+    input:
+        ref_info = lambda wildcards: checkpoints.make_phylo_table.get().output.out_mags_filt,
+        og_seq_dir = "database/MAGs_database_Orthofinder/{group}/single_ortholog_sequences",
+        magOTU_seqs_dir_path = "12_species_validation/{group}",
+        blast_done = "12_species_validation/{group}/{group}_blast_orthogroups_against_orfs.done"
+    output:
+        done = touch("12_species_validation/{group}/{group}_recruit_orfs.done")
+    params:
+        orf_db = "12_species_validation/orfs_db.ffn",
+        mailto="aiswarya.prasad@unil.ch",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-20:10:00"),
+    resources:
+        mem_mb = convertToMb("50G")
+    conda: "envs/midas-env.yaml"
+    log: "logs/recruit_orfs_{group}.log"
+    benchmark: "logs/recruit_orfs_{group}.benchmark"
+    threads: 16
+    shell:
+        """
+        python scripts/recruit_orfs.py --group {wildcards.group} --ref_info {input.ref_info} --orf_db {params.orf_db} --magOTU_seqs_dir_path {input.magOTU_seqs_dir_path} --log_path {log}
+        """
+
+rule SDP_validation:
+    input:
+        ref_info = lambda wildcards: checkpoints.make_phylo_table.get().output.out_mags_filt,
+        og_seq_dir = "database/MAGs_database_Orthofinder/{group}/single_ortholog_sequences",
+        magOTU_seqs_dir_path = "12_species_validation/{group}",
+        blast_done = "12_species_validation/{group}/{group}_blast_orthogroups_against_orfs.done"
+    output:
+        SDP_validation_done = touch("12_species_validation/{group}/{group}_SDP_validation.done")
+    params:
+        orf_db = "12_species_validation/orfs_db.ffn",
+        mailto="aiswarya.prasad@unil.ch",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-20:10:00"),
+    resources:
+        mem_mb = convertToMb("50G")
+    conda: "envs/mapping-env.yaml"
+    log: "logs/recruit_orfs_{group}.log"
+    benchmark: "logs/recruit_orfs_{group}.benchmark"
+    threads: 16
+    shell:
+        """
+        python scripts/orf_aln_perc_id.py --group {wildcards.group} --ref_info {input.ref_info} --orf_db {params.orf_db} --magOTU_seqs_dir_path {input.magOTU_seqs_dir_path} --log_path {log} --perc_id {input.magOTU_seqs_dir_path} --input_og_seq_dir {input.og_seq_dir}
+        """
+
+
+
 ###############################
 ###############################
 ###############################
@@ -2469,24 +2647,6 @@ rule instrain_compare_plot:
 #         rm -rf PROJECT_IDENTIFIER_Report_cache
 #         R -e \"rmarkdown::render('{input.rmd}')\"
 #         """
-
-rule backup:
-    input:
-        html = PROJECT_IDENTIFIER+"_Report.html",
-    output:
-        outfile = touch("logs/backup.done")
-    threads: 2
-    log: "logs/backup.log"
-    benchmark: "logs/backup.benchmark"
-    params:
-        account="pengel_spirit",
-        runtime_s=convertToSec("0-6:10:00"),
-    resources:
-        mem_mb = convertToMb("4G")
-    run:
-        if LOCAL_BACKUP:
-            shell("echo \' ensure that "+BACKUP_PATH+" exists \'")
-        shell("scripts/backup.sh "+PROJECT_PATH+" "+os.path.join(BACKUP_PATH, PROJECT_IDENTIFIER)+" logs/backup.log")
 
 # rule popcogent:
 #     input:
