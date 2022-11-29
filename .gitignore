@@ -39,6 +39,7 @@ database*/*
 07_AnnotationAndPhylogenies*/*
 08_motus_profile*/*
 09_MagDatabaseProfiling*/*
+*12_species_validation*
 00_*/*
 01_*/*
 02_*/*
