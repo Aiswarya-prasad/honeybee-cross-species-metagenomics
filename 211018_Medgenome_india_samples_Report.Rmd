@@ -741,7 +741,7 @@ Groups <- c("g__Bombilactobacillus",
 ```
 
 ```{r read_mapping_data, results='hold'}
-# setwd("/Volumes/Storage/Work/Temp-from-NAS/cross-species-analysis-india")
+# setwd("/scratch/aprasad/211018_Medgenome_india_samples")
 # make mapping summary from flagstat tsv
 df_reads <- data.frame()
 for (sample in samples) {
