@@ -1,0 +1,14 @@
+name: scripts-env
+
+channels:
+  - bioconda
+  - conda-forge
+  - hcc
+
+dependencies:
+  - python=3.*
+  - biopython
+  - numpy
+  - pandas
+  - argparse
+  - time

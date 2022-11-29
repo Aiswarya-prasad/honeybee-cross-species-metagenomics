@@ -1,0 +1,7 @@
+name: motus-env
+
+channels:
+  - bioconda
+
+dependencies:
+  - motus=3*

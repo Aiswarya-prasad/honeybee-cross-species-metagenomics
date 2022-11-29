@@ -1,0 +1,19 @@
+name: mapping-env
+
+channels:
+  - bioconda
+  - conda-forge
+  - hcc
+
+dependencies:
+  - python=3.9.7
+  - openjdk=11.0.9.1
+  - perl=5.32.1=0_h7f98852_perl5
+  - samtools=1.13=h8c37831_0
+  - picard=2.26.2=hdfd78af_0
+  - bwa=0.7.17=h5bf99c6_8
+  - metabat2
+  - blast
+  - bbmap
+  - muscle=3.8.1551
+  - biopython

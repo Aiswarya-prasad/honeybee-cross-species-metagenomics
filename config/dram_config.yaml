@@ -1,0 +1,31 @@
+# locations as in dcsr curnagl
+KEGG db: None
+KOfam db: /reference/dram/kofam_profiles.hmm
+KOfam KO list: /reference/dram/kofam_ko_list.tsv
+UniRef db: None
+Pfam db: /reference/dram/pfam.mmspro
+dbCAN db: None
+RefSeq Viral db: None
+MEROPS peptidase db: None
+VOGDB db: /reference/dram/vog_latest_hmms.txt
+# Descriptions of search database entries
+Pfam hmm dat: /reference/dram/Pfam-A.hmm.dat.gz
+dbCAN family activities: None
+VOG annotations: /reference/dram/vog_annotations_latest.tsv.gz
+
+Description db: /reference/dram/description_db.sqlite
+
+# DRAM distillation sheets
+Genome summary form: /reference/dram/genome_summary_form.20211028.tsv
+Module step form: /reference/dram/module_step_form.20211028.tsv
+ETC module database: /reference/dram/etc_mdoule_database.20211028.tsv
+Function heatmap form: /reference/dram/function_heatmap_form.20211028.tsv
+AMG database: /reference/dram/amg_database.20211028.tsv
+
+#### databases not present/found
+# UniRef db: /reference/dram/uniref90.20221026.mmsdb
+# dbCAN db: /reference/dram/dbCAN-HMMdb-V10.txt
+# RefSeq Viral db: /reference/dram/refseq_viral.20221029.mmsdb
+# MEROPS peptidase db: /reference/dram/peptidases.20221029.mmsdb
+#
+# dbCAN family activities: /reference/dram/CAZyDB.07292021.fam-activities.txt

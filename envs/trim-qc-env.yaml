@@ -1,0 +1,12 @@
+name: trim-qc-env
+
+channels:
+  - bioconda
+  - conda-forge
+  - hcc
+
+dependencies:
+  - python
+  - trimmomatic
+  - fastqc
+  - quast

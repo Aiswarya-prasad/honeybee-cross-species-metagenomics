@@ -1,0 +1,200 @@
+﻿ID,Accession,Locus_tag_KE_DB,Strain_name,Phylotype,SDP,Species,Host,Study,Origin,Source_database,Cluster,Group,Genus,Strain_name_alt
+ESL0404,GCA_019469245.1,Ga0307799,ESL0404,api,api_1,Apibacter sp.,Apis cerana,Ellegaard et al. (2020),Yokohama  Japan,KE_2021_expandedGBR,api_1,api,NA,NA
+ESL0432,GCA_019469225.1,Ga0312307,ESL0432,api,api_1,Apibacter sp.,Apis cerana,Ellegaard et al. (2020),Tsukuba  Japan,KE_2021_expandedGBR,api_1,api,NA,NA
+wkB309,GCA_002964915.1,C4S75,wkB309,api,api_1,Apibacter sp.,Apis cerana,Kwong et al. (2018),Genting  Malaysia,KE_2021_expandedGBR,api_1,api,NA,NA
+R-53146,GCA_900018365.1,Ga0061079,R-53146,api,NA,Apibacter mensalis,Bombus lapidarius,Kwong et al. (2018),Ghent  Belgium,KE_2021_expandedGBR,g__Apibacter_outgroup,g__Apibacter_outgroup,NA,NA
+CB23,GCA_007845595.1,SELI,CB23,NA,NA,Apibacter muscae,Musca domestica,https://doi.org/10.1099/ijsem.0.003667,Belgium,NCBI,g__Apibacter_outgroup,g__Apibacter_outgroup,NA,NA
+HY041,GCA_004014855.1,CP034930,HY041,NA,NA,Apibacter raozihei,Bat (Hipposideros and Taphozous sp.),https://doi.org/10.1099/ijsem.0.003801,China,NCBI,g__Apibacter_outgroup,g__Apibacter_outgroup,NA,NA
+BBC0122,GCA_002007565.1,Ga0199088,BBC0122,bapis,barto_2,Bartonella apis,Apis mellifera,Segers et al. (2017),Switzerland  Engel apiary,HZ_2021,barto_2,bapis,NA,NA
+MVT02,GCA_001291465.1,BM1374164,MVT02,NA,NA,Bartonella apis,Homo sapiens,10.3201/eid2203.150269,France,NCBI,g__Bartonella_outgroup,g__Bartonella_outgroup,NA,NA
+ESL0447,GCA_019469425.1,Ga0312305,ESL0447,bifido,bifido_1_cerana,Bifidobacterium asteroides,Apis cerana,Ellegaard et al. (2020),Japan  Tsukuba,KE_2021_expandedGBR,bifido_1_cerana,bifido,NA,NA
+Bin2,GCA_000967185.1,Ga0072395,Bin2,bifido,bifido_1.1,Bifidobacterium asteroides,Apis mellifera,Ellegaard et al. (2015),Sweden  Jamtland,KE_2021_expandedGBR,bifido_1.1,bifido,NA,NA
+M0109,GCA_016101605.1,H3T81,M0109,bifido,bifido_1.1,NA,Apis mellifera,NA,China,2021_MN,bifido_1.1,bifido,NA,NA
+W8112,GCA_016101425.1,H3T92,W8112,bifido,bifido_1.1,NA,Apis mellifera,NA,China,2021_MN,bifido_1.1,bifido,NA,NA
+W8120,GCA_016100785.1,H3U88,W8120,bifido,bifido_1.1,NA,Apis mellifera,NA,China,2021_MN,bifido_1.1,bifido,NA,NA
+Bin7,GCA_000967265.1,Ga0072396,Bin7,bifido,bifido_1.2,Bifidobacterium asteroides,Apis mellifera,Ellegaard et al. (2015),Sweden  Jamtland,KE_2021_expandedGBR,bifido_1.2,bifido,NA,NA
+B14384H11,GCA_016102005.1,H3S97,B14384H11,bifido,bifido_1.2,NA,Apis mellifera,NA,China,2021_MN,bifido_1.2,bifido,NA,NA
+M0353,GCA_016100645.1,H3V04,M0353,bifido,bifido_1.2,NA,Apis mellifera,NA,China,2021_MN,bifido_1.2,bifido,NA,NA
+W8101,GCA_016100725.1,H3U87,W8101,bifido,bifido_1.2,NA,Apis mellifera,NA,China,2021_MN,bifido_1.2,bifido,NA,NA
+W8104,GCA_016100735.1,H3U89,W8104,bifido,bifido_1.2,NA,Apis mellifera,NA,China,2021_MN,bifido_1.2,bifido,NA,NA
+W8113,GCA_016101175.1,H3T86,W8113,bifido,bifido_1.2,NA,Apis mellifera,NA,China,2021_MN,bifido_1.2,bifido,NA,NA
+W8116,GCA_016100675.1,H3U98,W8116,bifido,bifido_1.2,NA,Apis mellifera,NA,China,2021_MN,bifido_1.2,bifido,NA,NA
+ESL0170,GCA_003202855.1,Ga0133549,ESL0170,bifido,bifido_1.3,Bifidobacterium asteroides,Apis mellifera,Ellegaard_Engel (2018),Switzerland  Engel apiary,KE_2021_expandedGBR,bifido_1.3,bifido,NA,NA
+PRL2011,GCA_000304215.1,BAST,PRL2011,bifido,bifido_1.3,Bifidobacterium asteroides,Apis mellifera,Bottacini et al. (2012),honeybee hindgut,KE_2021_expandedGBR,bifido_1.3,bifido,NA,NA
+W8109,GCA_016102215.1,H3S93,W8109,bifido,bifido_1.3,NA,Apis mellifera,NA,China,2021_MN,bifido_1.3,bifido,NA,NA
+W8114,GCA_016101165.1,H3T89,W8114,bifido,bifido_1.3,NA,Apis mellifera,NA,China,2021_MN,bifido_1.3,bifido,NA,NA
+W8130,GCA_016102155.1,H3S92,W8130,bifido,bifido_1.3,NA,Apis mellifera,NA,China,2021_MN,bifido_1.3,bifido,NA,NA
+ESL0198,GCA_003202715.1,Ga0133551,ESL0198,bifido,bifido_1.4.1,Bifidobacterium asteroides,Apis mellifera,Ellegaard_Engel (2018),Switzerland  Engel apiary,KE_2021_expandedGBR,bifido_1.4.1,bifido,NA,NA
+Hma3,GCA_000970835.1,Ga0072401,Hma3,bifido,bifido_1.4.1,Bifidobacterium asteroides,Apis mellifera,Ellegaard et al. (2015),Sweden  Jamtland,KE_2021_expandedGBR,bifido_1.4.1,bifido,NA,NA
+B14448H7,GCA_016101195.1,H3T91,B14448H7,bifido,bifido_1.4.1,NA,Apis mellifera,NA,China,2021_MN,bifido_1.4.1,bifido,NA,NA
+M0404,GCA_016101415.1,H3T93,M0404,bifido,bifido_1.4.1,NA,Apis mellifera,NA,China,2021_MN,bifido_1.4.1,bifido,NA,NA
+W6238G3,GCA_016100625.1,H3V06,W6238G3,bifido,bifido_1.4.1,NA,Apis mellifera,NA,China,2021_MN,bifido_1.4.1,bifido,NA,NA
+W8117,GCA_016101585.1,H3T90,W8117,bifido,bifido_1.4.1,NA,Apis mellifera,NA,China,2021_MN,bifido_1.4.1,bifido,NA,NA
+ESL0199,GCA_003202755.1,Ga0133552,ESL0199,bifido,bifido_1.4.2,Bifidobacterium asteroides,Apis mellifera,Ellegaard_Engel (2018),Switzerland  Engel apiary,KE_2021_expandedGBR,bifido_1.4.2,bifido,NA,NA
+ESL0200,GCA_003202695.1,Ga0133553,ESL0200,bifido,bifido_1.5,Bifidobacterium asteroides,Apis mellifera,Ellegaard_Engel (2018),Switzerland  Engel apiary,KE_2021_expandedGBR,bifido_1.5,bifido,NA,NA
+Bma6,GCA_000967205.1,Ga0072398,Bma6,bifido,bifido_2,Bifidobacterium indicum/coryneforme,Apis mellifera,Ellegaard et al. (2015),Sweden  Jamtland,KE_2021_expandedGBR,bifido_2,bifido,NA,NA
+ESL0197,GCA_003202665.1,Ga0133550,ESL0197,bifido,bifido_2,Bifidobacterium indicum/coryneforme,Apis mellifera,Ellegaard_Engel (2018),Switzerland  Engel apiary,KE_2021_expandedGBR,bifido_2,bifido,NA,NA
+LMG_11587,GCA_000706765.1,BINDI,LMG 11587,bifido,bifido_2,Bifidobacterium indicum,insect,Milani et al. (2014),University of Parma,KE_2021_expandedGBR,bifido_2,bifido,NA,NA
+LMG18911,GCA_000737865.1,BCOR,LMG18911,bifido,bifido_2,Bifidobacterium coryneforme ,Apis mellifera,Milani et al. (2014),honeybee hindgut,KE_2021_expandedGBR,bifido_2,bifido,NA,NA
+DSM_19703,GCA_000737845.1,Ga0056940,DSM 19703,bifido,bifido_bombus,Bifidobacterium bombi,Bumblebee?,Milani et al. (2014),Unknown,2021_MN,g__Bifidobacterium_outgroup,g__Bifidobacterium_outgroup,NA,NA
+DSM_22766,GCA_001263395.1,Ga0098206,DSM 22766,bifido,bifido_bombus,Bifidobacterium actinocoloniiforme,Bumblebee digestive tract,Chen et al. (2015),Unknown,2021_MN,g__Bifidobacterium_outgroup,g__Bifidobacterium_outgroup,NA,NA
+DSM_22767,GCA_000741525.1,Ga0057557,DSM 22767,bifido,bifido_bombus,Bifidobacterium bohemicum,Bumblebee digestive tract,Milani et al. (2014),Unknown,2021_MN,g__Bifidobacterium_outgroup,g__Bifidobacterium_outgroup,NA,NA
+DSM_20432,GCA_000687615.1,JHWO,DSM 20432,NA,NA,Bifidobacterium boum,Cow rumen,https://doi.org/10.1038/nbt.4110,Italy,NCBI,g__Bifidobacterium_outgroup,g__Bifidobacterium_outgroup,NA,NA
+DSM_20212,GCA_000687575.1,JHWM,DSM 20212,NA,NA,Bifidobacterium thermophilum,Cow rumen,https://doi.org/10.1038/nbt.4110,Italy,NCBI,g__Bifidobacterium_outgroup,g__Bifidobacterium_outgroup,NA,NA
+ESL0368,GCA_009734205.1,Ga0372762,ESL0368,bom,bom_2,NA,Apis mellifera,Bonilla-Rosso et al. (2019),Switzerland  Engel apiary,KE_2021_expandedGBR,bom_2,bom,NA,NA
+ESL0385,GCA_009725755.1,Ga0216357,ESL0385,bom,bom_3,NA,Apis mellifera,Bonilla-Rosso et al. (20190,Switzerland  Engel apiary,KE_2021_expandedGBR,bom_3,bom,NA,NA
+R-52487,GCA_002003665.1,Ga0308518,R-52487,bom,bom_i,NA,Bombus lapidarius,Li et al. (2016),Crop of Bombus lapidarius,KE_2021_expandedGBR,g__Bombella_outgroup,g__Bombella_outgroup,NA,NA
+ESL0284,GCA_003202795.1,Ga0216351,ESL0284,com,com_1,NA,Apis mellifera,Ellegaard_Engel (2018),Switzerland  Engel apiary,KE_2021_expandedGBR,com_1,com,NA,NA
+ESL0366,GCA_009725885.1,Ga0216349,ESL0366,com,com_2,NA,Apis mellifera,Bonilla-Rosso et al. (2019),Switzerland  Engel apiary,KE_2021_expandedGBR,com_2,com,NA,NA
+A911,GCA_000231445.2,CIN,A911,NA,com_i,NA,Drosophila melagenogaster,Public  not published?,?,KE_2021_expandedGBR,g__Commensalibacter_outgroup,g__Commensalibacter_outgroup,NA,NA
+MX01,GCA_000527695.1,Ga0248239,MX01,NA,com_p,NA,Monarch butterfly,Servin-Garciduenas et al. (2014),Mexico,KE_2021_expandedGBR,g__Commensalibacter_outgroup,g__Commensalibacter_outgroup,NA,NA
+ESL0294,GCA_013346925.1,Ga0227357,ESL0294,firm4,firm4_1,Lactobacillus mellis,Apis mellifera,Ellegaard et al. (2020),Switzerland  Engel apiary,KE_2021_expandedGBR,firm4_1,firm4,NA,NA
+ESL0295,GCA_013345055.1,Ga0227358,ESL0295,firm4,firm4_1,Lactobacillus mellis,Apis mellifera,Ellegaard et al. (2020),Switzerland  Engel apiary,KE_2021_expandedGBR,firm4_1,firm4,NA,NA
+ESL0394,GCA_013347085.1,Ga0227360,ESL0394,firm4,firm4_1,Lactobacillus mellis,Apis mellifera,Ellegaard et al. (2020),Switzerland  Engel apiary,KE_2021_expandedGBR,firm4_1,firm4,NA,NA
+ESL0449,GCA_013346905.1,Ga0326456,ESL0449,firm4,firm4_1,Lactobacillus mellis,Apis cerana,Ellegaard et al. (2020),Japan  Tsukuba,KE_2021_expandedGBR,firm4_1,firm4,NA,NA
+Hon2,GCA_000967245.1,Ga0070888,Hon2,firm4,firm4_1,Lactobacillus mellis,Apis mellifera,Ellegaard et al. (2015),Sweden  Jamtland ,KE_2021_expandedGBR,firm4_1,firm4,NA,NA
+Bin4,GCA_000970795.1,Ga0072399,Bin4,firm4,firm4_2,Lactobacillus mellifer,Apis mellifera,Ellegaard et al. (2015),Sweden  Jamtland,KE_2021_expandedGBR,firm4_2,firm4,NA,NA
+DPC_6026,GCA_000204985.1,NA,DPC 6026,NA,NA,Lactobacillus johnsonii,Pig Intestinal tract,10.1371/journal.pone.0018740,NA,GSL_Firm5DB,g_Bombilactobacillus_outgroup,firm4,NA,NA
+JCM16512,GCA_001311465.1,NA,JCM 16512,NA,NA,Holzapfelia floricola,Caltha palustris flower,NA,NA,GSL_Firm5DB,g_Bombilactobacillus_outgroup,firm4,NA,NA
+ATCC_33323,GCA_000014425.1,NA,ATCC 33323,NA,NA,Lactobacillus gasseri,Outgroup,NA,NA,GSL_Firm5DB,g_Bombilactobacillus_outgroup,firm4,NA,NA
+LEAF_2052A-d,GCA_000179955.1,NA,LEAF 2052A-d,NA,NA,Lactobacillus iners,Outgroup,NA,NA,GSL_Firm5DB,g_Bombilactobacillus_outgroup,firm4,NA,NA
+ESL0185,GCA_003150935.1,Ga0133563,ESL0185,firm5,firm5_1,Lactobacillus apis,Apis mellifera,Ellegaard_Engel (2018),Switzerland  Engel apiary,KE_2021_expandedGBR,firm5_1,firm5,NA,NA
+ESL0263,GCA_003692845.1,Ga0226842,ESL0263,firm5,firm5_1,Lactobacillus apis,Apis mellifera,Ellegaard et al. (2019),Switzerland  Engel apiary,KE_2021_expandedGBR,firm5_1,firm5,NA,NA
+Hma11,GCA_000970735.1,Ga0072402,Hma11,firm5,firm5_1,Lactobacillus apis,Apis mellifera,Ellegaard et al.(2015),Sweden Jamtland,KE_2021_expandedGBR,firm5_1,firm5,NA,ESL0353
+LMG_26964,GCA_002837055.1,Ga0061073,LMG 26964,firm5,firm5_1,Lactobacillus apis,Apis mellifera,DOE Joint genome institute,Czech republic (type strain),KE_2021_expandedGBR,firm5_1,firm5,NA,NA
+ESL0183,GCA_003173695.1,Ga0133561,ESL0183,firm5,firm5_2,Lactobacillus helsingborgensis,Apis mellifera,Ellegaard_Engel (2018),Switzerland  Engel apiary,KE_2021_expandedGBR,firm5_2,firm5,NA,NA
+Bma5,GCA_000970855.1,Ga0072400,Bma5,firm5,firm5_2,Lactobacillus helsingborgensis,Apis mellifera,Ellegaard et al.(2015),Sweden  Jamtland,KE_2021_expandedGBR,firm5_2,firm5,NA,ESL0354
+wkB8,GCA_000761135.1,LACWKB8,wkB8,firm5,firm5_2,Lactobacillus helsingborgensis,Apis mellifera,Kwong et al.(2014a),USA  West Haven,KE_2021_expandedGBR,firm5_2,firm5,NA,NA
+ESL0184,GCA_003202825.1,Ga0133562,ESL0184,firm5,firm5_3,Lactobacillus melliventris,Apis mellifera,Ellegaard_Engel (2018),Switzerland  Engel apiary,KE_2021_expandedGBR,firm5_3,firm5,NA,NA
+ESL0259,GCA_003693045.1,Ga0225908,ESL0259,firm5,firm5_3,Lactobacillus melliventris,Apis mellifera,Ellegaard et al. (2019),Switzerland  Engel apiary,KE_2021_expandedGBR,firm5_3,firm5,NA,NA
+ESL0260,GCA_003692935.1,Ga0226840,ESL0260,firm5,firm5_3,Lactobacillus melliventris,Apis mellifera,Ellegaard et al. (2019),Switzerland  Engel apiary,KE_2021_expandedGBR,firm5_3,firm5,NA,NA
+Hma8,GCA_000970775.1,Ga0072404,Hma8,firm5,firm5_3,Lactobacillus melliventris,Apis mellifera,Ellegaard et al. (2015),Sweden  Jamtland,KE_2021_expandedGBR,firm5_3,firm5,NA,ESL0350
+ESL0393,GCA_013346935.1,Ga0227359,ESL0393,firm5,firm5_3,Lactobacillus melliventris,Apis mellifera,Ellegaard et al. (2020),Switzerland  Engel apiary,KE_2021_expandedGBR,firm5_3,firm5,NA,NA
+ESL0186,GCA_003151025.1,Ga0133564,ESL0186,firm5,firm5_4,Lactobacillus kulllabergensis,Apis mellifera,Ellegaard_Engel (2018),Switzerland  Engel apiary,KE_2021_expandedGBR,firm5_4,firm5,NA,NA
+ESL0261,GCA_003693025.1,Ga0226839,ESL0261,firm5,firm5_4,Lactobacillus kullabergensis,Apis mellifera,Ellegaard et al. (2019),Switzerland  Engel apiary,KE_2021_expandedGBR,firm5_4,firm5,NA,NA
+Biut2,GCA_000967195.1,Ga0070887,Biut2,firm5,firm5_4,Lactobacillus kullabergensis,Apis mellifera,Ellegaard et al. (2015),Sweden  Jamtland,KE_2021_expandedGBR,firm5_4,firm5,NA,ESL0351
+Hma2,GCA_000970755.1,Ga0072403,Hma2,firm5,firm5_4,Lactobacillus kimbladii,Apis mellifera,Ellegaard et al. (2015),Sweden  Jamtland,KE_2021_expandedGBR,firm5_4,firm5,NA,ESL0352
+wkB10,GCA_000760615.1,LACWKB10,wkB10,firm5,firm5_4,Lactobacillus kullabergensis,Apis mellifera,Kwong et al.(2014a),USA  West Haven,KE_2021_expandedGBR,firm5_4,firm5,NA,NA
+ESL0409,GCA_019469365.1,Ga0307804,ESL0409,firm5,firm5_7,Lactobacillus panisapium,Apis cerana,Ellegaard et al. (2020),Japan  Yokohama,KE_2021_expandedGBR,firm5_7,firm5,NA,NA
+ESL0411,GCA_019469345.1,Ga0311394,ESL0411,firm5,firm5_7,Lactobacillus panisapium,Apis cerana,Ellegaard et al. (2020),Japan  Yokohama,KE_2021_expandedGBR,firm5_7,firm5,NA,NA
+ESL0413,GCA_019469325.1,Ga0312303,ESL0413,firm5,firm5_7,Lactobacillus panisapium,Apis cerana,Ellegaard et al. (2020),Japan  Yokohama,KE_2021_expandedGBR,firm5_7,firm5,NA,NA
+ESL0416,GCA_019469265.1,Ga0312304,ESL0416,firm5,firm5_7,Lactobacillus panisapium,Apis cerana,Ellegaard et al. (2020),Japan  Yokohama,KE_2021_expandedGBR,firm5_7,firm5,NA,NA
+ESL0228,GCA_003692825.1,Ga0226852,ESL0228,firm5,firm5_bombus,Lactobacillus bohemicus,Bombus bohemicus,Ellegaard et al. (2019),Switzerland,2021_MN,firm5_bombus,firm5,NA,NA
+ESL0230,GCA_003692805.1,Ga0226847,ESL0230,firm5,firm5_bombus,Lactobacillus bombicola,Bombus pascuorum,Ellegaard et al. (2019),Switzerland,2021_MN,firm5_bombus,firm5,NA,NA
+R-53102,GCA_900112665.1,Ga0061072,R-53102,firm5,firm5_bombus,Lactobacillus bombicola,Bombus lapidarius,DOE Joint genome institute,Belgium  Ghent,2021_MN,firm5_bombus,firm5,NA,NA
+ESL0262,GCA_003692925.1,NA,ESL0262,NA,NA,Lactobacillus sp,Apis mellifera,NA,F262,GSL_Firm5DB,g__Lactobacillus_outgroup,g__Lactobacillus_outgroup,NA,NA
+NBRC_13120,2651869842.fna,NA,NBRC 13120,NA,NA,Lactobacillus acetotolerans,Outgroup,NA,NA,GSL_Firm5DB,g__Lactobacillus_outgroup,g__Lactobacillus_outgroup,NA,2651869842.fna
+CAUH18,GCA_001308285.1,NA,CAUH18,NA,NA,Lactobacillus helveticus,Outgroup,NA,NA,GSL_Firm5DB,g__Lactobacillus_outgroup,g__Lactobacillus_outgroup,NA,NA
+DSM_23907,GCA_004354755.1,NA,DSM 23907,NA,NA,Lactobacillus pasteurii,Outgroup,NA,NA,GSL_Firm5DB,g__Lactobacillus_outgroup,g__Lactobacillus_outgroup,NA,NA
+DSM_6629,GCA_024397795.1,NA,DSM 6629,NA,NA,Lactobacillus intestinalis,Outgroup,NA,NA,GSL_Firm5DB,g__Lactobacillus_outgroup,g__Lactobacillus_outgroup,NA,NA
+L6,GCA_002075105.1,NA,L6,NA,NA,Lactobacillus  amylolyticus,Outgroup,NA,NA,GSL_Firm5DB,g__Lactobacillus_outgroup,g__Lactobacillus_outgroup,NA,NA
+La-14,GCA_000389675.2,NA,La-14,NA,NA,Lactobacillus acidophilus,Outgroup,NA,NA,GSL_Firm5DB,g__Lactobacillus_outgroup,g__Lactobacillus_outgroup,NA,NA
+30SC,GCA_000191545.1,NA,30SC,NA,NA,Lactobacillus amylovorus,Outgroup,NA,NA,GSL_Firm5DB,g__Lactobacillus_outgroup,g__Lactobacillus_outgroup,NA,NA
+ST1,GCA_000091765.1,NA,ST1,NA,NA,Lactobacillus crispatus,Outgroup,NA,NA,GSL_Firm5DB,g__Lactobacillus_outgroup,g__Lactobacillus_outgroup,NA,NA
+NBRC_3202,NA,NA,NBRC 3202,NA,NA,Lactobacillus delbrueckii,Outgroup,NA,NA,GSL_Firm5DB,g__Lactobacillus_outgroup,g__Lactobacillus_outgroup,NA,Ldel_NRBC3202.fna
+SNUV360,GCA_001936235.1,NA,SNUV360,NA,NA,Lactobacillus jensenii,Outgroup,NA,NA,GSL_Firm5DB,g__Lactobacillus_outgroup,g__Lactobacillus_outgroup,NA,NA
+ZW3,GCA_000214785.1,NA,ZW3,NA,NA,Lactobacillus kefiranofaciens,Outgroup,NA,NA,GSL_Firm5DB,g__Lactobacillus_outgroup,g__Lactobacillus_outgroup,NA,NA
+PEB0191,GCA_000807275.1,Ga0077910,PEB0191,fper,fper_1,Frischella perrara,Apis mellifera,Engel et al. (2015),USA  West Haven,KE_2021_expandedGBR,fper_1,fper,NA,ESL0034
+ESL0167,GCA_003202705.1,Ga0133554,ESL0167,fper,fper_1,Frischella perrara,Apis mellifera,Ellegaard_Engel(2018),Switzerland  Engel apiary,KE_2021_expandedGBR,fper_1,fper,NA,NA
+DSM_22228,GCA_003634275.1,NA,DSM 22228,NA,NA,Orbus hercynius,Wild Boar,Volkmann et al. (2010),Halberstadt  Germany,GSL_GilliamellaDB,g__Frischella_outgroup,g__Frischella_outgroup,NA,NA
+Bimp,GCA_000471645.3,NA,Bimp,NA,NA,Candidatus Schmidhempelia bombi str. Bimp 1,NA,Martinson et al (2019),Leamington  Ontario  Canada,GSL_GilliamellaDB,g__Frischella_outgroup,g__Frischella_outgroup,NA,NA
+IPMB12,GCA_011745665.1,NA,IPMB12,NA,NA,Orbus sp.,Zophobas atratus, Chih-Horng Kuo (2020),Taiwan,GSL_GilliamellaDB,g__Frischella_outgroup,g__Frischella_outgroup,NA,NA
+A-7-12,GCA_002141655.1,B6D08,A-7-12,gilli,gilli_1,Gilliamella apicola,Apis mellifera ,Ludvigsen et al. (2017),USA: Arizona,KE_2021_expandedGBR,gilli_1,gilli,NA,NA
+AM4,GCA_002141905.1,B6D22,AM4,gilli,gilli_1,Gilliamella apicola,Apis mellifera,Ludvigsen et al. (2017), USA: Arizona,KE_2021_expandedGBR,gilli_1,gilli,NA,NA
+ESL0178,GCA_003202815.1,Ga0133559,ESL0178,gilli,gilli_1,Gilliamella apicola,Apis mellifera,Ellegaard_Engel (2018),Switzerland  Engel apiary,KE_2021_expandedGBR,gilli_1,gilli,NA,NA
+N-22,GCA_002142285.1,B6D19,N-22,gilli,gilli_1,Gilliamella apicola,Apis mellifera ,Ludvigsen et al. (2017),Norway: Aas,KE_2021_expandedGBR,gilli_1,gilli,NA,NA
+N-G5,GCA_002142265.1,B6D03,N-G5,gilli,gilli_1,Gilliamella apicola,Apis mellifera ,Ludvigsen et al. (2017),Norway: Aas,KE_2021_expandedGBR,gilli_1,gilli,NA,NA
+P54G,GCA_001690735.1,A9G14,P54G,gilli,gilli_1,Gilliamella apicola,Apis mellifera,Zheng et al. (2016),USA  Austin,KE_2021_expandedGBR,gilli_1,gilli,NA,NA
+wkB1,GCA_000599985.1,GAPWK,wkB1,gilli,gilli_1,Gilliamella apicola,Apis mellifera,Kwong et al. (2014b),USA  West Haven,KE_2021_expandedGBR,gilli_1,gilli,NA,NA
+wkB7,GCA_001693435.1,A9G17,wkB7,gilli,gilli_1,Gilliamella apicola,Apis mellifera,Zheng et al. (2016),USA  Austin,KE_2021_expandedGBR,gilli_1,gilli,NA,NA
+A7,GCA_002142015.1,B6D18,A7,gilli,gilli_2,Gilliamella apis,Apis mellifera,Ludvigsen et al. (2017),USA: Arizona,KE_2021_expandedGBR,gilli_2,gilli,NA,NA
+AM1,GCA_002141825.1,B6D21,AM1,gilli,gilli_2,Gilliamella apis,Apis mellifera ,Ludvigsen et al. (2017),USA: Arizona,KE_2021_expandedGBR,gilli_2,gilli,NA,NA
+ESL0169,GCA_003202875.1,Ga0133555,ESL0169,gilli,gilli_2,Gilliamella apis,Apis mellifera,Ellegaard_Engel (2018),Switzerland  Engel apiary,KE_2021_expandedGBR,gilli_2,gilli,NA,NA
+ESL0172,GCA_003202775.1,Ga0133556,ESL0172,gilli,gilli_2,Gilliamella apis,Apis mellifera,Ellegaard_Engel (2018),Switzerland  Engel apiary,KE_2021_expandedGBR,gilli_2,gilli,NA,NA
+M1-2G,GCA_001690775.1,A9G19,M1-2G,gilli,gilli_2,Gilliamella apis,Apis mellifera,Zheng et al. (2016),USA  Austin,KE_2021_expandedGBR,gilli_2,gilli,NA,NA
+N-G1,GCA_002142185.1,B6D17,N-G1,gilli,gilli_2,Gilliamella apis,Apis mellifera ,Ludvigsen et al. (2017),Norway: Aas,KE_2021_expandedGBR,gilli_2,gilli,NA,NA
+N-G2,GCA_002142215.1,B6C99,N-G2,gilli,gilli_2,Gilliamella apis,Apis mellifera,Ludvigsen et al. (2017),Norway  Aas,KE_2021_expandedGBR,gilli_2,gilli,NA,NA
+N-G4,GCA_002142255.1,B6D14,N-G4,gilli,gilli_2,Gilliamella apis,Apis mellifera ,Ludvigsen et al. (2017),Norway: Aas,KE_2021_expandedGBR,gilli_2,gilli,NA,NA
+NO15,GCA_002141935.1,B6C96,NO15,gilli,gilli_2,Gilliamella apis,Apis mellifera ,Ludvigsen et al. (2017),Norway: Aas,KE_2021_expandedGBR,gilli_2,gilli,NA,NA
+P62G,GCA_001690755.1,A9G15,P62G,gilli,gilli_2,Gilliamella apis,Apis mellifera,Zheng et al. (2016),USA  Austin,KE_2021_expandedGBR,gilli_2,gilli,NA,NA
+P83G,GCA_001690175.1,A9G16,P83G,gilli,gilli_2,Gilliamella apis,Apis mellifera,Zheng et al. (2016),USA  Austin,KE_2021_expandedGBR,gilli_2,gilli,NA,NA
+ESL0177,GCA_003202915.1,Ga0133557,ESL0177,gilli,gilli_3,NA,Apis mellifera,Ellegaard_Engel (2018),Switzerland  Engel apiary,KE_2021_expandedGBR,gilli_3,gilli,NA,NA
+ESL0182,GCA_003202655.1,Ga0133558,ESL0182,gilli,gilli_3,NA,Apis mellifera,Ellegaard_Engel (2018),Switzerland  Engel apiary,KE_2021_expandedGBR,gilli_3,gilli,NA,NA
+ESL0441,GCA_019469185.1,Ga0307802,ESL0441,gilli,gilli_4,NA,Apis cerana,Ellegaard et al. (2020),Tsukuba  Japan,2021_MN,gilli_4,gilli,NA,NA
+wkB308,GCA_001690185.1,A9G10,wkB308,gilli,gilli_4,NA,Apis cerana ,Zheng et al. (2016),USA: Austin,2021_MN,gilli_4,gilli,NA,NA
+ESL0405,GCA_019469205.1,Ga0307800,ESL0405,gilli,gilli_5,NA,Apis cerana,Ellegaard et al. (2020),Yokohama  Japan,2021_MN,gilli_5,gilli,NA,NA
+ESL0443,GCA_019469165.1,Ga0307803,ESL0443,gilli,gilli_6,NA,Apis cerana ,Ellegaard et al. (2020),Tsukuba  Japan,2021_MN,gilli_6,gilli,NA,NA
+wkB195,GCA_001690445.1,A9G08,wkB195,gilli,gilli_6,NA,Apis cerana ,Zheng et al. (2016),USA: Austin,2021_MN,gilli_6,gilli,NA,NA
+wkB72,GCA_001693745.1,A9G07,wkB72,gilli,gilli_6,Gilliamella apicola,Apis cerana ,Zheng et al. (2016),USA: Austin,2021_MN,gilli_6,gilli,NA,NA
+wkB292,GCA_001690235.1,A9G09,wkB292,gilli,gilli_apis_andre,NA,Apis cerana ,Zheng et al. (2016),USA: Austin,2021_MN,gilli_apis_andre,gilli,NA,NA
+wkB108,GCA_001690195.1,A9G11,wkB108,gilli,gilli_apis_dorsa,NA,Apis dorsata ,Zheng et al. (2016),USA: Austin,2021_MN,gilli_apis_dorsa,gilli,NA,NA
+wkB112,GCA_001690685.1,A9G12,wkB112,gilli,gilli_apis_dorsa,NA,Apis dorsata ,Zheng et al. (2016),USA: Austin,2021_MN,gilli_apis_dorsa,gilli,NA,NA
+wkB178,GCA_001690705.1,A9G13,wkB178,gilli,gilli_apis_dorsa,NA,Apis dorsata ,Zheng et al. (2016),USA: Austin,2021_MN,gilli_apis_dorsa,gilli,NA,NA
+App4-10,GCA_001690495.1,A9G23,App4-10,gilli,gilli_bombus,NA,Bombus appositus,Zheng et al. (2016),USA: Austin,2021_MN,gilli_bombus,gilli,NA,NA
+App6-5,GCA_001690525.1,A9G24,App6-5,gilli,gilli_bombus,NA,Bombus appositus,Zheng et al. (2016),USA: Austin,2021_MN,gilli_bombus,gilli,NA,NA
+Choc5-1,GCA_001690595.1,A9G35,Choc5-1,gilli,gilli_bombus,NA,Bombus impatiens,Zheng et al. (2016),USA: Austin,2021_MN,gilli_bombus,gilli,NA,NA
+ESL0232,GCA_013346885.1,Ga0227298,ESL0232,gilli,gilli_bombus,NA,Bombus terrestris,Ellegaard et al. (2020),Switzerland  Engel apiary,2021_MN,gilli_bombus,gilli,NA,NA
+ESL0250,GCA_013345045.1,Ga0227301,ESL0250,gilli,gilli_bombus,NA,Bombus pascuorum,Ellegaard et al. (2020),Switzerland  Engel apiary,2021_MN,gilli_bombus,gilli,NA,NA
+ESL0254,GCA_013344985.1,Ga0227302,ESL0254,gilli,gilli_bombus,NA,Bombus pascuorum,Ellegaard et al. (2020),Switzerland  Engel apiary,2021_MN,gilli_bombus,gilli,NA,NA
+Gris1-4,GCA_001690335.1,A9G31,Gris1-4,gilli,gilli_bombus,NA,Bombus griseocollis,Zheng et al. (2016),USA: Austin,2021_MN,gilli_bombus,gilli,NA,NA
+Occ3-1,GCA_001690655.1,A9G43,Occ3-1,gilli,gilli_bombus,Gilliamella apicola,Bombus occidentalis,Zheng et al. (2016),USA: Austin,2021_MN,gilli_bombus,gilli,NA,NA
+R-53144,GCA_900094935.1,Ga0061080,R-53144,gilli,gilli_bombus,Gilliamella intestini,soil?,JGI/Praet et al. (2017),NA,2021_MN,gilli_bombus,gilli,NA,NA
+WF3-4,GCA_001690275.1,A9G47,WF3-4,gilli,gilli_bombus,NA,Bombus pensylvanicus ,Zheng et al. (2016),USA: Austin,2021_MN,gilli_bombus,gilli,NA,NA
+wkB11,GCA_000733115.1,Ga0055041,wkB11,gilli,gilli_bombus,NA,Bombus bimaculatus,Kwong et al. (2014b),USA  West Haven,2021_MN,gilli_bombus,gilli,NA,NA
+Fhon13,GCA_001281175.1,Ga0308523,Fhon13,lkun,lkun,NA,Apis mellifera,Tamarit et al. (2015),Sweden  Jamtland,KE_2021_expandedGBR,lkun,lkun,NA,NA
+Fhon2,GCA_001281165.1,Ga0098617,Fhon2,lkun,lkun,NA,Apis mellifera,Tamarit et al. (2015),Sweden  Jamtland,KE_2021_expandedGBR,lkun,lkun,NA,NA
+CD034,GCA_000298115.2,LBUCD034,CD034,NA,NA,Lentilactobacillus buchneri,stable grass silage,https://doi.org/10.3168/jds.2014-9272,China,NCBI,g__Apilactobacillus_outgroup,g__Apilactobacillus_outgroup,NA,NA
+plantarum,GCA_000392485.2,LBP,plantarum,NA,NA,Lactiplantibacillus plantarum,dairy products,10.1016/j.jbiotec.2012.03.007,Austria,NCBI,g__Apilactobacillus_outgroup,g__Apilactobacillus_outgroup,NA,NA
+HV_65,GCA_006493595.1,QUBI,HV_65,NA,NA,Apilactobacillus micheneri,Megachile rotundata,https://doi.org/10.1093/gbe/evz136,UC riverside,NCBI,g__Apilactobacillus_outgroup,g__Apilactobacillus_outgroup,NA,NA
+NCTC11617,GCA_900186835.1,NA,NCTC11617,NA,NA,Pasteurella dagmatis,Homo sapiens,EBI (2017),NA,GSL_GilliamellaDB,g__Gilliamella_outgroup,g__Gilliamella_outgroup,NA,NA
+Pra-s52,GCA_009795805.1,NA,Pra-s52,NA,NA,Gilliamella sp.,Bombus pratorum,Zhang et al. (2020),Pingwu  Sichuan  China,GSL_GilliamellaDB,g__Gilliamella_outgroup,g__Gilliamella_outgroup,NA,NA
+Pra-s54,GCA_009795785.1,NA,Pra-s54,NA,NA,Gilliamella sp.,Bombus pratorum,Zhang et al. (2020),Pingwu  Sichuan  China,GSL_GilliamellaDB,g__Gilliamella_outgroup,g__Gilliamella_outgroup,NA,NA
+Pra-s60,GCA_009795755.1,NA,Pra-s60,NA,NA,Gilliamella sp.,Bombus pratorum,Zhang et al. (2020),Pingwu  Sichuan  China,GSL_GilliamellaDB,g__Gilliamella_outgroup,g__Gilliamella_outgroup,NA,NA
+Pra-s65,GCA_009795745.1,NA,Pra-s65,NA,NA,Gilliamella sp.,Bombus pratorum,Zhang et al. (2020),Pingwu  Sichuan  China,GSL_GilliamellaDB,g__Gilliamella_outgroup,g__Gilliamella_outgroup,NA,NA
+A-1-12,GCA_002088735.1,BGI00,A-1-12,snod,snod_1,NA,Apis mellifera ,Ludvigsen et al. (2017),USA: Arizona,KE_2021_expandedGBR,snod_1,snod,NA,NA
+A12,GCA_002088675.1,BGH96,A12,snod,snod_1,NA,Apis mellifera ,Ludvigsen et al. (2017),USA: Arizona,KE_2021_expandedGBR,snod_1,snod,NA,NA
+A2,GCA_002088395.1,BGI01,A2,snod,snod_1,NA,Apis mellifera ,Ludvigsen et al. (2017),USA: Arizona,KE_2021_expandedGBR,snod_1,snod,NA,NA
+Aw-20,GCA_002019415.1,BGH94,Aw-20,snod,snod_1,NA,Apis mellifera ,Ludvigsen et al. (2017),USA: Arizona,KE_2021_expandedGBR,snod_1,snod,NA,NA
+E1,GCA_002406645.1,CPT77,E1,snod,snod_1,NA,Apis mellifera ,Ludvigsen et al. (2017),USA: Arizona State University  Tempe Campus,KE_2021_expandedGBR,snod_1,snod,NA,NA
+ESL0196,GCA_003202885.1,Ga0326500,ESL0196,snod,snod_1,NA,Apis mellifera ,Ellegaard_Engel (2018),Switzerland  Engel apiary,KE_2021_expandedGBR,snod_1,snod,NA,NA
+ESL0304,GCA_013344995.1,Ga0227304,ESL0304,snod,snod_1,NA,Apis mellifera,Ellegaard et al. (2020),Switzerland  Engel apiary,KE_2021_expandedGBR,snod_1,snod,NA,NA
+ESL0323,GCA_013346865.1,Ga0227305,ESL0323,snod,snod_1,NA,Apis mellifera ,Ellegaard et al. (2020),Switzerland  Engel apiary,KE_2021_expandedGBR,snod_1,snod,NA,NA
+ESL0324,GCA_013344955.1,Ga0227306,ESL0324,snod,snod_1,NA,Apis mellifera ,Ellegaard et al. (2020),Switzerland  Engel apiary,KE_2021_expandedGBR,snod_1,snod,NA,NA
+MS1-3,GCA_002777925.1,BHC52,MS1-3,snod,snod_1,NA,Apis mellifera ,Steele et al. (2017),USA: Austin  TX,KE_2021_expandedGBR,snod_1,snod,NA,NA
+N-S3,GCA_002088635.1,BGI12,N-S3,snod,snod_1,NA,Apis mellifera ,Ludvigsen et al. (2017),Norway: Aas,KE_2021_expandedGBR,snod_1,snod,NA,NA
+N-S4,GCA_002088665.1,BGI13,N-S4,snod,snod_1,NA,Apis mellifera ,Ludvigsen et al. (2017),Norway: Aas,KE_2021_expandedGBR,snod_1,snod,NA,NA
+N-W7,GCA_002088555.1,BGI08,N-W7,snod,snod_1,NA,Apis mellifera ,Ludvigsen et al. (2017),Norway: Aas,KE_2021_expandedGBR,snod_1,snod,NA,NA
+N9,GCA_002088575.1,BGI09,N9,snod,snod_1,NA,Apis mellifera ,Ludvigsen et al. (2017),Norway: Aas,KE_2021_expandedGBR,snod_1,snod,NA,NA
+PEB0171,GCA_002777865.1,BHC47,PEB0171,snod,snod_1,NA,Apis mellifera ,Steele et al. (2017),USA: New Haven  CT,KE_2021_expandedGBR,snod_1,snod,NA,NA
+wkB2,GCA_000600005.1,SALWKB2,wkB2,snod,snod_1,NA,Apis mellifera ,Kwong et al. (2014b),USA  West Haven,KE_2021_expandedGBR,snod_1,snod,NA,NA
+wkB339,GCA_002777815.1,BHC50,wkB339,snod,snod_1,NA,Apis mellifera ,Steele et al. (2017),Malaysia: Genting,KE_2021_expandedGBR,snod_1,snod,NA,NA
+wkB237,GCA_002777775.1,BHC53,wkB237,snod,snod_2,NA,Apis andreiformis,Steele et al. (2017),Singapore: Hort Park,KE_2021_expandedGBR,snod_2,snod,NA,NA
+wkB273,GCA_002777655.1,BHC54,wkB273,snod,snod_2,NA,Apis florea,Steele et al. (2017),Singapore: Clementi Park,KE_2021_expandedGBR,snod_2,snod,NA,NA
+wkB298,GCA_002777855.1,BHC43,wkB298,snod,snod_2,NA,Apis cerana,Steele et al. (2017),Singapore: Hort Park,KE_2021_expandedGBR,snod_2,snod,NA,NA
+ESL0253,GCA_013344965.1,Ga0227310,ESL0253,snod,snod_bombus,NA,Bombus pascuorum,Ellegaard et al. (2020),Switzerland  Engel apiary,2021_MN,snod_bombus,snod,NA,NA
+HK3,GCA_002777705.1,BHC57,HK3,snod,snod_bombus,NA,Bombus pensylvanicus ,Steele et al. (2017),USA,2021_MN,snod_bombus,snod,NA,NA
+Nev4-2,GCA_002777825.1,BHC44,Nev4-2,snod,snod_bombus,NA,Bombus nevadensis,Steele et al. (2017),USA,2021_MN,snod_bombus,snod,NA,NA
+Occ4-2,GCA_002777635.1,BHC48,Occ4-2,snod,snod_bombus,Snodgrasella alvi,Bombus occidentalis,Steele et al. (2017),USA,2021_MN,snod_bombus,snod,NA,NA
+wkB12,GCA_000695565.1,SALWKB12,wkB12,snod,snod_bombus,NA,Bombus bimaculatus,Kwong et al. (2014b),USA  West Haven,2021_MN,snod_bombus,snod,NA,NA
+DSM_17694,GCA_000428785.1,NA,DSM 17694,NA,NA,Conchiformibius kuhniae,Felis catus,NA,NA,GSL_SnodgrasellaDB,g__Snodgrassella_outgroup,g__Snodgrassella_outgroup,NA,NA
+DSM_2580,GCA_014054725.1,NA,DSM 2580,NA,NA,Conchiformibius steedae,Canis lupus familiaris,NA,NA,GSL_SnodgrasellaDB,g__Snodgrassella_outgroup,g__Snodgrassella_outgroup,NA,NA
+MWU2920,GCA_001020585.1,NA,MWU2920,NA,NA,Chromobacterium subtsugae,native cranberry bog soil,NA,USA,GSL_SnodgrasellaDB,g__Snodgrassella_outgroup,g__Snodgrassella_outgroup,NA,NA
+ATCC_15551,GCA_002222655.1,NA,ATCC 15551,NA,NA,Vitreoscilla filiformis,Mud,NA,France,GSL_SnodgrasellaDB,g__Snodgrassella_outgroup,g__Snodgrassella_outgroup,NA,NA
+HLGZ1,GCA_002215055.1,NA,HLGZ1,NA,NA,Laribacter hongkongensis,Homo sapiens,NA,China,GSL_SnodgrasellaDB,g__Snodgrassella_outgroup,g__Snodgrassella_outgroup,NA,NA
+DSM_17474,GCA_004341385.1,NA,DSM 17474,NA,NA,Uruburuella suis,Pig,NA,NA,GSL_SnodgrasellaDB,g__Snodgrassella_outgroup,g__Snodgrassella_outgroup,NA,NA
+NCTC_13336,GCA_900451175.1,NA,NCTC13336,NA,NA,Kingella potus,NA,NA,NA,GSL_SnodgrasellaDB,g__Snodgrassella_outgroup,g__Snodgrassella_outgroup,NA,NA
+ATCC23332,GCA_011612385.1,NA,ATCC 23332,NA,NA,Kingella kingae,Homo sapiens, doi: 10.1073/pnas.1820256116,NA,GSL_SnodgrasellaDB,g__Snodgrassella_outgroup,g__Snodgrassella_outgroup,NA,NA
+DSM_16848,GCA_014054525.1,NA,DSM 16848,NA,NA,Alysiella filiformis,NA,NA,NA,GSL_SnodgrasellaDB,g__Snodgrassella_outgroup,g__Snodgrassella_outgroup,NA,NA
+NCTC10283,GCA_900445245.1,NA,NCTC10283,NA,NA,Alysiella crassa,Sheep,NA,NA,GSL_SnodgrasellaDB,g__Snodgrassella_outgroup,g__Snodgrassella_outgroup,NA,NA
+GGT036,GCA_000770155.1,NA,GGT036,NA,NA,Enterobacter cloacae,soil,10.1016/j.jbiotec.2014.11.012,Korea,NCBI,g__Enterobacter_outgroup,g__Enterobacter_outgroup,NA,NA
+090008_=_WCHEHu090008,GCA_003594935.2,NA,090008 = WCHEHu090008,NA,NA,Enterobacter huaxiensis,Homo sapiens,https://doi.org/10.1099/ijsem.0.003207,China,NCBI,g__Enterobacter_outgroup,g__Enterobacter_outgroup,NA,NA
+MB174,GCA_015732285.1,NA,MB174,NA,NA,Pectinatus frisingensis,Beer,https://doi.org/10.1016/j.fm.2020.103462,Finland,NCBI,g__Pectinatus_outgroup,g__Pectinatus_outgroup,NA,NA
+MB591,GCA_015732205.1,NA,MB591,NA,NA,Pectinatus brassicae,Salty pickle wastewater,https://doi.org/10.1016/j.fm.2020.103462,China,NCBI,g__Pectinatus_outgroup,g__Pectinatus_outgroup,NA,NA
+ZJ709,GCA_011039195.1,NA,ZJ709,NA,NA,Dysgonomonas sp.,marmot,NA,China,NCBI,g__Dysgonomonas_outgroup,g__Dysgonomonas_outgroup,NA,NA
+MRSN571793,GCA_004405045.1,NA,MRSN571793,NA,NA,Dysgonomonas capnocytophagoides,Homo sapiens,NA,USA: Texas,NCBI,g__Dysgonomonas_outgroup,g__Dysgonomonas_outgroup,NA,NA
+CC-2,GCA_007993715.1,NA,CC-2,NA,NA,Spiroplasma citri,Chinese cabbage,https://doi.org/10.1186/s12864-021-07637-8,USA,NCBI,g__Spiroplasma_outgroup,g__Spiroplasma_outgroup,NA,NA
+TABS-2,GCA_001715535.1,NA,TABS-2,NA,NA,Spiroplasma helicoides,tabanus abactor,10.1128/genomeA.01201-16,USA,NCBI,g__Zymobacter_outgroup,g__Zymobacter_outgroup,NA,NA
+F2A,GCA_016653615.1,NA,F2A,NA,NA,Entomomonas sp.,Acheta domesticus,https://doi.org/10.1099/ijsem.0.004997,Austria,NCBI,g__Entomomonas_outgroup,g__Entomomonas_outgroup,NA,NA
+CNM695-12,GCA_003991585.1,NA,CNM695-12,NA,NA,Saezia sanguinis,Homo sapiens,https://doi.org/10.1099/ijsem.0.004010,Spain: Madrid,NCBI,g__Saezia_outgroup,g__Saezia_outgroup,NA,NA
+JCM_31932,GCA_003966955.1,NA,JCM 31932,NA,NA,Parolsenella catena,Homo sapiens,10.1099/ijsem.0.003283,Japan,NCBI,g__Parolsenella_outgroup,g__Parolsenella_outgroup,NA,NA
+IC1,GCA_004801255.1,NA,IC1,NA,NA,Desulfovibrio desulfuricans,Mud,https://doi.org/10.1128/MRA.00456-19,USA,NCBI,g__WRHT01_outgroup,g__WRHT01_outgroup,NA,NA
