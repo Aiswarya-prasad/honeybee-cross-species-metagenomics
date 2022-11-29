@@ -741,7 +741,7 @@ Groups <- c("g__Bombilactobacillus",
 ```
 
 ```{r read_mapping_data, results='hold'}
-# setwd("/scratch/aprasad/211018_Medgenome_india_samples")
+setwd("/scratch/aprasad/211018_Medgenome_india_samples")
 # make mapping summary from flagstat tsv
 df_reads <- data.frame()
 for (sample in samples) {
@@ -3066,10 +3066,10 @@ ggplot(df_reads_MAGsDB_plot %>% filter(Type %in% c("Mapped_to_all_MAGs", "Mapped
 
 ```{r parse_qPCR_results}
 qpcr_results <- c(
-  "/Users/aiswarya/OneDrive\ -\ Université\ de\ Lausanne/Work/2-2-Projects/20211018_aprasad_ApisCrossSpeciesAnalysis/Analysis/SampleProcessing/qPCRs/plate1/plate1-2022-11-17_115607_Results.xls",
-  # "/Users/aiswarya/OneDrive\ -\ Université\ de\ Lausanne/Work/2-2-Projects/20211018_aprasad_ApisCrossSpeciesAnalysis/Analysis/SampleProcessing/qPCRs/plate2/plate2-2022-11-17_142003_Results.xls",
-  "/Users/aiswarya/OneDrive\ -\ Université\ de\ Lausanne/Work/2-2-Projects/20211018_aprasad_ApisCrossSpeciesAnalysis/Analysis/SampleProcessing/qPCRs/plate3/plate3-2022-11-17_161529_Results.xls",
-  "/Users/aiswarya/OneDrive\ -\ Université\ de\ Lausanne/Work/2-2-Projects/20211018_aprasad_ApisCrossSpeciesAnalysis/Analysis/SampleProcessing/qPCRs/plate4/plate4-2022-11-17_181034_Results.xls"
+  "/nas/FAC/FBM/DMF/pengel/spirit/D2c/aprasad/20211018_aprasad_ApisCrossSpeciesAnalysis/Analysis/SampleProcessing/qPCRs/plate1/plate1-2022-11-17_115607_Results.xls",
+  # "/nas/FAC/FBM/DMF/pengel/spirit/D2c/aprasad/20211018_aprasad_ApisCrossSpeciesAnalysis/Analysis/SampleProcessing/qPCRs/plate2/plate2-2022-11-17_142003_Results.xls",
+  "/nas/FAC/FBM/DMF/pengel/spirit/D2c/aprasad/20211018_aprasad_ApisCrossSpeciesAnalysis/Analysis/SampleProcessing/qPCRs/plate3/plate3-2022-11-17_161529_Results.xls",
+  "/nas/FAC/FBM/DMF/pengel/spirit/D2c/aprasad/20211018_aprasad_ApisCrossSpeciesAnalysis/Analysis/SampleProcessing/qPCRs/plate4/plate4-2022-11-17_181034_Results.xls"
 )
 library(readxl)
 qpcr_df <- data.frame()
@@ -3114,6 +3114,7 @@ qpcr_df_info <- qpcr_df %>%
                           rename(Ct_SD = `Ct SD`)
 # qpcr_df_info
 ```
+
 ```{r parse_qPCR_results, dev = 'pdf', results='hold', fig.show = 'hold', out.width = '100%', fig.align =
 ggplot(qpcr_df_info %>% filter(!is.na(Host)) %>% unique(),
        aes(x = factor(Host, levels = c(host_order, "Control_1", "Control_2", "Control_3")),
@@ -3124,8 +3125,7 @@ ggplot(qpcr_df_info %>% filter(!is.na(Host)) %>% unique(),
   geom_boxplot(outlier.shape = NA) +
   geom_jitter(width=0.1, size = 2, aes(shape = Plate)) +
   labs(y = "Ct value with UV primers (mean)", x = "Host species") +
-    make_theme(leg_pos = "none", x_angle = 30, setFill = F, x_vj = 1, x_hj = 1, )
-     +
+    make_theme(leg_pos = "none", x_angle = 30, setFill = F, x_vj = 1, x_hj = 1, ) +
       scale_fill_manual(values=host_order_color)
 pairwise.wilcox.test(qpcr_df_info$Ct_mean, qpcr_df_info$Host, p.adjust = "fdr")
 
@@ -3480,244 +3480,244 @@ density_plot_by_host <- function(infile, sdp) {
 	 return(p)
 }
 
-
+dir.create(file.path("Figures", "20_SDP_density_plots"))
 
 ##data acquisition
 grid.arrange(
   arrangeGrob(
-    density_plot("12_species_validation/g__Apibacter_107_1_perc_id.txt", "107_1"),
-    density_plot("12_species_validation/g__Apibacter_106_1_perc_id.txt", "106_1")
+    density_plot("12_species_validation/g__Apibacter/g__Apibacter_107_1_perc_id.txt", "107_1"),
+    density_plot("12_species_validation/g__Apibacter/g__Apibacter_106_1_perc_id.txt", "106_1")
   )
 )
 ggsave("Figures/20_SDP_density_plots/g__Apibacter.pdf")
-density_plot_by_host("12_species_validation/g__Apibacter_107_1_perc_id.txt", "107_1")
+density_plot_by_host("12_species_validation/g__Apibacter/g__Apibacter_107_1_perc_id.txt", "107_1")
   ggsave("Figures/20_SDP_density_plots/g__Apibacter_107_1.pdf")
-density_plot_by_host("12_species_validation/g__Apibacter_106_1_perc_id.txt", "106_1")
+density_plot_by_host("12_species_validation/g__Apibacter/g__Apibacter_106_1_perc_id.txt", "106_1")
   ggsave("Figures/20_SDP_density_plots/g__Apibacter_106_1.pdf")
 
 
 grid.arrange(
   arrangeGrob(
-    density_plot("12_species_validation/g__Bartonella_92_1_perc_id.txt", "92_1"),
-    density_plot("12_species_validation/g__Bartonella_93_1_perc_id.txt", "93_1"),
-    density_plot("12_species_validation/g__Bartonella_94_1_perc_id.txt", "94_1"),
-    density_plot("12_species_validation/g__Bartonella_94_2_perc_id.txt", "94_2"),
-    density_plot("12_species_validation/g__Bartonella_96_0_perc_id.txt", "96_0"),
-    density_plot("12_species_validation/g__Bartonella_116_1_perc_id.txt", "116_1")
+    density_plot("12_species_validation/g__Bartonella/g__Bartonella_92_1_perc_id.txt", "92_1"),
+    density_plot("12_species_validation/g__Bartonella/g__Bartonella_93_1_perc_id.txt", "93_1"),
+    density_plot("12_species_validation/g__Bartonella/g__Bartonella_94_1_perc_id.txt", "94_1"),
+    density_plot("12_species_validation/g__Bartonella/g__Bartonella_94_2_perc_id.txt", "94_2"),
+    density_plot("12_species_validation/g__Bartonella/g__Bartonella_96_0_perc_id.txt", "96_0"),
+    density_plot("12_species_validation/g__Bartonella/g__Bartonella_116_1_perc_id.txt", "116_1")
   )
 )
 ggsave("Figures/20_SDP_density_plots/g__Bartonella.pdf")
-density_plot_by_host("12_species_validation/g__Bartonella_92_1_perc_id.txt", "92_1")
+density_plot_by_host("12_species_validation/g__Bartonella/g__Bartonella_92_1_perc_id.txt", "92_1")
   ggsave("Figures/20_SDP_density_plots/g__Bartonella_92_1.pdf")
-density_plot_by_host("12_species_validation/g__Bartonella_93_1_perc_id.txt", "93_1")
+density_plot_by_host("12_species_validation/g__Bartonella/g__Bartonella_93_1_perc_id.txt", "93_1")
   ggsave("Figures/20_SDP_density_plots/g__Bartonella_93_1.pdf")
-density_plot_by_host("12_species_validation/g__Bartonella_94_1_perc_id.txt", "94_1")
+density_plot_by_host("12_species_validation/g__Bartonella/g__Bartonella_94_1_perc_id.txt", "94_1")
   ggsave("Figures/20_SDP_density_plots/g__Bartonella_94_1.pdf")
-density_plot_by_host("12_species_validation/g__Bartonella_94_2_perc_id.txt", "94_2")
+density_plot_by_host("12_species_validation/g__Bartonella/g__Bartonella_94_2_perc_id.txt", "94_2")
   ggsave("Figures/20_SDP_density_plots/g__Bartonella_94_2.pdf")
-density_plot_by_host("12_species_validation/g__Bartonella_96_0_perc_id.txt", "96_0")
+density_plot_by_host("12_species_validation/g__Bartonella/g__Bartonella_96_0_perc_id.txt", "96_0")
   ggsave("Figures/20_SDP_density_plots/g__Bartonella_96_0.pdf")
-density_plot_by_host("12_species_validation/g__Bartonella_116_1_perc_id.txt", "116_1")
+density_plot_by_host("12_species_validation/g__Bartonella/g__Bartonella_116_1_perc_id.txt", "116_1")
   ggsave("Figures/20_SDP_density_plots/g__Bartonella_116_1.pdf")
 
 grid.arrange(
   arrangeGrob(
-    density_plot("12_species_validation/g__Bifidobacterium_14_1_perc_id.txt", "14_1"),
-    # density_plot("12_species_validation/g__Bifidobacterium_14_3_perc_id.txt", "14_3"),
-    density_plot("12_species_validation/g__Bifidobacterium_14_4_perc_id.txt", "14_4"),
-    density_plot("12_species_validation/g__Bifidobacterium_17_1_perc_id.txt", "17_1"),
-    density_plot("12_species_validation/g__Bifidobacterium_22_1_perc_id.txt", "22_1")
+    density_plot("12_species_validation/g__Bifidobacterium/g__Bifidobacterium_14_1_perc_id.txt", "14_1"),
+    # density_plot("12_species_validation/g__Bifidobacterium/g__Bifidobacterium_14_3_perc_id.txt", "14_3"),
+    density_plot("12_species_validation/g__Bifidobacterium/g__Bifidobacterium_14_4_perc_id.txt", "14_4"),
+    density_plot("12_species_validation/g__Bifidobacterium/g__Bifidobacterium_17_1_perc_id.txt", "17_1"),
+    density_plot("12_species_validation/g__Bifidobacterium/g__Bifidobacterium_22_1_perc_id.txt", "22_1")
   )
 )
 ggsave("Figures/20_SDP_density_plots/g__Bifidobacterium.pdf")
-density_plot_by_host("12_species_validation/g__Bifidobacterium_14_1_perc_id.txt", "14_1")
+density_plot_by_host("12_species_validation/g__Bifidobacterium/g__Bifidobacterium_14_1_perc_id.txt", "14_1")
   ggsave("Figures/20_SDP_density_plots/g__Bifidobacterium_14_1.pdf")
-density_plot_by_host("12_species_validation/g__Bifidobacterium_14_3_perc_id.txt", "14_3")
+density_plot_by_host("12_species_validation/g__Bifidobacterium/g__Bifidobacterium_14_3_perc_id.txt", "14_3")
   ggsave("Figures/20_SDP_density_plots/g__Bifidobacterium_14_3.pdf")
-density_plot_by_host("12_species_validation/g__Bifidobacterium_14_4_perc_id.txt", "14_4")
+density_plot_by_host("12_species_validation/g__Bifidobacterium/g__Bifidobacterium_14_4_perc_id.txt", "14_4")
   ggsave("Figures/20_SDP_density_plots/g__Bifidobacterium_14_4.pdf")
-density_plot_by_host("12_species_validation/g__Bifidobacterium_17_1_perc_id.txt", "17_1")
+density_plot_by_host("12_species_validation/g__Bifidobacterium/g__Bifidobacterium_17_1_perc_id.txt", "17_1")
   ggsave("Figures/20_SDP_density_plots/g__Bifidobacterium_17_1.pdf")
-density_plot_by_host("12_species_validation/g__Bifidobacterium_22_1_perc_id.txt", "22_1")
+density_plot_by_host("12_species_validation/g__Bifidobacterium/g__Bifidobacterium_22_1_perc_id.txt", "22_1")
   ggsave("Figures/20_SDP_density_plots/g__Bifidobacterium_22_1.pdf")
 
 
 grid.arrange(
   arrangeGrob(
-    density_plot("12_species_validation/g__Bombella_87_1_perc_id.txt", "87_1"),
-    density_plot("12_species_validation/g__Bombella_88_0_perc_id.txt", "88_0")
+    density_plot("12_species_validation/g__Bombella/g__Bombella_87_1_perc_id.txt", "87_1"),
+    density_plot("12_species_validation/g__Bombella/g__Bombella_88_0_perc_id.txt", "88_0")
   )
 )
 ggsave("Figures/20_SDP_density_plots/g__Bombella.pdf")
-density_plot_by_host("12_species_validation/g__Bombella_87_1_perc_id.txt", "87_1")
+density_plot_by_host("12_species_validation/g__Bombella/g__Bombella_87_1_perc_id.txt", "87_1")
   ggsave("Figures/20_SDP_density_plots/g__Bombella_87_1.pdf")
-density_plot_by_host("12_species_validation/g__Bombella_88_0_perc_id.txt", "88_0")
+density_plot_by_host("12_species_validation/g__Bombella/g__Bombella_88_0_perc_id.txt", "88_0")
   ggsave("Figures/20_SDP_density_plots/g__Bombella_88_0.pdf")
 
 grid.arrange(
   arrangeGrob(
-    density_plot("12_species_validation/g__Bombilactobacillus_33_1_perc_id.txt", "33_1"),
-    density_plot("12_species_validation/g__Bombilactobacillus_69_1_perc_id.txt", "69_1"),
-    density_plot("12_species_validation/g__Bombilactobacillus_69_4_perc_id.txt", "69_4"),
-    density_plot("12_species_validation/g__Bombilactobacillus_70_1_perc_id.txt", "70_1"),
-    density_plot("12_species_validation/g__Bombilactobacillus_71_1_perc_id.txt", "71_1")
+    density_plot("12_species_validation/g__Bombilactobacillus/g__Bombilactobacillus_33_1_perc_id.txt", "33_1"),
+    density_plot("12_species_validation/g__Bombilactobacillus/g__Bombilactobacillus_69_1_perc_id.txt", "69_1"),
+    density_plot("12_species_validation/g__Bombilactobacillus/g__Bombilactobacillus_69_4_perc_id.txt", "69_4"),
+    density_plot("12_species_validation/g__Bombilactobacillus/g__Bombilactobacillus_70_1_perc_id.txt", "70_1"),
+    density_plot("12_species_validation/g__Bombilactobacillus/g__Bombilactobacillus_71_1_perc_id.txt", "71_1")
   )
 )
 ggsave("Figures/20_SDP_density_plots/g__Bombilactobacillus.pdf")
-density_plot_by_host("12_species_validation/g__Bombilactobacillus_33_1_perc_id.txt", "33_1")
+density_plot_by_host("12_species_validation/g__Bombilactobacillus/g__Bombilactobacillus_33_1_perc_id.txt", "33_1")
   ggsave("Figures/20_SDP_density_plots/g__Bombilactobacillus_33_1.pdf")
-density_plot_by_host("12_species_validation/g__Bombilactobacillus_69_1_perc_id.txt", "69_1")
+density_plot_by_host("12_species_validation/g__Bombilactobacillus/g__Bombilactobacillus_69_1_perc_id.txt", "69_1")
   ggsave("Figures/20_SDP_density_plots/g__Bombilactobacillus_69_1.pdf")
-density_plot_by_host("12_species_validation/g__Bombilactobacillus_69_4_perc_id.txt", "69_4")
+density_plot_by_host("12_species_validation/g__Bombilactobacillus/g__Bombilactobacillus_69_4_perc_id.txt", "69_4")
   ggsave("Figures/20_SDP_density_plots/g__Bombilactobacillus_69_4.pdf")
-density_plot_by_host("12_species_validation/g__Bombilactobacillus_70_1_perc_id.txt", "70_1")
+density_plot_by_host("12_species_validation/g__Bombilactobacillus/g__Bombilactobacillus_70_1_perc_id.txt", "70_1")
   ggsave("Figures/20_SDP_density_plots/g__Bombilactobacillus_70_1.pdf")
-density_plot_by_host("12_species_validation/g__Bombilactobacillus_71_1_perc_id.txt", "71_1")
+density_plot_by_host("12_species_validation/g__Bombilactobacillus/g__Bombilactobacillus_71_1_perc_id.txt", "71_1")
   ggsave("Figures/20_SDP_density_plots/g__Bombilactobacillus_71_1.pdf")
 
 
 
 grid.arrange(
   arrangeGrob(
-    density_plot("12_species_validation/g__Commensalibacter_85_1_perc_id.txt", "85_1"),
-    density_plot("12_species_validation/g__Commensalibacter_84_1_perc_id.txt", "84_1")
+    density_plot("12_species_validation/g__Commensalibacter/g__Commensalibacter_85_1_perc_id.txt", "85_1"),
+    density_plot("12_species_validation/g__Commensalibacter/g__Commensalibacter_84_1_perc_id.txt", "84_1")
   )
 )
 ggsave("Figures/20_SDP_density_plots/g__Commensalibacter.pdf")
-density_plot_by_host("12_species_validation/g__Commensalibacter_85_1_perc_id.txt", "85_1")
+density_plot_by_host("12_species_validation/g__Commensalibacter/g__Commensalibacter_85_1_perc_id.txt", "85_1")
   ggsave("Figures/20_SDP_density_plots/g__Commensalibacter_85_1.pdf")
-density_plot_by_host("12_species_validation/g__Commensalibacter_84_1_perc_id.txt", "84_1")
+density_plot_by_host("12_species_validation/g__Commensalibacter/g__Commensalibacter_84_1_perc_id.txt", "84_1")
   ggsave("Figures/20_SDP_density_plots/g__Commensalibacter_84_1.pdf")
 
 grid.arrange(
   arrangeGrob(
-    density_plot("12_species_validation/g__Dysgonomonas_77_1_perc_id.txt", "77_1"),
-    density_plot("12_species_validation/g__Dysgonomonas_79_1_perc_id.txt", "79_1"),
-    density_plot("12_species_validation/g__Dysgonomonas_80_1_perc_id.txt", "80_1"),
-    density_plot("12_species_validation/g__Dysgonomonas_81_1_perc_id.txt", "81_1"),
-    density_plot("12_species_validation/g__Dysgonomonas_82_1_perc_id.txt", "82_1"),
-    density_plot("12_species_validation/g__Dysgonomonas_83_1_perc_id.txt", "83_1")
+    density_plot("12_species_validation/g__Dysgonomonas/g__Dysgonomonas_77_1_perc_id.txt", "77_1"),
+    density_plot("12_species_validation/g__Dysgonomonas/g__Dysgonomonas_79_1_perc_id.txt", "79_1"),
+    density_plot("12_species_validation/g__Dysgonomonas/g__Dysgonomonas_80_1_perc_id.txt", "80_1"),
+    density_plot("12_species_validation/g__Dysgonomonas/g__Dysgonomonas_81_1_perc_id.txt", "81_1"),
+    density_plot("12_species_validation/g__Dysgonomonas/g__Dysgonomonas_82_1_perc_id.txt", "82_1"),
+    density_plot("12_species_validation/g__Dysgonomonas/g__Dysgonomonas_83_1_perc_id.txt", "83_1")
   )
 )
 ggsave("Figures/20_SDP_density_plots/g__Dysgonomonas.pdf")
-density_plot_by_host("12_species_validation/g__Dysgonomonas_77_1_perc_id.txt", "77_1")
+density_plot_by_host("12_species_validation/g__Dysgonomonas/g__Dysgonomonas_77_1_perc_id.txt", "77_1")
   ggsave("Figures/20_SDP_density_plots/g__Dysgonomonas_77_1.pdf")
-density_plot_by_host("12_species_validation/g__Dysgonomonas_79_1_perc_id.txt", "79_1")
+density_plot_by_host("12_species_validation/g__Dysgonomonas/g__Dysgonomonas_79_1_perc_id.txt", "79_1")
   ggsave("Figures/20_SDP_density_plots/g__Dysgonomonas_79_1.pdf")
-density_plot_by_host("12_species_validation/g__Dysgonomonas_80_1_perc_id.txt", "80_1")
+density_plot_by_host("12_species_validation/g__Dysgonomonas/g__Dysgonomonas_80_1_perc_id.txt", "80_1")
   ggsave("Figures/20_SDP_density_plots/g__Dysgonomonas_80_1.pdf")
-density_plot_by_host("12_species_validation/g__Dysgonomonas_81_1_perc_id.txt", "81_1")
+density_plot_by_host("12_species_validation/g__Dysgonomonas/g__Dysgonomonas_81_1_perc_id.txt", "81_1")
   ggsave("Figures/20_SDP_density_plots/g__Dysgonomonas_81_1.pdf")
-density_plot_by_host("12_species_validation/g__Dysgonomonas_82_1_perc_id.txt", "82_1")
+density_plot_by_host("12_species_validation/g__Dysgonomonas/g__Dysgonomonas_82_1_perc_id.txt", "82_1")
   ggsave("Figures/20_SDP_density_plots/g__Dysgonomonas_82_1.pdf")
-density_plot_by_host("12_species_validation/g__Dysgonomonas_83_1_perc_id.txt", "83_1")
+density_plot_by_host("12_species_validation/g__Dysgonomonas/g__Dysgonomonas_83_1_perc_id.txt", "83_1")
   ggsave("Figures/20_SDP_density_plots/g__Dysgonomonas_83_1.pdf")
 
 grid.arrange(
   arrangeGrob(
-    density_plot("12_species_validation/g__Frischella_134_1_perc_id.txt", "134_1"),
-    density_plot("12_species_validation/g__Frischella_137_1_perc_id.txt", "137_1"),
-    density_plot("12_species_validation/g__Frischella_139_1_perc_id.txt", "139_1"),
-    density_plot("12_species_validation/g__Frischella_140_1_perc_id.txt", "140_1"),
-    density_plot("12_species_validation/g__Frischella_141_1_perc_id.txt", "141_1")
+    density_plot("12_species_validation/g__Frischella/g__Frischella_134_1_perc_id.txt", "134_1"),
+    density_plot("12_species_validation/g__Frischella/g__Frischella_137_1_perc_id.txt", "137_1"),
+    density_plot("12_species_validation/g__Frischella/g__Frischella_139_1_perc_id.txt", "139_1"),
+    density_plot("12_species_validation/g__Frischella/g__Frischella_140_1_perc_id.txt", "140_1"),
+    density_plot("12_species_validation/g__Frischella/g__Frischella_141_1_perc_id.txt", "141_1")
   )
 )
 ggsave("Figures/20_SDP_density_plots/g__Frischella_.pdf")
-density_plot_by_host("12_species_validation/g__Frischella_134_1_perc_id.txt", "134_1")
+density_plot_by_host("12_species_validation/g__Frischella/g__Frischella_134_1_perc_id.txt", "134_1")
   ggsave("Figures/20_SDP_density_plots/g__Frischella_134_1.pdf")
-density_plot_by_host("12_species_validation/g__Frischella_137_1_perc_id.txt", "137_1")
+density_plot_by_host("12_species_validation/g__Frischella/g__Frischella_137_1_perc_id.txt", "137_1")
   ggsave("Figures/20_SDP_density_plots/g__Frischella_137_1.pdf")
-density_plot_by_host("12_species_validation/g__Frischella_139_1_perc_id.txt", "139_1")
+density_plot_by_host("12_species_validation/g__Frischella/g__Frischella_139_1_perc_id.txt", "139_1")
   ggsave("Figures/20_SDP_density_plots/g__Frischella_139_1.pdf")
-density_plot_by_host("12_species_validation/g__Frischella_140_1_perc_id.txt", "140_1")
+density_plot_by_host("12_species_validation/g__Frischella/g__Frischella_140_1_perc_id.txt", "140_1")
   ggsave("Figures/20_SDP_density_plots/g__Frischella_140_1.pdf")
-density_plot_by_host("12_species_validation/g__Frischella_141_1_perc_id.txt", "141_1")
+density_plot_by_host("12_species_validation/g__Frischella/g__Frischella_141_1_perc_id.txt", "141_1")
   ggsave("Figures/20_SDP_density_plots/g__Frischella_141_1.pdf")
 
 
 
 grid.arrange(
   arrangeGrob(
-    density_plot("12_species_validation/g__Gilliamella_167_1_perc_id.txt", "167_1")
+    density_plot("12_species_validation/g__Gilliamella/g__Gilliamella_167_1_perc_id.txt", "167_1")
   )
 )
 ggsave("Figures/20_SDP_density_plots/g__Gilliamella.pdf")
-density_plot_by_host("12_species_validation/g__Gilliamella_167_1_perc_id.txt", "167_1")
+density_plot_by_host("12_species_validation/g__Gilliamella/g__Gilliamella_167_1_perc_id.txt", "167_1")
   ggsave("Figures/20_SDP_density_plots/g__Gilliamella_167_1.pdf")
 
 grid.arrange(
   arrangeGrob(
-    density_plot("12_species_validation/g__Lactobacillus_40_2_perc_id.txt", "40_2"),
-    density_plot("12_species_validation/g__Lactobacillus_41_1_perc_id.txt", "41_1"),
-    density_plot("12_species_validation/g__Lactobacillus_48_1_perc_id.txt", "48_1"),
-    density_plot("12_species_validation/g__Lactobacillus_49_1_perc_id.txt", "49_1"),
-    density_plot("12_species_validation/g__Lactobacillus_52_1_perc_id.txt", "52_1"),
-    density_plot("12_species_validation/g__Lactobacillus_57_1_perc_id.txt", "57_1"),
-    density_plot("12_species_validation/g__Lactobacillus_60_1_perc_id.txt", "60_1"),
-    density_plot("12_species_validation/g__Lactobacillus_63_1_perc_id.txt", "63_1"),
-    density_plot("12_species_validation/g__Lactobacillus_63_2_perc_id.txt", "63_2")
+    density_plot("12_species_validation/g__Lactobacillus/g__Lactobacillus_40_2_perc_id.txt", "40_2"),
+    density_plot("12_species_validation/g__Lactobacillus/g__Lactobacillus_41_1_perc_id.txt", "41_1"),
+    density_plot("12_species_validation/g__Lactobacillus/g__Lactobacillus_48_1_perc_id.txt", "48_1"),
+    density_plot("12_species_validation/g__Lactobacillus/g__Lactobacillus_49_1_perc_id.txt", "49_1"),
+    density_plot("12_species_validation/g__Lactobacillus/g__Lactobacillus_52_1_perc_id.txt", "52_1"),
+    density_plot("12_species_validation/g__Lactobacillus/g__Lactobacillus_57_1_perc_id.txt", "57_1"),
+    density_plot("12_species_validation/g__Lactobacillus/g__Lactobacillus_60_1_perc_id.txt", "60_1"),
+    density_plot("12_species_validation/g__Lactobacillus/g__Lactobacillus_63_1_perc_id.txt", "63_1"),
+    density_plot("12_species_validation/g__Lactobacillus/g__Lactobacillus_63_2_perc_id.txt", "63_2")
   )
 )
 ggsave("Figures/20_SDP_density_plots/g__Lactobacillus.pdf")
-density_plot_by_host("12_species_validation/g__Lactobacillus_40_2_perc_id.txt", "40_2")
+density_plot_by_host("12_species_validation/g__Lactobacillus/g__Lactobacillus_40_2_perc_id.txt", "40_2")
   ggsave("Figures/20_SDP_density_plots/g__Lactobacillus_40_2.pdf")
-density_plot_by_host("12_species_validation/g__Lactobacillus_41_1_perc_id.txt", "41_1")
+density_plot_by_host("12_species_validation/g__Lactobacillus/g__Lactobacillus_41_1_perc_id.txt", "41_1")
   ggsave("Figures/20_SDP_density_plots/g__Lactobacillus_41_1.pdf")
-density_plot_by_host("12_species_validation/g__Lactobacillus_48_1_perc_id.txt", "48_1")
+density_plot_by_host("12_species_validation/g__Lactobacillus/g__Lactobacillus_48_1_perc_id.txt", "48_1")
   ggsave("Figures/20_SDP_density_plots/g__Lactobacillus_48_1.pdf")
-density_plot_by_host("12_species_validation/g__Lactobacillus_49_1_perc_id.txt", "49_1")
+density_plot_by_host("12_species_validation/g__Lactobacillus/g__Lactobacillus_49_1_perc_id.txt", "49_1")
   ggsave("Figures/20_SDP_density_plots/g__Lactobacillus_49_1.pdf")
-density_plot_by_host("12_species_validation/g__Lactobacillus_52_1_perc_id.txt", "52_1")
+density_plot_by_host("12_species_validation/g__Lactobacillus/g__Lactobacillus_52_1_perc_id.txt", "52_1")
   ggsave("Figures/20_SDP_density_plots/g__Lactobacillus_52_1.pdf")
-density_plot_by_host("12_species_validation/g__Lactobacillus_57_1_perc_id.txt", "57_1")
+density_plot_by_host("12_species_validation/g__Lactobacillus/g__Lactobacillus_57_1_perc_id.txt", "57_1")
   ggsave("Figures/20_SDP_density_plots/g__Lactobacillus_57_1.pdf")
-density_plot_by_host("12_species_validation/g__Lactobacillus_60_1_perc_id.txt", "60_1")
+density_plot_by_host("12_species_validation/g__Lactobacillus/g__Lactobacillus_60_1_perc_id.txt", "60_1")
   ggsave("Figures/20_SDP_density_plots/g__Lactobacillus_60_1.pdf")
-density_plot_by_host("12_species_validation/g__Lactobacillus_63_1_perc_id.txt", "63_1")
+density_plot_by_host("12_species_validation/g__Lactobacillus/g__Lactobacillus_63_1_perc_id.txt", "63_1")
   ggsave("Figures/20_SDP_density_plots/g__Lactobacillus_63_1.pdf")
-density_plot_by_host("12_species_validation/g__Lactobacillus_63_2_perc_id.txt", "63_2")
+density_plot_by_host("12_species_validation/g__Lactobacillus/g__Lactobacillus_63_2_perc_id.txt", "63_2")
   ggsave("Figures/20_SDP_density_plots/g__Lactobacillus_63_2.pdf")
 
 
 grid.arrange(
   arrangeGrob(
-    density_plot("12_species_validation/g__Snodgrassella_117_1_perc_id.txt", "117_1"),
-    density_plot("12_species_validation/g__Snodgrassella_120_1_perc_id.txt", "120_1"),
-    density_plot("12_species_validation/g__Snodgrassella_121_2_perc_id.txt", "121_2"),
-    density_plot("12_species_validation/g__Snodgrassella_122_1_perc_id.txt", "122_1"),
-    density_plot("12_species_validation/g__Snodgrassella_123_1_perc_id.txt", "123_1"),
-    density_plot("12_species_validation/g__Snodgrassella_124_0_perc_id.txt", "124_0")
+    density_plot("12_species_validation/g__Snodgrassella/g__Snodgrassella_117_1_perc_id.txt", "117_1"),
+    density_plot("12_species_validation/g__Snodgrassella/g__Snodgrassella_120_1_perc_id.txt", "120_1"),
+    density_plot("12_species_validation/g__Snodgrassella/g__Snodgrassella_121_2_perc_id.txt", "121_2"),
+    density_plot("12_species_validation/g__Snodgrassella/g__Snodgrassella_122_1_perc_id.txt", "122_1"),
+    density_plot("12_species_validation/g__Snodgrassella/g__Snodgrassella_123_1_perc_id.txt", "123_1"),
+    density_plot("12_species_validation/g__Snodgrassella/g__Snodgrassella_124_0_perc_id.txt", "124_0")
   )
 )
 ggsave("Figures/20_SDP_density_plots/g__Snodgrassella.pdf")
-density_plot_by_host("12_species_validation/g__Snodgrassella_117_1_perc_id.txt", "117_1")
+density_plot_by_host("12_species_validation/g__Snodgrassella/g__Snodgrassella_117_1_perc_id.txt", "117_1")
   ggsave("Figures/20_SDP_density_plots/g__Snodgrassella_117_1.pdf")
-density_plot_by_host("12_species_validation/g__Snodgrassella_120_1_perc_id.txt", "120_1")
+density_plot_by_host("12_species_validation/g__Snodgrassella/g__Snodgrassella_120_1_perc_id.txt", "120_1")
   ggsave("Figures/20_SDP_density_plots/g__Snodgrassella_120_1.pdf")
-density_plot_by_host("12_species_validation/g__Snodgrassella_121_2_perc_id.txt", "121_2")
+density_plot_by_host("12_species_validation/g__Snodgrassella/g__Snodgrassella_121_2_perc_id.txt", "121_2")
   ggsave("Figures/20_SDP_density_plots/g__Snodgrassella_121_2.pdf")
-density_plot_by_host("12_species_validation/g__Snodgrassella_122_1_perc_id.txt", "122_1")
+density_plot_by_host("12_species_validation/g__Snodgrassella/g__Snodgrassella_122_1_perc_id.txt", "122_1")
   ggsave("Figures/20_SDP_density_plots/g__Snodgrassella_122_1.pdf")
-density_plot_by_host("12_species_validation/g__Snodgrassella_123_1_perc_id.txt", "123_1")
+density_plot_by_host("12_species_validation/g__Snodgrassella/g__Snodgrassella_123_1_perc_id.txt", "123_1")
   ggsave("Figures/20_SDP_density_plots/g__Snodgrassella_123_1.pdf")
-density_plot_by_host("12_species_validation/g__Snodgrassella_124_0_perc_id.txt", "124_0")
+density_plot_by_host("12_species_validation/g__Snodgrassella/g__Snodgrassella_124_0_perc_id.txt", "124_0")
   ggsave("Figures/20_SDP_density_plots/g__Snodgrassella_124_0.pdf")
 
 
 grid.arrange(
   arrangeGrob(
-    density_plot("12_species_validation/g__Zymobacter_100_0_perc_id.txt", "100_0"),
-    density_plot("12_species_validation/g__Zymobacter_101_0_perc_id.txt", "101_0"),
-    density_plot("12_species_validation/g__Zymobacter_104_0_perc_id.txt", "104_0"),
+    density_plot("12_species_validation/g__Zymobacter/g__Zymobacter_100_0_perc_id.txt", "100_0"),
+    density_plot("12_species_validation/g__Zymobacter/g__Zymobacter_101_0_perc_id.txt", "101_0"),
+    density_plot("12_species_validation/g__Zymobacter/g__Zymobacter_104_0_perc_id.txt", "104_0"),
     nrow = 2
   )
 )
 ggsave("Figures/20_SDP_density_plots/g__Zymobacter.pdf")
-density_plot_by_host("12_species_validation/g__Zymobacter_100_0_perc_id.txt", "100_0")
+density_plot_by_host("12_species_validation/g__Zymobacter/g__Zymobacter_100_0_perc_id.txt", "100_0")
   ggsave("Figures/20_SDP_density_plots/g__Zymobacter_100_0.pdf")
-density_plot_by_host("12_species_validation/g__Zymobacter_101_0_perc_id.txt", "101_0")
+density_plot_by_host("12_species_validation/g__Zymobacter/g__Zymobacter_101_0_perc_id.txt", "101_0")
   ggsave("Figures/20_SDP_density_plots/g__Zymobacter_101_0.pdf")
-density_plot_by_host("12_species_validation/g__Zymobacter_104_0_perc_id.txt", "104_0")
+density_plot_by_host("12_species_validation/g__Zymobacter/g__Zymobacter_104_0_perc_id.txt", "104_0")
   ggsave("Figures/20_SDP_density_plots/g__Zymobacter_104_0.pdf")
 ```
 
