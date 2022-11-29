@@ -2600,7 +2600,6 @@ cluster_tax_info <- vis_magOTUs_df %>%
                       select(Genus, Species, Cluster, Num_mags) %>%
                       unique() %>%
                         mutate(cluster_name = paste0(Genus, "-", Cluster))
-
 corecov_data_dir <- "09_MagDatabaseProfiling/CoverageEstimation/Merged"
 coords_df <- data.frame()
 for (file in list.files(corecov_data_dir)) {

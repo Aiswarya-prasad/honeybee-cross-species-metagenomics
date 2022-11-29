@@ -26,7 +26,11 @@
 #SBATCH --ntasks 1
 #SBATCH --cpus-per-task 8
 #SBATCH --mem 50G
+<<<<<<< HEAD
 #SBATCH --time 20:00:00
+=======
+#SBATCH --time 10:00:00
+>>>>>>> f1bfa01e295824a9ad6831d28af0d619e2d6ed89
 #SBATCH --output /scratch/aprasad/211018_Medgenome_india_samples/logs/species_validation_test/%x_%j.out
 #SBATCH --error /scratch/aprasad/211018_Medgenome_india_samples/logs/species_validation_test/%x_%j.err
 
@@ -39,6 +43,10 @@ group=g__Gilliamella
 project_path=/scratch/aprasad/211018_Medgenome_india_samples
 conda_env_midas=/scratch/aprasad/built-envs/36fa9795c7bb520ef68880086b2f369c
 conda_env_mapping=/scratch/aprasad/built-envs/d9a6c36f05b352a49e2ad7fed4c52259
+<<<<<<< HEAD
+=======
+# conda_env_mapping=/scratch/aprasad/built-envs/1c5cbf5f292d5200a343c355530053d1 delete that
+>>>>>>> f1bfa01e295824a9ad6831d28af0d619e2d6ed89
 
 
 ref_info=06_MAG_binning/MAGs_filt_GenomeInfo_auto.tsv
