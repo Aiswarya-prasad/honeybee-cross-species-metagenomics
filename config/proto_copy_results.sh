@@ -109,7 +109,7 @@ rsync -r --progress -v $prefix/06_MAG_binning/evaluate_bins/*.summary "$outdir"/
 # find a way to get "all" groups
 mkdir -p 12_species_validation
 rsync -r --progress $prefix/12_species_validation/*/*perc_id* "$outdir"/12_species_validation
-
+rsync -r --progress $prefix/Figures/* "$outdir"/Figures
 
 # parsed outputs - this script does not do it but this can be run on remote and the result can be copied
 echo "benchmarks" > benchmarks_cat.txt; for file in logs/*.benchmark; do echo $file >> benchmarks_cat.txt; cat $file | cut -f2,3,4,5 >> benchmarks_cat.txt; done

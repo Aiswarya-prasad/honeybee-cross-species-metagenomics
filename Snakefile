@@ -12,8 +12,8 @@ import itertools
 configfile: "config/config.yaml"
 LOCAL_BACKUP = config["LocalBackup"]
 SAMPLES_INDIA = config["SAMPLES_INDIA"]
-# SAMPLES_KE = config["SAMPLES_KE"]
-SAMPLES_KE = []
+SAMPLES_KE = config["SAMPLES_KE"]
+# SAMPLES_KE = []
 SAMPLES = SAMPLES_INDIA
 PROJECT_IDENTIFIER = config["ProjectIdentifier"]
 BACKUP_PATH = config["BackupPath"]
@@ -275,7 +275,7 @@ def get_cluster_dict(path):
     return(cluster_list_dict)
 
 if LOCAL_BACKUP:
-    localrules: backup, concat_all_mags
+    localrules: backup
 
 rule backup:
     input:
@@ -295,11 +295,11 @@ rule backup:
         summarise_db_ortho = lambda wildcards: ["database/MAGs_database_Orthofinder/"+group+"_Orthogroups_summary.csv" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
         summarise_db_ortho_filt = lambda wildcards: ["database/MAGs_database_Orthofinder/"+group+"_Orthogroups_filtered_summary.csv" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
         trees = lambda wildcards: ["07_AnnotationAndPhylogenies/05_IQTree/"+group+"/"+group+"_Phylogeny.contree" for group in [x for x in GROUPS if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_tree) > 4]],
-        core_cov_txt = lambda wildcards: ["09_MagDatabaseProfiling/CoverageEstimation/Merged/"+group+"_coord.pdf" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]], # got to its respective rule and add desired list of samples in its expansion eg. SAMPLES+SAMPLES_KE
-        core_cov_plots = lambda wildcards: ["09_MagDatabaseProfiling/CoverageEstimation/Merged/"+group+"_coord.txt" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]], # got to its respective rule and add desired list of samples in its expansion eg. SAMPLES+SAMPLES_KE
-        instrain_done = "10_instrain/rep_mags.IS.COMPARE/",
-        instrain_profile_plots = expand("10_instrain/{sample}_profile_plots.done", sample=SAMPLES),
-        instrain_compare_plots = "10_instrain/compare_plot.done",
+        # core_cov_txt = lambda wildcards: ["09_MagDatabaseProfiling/CoverageEstimation/Merged/"+group+"_coord.pdf" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]], # got to its respective rule and add desired list of samples in its expansion eg. SAMPLES+SAMPLES_KE
+        # core_cov_plots = lambda wildcards: ["09_MagDatabaseProfiling/CoverageEstimation/Merged/"+group+"_coord.txt" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]], # got to its respective rule and add desired list of samples in its expansion eg. SAMPLES+SAMPLES_KE
+        # instrain_done = "10_instrain/rep_mags.IS.COMPARE/",
+        # instrain_profile_plots = expand("10_instrain/{sample}_profile_plots.done", sample=SAMPLES),
+        # instrain_compare_plots = "10_instrain/compare_plot.done",
         # coverage_host_unmapped_to_MAGs = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_coverage.tsv", sample=SAMPLES+SAMPLES_KE),
         # coverage_host_hist_unmapped_to_MAGs = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_coverage_histogram.txt", sample=SAMPLES+SAMPLES_KE),
         # flagstat_unmapped_to_MAGs = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_host_mapping_flagstat.tsv", sample=SAMPLES+SAMPLES_KE),
@@ -498,7 +498,7 @@ rule run_motus:
         reads1 = "01_Trimmed/{sample}_R1_trim.fastq.gz",
         reads2 = "01_Trimmed/{sample}_R2_trim.fastq.gz",
     output:
-        motus_temp = temp("03_motus_profile/{sample}.motus")
+        motus_temp = "03_motus_profile/{sample}.motus"
     params:
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
@@ -515,7 +515,7 @@ rule run_motus:
     conda: "envs/motus-env.yaml"
     shell:
         """
-        motus downloadDB # just leave it here to be safe - it warns and continues
+        motus downloadDB
         motus profile -f {input.reads1} -r {input.reads2} -n {wildcards.sample} -o {output.motus_temp}  -t {threads}
         """
 
@@ -1047,11 +1047,10 @@ rule process_metabat2:
         all_mags_marker = touch("06_MAG_binning/bins_renamed/{sample}.done"),
     log: "logs/{sample}_process_metabat2.log"
     benchmark: "logs/{sample}_process_metabat2.benchmark"
-    params:
-        outpath = "06_MAG_binning/bins_renamed/"
     shell:
         """
-        all_mags=${{{output.all_mags_marker}/\.done*/}}
+        outpath=${{{output.all_mags_marker}/\.done*/}}
+        all_mags=${{{output.all_mags_marker}/\.done*/}}/{wildcards.sample}
         mkdir -p ${{all_mags}}
         dir=${{input.sample_bins_done/\.bins*/}}
         echo "getting mags from "${{dir}}
@@ -1062,7 +1061,7 @@ rule process_metabat2:
             mag_name=${{mag/MAG./}}
             mag_num=${{mag_name%%.fa}}
             cp ${{dir}}/${{mag}} ${{all_mags}}/MAG_${{sample}}_${{mag_num}}.fa
-            ln -s ${{all_mags}}/MAG_${{sample}}_${{mag_num}}.fa {params.outpath}//MAG_${{sample}}_${{mag_num}}.fa
+            ln -s ${{all_mags}}/MAG_${{sample}}_${{mag_num}}.fa ${{outpath}}//MAG_${{sample}}_${{mag_num}}.fa
         done
         """
 
@@ -1388,10 +1387,11 @@ rule extract_mag_lists:
 
 rule prep_gtdb_annotate:
     input:
-        genomes_dir = "06_MAG_binning/bins_renamed/",
+        genomes_dir_marker = expand("06_MAG_binning/bins_renamed/{sample}.done", sample=SAMPLES),
     output:
         batchfile = "06_MAG_binning/gtdb_inputs_batchfile.tsv"
     params:
+        genomes_dir = "06_MAG_binning/bins_renamed/",
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         account="pengel_spirit",
@@ -1402,7 +1402,7 @@ rule prep_gtdb_annotate:
     log: "logs/prep_gtdb_annotate.log"
     run:
         with open(output.batchfile, "w") as out_fh:
-            for (dirpath, dirnames, filenames) in os.walk(input.genomes_dir):
+            for (dirpath, dirnames, filenames) in os.walk(params.genomes_dir):
                 for filename in filenames:
                     if not filename.endswith(".fa"):
                         continue
@@ -1414,7 +1414,6 @@ rule prep_gtdb_annotate:
 rule gtdb_annotate:
     input:
         batchfile = "06_MAG_binning/gtdb_inputs_batchfile.tsv",
-        all_list = "06_MAG_binning/all_genomes.csv",
     output:
         tax_info = "06_MAG_binning/gtdbtk_out_dir/classify/gtdbtk.bac120.summary.tsv",
     params:
@@ -1476,7 +1475,7 @@ checkpoint make_phylo_table:
 
 rule prepare_genomes:
     input:
-        mags = "06_MAG_binning/bins_renamed"
+        all_mags_marker = expand("06_MAG_binning/bins_renamed/{sample}.done", sample=SAMPLES),
     output:
         genome = "07_AnnotationAndPhylogenies/00_genomes/{genome}.fa",
     threads: 4
@@ -2034,13 +2033,11 @@ rule extract_orthologs_mag_database:
         ffn_files = lambda wildcards: expand("database/MAGs_database_ffn_files/{genome}.ffn", genome=get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt)[wildcards.group]),
         faa_files = lambda wildcards: expand("database/MAGs_database_faa_files/{genome}.faa", genome=get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt)[wildcards.group]),
     output:
-        done = directory("database/MAGs_database_Orthofinder/{group}/single_ortholog_sequences")
+        done = touch("database/MAGs_database_Orthofinder/{group}/single_ortholog_sequences.done")
     params:
         # to the prefix, script adds, "genome/genome.xxx"
-        ortho_seq_dir = lambda wildcards: "database/MAGs_database_Orthofinder/"+wildcards.group+"/single_ortholog_sequences/",
         ffndir = "database/MAGs_database_ffn_files/",
         faadir = "database/MAGs_database_faa_files/",
-        # faaffndir = "07_AnnotationAndPhylogenies/01_prokka/",
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         jobname=lambda wildcards: wildcards.group+"_extract_orthologs",
@@ -2054,7 +2051,8 @@ rule extract_orthologs_mag_database:
     threads: 5
     shell:
         """
-        python3 scripts/extract_orthologs_phylo.py --orthofile {input.ortho_single} --outdir {params.ortho_seq_dir} --faadir {params.faadir} --ffndir {params.ffndir}
+        ortho_seq_dir=${{{output.done}/\.done*/}}
+        python3 scripts/extract_orthologs_phylo.py --orthofile {input.ortho_single} --outdir ${{ortho_seq_dir}} --faadir {params.faadir} --ffndir {params.ffndir}
         """
 # make this collect OGs from a checkpoint and process them and then follow with perc id filtering.
 rule calc_perc_id_mag_database:
@@ -2192,13 +2190,10 @@ rule map_to_MAGs:
         genome_db = "database/MAGs_database",
         index = multiext("database/MAGs_database", ".amb", ".ann", ".bwt", ".pac", ".sa"),
     output:
-        bam_mapped = "09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_mapped.bam",
         bam = "09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}.bam",
         sam = temp("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}.sam"),
-        sam_mapped = temp("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_mapped.sam"),
         mag_mapping_flagstat = "09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_flagstat.tsv",
     params:
-        perl_extract_mapped = "scripts/filter_sam_aln_length.pl",
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         jobname="{sample}_microbiomedb_mapping",
@@ -2213,8 +2208,6 @@ rule map_to_MAGs:
     shell:
         """
         bwa mem -t {threads} {input.genome_db} {input.reads1} {input.reads2} > {output.sam}
-        samtools view -h -F4 -@ {threads} {output.sam} | samtools view - -F 0x800 -h | perl {params.perl_extract_mapped} - > {output.sam_mapped}
-        samtools view -bh {output.sam_mapped} | samtools sort - > {output.bam_mapped}
         samtools view -bh {output.sam} | samtools sort - > {output.bam}
         samtools flagstat -O tsv {output.bam} > {output.mag_mapping_flagstat}
         """
@@ -2441,7 +2434,12 @@ rule instrain_profile:
         stb = "10_instrain/rep_mags_stb.tsv",
         genes = "10_instrain/rep_mags_genes.fna"
     output:
-        outdir = directory("10_instrain/{sample}_profile.IS/")
+        gene_info = "10_instrain/{sample}_profile.IS/output/{sample}_profile.IS_gene_info.tsv",
+        linkage = "10_instrain/{sample}_profile.IS/output/{sample}_profile.IS_linkage.tsv.gz",
+        scaffold_info = "10_instrain/{sample}_profile.IS/output/{sample}_profile.IS_scaffold_info.tsv",
+        genome_info = "10_instrain/{sample}_profile.IS/output/{sample}_profile.IS_genome_info.tsv",
+        mapping_info = "10_instrain/{sample}_profile.IS/output/{sample}_profile.IS_mapping_info.tsv",
+        SNVs = "10_instrain/{sample}_profile.IS/output/{sample}_profile.IS_SNVs.tsv",
     params:
         # database_mode=lambda wildcards: "--database_mode" if wildcards.sample not in ["F1.1", "F1.5", "F2.5", "D2.2", "D2.4"] else "",
         mailto="aiswarya.prasad@unil.ch",
@@ -2455,55 +2453,58 @@ rule instrain_profile:
     threads: 16
     shell:
         """
-        inStrain profile {input.bam} {input.genomes} -o {output.outdir} -p {threads} -g {input.genes} -s {input.stb}
+        outdir=${{{output.genome_info}/{wildcards.sample}_profile*/}}
+        inStrain profile {input.bam} {input.genomes} -o ${{outdir}} -p {threads} -g {input.genes} -s {input.stb}
         """
 
-rule instrain_profile_genes:
-    input:
-        genomes = "10_instrain/rep_mags.fasta",
-        stb = "10_instrain/rep_mags_stb.tsv",
-        genes = "10_instrain/rep_mags_genes.fna",
-        profile = "10_instrain/{sample}_profile.IS/",
-    output:
-        done = touch("10_instrain/{sample}_profile_genes.done")
-    params:
-        mailto="aiswarya.prasad@unil.ch",
-        account="pengel_spirit",
-        runtime_s=convertToSec("0-20:10:00"),
-    resources:
-        mem_mb = convertToMb("200G")
-    conda: "envs/snv-env.yaml"
-    log: "logs/{sample}_instrain_profile_genes.log"
-    benchmark: "logs/{sample}_instrain_profile_genes.benchmark"
-    threads: 16
-    shell:
-        """
-        inStrain profile_genes -i {input.profile} -g {input.genes} -p {threads}
-        """
+# profile_genes   -> Calculate gene-level metrics on an inStrain profile [DEPRECATED; PROVIDE GENES TO profile]
+#     genome_wide     -> Calculate genome-level metrics on an inStrain profile [DEPRECATED; PROVIDE .stb FILES TO profile / compare]
+# rule instrain_profile_genes:
+#     input:
+#         genomes = "10_instrain/rep_mags.fasta",
+#         stb = "10_instrain/rep_mags_stb.tsv",
+#         genes = "10_instrain/rep_mags_genes.fna",
+#         profile = "10_instrain/{sample}_profile.IS/",
+#     output:
+#         done = touch("10_instrain/{sample}_profile_genes.done")
+#     params:
+#         mailto="aiswarya.prasad@unil.ch",
+#         account="pengel_spirit",
+#         runtime_s=convertToSec("0-20:10:00"),
+#     resources:
+#         mem_mb = convertToMb("200G")
+#     conda: "envs/snv-env.yaml"
+#     log: "logs/{sample}_instrain_profile_genes.log"
+#     benchmark: "logs/{sample}_instrain_profile_genes.benchmark"
+#     threads: 16
+#     shell:
+#         """
+#         inStrain profile_genes -i {input.profile} -g {input.genes} -p {threads}
+#         """
 
-rule instrain_profile_genome_wide:
-    input:
-        genomes = "10_instrain/rep_mags.fasta",
-        stb = "10_instrain/rep_mags_stb.tsv",
-        genes = "10_instrain/rep_mags_genes.fna",
-        profile = "10_instrain/{sample}_profile.IS/",
-    output:
-        done = touch("10_instrain/{sample}_profile_genome_wide.done")
-    params:
-        database_mode=lambda wildcards: "--database_mode" if wildcards.sample not in ["F1.1", "F1.5", "F2.5", "D2.2", "D2.4"] else "",
-        mailto="aiswarya.prasad@unil.ch",
-        account="pengel_spirit",
-        runtime_s=convertToSec("0-20:10:00"),
-    resources:
-        mem_mb = convertToMb("200G")
-    conda: "envs/snv-env.yaml"
-    log: "logs/{sample}_instrain_profile_genome_wide.log"
-    benchmark: "logs/{sample}_instrain_profile_genome_wide.benchmark"
-    threads: 16
-    shell:
-        """
-        inStrain genome_wide -i {input.profile} -s {input.stb} -p {threads}
-        """
+# rule instrain_profile_genome_wide:
+#     input:
+#         genomes = "10_instrain/rep_mags.fasta",
+#         stb = "10_instrain/rep_mags_stb.tsv",
+#         genes = "10_instrain/rep_mags_genes.fna",
+#         profile = "10_instrain/{sample}_profile.IS/",
+#     output:
+#         done = touch("10_instrain/{sample}_profile_genome_wide.done")
+#     params:
+#         database_mode=lambda wildcards: "--database_mode" if wildcards.sample not in ["F1.1", "F1.5", "F2.5", "D2.2", "D2.4"] else "",
+#         mailto="aiswarya.prasad@unil.ch",
+#         account="pengel_spirit",
+#         runtime_s=convertToSec("0-20:10:00"),
+#     resources:
+#         mem_mb = convertToMb("200G")
+#     conda: "envs/snv-env.yaml"
+#     log: "logs/{sample}_instrain_profile_genome_wide.log"
+#     benchmark: "logs/{sample}_instrain_profile_genome_wide.benchmark"
+#     threads: 16
+#     shell:
+#         """
+#         inStrain genome_wide -i {input.profile} -s {input.stb} -p {threads}
+#         """
 
 rule instrain_profile_plot:
     input:
@@ -2532,8 +2533,11 @@ rule instrain_compare:
         profiles = expand("10_instrain/{sample}_profile.IS/", sample=SAMPLES),
         stb = "10_instrain/rep_mags_stb.tsv",
     output:
-        outdir = directory("10_instrain/rep_mags.IS.COMPARE/"),
+        comparisonsTable = "10_instrain/rep_mags.IS.COMPARE/rep_mags.IS.COMPARE_comparisonsTable.tsv.gz",
+        genomeWide_compare = "10_instrain/rep_mags.IS.COMPARE/rep_mags.IS.COMPARE_genomeWide_compare.tsv",
+        strain_clusters = "10_instrain/rep_mags.IS.COMPARE/rep_mags.IS.COMPARE_strain_clusters.tsv",
     params:
+        db_name="rep_mags",
         mailto="aiswarya.prasad@unil.ch",
         account="pengel_spirit",
         runtime_s=convertToSec("0-20:10:00"),
@@ -2545,6 +2549,7 @@ rule instrain_compare:
     threads: 16
     shell:
         """
+        outdir=${{{output.comparisonsTable}/{params.db_name}*/}}
         inStrain compare -i {input.profiles} -s {input.stb} -p {threads} -o {output.outdir}
         """
 

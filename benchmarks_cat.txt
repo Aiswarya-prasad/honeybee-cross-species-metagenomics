@@ -409,7 +409,7 @@ h:m:s	max_rss	max_vms	max_uss
 0:08:25	33881.96	36438.75	33828.38
 logs/C1.1_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:00:20	3337.52	8418.60	3331.98
+0:55:59	3346.02	8538.61	3340.68
 logs/C1.1_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:28:15	1297.96	8542.61	1293.04
@@ -526,7 +526,7 @@ h:m:s	max_rss	max_vms	max_uss
 0:09:32	33624.56	36190.52	33570.91
 logs/C1.2_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:17:47	3295.12	8542.61	3290.26
+0:52:57	3352.00	8213.41	3347.04
 logs/C1.2_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:37:14	1352.59	8542.61	1347.11
@@ -643,7 +643,7 @@ h:m:s	max_rss	max_vms	max_uss
 0:06:23	25671.92	28237.27	25668.72
 logs/C1.3_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:45:58	3960.83	8542.61	3955.29
+0:42:32	3962.11	8678.62	3956.64
 logs/C1.3_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:28:52	1365.00	8542.61	1359.88
@@ -763,7 +763,7 @@ h:m:s	max_rss	max_vms	max_uss
 0:06:14	833.76	5424.10	828.82
 logs/C1.4_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:52:40	3554.12	8538.61	3548.79
+0:57:11	3498.57	8542.61	3493.30
 logs/C1.4_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:25:47	1293.82	8542.61	1288.28
@@ -883,7 +883,7 @@ h:m:s	max_rss	max_vms	max_uss
 0:10:53	836.54	5426.10	831.55
 logs/C1.5_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:58:57	3264.04	8545.61	3258.75
+0:56:52	3269.12	8473.61	3263.97
 logs/C1.5_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:31:08	1255.29	8544.61	1250.07
@@ -1003,7 +1003,7 @@ h:m:s	max_rss	max_vms	max_uss
 0:10:11	834.08	4835.89	829.11
 logs/C2.1_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:34:53	3377.35	8609.80	3372.11
+1:28:34	3344.13	8473.80	3338.77
 logs/C2.1_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:46:28	1362.85	8607.62	1357.75
@@ -1123,7 +1123,7 @@ h:m:s	max_rss	max_vms	max_uss
 0:06:58	833.23	5422.10	827.66
 logs/C2.2_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:36:34	3310.96	8466.45	3305.81
+1:36:23	3353.21	8542.61	3347.76
 logs/C2.2_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:46:05	1300.43	8418.60	1295.09
@@ -1243,7 +1243,7 @@ h:m:s	max_rss	max_vms	max_uss
 0:05:35	832.57	5424.29	827.17
 logs/C2.3_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:56:59	3431.04	7550.67	3425.67
+1:11:05	3392.75	8609.62	3387.30
 logs/C2.3_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:37:52	1286.89	8542.61	1281.49
@@ -1262,6 +1262,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/C2.3_prodigal_get_orfs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:01:19	59.41	2036.24	43.15
+logs/C2.3_run_motus.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:29:43	8433.29	9121.93	8428.27
 logs/C2.3_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	67.29	387.59	54.70
@@ -1366,7 +1369,7 @@ h:m:s	max_rss	max_vms	max_uss
 0:05:53	833.74	5424.10	828.34
 logs/C2.4_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:04:27	3347.83	8544.61	3342.78
+1:02:41	3347.50	8609.81	3342.56
 logs/C2.4_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:32:16	1297.75	8544.61	1292.59
@@ -1489,7 +1492,7 @@ h:m:s	max_rss	max_vms	max_uss
 0:10:18	833.76	5087.92	829.01
 logs/C2.5_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:21:36	3328.71	8542.61	3323.21
+0:58:28	3356.23	8873.63	3350.69
 logs/C2.5_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:42:27	1380.70	8542.61	1375.27
@@ -1508,6 +1511,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/C2.5_prodigal_get_orfs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:01:37	77.09	891.83	60.57
+logs/C2.5_run_motus.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:40:04	8812.77	9471.68	8807.86
 logs/C2.5_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	65.38	387.61	52.76
@@ -1612,7 +1618,7 @@ h:m:s	max_rss	max_vms	max_uss
 0:08:08	833.53	5290.70	828.71
 logs/C3.1_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:21:07	3300.51	8542.61	3295.42
+1:16:11	3285.18	8542.61	3280.08
 logs/C3.1_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:39:20	1323.02	8466.45	1317.86
@@ -1631,6 +1637,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/C3.1_prodigal_get_orfs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:01:10	71.39	887.83	54.88
+logs/C3.1_run_motus.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:32:38	8798.58	9535.93	8789.94
 logs/C3.1_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	65.45	387.59	52.72
@@ -1735,7 +1744,7 @@ h:m:s	max_rss	max_vms	max_uss
 0:06:50	833.30	5087.92	827.97
 logs/C3.2_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:10:47	3642.86	8542.61	3637.39
+1:09:14	3762.25	7953.39	3756.79
 logs/C3.2_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:35:18	1433.81	8542.80	1428.48
@@ -1855,7 +1864,7 @@ h:m:s	max_rss	max_vms	max_uss
 0:06:52	25092.20	27653.66	25089.07
 logs/C3.3_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:59:56	3224.08	8213.41	3219.12
+0:57:01	3237.40	3719.74	3232.00
 logs/C3.3_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:41:51	1330.68	8542.61	1325.43
@@ -1874,6 +1883,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/C3.3_prodigal_get_orfs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:02:25	66.88	2034.40	50.47
+logs/C3.3_run_motus.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:25:47	9108.66	9771.86	9103.92
 logs/C3.3_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:01	197.82	652.60	184.89
@@ -1975,7 +1987,7 @@ h:m:s	max_rss	max_vms	max_uss
 0:11:27	39446.94	42333.80	39443.48
 logs/C3.4_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:17:05	3138.14	8542.80	3133.02
+1:23:37	3104.34	8213.41	3099.50
 logs/C3.4_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:41:40	1382.75	8542.61	1377.40
@@ -1994,6 +2006,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/C3.4_prodigal_get_orfs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:03:34	62.15	887.83	57.34
+logs/C3.4_run_motus.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:34:27	8992.00	9790.18	8987.27
 logs/C3.4_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	116.85	501.60	104.38
@@ -2095,7 +2110,7 @@ h:m:s	max_rss	max_vms	max_uss
 0:07:03	28074.02	30630.63	28070.85
 logs/C3.5_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:16:15	3365.46	8542.61	3360.41
+1:10:58	3380.91	8542.61	3375.89
 logs/C3.5_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:35:44	1374.86	8477.61	1369.36
@@ -2114,6 +2129,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/C3.5_prodigal_get_orfs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:01:13	66.86	2034.27	50.18
+logs/C3.5_run_motus.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:22:42	8561.87	9215.93	8557.46
 logs/C3.5_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	67.25	387.59	54.75
@@ -2281,7 +2299,7 @@ h:m:s	max_rss	max_vms	max_uss
 0:15:30	55048.15	57597.39	55044.91
 logs/D1.1_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:47:19	3444.47	8609.80	3438.94
+0:56:17	3321.54	8678.62	3316.07
 logs/D1.1_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:29:51	1334.44	8609.62	1329.30
@@ -2300,6 +2318,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/D1.1_prodigal_get_orfs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:02:28	58.37	888.08	53.64
+logs/D1.1_run_motus.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:26:18	8026.52	8651.93	8021.91
 logs/D1.1_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	65.46	387.59	52.69
@@ -2401,7 +2422,7 @@ h:m:s	max_rss	max_vms	max_uss
 0:19:17	71647.21	74297.07	71644.09
 logs/D1.2_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:15:21	3377.14	8609.61	3372.16
+1:34:38	3443.18	8418.60	3437.70
 logs/D1.2_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:38:12	1336.25	8542.61	1331.00
@@ -2420,6 +2441,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/D1.2_prodigal_get_orfs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:04:18	63.80	888.51	58.78
+logs/D1.2_run_motus.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:41:41	8459.91	9106.18	8454.91
 logs/D1.2_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:01	127.85	512.61	115.25
@@ -2521,7 +2545,7 @@ h:m:s	max_rss	max_vms	max_uss
 0:21:18	64961.04	67520.15	64958.14
 logs/D1.3_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:48:16	3160.03	8540.80	3154.68
+0:43:22	3129.89	7550.67	3124.47
 logs/D1.3_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:24:42	1324.48	8542.61	1319.15
@@ -2540,6 +2564,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/D1.3_prodigal_get_orfs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:04:26	64.49	887.83	59.66
+logs/D1.3_run_motus.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:23:48	6983.65	7742.36	6978.65
 logs/D1.3_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:01	101.28	482.61	88.23
@@ -2641,7 +2668,7 @@ h:m:s	max_rss	max_vms	max_uss
 0:20:41	69801.43	72363.00	69798.55
 logs/D1.4_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:08:36	3269.07	8474.61	3263.64
+0:46:44	3230.39	8596.46	3225.20
 logs/D1.4_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:35:34	1337.67	8542.61	1332.40
@@ -2660,6 +2687,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/D1.4_prodigal_get_orfs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:04:13	64.41	2013.69	59.60
+logs/D1.4_run_motus.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:27:48	8290.73	9045.09	8285.97
 logs/D1.4_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:01	65.47	387.59	52.70
@@ -2761,7 +2791,7 @@ h:m:s	max_rss	max_vms	max_uss
 0:20:19	71337.81	73903.84	71334.65
 logs/D1.5_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:57:56	3328.89	8743.62	3323.61
+1:06:06	3295.31	8213.41	3290.18
 logs/D1.5_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:36:33	1346.93	8544.61	1341.47
@@ -2780,6 +2810,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/D1.5_prodigal_get_orfs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:04:37	62.32	888.23	57.54
+logs/D1.5_run_motus.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:38:47	8542.99	9169.61	8538.00
 logs/D1.5_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:01	131.37	515.61	118.87
@@ -2887,7 +2920,7 @@ h:m:s	max_rss	max_vms	max_uss
 0:45:22	1143.90	5424.10	1138.71
 logs/D2.1_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:59:18	3039.56	8542.61	3034.54
+0:42:49	3077.86	8466.45	3072.74
 logs/D2.1_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:31:43	1313.41	8542.61	1308.02
@@ -3007,7 +3040,7 @@ h:m:s	max_rss	max_vms	max_uss
 0:00:07	610.26	3170.75	557.06
 logs/D2.2_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:30:18	3685.68	7551.68	3680.43
+1:06:24	3709.46	8213.41	3704.45
 logs/D2.2_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:54:04	1351.46	8542.61	1346.45
@@ -3127,7 +3160,7 @@ h:m:s	max_rss	max_vms	max_uss
 0:13:02	49624.94	52188.20	49621.63
 logs/D2.3_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:11:29	3240.73	8542.86	3235.18
+1:07:23	3216.14	8542.80	3211.05
 logs/D2.3_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:37:50	1300.96	8478.61	1295.66
@@ -3253,7 +3286,7 @@ h:m:s	max_rss	max_vms	max_uss
 1:14:47	1186.72	5355.09	1181.73
 logs/D2.4_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:16:27	2931.65	8607.61	2926.51
+0:56:40	2966.07	8466.45	2960.59
 logs/D2.4_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:45:36	1335.54	8473.61	1330.60
@@ -3379,7 +3412,7 @@ h:m:s	max_rss	max_vms	max_uss
 0:43:39	1155.26	5424.10	1149.89
 logs/D2.5_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:05:37	3109.66	8473.60	3104.40
+1:04:16	3068.19	8542.80	3062.53
 logs/D2.5_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:37:12	1305.22	8542.61	1299.73
@@ -3499,7 +3532,7 @@ h:m:s	max_rss	max_vms	max_uss
 0:11:15	45192.63	47750.74	45189.59
 logs/D3.1_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:00:49	3564.98	8542.61	3559.50
+0:43:20	3518.92	7550.67	3513.45
 logs/D3.1_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:29:03	1321.73	8418.60	1316.40
@@ -3619,7 +3652,7 @@ h:m:s	max_rss	max_vms	max_uss
 0:12:23	44117.85	46673.54	44064.02
 logs/D3.2_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:20:23	3261.90	8607.80	3256.88
+1:16:21	3182.83	7550.67	3177.31
 logs/D3.2_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:41:20	1351.65	8542.80	1346.54
@@ -3739,7 +3772,7 @@ h:m:s	max_rss	max_vms	max_uss
 0:07:58	29536.95	32090.29	29483.09
 logs/D3.3_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:04:06	3417.54	7953.39	3412.44
+1:20:31	3390.91	8542.61	3385.73
 logs/D3.3_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:42:27	1318.52	8542.61	1313.19
@@ -3859,7 +3892,7 @@ h:m:s	max_rss	max_vms	max_uss
 0:16:26	59432.51	61992.36	59429.58
 logs/D3.4_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:05:54	3296.79	8542.61	3291.47
+0:59:58	3304.71	8542.61	3299.34
 logs/D3.4_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:33:01	1315.88	8542.61	1310.50
@@ -3979,7 +4012,7 @@ h:m:s	max_rss	max_vms	max_uss
 0:06:58	26240.66	28796.48	26237.62
 logs/D3.5_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:19:52	3398.33	8542.61	3393.01
+1:14:54	3374.46	8542.61	3369.18
 logs/D3.5_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:40:09	1330.94	8466.45	1326.15
@@ -4702,7 +4735,7 @@ h:m:s	max_rss	max_vms	max_uss
 0:00:05	676.68	3259.99	623.57
 logs/F1.1_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:59:57	3562.76	8607.61	3557.29
+0:57:01	3557.61	8609.62	3552.24
 logs/F1.1_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:33:41	1292.83	8538.61	1287.75
@@ -4822,7 +4855,7 @@ h:m:s	max_rss	max_vms	max_uss
 0:02:40	11822.05	14378.98	11769.74
 logs/F1.2_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:31:05	3303.77	8540.61	3298.43
+1:05:56	3325.03	8544.80	3319.74
 logs/F1.2_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 1:00:19	1288.77	8540.61	1283.74
@@ -4942,7 +4975,7 @@ h:m:s	max_rss	max_vms	max_uss
 0:03:06	14552.98	17112.63	14500.48
 logs/F1.3_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:44:08	3278.83	8540.80	3273.51
+1:39:38	3276.66	8540.61	3271.81
 logs/F1.3_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:55:41	1371.45	8542.61	1366.45
@@ -5065,7 +5098,7 @@ h:m:s	max_rss	max_vms	max_uss
 0:02:01	831.97	5426.10	827.33
 logs/F1.4_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:56:01	3352.72	8473.60	3347.25
+0:55:49	3563.50	7616.68	3558.08
 logs/F1.4_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:29:34	1297.99	8542.61	1292.77
@@ -5188,7 +5221,7 @@ h:m:s	max_rss	max_vms	max_uss
 0:00:56	827.04	5094.90	822.49
 logs/F1.5_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:09:51	3454.09	8542.61	3448.98
+1:09:25	3351.96	8542.61	3346.74
 logs/F1.5_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:28:44	1297.89	8544.61	1292.70
@@ -5311,7 +5344,7 @@ h:m:s	max_rss	max_vms	max_uss
 0:09:33	833.98	5424.10	828.48
 logs/F2.1_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:25:55	3258.28	8609.61	3252.98
+1:21:20	3256.39	8678.62	3251.18
 logs/F2.1_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:45:15	1319.19	8542.61	1313.96
@@ -5434,7 +5467,7 @@ h:m:s	max_rss	max_vms	max_uss
 0:03:11	833.00	5094.90	828.08
 logs/F2.2_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:21:45	3270.55	8542.61	3264.98
+0:59:32	3262.26	8526.06	3257.27
 logs/F2.2_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:45:24	1332.93	8206.43	1327.47
@@ -5557,7 +5590,7 @@ h:m:s	max_rss	max_vms	max_uss
 0:06:53	833.37	5359.10	827.98
 logs/F2.3_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:24:07	3236.65	8540.61	3231.29
+0:59:42	3262.47	8278.41	3257.49
 logs/F2.3_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:45:01	1349.17	8478.61	1344.09
@@ -5680,7 +5713,7 @@ h:m:s	max_rss	max_vms	max_uss
 0:10:54	833.40	5424.10	827.85
 logs/F2.4_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:08:24	3268.20	8607.61	3262.79
+1:23:23	3270.23	8542.61	3264.86
 logs/F2.4_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:46:07	1348.13	8542.61	1342.99
@@ -5803,7 +5836,7 @@ h:m:s	max_rss	max_vms	max_uss
 0:02:10	542.25	1068.58	537.20
 logs/F2.5_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:18:48	3311.00	8473.79	3305.71
+1:18:09	3316.69	8542.61	3311.20
 logs/F2.5_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:40:23	1348.55	8544.61	1343.57
@@ -5935,7 +5968,7 @@ h:m:s	max_rss	max_vms	max_uss
 0:14:47	835.12	5357.10	830.28
 logs/F3.1_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:42:30	3133.38	8542.61	3127.93
+0:52:23	3108.83	8678.62	3103.30
 logs/F3.1_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:31:52	1310.64	8466.45	1305.23
@@ -6058,7 +6091,7 @@ h:m:s	max_rss	max_vms	max_uss
 0:06:56	833.65	5426.42	828.86
 logs/F3.2_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:57:21	3061.09	8542.61	3055.59
+1:00:49	3254.45	8542.61	3249.39
 logs/F3.2_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:31:25	1328.21	8543.06	1323.07
@@ -6181,7 +6214,7 @@ h:m:s	max_rss	max_vms	max_uss
 0:05:48	833.69	5560.11	828.95
 logs/F3.3_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:03:48	3125.85	8609.61	3120.34
+1:18:41	3076.35	8542.80	3071.38
 logs/F3.3_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:36:44	1355.33	8542.61	1349.87
@@ -6304,7 +6337,7 @@ h:m:s	max_rss	max_vms	max_uss
 0:07:07	834.90	5426.29	829.86
 logs/F3.4_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:51:55	3215.20	3732.84	3210.07
+1:05:47	3227.47	8544.80	3222.49
 logs/F3.4_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:38:45	1296.07	8542.61	1290.67
@@ -6427,7 +6460,7 @@ h:m:s	max_rss	max_vms	max_uss
 0:01:37	5756.93	8318.57	5753.37
 logs/F3.5_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:56:49	3001.51	8544.80	2995.82
+0:55:16	2913.52	8408.43	2908.12
 logs/F3.5_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:31:35	1291.19	8542.61	1285.76
@@ -7645,7 +7678,7 @@ h:m:s	max_rss	max_vms	max_uss
 0:10:28	33564.06	36127.36	33560.93
 logs/M1.1_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:54:18	3320.95	8080.88	3315.59
+0:59:33	3310.41	8609.62	3304.89
 logs/M1.1_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:35:40	1359.83	8544.61	1354.56
@@ -7664,6 +7697,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/M1.1_prodigal_get_orfs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:01:30	69.92	652.34	53.36
+logs/M1.1_run_motus.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:30:25	8617.16	9364.17	8612.52
 logs/M1.1_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	65.46	387.59	52.74
@@ -7774,7 +7810,7 @@ h:m:s	max_rss	max_vms	max_uss
 0:11:27	33156.07	35710.05	33102.48
 logs/M1.2_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:12:02	3428.26	8542.61	3423.32
+1:09:31	3457.79	8609.62	3452.78
 logs/M1.2_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:36:14	1343.11	8542.61	1337.77
@@ -7793,6 +7829,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/M1.2_prodigal_get_orfs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:01:19	65.36	2013.70	48.63
+logs/M1.2_run_motus.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:26:47	8725.78	9316.97	8721.20
 logs/M1.2_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	65.50	387.59	52.75
@@ -7894,7 +7933,7 @@ h:m:s	max_rss	max_vms	max_uss
 0:13:24	38505.04	41200.46	38644.07
 logs/M1.3_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:16:12	3290.27	8540.61	3284.92
+0:52:49	3327.46	8278.41	3322.52
 logs/M1.3_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:37:32	1377.31	8540.61	1372.29
@@ -7913,6 +7952,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/M1.3_prodigal_get_orfs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:01:16	70.14	888.51	65.19
+logs/M1.3_run_motus.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:23:59	8871.42	9488.34	8866.65
 logs/M1.3_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	65.48	387.61	52.73
@@ -8017,7 +8059,7 @@ h:m:s	max_rss	max_vms	max_uss
 0:13:49	37387.00	39939.46	37384.09
 logs/M1.4_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:14:40	2934.93	8473.60	2929.55
+0:53:37	2935.57	8544.61	2930.24
 logs/M1.4_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:45:44	1393.09	8542.61	1388.06
@@ -8036,6 +8078,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/M1.4_prodigal_get_orfs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:01:39	70.95	2013.56	54.46
+logs/M1.4_run_motus.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:36:06	10628.46	11377.09	10623.75
 logs/M1.4_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	65.45	387.61	52.71
@@ -8137,7 +8182,7 @@ h:m:s	max_rss	max_vms	max_uss
 0:09:33	29000.39	31552.61	28946.68
 logs/M1.5_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:43:29	3321.46	8278.41	3316.07
+0:52:15	3319.58	8473.61	3314.30
 logs/M1.5_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:29:00	1312.77	8609.62	1307.42

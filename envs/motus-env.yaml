@@ -4,4 +4,4 @@ channels:
   - bioconda
 
 dependencies:
-  - motus=3*
+  - motus>=3*
