@@ -2767,7 +2767,7 @@ Pa_heatmap <- ggplot(abundance_df %>% mutate(PresAb = ifelse(Cov > 1, "Present",
 
 library(dendextend)
 
-grid.arrange(
+p_Cov <- grid.arrange(
     arrangeGrob(
       grid.rect(gp=gpar(col="white")),
       ggdendrogram(magOTU_clustering_Cov) + theme(axis.text.y = element_text(size = 0)),
@@ -2779,12 +2779,11 @@ grid.arrange(
     nrow = 2,
     heights = c(1,4)
 )
-  ggsave("Figures/12f_heatmap_coverage_clustering.pdf")
+  ggsave("Figures/12f_heatmap_coverage_clustering.pdf", p_Cov)
 
-grid.arrange(
+p_pa <- grid.arrange(
     arrangeGrob(
       grid.rect(gp=gpar(col="white")),
-      # plot(magOTU_clustering_pa %>% color_branches(k = 5) %>% rotate(samples)),
       ggdendrogram(magOTU_clustering_pa) + theme(axis.text.y = element_text(size = 0)),
       grid.rect(gp=gpar(col="white")),
       ncol = 3,
@@ -2794,7 +2793,7 @@ grid.arrange(
     nrow = 2,
     heights = c(1,4)
 )
-  ggsave("Figures/12f_heatmap_presence_absence_clustering.pdf")
+ggsave("Figures/12f_heatmap_presence_absence_clustering.pdf", p_pa)
 
 
 
