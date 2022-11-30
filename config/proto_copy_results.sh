@@ -10,9 +10,9 @@ rsync -r --progress -v $prefix/*_Report.Rmd "$outdir"/
 # results
 mkdir -p "$outdir"/fastqc
 mkdir -p "$outdir"/fastqc/raw
-rsync -r --progress -v $prefix/fastqc/raw/*_*_fastqc.html "$outdir"/fastq/raw
+rsync -r --progress -v $prefix/fastqc/raw/*_*_fastqc.html "$outdir"/fastqc/raw
 mkdir -p "$outdir"/fastqc/trim
-rsync -r --progress -v $prefix/fastqc/trim/*_*_trim_fastqc.html "$outdir"/fastq/trim
+rsync -r --progress -v $prefix/fastqc/trim/*_*_trim_fastqc.html "$outdir"/fastqc/trim
 mkdir -p "$outdir"/02_HostMapping
 rsync -r --progress -v $prefix/02_HostMapping/*_flagstat.tsv "$outdir"/02_HostMapping
 rsync -r --progress -v $prefix/02_HostMapping/*_coverage.tsv "$outdir"/02_HostMapping
@@ -85,7 +85,13 @@ mkdir -p "$outdir"/10_instrain
 for sample in M1.1  M1.2  M1.3  M1.4  M1.5 C1.1  C1.2  C1.3  C1.4  C1.5 C2.1  C2.2  C2.3  C2.4  C2.5 C3.1  C3.2  C3.3  C3.4  C3.5 D1.1 D1.2 D1.3 D1.4 D1.5 D2.1 D2.2 D2.3 D2.4 D2.5 D3.1 D3.2 D3.3 D3.4 D3.5 F1.1 F1.2 F1.3 F1.4 F1.5 F2.1 F2.2 F2.3 F2.4 F2.5 F3.1 F3.2 F3.3 F3.4 F3.5;
 do
   mkdir -p $prefix/10_instrain/${sample}_profile.IS
-  rsync -r --progress -v $prefix/10_instrain/${sample}_profile.IS/* "$outdir"/10_instrain/${sample}_profile.IS
+  mkdir -p $prefix/10_instrain/${sample}_profile.IS/output
+  mkdir -p $prefix/10_instrain/${sample}_profile.IS/log
+  mkdir -p $prefix/10_instrain/${sample}_profile.IS/figures
+  rm -rf $prefix/10_instrain/${sample}_profile.IS/raw_data
+  rsync -r --progress -v $prefix/10_instrain/${sample}_profile.IS/output/* "$outdir"/10_instrain/${sample}_profile.IS/output
+  rsync -r --progress -v $prefix/10_instrain/${sample}_profile.IS/log/* "$outdir"/10_instrain/${sample}_profile.IS/log
+  rsync -r --progress -v $prefix/10_instrain/${sample}_profile.IS/figures/* "$outdir"/10_instrain/${sample}_profile.IS/figures
 done
 rsync -r --progress -v $prefix/10_instrain/rep_mags.IS.COMPARE "$outdir"/10_instrain
 rsync -r --progress -v $prefix/*_Report.html "$outdir"

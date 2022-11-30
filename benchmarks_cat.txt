@@ -175,7 +175,7 @@ h:m:s	max_rss	max_vms	max_uss
 0:00:02	16.61	1739.12	8.57
 logs/backup.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:00:10	133.76	1730.84	117.78
+0:10:34	238.81	2091.22	223.40
 logs/BBC0122_annotate.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:01:09	52.05	5426.67	42.30
@@ -242,6 +242,60 @@ h:m:s	max_rss	max_vms	max_uss
 logs/Biut2_prepare_genomes.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:02	16.60	1739.12	8.51
+logs/blast_orthogroups_against_orfs_g__Apibacter.benchmark
+h:m:s	max_rss	max_vms	max_uss
+1:04:29	392.96	16458.27	387.90
+logs/blast_orthogroups_against_orfs_g__Bartonella.benchmark
+h:m:s	max_rss	max_vms	max_uss
+2:13:11	389.81	16328.26	372.75
+logs/blast_orthogroups_against_orfs_g__Bifidobacterium.benchmark
+h:m:s	max_rss	max_vms	max_uss
+1:39:32	390.51	16525.28	385.36
+logs/blast_orthogroups_against_orfs_g__Bombella.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:30:20	376.49	16393.27	283.34
+logs/blast_orthogroups_against_orfs_g__Bombilactobacillus.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:49:53	390.55	16393.46	335.89
+logs/blast_orthogroups_against_orfs_g__Commensalibacter.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:48:45	387.81	16594.28	382.57
+logs/blast_orthogroups_against_orfs_g__Dysgonomonas.benchmark
+h:m:s	max_rss	max_vms	max_uss
+1:30:09	390.08	16527.28	384.88
+logs/blast_orthogroups_against_orfs_g__Entomomonas.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:37:20	388.01	16592.28	382.89
+logs/blast_orthogroups_against_orfs_g__Frischella.benchmark
+h:m:s	max_rss	max_vms	max_uss
+1:40:31	391.34	16462.27	377.09
+logs/blast_orthogroups_against_orfs_g__Gilliamella.benchmark
+h:m:s	max_rss	max_vms	max_uss
+2:59:59	391.96	16256.10	386.84
+logs/blast_orthogroups_against_orfs_g__Lactobacillus.benchmark
+h:m:s	max_rss	max_vms	max_uss
+1:52:13	389.56	16594.47	372.47
+logs/blast_orthogroups_against_orfs_g__Parolsenella.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:24:31	387.33	16588.28	299.54
+logs/blast_orthogroups_against_orfs_g__Pectinatus.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:23:11	389.38	16068.07	384.18
+logs/blast_orthogroups_against_orfs_g__Saezia.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:34:14	387.62	16663.29	382.70
+logs/blast_orthogroups_against_orfs_g__Snodgrassella.benchmark
+h:m:s	max_rss	max_vms	max_uss
+1:58:36	391.82	16393.27	369.49
+logs/blast_orthogroups_against_orfs_g__Spiroplasma.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:25:32	376.14	16523.28	311.90
+logs/blast_orthogroups_against_orfs_g__WRHT01.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:34:23	388.22	16592.28	383.10
+logs/blast_orthogroups_against_orfs_g__Zymobacter.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:47:15	376.72	16328.45	247.44
 logs/Bma5_annotate.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:53	75.06	5694.70	65.62
@@ -343,13 +397,22 @@ h:m:s	max_rss	max_vms	max_uss
 0:54:23	2960.24	8466.44	2954.89
 logs/C1.1_instrain_profile.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:28:17	25858.82	67588.46	24917.97
+0:47:49	72680.20	112936.19	71741.38
+logs/C1.1_instrain_profile_genes.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:08:07	145675.45	186487.52	10191.91
+logs/C1.1_instrain_profile_genome_wide.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:07:58	13271.66	15618.45	13268.38
+logs/C1.1_instrain_profile_plot.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:08:25	33881.96	36438.75	33828.38
 logs/C1.1_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:19:34	3317.82	8473.60	3312.71
+1:00:20	3337.52	8418.60	3331.98
 logs/C1.1_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:25:52	1394.54	8544.61	1389.30
+0:28:15	1297.96	8542.61	1293.04
 logs/C1.1_merge_depths.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:02	43.89	4315.84	23.13
@@ -362,6 +425,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/C1.1_process_metabat2.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	4.26	438.33	0.57
+logs/C1.1_prodigal_get_orfs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:01:33	65.51	888.08	49.14
 logs/C1.1_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	65.55	387.59	52.73
@@ -448,10 +514,22 @@ h:m:s	max_rss	max_vms	max_uss
 1:16:12	2981.64	3593.82	2976.36
 logs/C1.2_instrain_profile.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:35:08	26602.50	69766.98	25660.11
+1:09:42	77438.13	121454.34	76499.12
+logs/C1.2_instrain_profile_genes.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:07:47	147605.02	188361.77	10329.26
+logs/C1.2_instrain_profile_genome_wide.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:07:53	13472.61	15811.34	13419.39
+logs/C1.2_instrain_profile_plot.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:09:32	33624.56	36190.52	33570.91
 logs/C1.2_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:25:02	3340.27	8213.40	3335.09
+1:17:47	3295.12	8542.61	3290.26
+logs/C1.2_map_to_rep_MAGs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:37:14	1352.59	8542.61	1347.11
 logs/C1.2_merge_depths.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:02	54.61	4315.84	36.16
@@ -464,6 +542,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/C1.2_process_metabat2.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	4.22	438.33	0.52
+logs/C1.2_prodigal_get_orfs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:01:36	70.42	2013.69	53.90
 logs/C1.2_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	65.25	387.59	52.71
@@ -550,10 +631,22 @@ h:m:s	max_rss	max_vms	max_uss
 1:01:45	3123.01	8542.61	3117.72
 logs/C1.3_instrain_profile.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:20:40	23120.81	63580.63	22180.25
+0:38:19	50847.72	91488.24	49909.77
+logs/C1.3_instrain_profile_genes.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:05:56	112474.62	153198.06	8510.36
+logs/C1.3_instrain_profile_genome_wide.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:07:26	11452.75	13797.57	11449.66
+logs/C1.3_instrain_profile_plot.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:06:23	25671.92	28237.27	25668.72
 logs/C1.3_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:58:08	3897.65	8540.61	3892.11
+0:45:58	3960.83	8542.61	3955.29
+logs/C1.3_map_to_rep_MAGs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:28:52	1365.00	8542.61	1359.88
 logs/C1.3_merge_depths.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:01	63.70	4319.85	37.03
@@ -566,6 +659,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/C1.3_process_metabat2.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	3.44	434.89	0.32
+logs/C1.3_prodigal_get_orfs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:01:23	62.27	888.84	57.42
 logs/C1.3_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	69.29	387.61	56.67
@@ -652,13 +748,25 @@ h:m:s	max_rss	max_vms	max_uss
 0:45:51	3047.48	8542.80	3042.30
 logs/C1.4_instrain_profile.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:24:23	23634.05	65147.71	22693.29
+0:55:13	56338.09	99779.10	55406.53
+logs/C1.4_instrain_profile_genes.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:07:53	130080.50	170805.86	10051.43
+logs/C1.4_instrain_profile_genome_wide.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:05:47	12330.68	14677.43	12278.78
+logs/C1.4_instrain_profile_plot.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:07:57	30065.49	32624.36	30011.81
 logs/C1.4_map_to_assembly.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:06:14	833.76	5424.10	828.82
 logs/C1.4_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:55:11	3544.23	8540.61	3538.88
+0:52:40	3554.12	8538.61	3548.79
+logs/C1.4_map_to_rep_MAGs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:25:47	1293.82	8542.61	1288.28
 logs/C1.4_merge_depths.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:01	33.53	4055.65	14.42
@@ -671,6 +779,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/C1.4_process_metabat2.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	3.30	434.89	0.18
+logs/C1.4_prodigal_get_orfs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:01:26	73.40	2013.69	56.93
 logs/C1.4_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	65.37	387.61	52.75
@@ -757,16 +868,25 @@ h:m:s	max_rss	max_vms	max_uss
 0:57:33	2917.91	8540.61	2912.79
 logs/C1.5_instrain_profile.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:25:14	25107.32	64908.25	24168.82
+0:56:41	65441.50	107836.64	64502.29
+logs/C1.5_instrain_profile_genes.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:08:08	156083.46	196879.02	11189.67
+logs/C1.5_instrain_profile_genome_wide.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:06:09	14626.09	16970.98	14572.87
+logs/C1.5_instrain_profile_plot.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:09:39	36587.93	39151.19	36534.19
 logs/C1.5_map_to_assembly.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:10:53	836.54	5426.10	831.55
 logs/C1.5_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:05:27	3275.49	8609.80	3270.29
+0:58:57	3264.04	8545.61	3258.75
 logs/C1.5_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:23:29	1258.81	8544.61	1253.56
+0:31:08	1255.29	8544.61	1250.07
 logs/C1.5_merge_depths.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:36	58.71	4384.85	32.39
@@ -779,6 +899,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/C1.5_process_metabat2.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	4.13	438.33	0.57
+logs/C1.5_prodigal_get_orfs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:02:11	61.89	2036.38	45.41
 logs/C1.5_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:01	65.54	387.59	52.70
@@ -865,13 +988,25 @@ h:m:s	max_rss	max_vms	max_uss
 1:35:29	3002.96	8278.41	2997.51
 logs/C2.1_instrain_profile.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:29:41	24580.84	66362.67	23638.68
+0:54:53	74754.12	115667.28	73825.88
+logs/C2.1_instrain_profile_genes.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:06:52	136702.80	177491.53	12109.85
+logs/C2.1_instrain_profile_genome_wide.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:07:10	13292.35	15635.65	13289.16
+logs/C2.1_instrain_profile_plot.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:08:15	31462.83	34018.59	31459.57
 logs/C2.1_map_to_assembly.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:10:11	834.08	4835.89	829.11
 logs/C2.1_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:37:46	3379.35	8678.61	3374.07
+1:34:53	3377.35	8609.80	3372.11
+logs/C2.1_map_to_rep_MAGs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:46:28	1362.85	8607.62	1357.75
 logs/C2.1_merge_depths.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:02	52.27	4380.85	33.84
@@ -884,6 +1019,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/C2.1_process_metabat2.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	3.08	217.31	0.32
+logs/C2.1_prodigal_get_orfs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:02:12	66.88	2034.39	50.27
 logs/C2.1_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	67.51	387.61	54.67
@@ -970,13 +1108,25 @@ h:m:s	max_rss	max_vms	max_uss
 1:24:48	3029.22	8538.61	3023.73
 logs/C2.2_instrain_profile.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:26:54	27657.00	68279.21	26718.29
+1:01:12	69441.89	110131.92	68502.68
+logs/C2.2_instrain_profile_genes.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:07:53	144595.34	185424.83	10443.74
+logs/C2.2_instrain_profile_genome_wide.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:08:11	14373.06	16717.78	14319.68
+logs/C2.2_instrain_profile_plot.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:09:08	32680.20	35243.76	32626.48
 logs/C2.2_map_to_assembly.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:06:58	833.23	5422.10	827.66
 logs/C2.2_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:25:47	3379.41	8080.88	3374.30
+1:36:34	3310.96	8466.45	3305.81
+logs/C2.2_map_to_rep_MAGs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:46:05	1300.43	8418.60	1295.09
 logs/C2.2_merge_depths.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:02	56.49	4382.85	31.62
@@ -989,6 +1139,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/C2.2_process_metabat2.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	3.51	434.89	0.18
+logs/C2.2_prodigal_get_orfs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:01:19	60.82	888.08	44.42
 logs/C2.2_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	71.22	387.60	58.62
@@ -1075,16 +1228,25 @@ h:m:s	max_rss	max_vms	max_uss
 1:17:12	3038.87	8278.41	3033.71
 logs/C2.3_instrain_profile.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:18:54	26185.10	66384.04	25244.25
+0:41:25	62415.92	104463.27	61480.59
+logs/C2.3_instrain_profile_genes.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:07:56	139584.93	180408.12	10087.01
+logs/C2.3_instrain_profile_genome_wide.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:05:42	13310.86	15656.85	13259.49
+logs/C2.3_instrain_profile_plot.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:08:46	31765.18	34321.33	31711.43
 logs/C2.3_map_to_assembly.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:05:35	832.57	5424.29	827.17
 logs/C2.3_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:27:15	3322.28	8080.88	3317.12
+0:56:59	3431.04	7550.67	3425.67
 logs/C2.3_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:28:57	1337.71	1791.51	1332.34
+0:37:52	1286.89	8542.61	1281.49
 logs/C2.3_merge_depths.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:01	56.88	4385.04	31.50
@@ -1097,6 +1259,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/C2.3_process_metabat2.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	3.38	217.45	0.08
+logs/C2.3_prodigal_get_orfs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:01:19	59.41	2036.24	43.15
 logs/C2.3_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	67.29	387.59	54.70
@@ -1186,13 +1351,25 @@ h:m:s	max_rss	max_vms	max_uss
 1:08:42	3027.18	8542.61	3022.12
 logs/C2.4_instrain_profile.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:21:41	23444.06	60523.94	22504.24
+1:10:12	58912.07	103081.56	57973.85
+logs/C2.4_instrain_profile_genes.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:05:48	120103.71	160880.78	8861.23
+logs/C2.4_instrain_profile_genome_wide.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:07:23	11442.88	13783.76	11439.66
+logs/C2.4_instrain_profile_plot.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:07:32	27422.82	29977.34	27369.02
 logs/C2.4_map_to_assembly.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:05:53	833.74	5424.10	828.34
 logs/C2.4_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:01:50	3319.38	8213.40	3313.76
+1:04:27	3347.83	8544.61	3342.78
+logs/C2.4_map_to_rep_MAGs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:32:16	1297.75	8544.61	1292.59
 logs/C2.4_merge_depths.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:01	33.47	4055.65	14.53
@@ -1205,6 +1382,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/C2.4_process_metabat2.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	3.45	434.89	0.18
+logs/C2.4_prodigal_get_orfs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:01:15	59.94	888.08	43.47
 logs/C2.4_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	65.30	387.61	52.71
@@ -1294,13 +1474,25 @@ h:m:s	max_rss	max_vms	max_uss
 1:10:25	2924.17	8542.61	2919.05
 logs/C2.5_instrain_profile.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:21:26	25644.56	63222.79	24706.08
+1:33:37	170841.30	212332.92	169909.02
+logs/C2.5_instrain_profile_genes.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:08:06	136447.79	177151.88	10298.49
+logs/C2.5_instrain_profile_genome_wide.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:07:51	13992.86	16333.57	13989.71
+logs/C2.5_instrain_profile_plot.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:07:35	31303.78	33868.83	31250.08
 logs/C2.5_map_to_assembly.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:10:18	833.76	5087.92	829.01
 logs/C2.5_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:25:15	3359.04	8466.44	3353.72
+1:21:36	3328.71	8542.61	3323.21
+logs/C2.5_map_to_rep_MAGs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:42:27	1380.70	8542.61	1375.27
 logs/C2.5_merge_depths.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:03	38.98	4315.84	18.19
@@ -1313,6 +1505,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/C2.5_process_metabat2.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	3.47	434.89	0.18
+logs/C2.5_prodigal_get_orfs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:01:37	77.09	891.83	60.57
 logs/C2.5_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	65.38	387.61	52.76
@@ -1402,13 +1597,25 @@ h:m:s	max_rss	max_vms	max_uss
 1:12:29	2988.75	8540.61	2983.74
 logs/C3.1_instrain_profile.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:22:07	22791.34	59611.29	21850.13
+1:02:09	72063.97	115280.01	71134.47
+logs/C3.1_instrain_profile_genes.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:07:41	97473.77	138339.25	8263.88
+logs/C3.1_instrain_profile_genome_wide.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:07:16	9899.64	12245.89	9846.64
+logs/C3.1_instrain_profile_plot.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:06:00	22230.11	24778.86	22227.19
 logs/C3.1_map_to_assembly.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:08:08	833.53	5290.70	828.71
 logs/C3.1_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:26:54	3323.11	8540.61	3318.00
+1:21:07	3300.51	8542.61	3295.42
+logs/C3.1_map_to_rep_MAGs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:39:20	1323.02	8466.45	1317.86
 logs/C3.1_merge_depths.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:02	53.90	4382.85	33.87
@@ -1421,6 +1628,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/C3.1_process_metabat2.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	4.42	446.46	0.54
+logs/C3.1_prodigal_get_orfs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:01:10	71.39	887.83	54.88
 logs/C3.1_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	65.45	387.59	52.72
@@ -1510,13 +1720,25 @@ h:m:s	max_rss	max_vms	max_uss
 1:05:08	3114.62	8542.61	3109.29
 logs/C3.2_instrain_profile.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:20:33	21587.89	61313.58	20647.53
+0:56:06	51906.38	93837.29	50968.62
+logs/C3.2_instrain_profile_genes.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:05:36	108995.88	149780.65	7910.25
+logs/C3.2_instrain_profile_genome_wide.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:07:26	10907.08	13249.95	10853.78
+logs/C3.2_instrain_profile_plot.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:06:00	23982.11	26538.58	23928.32
 logs/C3.2_map_to_assembly.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:06:50	833.30	5087.92	827.97
 logs/C3.2_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:11:35	3825.49	8678.61	3820.01
+1:10:47	3642.86	8542.61	3637.39
+logs/C3.2_map_to_rep_MAGs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:35:18	1433.81	8542.80	1428.48
 logs/C3.2_merge_depths.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:02	38.79	4315.84	17.98
@@ -1529,6 +1751,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/C3.2_process_metabat2.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	4.23	438.33	0.59
+logs/C3.2_prodigal_get_orfs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:01:22	60.07	2036.84	43.52
 logs/C3.2_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	69.20	387.59	56.61
@@ -1618,10 +1843,22 @@ h:m:s	max_rss	max_vms	max_uss
 1:14:23	2940.35	8542.61	2934.83
 logs/C3.3_instrain_profile.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:20:21	21038.12	64719.27	20097.21
+0:54:43	54680.47	94434.37	53742.20
+logs/C3.3_instrain_profile_genes.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:06:25	114175.01	155026.57	8096.51
+logs/C3.3_instrain_profile_genome_wide.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:07:25	10813.62	13224.19	10760.23
+logs/C3.3_instrain_profile_plot.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:06:52	25092.20	27653.66	25089.07
 logs/C3.3_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:24:41	3239.73	8542.61	3234.36
+0:59:56	3224.08	8213.41	3219.12
+logs/C3.3_map_to_rep_MAGs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:41:51	1330.68	8542.61	1325.43
 logs/C3.3_merge_depths.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:01	48.10	3711.96	32.91
@@ -1634,6 +1871,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/C3.3_process_metabat2.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	4.64	442.45	0.53
+logs/C3.3_prodigal_get_orfs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:02:25	66.88	2034.40	50.47
 logs/C3.3_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:01	197.82	652.60	184.89
@@ -1723,10 +1963,22 @@ h:m:s	max_rss	max_vms	max_uss
 1:06:22	2827.77	8542.61	2822.34
 logs/C3.4_instrain_profile.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:28:28	25120.09	69202.44	24181.67
+1:22:38	85489.34	125124.74	84549.92
+logs/C3.4_instrain_profile_genes.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:08:53	162155.45	202871.16	12128.40
+logs/C3.4_instrain_profile_genome_wide.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:09:38	17023.15	19364.35	17020.09
+logs/C3.4_instrain_profile_plot.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:11:27	39446.94	42333.80	39443.48
 logs/C3.4_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:33:53	3149.55	8213.40	3144.04
+1:17:05	3138.14	8542.80	3133.02
+logs/C3.4_map_to_rep_MAGs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:41:40	1382.75	8542.61	1377.40
 logs/C3.4_merge_depths.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:02	70.66	4386.85	61.68
@@ -1739,6 +1991,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/C3.4_process_metabat2.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	3.49	434.89	0.18
+logs/C3.4_prodigal_get_orfs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:03:34	62.15	887.83	57.34
 logs/C3.4_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	116.85	501.60	104.38
@@ -1828,13 +2083,22 @@ h:m:s	max_rss	max_vms	max_uss
 1:09:45	3090.12	8473.79	3084.83
 logs/C3.5_instrain_profile.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:28:31	21251.98	65593.14	20314.43
+1:08:52	63657.77	106602.12	62718.09
+logs/C3.5_instrain_profile_genes.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:07:09	125554.59	166255.75	8956.02
+logs/C3.5_instrain_profile_genome_wide.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:06:31	12014.09	14351.67	12010.81
+logs/C3.5_instrain_profile_plot.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:07:03	28074.02	30630.63	28070.85
 logs/C3.5_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:31:28	3413.62	8678.61	3408.27
+1:16:15	3365.46	8542.61	3360.41
 logs/C3.5_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:28:57	1349.63	8661.46	1344.41
+0:35:44	1374.86	8477.61	1369.36
 logs/C3.5_merge_depths.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:03	38.95	4315.84	18.00
@@ -1847,6 +2111,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/C3.5_process_metabat2.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	3.46	434.89	0.18
+logs/C3.5_prodigal_get_orfs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:01:13	66.86	2034.27	50.18
 logs/C3.5_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	67.25	387.59	54.75
@@ -2002,13 +2269,22 @@ h:m:s	max_rss	max_vms	max_uss
 0:44:36	2759.98	8540.61	2754.76
 logs/D1.1_instrain_profile.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:37:20	31840.63	75765.34	30901.98
+1:25:55	97285.68	139818.49	96347.25
+logs/D1.1_instrain_profile_genes.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:12:35	227645.20	268201.78	21096.63
+logs/D1.1_instrain_profile_genome_wide.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:11:51	23551.04	25894.51	23548.55
+logs/D1.1_instrain_profile_plot.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:15:30	55048.15	57597.39	55044.91
 logs/D1.1_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:06:11	3466.04	8542.61	3460.88
+0:47:19	3444.47	8609.80	3438.94
 logs/D1.1_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:30:05	1346.12	8538.61	1340.95
+0:29:51	1334.44	8609.62	1329.30
 logs/D1.1_merge_depths.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:02	51.94	4382.85	33.85
@@ -2021,6 +2297,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/D1.1_process_metabat2.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	3.11	217.45	0.36
+logs/D1.1_prodigal_get_orfs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:02:28	58.37	888.08	53.64
 logs/D1.1_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	65.46	387.59	52.69
@@ -2110,13 +2389,22 @@ h:m:s	max_rss	max_vms	max_uss
 0:54:42	2724.85	8538.80	2719.77
 logs/D1.2_instrain_profile.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:45:29	34317.52	77652.12	33379.18
+1:13:09	118337.28	160056.47	117398.56
+logs/D1.2_instrain_profile_genes.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:13:59	289663.99	330150.20	22080.45
+logs/D1.2_instrain_profile_genome_wide.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:13:07	29499.86	31867.02	29495.50
+logs/D1.2_instrain_profile_plot.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:19:17	71647.21	74297.07	71644.09
 logs/D1.2_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:17:25	3400.47	7953.39	3395.46
+1:15:21	3377.14	8609.61	3372.16
 logs/D1.2_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:28:58	1316.95	8544.61	1311.63
+0:38:12	1336.25	8542.61	1331.00
 logs/D1.2_merge_depths.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:02	54.96	4382.85	29.93
@@ -2129,6 +2417,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/D1.2_process_metabat2.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	3.45	434.89	0.18
+logs/D1.2_prodigal_get_orfs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:04:18	63.80	888.51	58.78
 logs/D1.2_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:01	127.85	512.61	115.25
@@ -2218,13 +2509,22 @@ h:m:s	max_rss	max_vms	max_uss
 0:35:15	2654.99	8542.61	2649.78
 logs/D1.3_instrain_profile.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:52:41	32306.95	75597.33	31367.52
+1:36:04	111239.32	152835.96	110301.36
+logs/D1.3_instrain_profile_genes.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:17:02	252027.71	292557.71	19339.54
+logs/D1.3_instrain_profile_genome_wide.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:12:48	29696.44	32039.05	29693.24
+logs/D1.3_instrain_profile_plot.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:21:18	64961.04	67520.15	64958.14
 logs/D1.3_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:52:17	3191.65	8542.61	3186.17
+0:48:16	3160.03	8540.80	3154.68
 logs/D1.3_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:24:36	1341.46	8678.62	1336.15
+0:24:42	1324.48	8542.61	1319.15
 logs/D1.3_merge_depths.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:02	22.73	3645.95	5.19
@@ -2237,6 +2537,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/D1.3_process_metabat2.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	3.37	434.89	0.18
+logs/D1.3_prodigal_get_orfs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:04:26	64.49	887.83	59.66
 logs/D1.3_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:01	101.28	482.61	88.23
@@ -2326,10 +2629,22 @@ h:m:s	max_rss	max_vms	max_uss
 0:50:25	2699.27	8473.60	2693.76
 logs/D1.4_instrain_profile.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:01:57	37469.83	81356.93	36530.53
+1:48:11	134282.76	178330.76	133345.02
+logs/D1.4_instrain_profile_genes.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:12:28	282357.67	322937.32	20264.62
+logs/D1.4_instrain_profile_genome_wide.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:13:02	31104.46	33447.70	31101.32
+logs/D1.4_instrain_profile_plot.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:20:41	69801.43	72363.00	69798.55
 logs/D1.4_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:22:33	3262.46	8206.43	3257.07
+1:08:36	3269.07	8474.61	3263.64
+logs/D1.4_map_to_rep_MAGs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:35:34	1337.67	8542.61	1332.40
 logs/D1.4_merge_depths.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:02	34.20	4185.66	14.44
@@ -2342,6 +2657,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/D1.4_process_metabat2.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	3.33	434.89	0.18
+logs/D1.4_prodigal_get_orfs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:04:13	64.41	2013.69	59.60
 logs/D1.4_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:01	65.47	387.59	52.70
@@ -2431,13 +2749,22 @@ h:m:s	max_rss	max_vms	max_uss
 0:55:40	2705.32	8540.61	2700.12
 logs/D1.5_instrain_profile.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:56:14	33765.46	77873.42	32826.32
+1:38:04	114915.43	155367.62	113977.32
+logs/D1.5_instrain_profile_genes.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:15:42	283719.91	324265.59	21184.90
+logs/D1.5_instrain_profile_genome_wide.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:13:32	28676.01	31018.90	28623.42
+logs/D1.5_instrain_profile_plot.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:20:19	71337.81	73903.84	71334.65
 logs/D1.5_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:13:17	3301.16	8678.61	3295.74
+0:57:56	3328.89	8743.62	3323.61
 logs/D1.5_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:28:15	1327.39	8609.62	1322.29
+0:36:33	1346.93	8544.61	1341.47
 logs/D1.5_merge_depths.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:53	71.05	4387.04	44.62
@@ -2450,6 +2777,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/D1.5_process_metabat2.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	3.30	434.89	0.18
+logs/D1.5_prodigal_get_orfs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:04:37	62.32	888.23	57.54
 logs/D1.5_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:01	131.37	515.61	118.87
@@ -2542,16 +2872,25 @@ h:m:s	max_rss	max_vms	max_uss
 0:52:47	2775.95	8540.61	2770.61
 logs/D2.1_instrain_profile.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:19:59	21197.08	62587.68	20255.82
+0:38:49	47087.32	87461.51	46147.25
+logs/D2.1_instrain_profile_genes.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:05:36	114027.65	154590.97	10660.26
+logs/D2.1_instrain_profile_genome_wide.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:09:47	13474.89	15819.86	13423.19
+logs/D2.1_instrain_profile_plot.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:05:42	28027.41	30577.57	28022.97
 logs/D2.1_map_to_assembly.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:45:22	1143.90	5424.10	1138.71
 logs/D2.1_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:15:41	3079.41	3732.01	3074.07
+0:59:18	3039.56	8542.61	3034.54
 logs/D2.1_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:24:34	1326.94	8473.80	1321.81
+0:31:43	1313.41	8542.61	1308.02
 logs/D2.1_merge_depths.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:06	53.84	4382.85	33.84
@@ -2564,6 +2903,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/D2.1_process_metabat2.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	3.36	434.89	0.18
+logs/D2.1_prodigal_get_orfs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:05:58	63.02	892.11	58.28
 logs/D2.1_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:07	260.07	716.60	247.21
@@ -2653,10 +2995,22 @@ h:m:s	max_rss	max_vms	max_uss
 1:17:17	2755.56	8678.61	2750.38
 logs/D2.2_instrain_profile.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:25:10	23794.32	63296.04	22852.73
+0:07:49	6000.00	50240.45	5074.45
+logs/D2.2_instrain_profile_genes.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:00:21	8827.31	50044.39	878.93
+logs/D2.2_instrain_profile_genome_wide.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:01:59	2632.15	4979.62	2579.57
+logs/D2.2_instrain_profile_plot.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:00:07	610.26	3170.75	557.06
 logs/D2.2_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:16:39	3652.50	7953.39	3647.53
+1:30:18	3685.68	7551.68	3680.43
+logs/D2.2_map_to_rep_MAGs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:54:04	1351.46	8542.61	1346.45
 logs/D2.2_merge_depths.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:02	40.96	4315.84	19.81
@@ -2669,6 +3023,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/D2.2_process_metabat2.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	3.52	434.89	0.18
+logs/D2.2_prodigal_get_orfs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:02:20	60.54	888.51	55.43
 logs/D2.2_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:01	65.54	387.59	52.70
@@ -2758,10 +3115,22 @@ h:m:s	max_rss	max_vms	max_uss
 1:08:13	2773.29	8213.40	2768.23
 logs/D2.3_instrain_profile.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:28:24	29742.88	72821.43	28802.57
+1:08:26	84175.32	128077.67	83234.36
+logs/D2.3_instrain_profile_genes.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:10:58	204178.80	244674.14	16535.12
+logs/D2.3_instrain_profile_genome_wide.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:08:56	20882.55	23229.16	20829.09
+logs/D2.3_instrain_profile_plot.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:13:02	49624.94	52188.20	49621.63
 logs/D2.3_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:41:14	3249.67	8542.61	3244.48
+1:11:29	3240.73	8542.86	3235.18
+logs/D2.3_map_to_rep_MAGs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:37:50	1300.96	8478.61	1295.66
 logs/D2.3_merge_depths.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:05	30.70	1445.69	18.06
@@ -2774,6 +3143,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/D2.3_process_metabat2.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	4.39	438.33	0.58
+logs/D2.3_prodigal_get_orfs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:06:00	68.24	878.64	63.36
 logs/D2.3_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:04	247.58	700.60	234.61
@@ -2866,13 +3238,25 @@ h:m:s	max_rss	max_vms	max_uss
 1:13:29	2777.11	8678.61	2772.00
 logs/D2.4_instrain_profile.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:10:16	16567.86	51811.67	15630.06
+0:05:21	5170.15	48983.09	4303.86
+logs/D2.4_instrain_profile_genes.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:00:20	8733.86	49972.28	787.15
+logs/D2.4_instrain_profile_genome_wide.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:02:16	2558.91	4912.02	2506.89
+logs/D2.4_instrain_profile_plot.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:00:06	523.95	3103.27	471.71
 logs/D2.4_map_to_assembly.benchmark
 h:m:s	max_rss	max_vms	max_uss
 1:14:47	1186.72	5355.09	1181.73
 logs/D2.4_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:36:39	2950.28	8466.44	2944.99
+1:16:27	2931.65	8607.61	2926.51
+logs/D2.4_map_to_rep_MAGs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:45:36	1335.54	8473.61	1330.60
 logs/D2.4_merge_depths.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:58	40.50	4055.65	22.50
@@ -2885,6 +3269,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/D2.4_process_metabat2.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	3.30	434.89	0.18
+logs/D2.4_prodigal_get_orfs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:04:48	61.86	2013.56	56.88
 logs/D2.4_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:08	316.59	773.62	303.66
@@ -2977,16 +3364,25 @@ h:m:s	max_rss	max_vms	max_uss
 1:00:08	2817.04	8540.61	2811.96
 logs/D2.5_instrain_profile.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:28:30	24922.53	60467.43	23980.44
+0:55:52	62892.47	103738.10	61951.88
+logs/D2.5_instrain_profile_genes.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:08:47	164288.14	204731.30	14931.83
+logs/D2.5_instrain_profile_genome_wide.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:11:23	17204.43	19547.51	17201.44
+logs/D2.5_instrain_profile_plot.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:10:09	39920.66	42483.33	39867.07
 logs/D2.5_map_to_assembly.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:43:39	1155.26	5424.10	1149.89
 logs/D2.5_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:23:13	3097.35	8278.41	3091.86
+1:05:37	3109.66	8473.60	3104.40
 logs/D2.5_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:29:42	1335.28	8538.80	1330.04
+0:37:12	1305.22	8542.61	1299.73
 logs/D2.5_merge_depths.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:58	37.02	4650.87	13.39
@@ -2999,6 +3395,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/D2.5_process_metabat2.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	3.38	434.89	0.18
+logs/D2.5_prodigal_get_orfs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:05:55	57.96	888.48	53.20
 logs/D2.5_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:05	279.79	730.60	266.87
@@ -3088,13 +3487,22 @@ h:m:s	max_rss	max_vms	max_uss
 0:44:45	2751.74	8540.61	2746.60
 logs/D3.1_instrain_profile.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:33:34	28315.25	70892.32	27376.32
+0:48:59	86929.40	131659.08	85991.97
+logs/D3.1_instrain_profile_genes.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:08:33	186716.43	227406.45	14237.18
+logs/D3.1_instrain_profile_genome_wide.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:09:41	18327.18	20667.21	18323.88
+logs/D3.1_instrain_profile_plot.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:11:15	45192.63	47750.74	45189.59
 logs/D3.1_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:59:34	3541.64	8343.41	3536.14
+1:00:49	3564.98	8542.61	3559.50
 logs/D3.1_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:21:36	1387.33	8466.45	1381.93
+0:29:03	1321.73	8418.60	1316.40
 logs/D3.1_merge_depths.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:02	38.66	4315.84	17.90
@@ -3107,6 +3515,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/D3.1_process_metabat2.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	3.55	434.89	0.16
+logs/D3.1_prodigal_get_orfs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:02:15	64.30	652.34	53.14
 logs/D3.1_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	67.45	387.59	54.69
@@ -3196,10 +3607,22 @@ h:m:s	max_rss	max_vms	max_uss
 1:11:13	2769.89	8542.61	2764.62
 logs/D3.2_instrain_profile.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:26:50	27626.36	69986.87	26687.96
+0:50:37	77490.62	122152.51	76552.81
+logs/D3.2_instrain_profile_genes.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:10:29	183977.32	224511.15	13725.80
+logs/D3.2_instrain_profile_genome_wide.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:10:21	18097.38	20440.30	18044.38
+logs/D3.2_instrain_profile_plot.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:12:23	44117.85	46673.54	44064.02
 logs/D3.2_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:15:05	3316.91	8473.50	3311.47
+1:20:23	3261.90	8607.80	3256.88
+logs/D3.2_map_to_rep_MAGs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:41:20	1351.65	8542.80	1346.54
 logs/D3.2_merge_depths.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:02	55.33	4382.85	30.12
@@ -3212,6 +3635,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/D3.2_process_metabat2.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	4.07	438.33	0.57
+logs/D3.2_prodigal_get_orfs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:03:20	63.89	2035.86	58.98
 logs/D3.2_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	69.39	387.59	56.60
@@ -3301,10 +3727,22 @@ h:m:s	max_rss	max_vms	max_uss
 1:12:38	2766.11	8544.61	2760.90
 logs/D3.3_instrain_profile.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:19:05	21411.01	59107.25	20473.41
+0:47:09	50356.83	94398.14	49418.57
+logs/D3.3_instrain_profile_genes.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:11:50	122360.07	163034.30	10248.55
+logs/D3.3_instrain_profile_genome_wide.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:07:01	12838.25	15182.99	12785.27
+logs/D3.3_instrain_profile_plot.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:07:58	29536.95	32090.29	29483.09
 logs/D3.3_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:11:53	3408.25	8473.60	3402.98
+1:04:06	3417.54	7953.39	3412.44
+logs/D3.3_map_to_rep_MAGs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:42:27	1318.52	8542.61	1313.19
 logs/D3.3_merge_depths.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:02	61.93	4384.85	35.77
@@ -3317,6 +3755,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/D3.3_process_metabat2.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	3.10	217.31	0.34
+logs/D3.3_prodigal_get_orfs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:02:20	57.73	2034.41	41.23
 logs/D3.3_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	65.45	387.61	52.71
@@ -3406,13 +3847,22 @@ h:m:s	max_rss	max_vms	max_uss
 0:49:33	2706.71	8540.61	2701.54
 logs/D3.4_instrain_profile.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:52:56	34753.52	78573.97	33817.44
+1:31:32	110119.59	154720.79	109182.95
+logs/D3.4_instrain_profile_genes.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:15:49	247212.34	287819.46	17663.31
+logs/D3.4_instrain_profile_genome_wide.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:10:47	24532.02	26875.36	24528.65
+logs/D3.4_instrain_profile_plot.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:16:26	59432.51	61992.36	59429.58
 logs/D3.4_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:34:46	3300.94	8473.60	3295.49
+1:05:54	3296.79	8542.61	3291.47
 logs/D3.4_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:27:32	1304.91	8542.61	1299.42
+0:33:01	1315.88	8542.61	1310.50
 logs/D3.4_merge_depths.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:30	39.13	4316.04	18.36
@@ -3425,6 +3875,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/D3.4_process_metabat2.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	4.31	438.33	0.60
+logs/D3.4_prodigal_get_orfs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:03:11	62.88	887.83	46.49
 logs/D3.4_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	67.38	387.59	54.75
@@ -3514,13 +3967,22 @@ h:m:s	max_rss	max_vms	max_uss
 1:00:53	2693.21	8542.61	2688.79
 logs/D3.5_instrain_profile.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:23:16	21013.87	63302.73	20072.20
+0:51:00	49278.86	91623.97	48348.10
+logs/D3.5_instrain_profile_genes.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:07:16	117041.55	157712.30	9750.27
+logs/D3.5_instrain_profile_genome_wide.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:06:54	12237.66	14581.13	12186.58
+logs/D3.5_instrain_profile_plot.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:06:58	26240.66	28796.48	26237.62
 logs/D3.5_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:17:25	3399.00	8466.44	3393.96
+1:19:52	3398.33	8542.61	3393.01
 logs/D3.5_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:31:20	1327.12	8466.45	1322.25
+0:40:09	1330.94	8466.45	1326.15
 logs/D3.5_merge_depths.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:02	44.14	4315.84	22.58
@@ -3533,6 +3995,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/D3.5_process_metabat2.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	4.51	442.45	0.66
+logs/D3.5_prodigal_get_orfs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:01:38	60.10	2034.27	43.51
 logs/D3.5_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	65.48	387.61	52.73
@@ -4225,10 +4690,22 @@ h:m:s	max_rss	max_vms	max_uss
 0:56:58	2920.59	8473.60	2915.43
 logs/F1.1_instrain_profile.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:04:12	7064.99	47903.50	6129.44
+0:02:24	4839.24	45609.29	3972.21
+logs/F1.1_instrain_profile_genes.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:00:13	8576.90	49758.99	666.06
+logs/F1.1_instrain_profile_genome_wide.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:01:41	2445.21	4788.09	2392.80
+logs/F1.1_instrain_profile_plot.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:00:05	676.68	3259.99	623.57
 logs/F1.1_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:07:13	3554.85	4231.73	3549.43
+0:59:57	3562.76	8607.61	3557.29
+logs/F1.1_map_to_rep_MAGs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:33:41	1292.83	8538.61	1287.75
 logs/F1.1_merge_depths.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:02	38.82	4315.84	17.73
@@ -4241,6 +4718,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/F1.1_process_metabat2.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	3.52	434.89	0.18
+logs/F1.1_prodigal_get_orfs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:00:30	58.31	887.83	41.86
 logs/F1.1_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	65.26	387.59	52.70
@@ -4330,10 +4810,22 @@ h:m:s	max_rss	max_vms	max_uss
 1:27:00	2916.38	8466.44	2911.17
 logs/F1.2_instrain_profile.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:13:43	16874.28	60153.64	15934.23
+0:33:40	25717.18	67711.42	24780.95
+logs/F1.2_instrain_profile_genes.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:05:00	56315.70	97149.73	5981.99
+logs/F1.2_instrain_profile_genome_wide.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:06:49	8800.62	11143.52	8793.52
+logs/F1.2_instrain_profile_plot.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:02:40	11822.05	14378.98	11769.74
 logs/F1.2_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:19:17	3310.80	7615.67	3305.22
+1:31:05	3303.77	8540.61	3298.43
+logs/F1.2_map_to_rep_MAGs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+1:00:19	1288.77	8540.61	1283.74
 logs/F1.2_merge_depths.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:02	54.39	4380.85	36.14
@@ -4346,6 +4838,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/F1.2_process_metabat2.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	3.61	434.89	0.18
+logs/F1.2_prodigal_get_orfs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:00:42	64.25	2013.57	47.86
 logs/F1.2_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	65.55	387.59	53.07
@@ -4435,10 +4930,22 @@ h:m:s	max_rss	max_vms	max_uss
 1:29:09	2896.39	8473.58	2891.28
 logs/F1.3_instrain_profile.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:18:54	22140.14	64797.30	21202.04
+0:33:00	35900.55	77626.93	35058.37
+logs/F1.3_instrain_profile_genes.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:05:06	68917.09	109776.64	5862.88
+logs/F1.3_instrain_profile_genome_wide.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:07:40	7547.93	9892.85	7494.86
+logs/F1.3_instrain_profile_plot.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:03:06	14552.98	17112.63	14500.48
 logs/F1.3_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:40:07	3314.97	3732.83	3309.67
+1:44:08	3278.83	8540.80	3273.51
+logs/F1.3_map_to_rep_MAGs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:55:41	1371.45	8542.61	1366.45
 logs/F1.3_merge_depths.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:01	61.80	4384.85	35.04
@@ -4451,6 +4958,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/F1.3_process_metabat2.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	4.46	442.45	0.70
+logs/F1.3_prodigal_get_orfs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:01:07	82.82	888.08	66.12
 logs/F1.3_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	65.58	387.59	52.73
@@ -4540,16 +5050,25 @@ h:m:s	max_rss	max_vms	max_uss
 0:48:27	2674.61	8540.61	2669.45
 logs/F1.4_instrain_profile.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:11:16	15663.45	58736.19	14688.94
+0:32:08	31690.50	74675.86	30759.37
+logs/F1.4_instrain_profile_genes.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:05:14	54287.55	95195.68	4731.46
+logs/F1.4_instrain_profile_genome_wide.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:05:44	5977.22	8322.18	5925.43
+logs/F1.4_instrain_profile_plot.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:02:51	11014.34	13569.54	10962.30
 logs/F1.4_map_to_assembly.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:02:01	831.97	5426.10	827.33
 logs/F1.4_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:50:38	3502.77	8540.61	3497.27
+0:56:01	3352.72	8473.60	3347.25
 logs/F1.4_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:29:14	1250.29	8607.62	1245.12
+0:29:34	1297.99	8542.61	1292.77
 logs/F1.4_merge_depths.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:01	31.23	3923.12	18.66
@@ -4562,6 +5081,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/F1.4_process_metabat2.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	3.46	434.89	0.20
+logs/F1.4_prodigal_get_orfs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:00:48	89.60	2013.56	73.11
 logs/F1.4_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	65.67	387.61	52.75
@@ -4651,13 +5173,22 @@ h:m:s	max_rss	max_vms	max_uss
 0:54:56	2701.45	8609.61	2696.27
 logs/F1.5_instrain_profile.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:08:44	10917.13	50753.23	9979.30
+0:03:20	5317.42	45717.95	4449.69
+logs/F1.5_instrain_profile_genes.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:00:32	8679.83	49876.13	786.74
+logs/F1.5_instrain_profile_genome_wide.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:02:02	1900.30	4250.74	1848.06
+logs/F1.5_instrain_profile_plot.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:00:05	627.32	3201.09	574.41
 logs/F1.5_map_to_assembly.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:56	827.04	5094.90	822.49
 logs/F1.5_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:00:15	3466.54	8609.61	3461.23
+1:09:51	3454.09	8542.61	3448.98
 logs/F1.5_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:28:44	1297.89	8544.61	1292.70
@@ -4673,6 +5204,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/F1.5_process_metabat2.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	3.54	434.89	0.21
+logs/F1.5_prodigal_get_orfs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:00:46	59.70	329.95	43.25
 logs/F1.5_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	65.43	387.59	52.71
@@ -4762,13 +5296,25 @@ h:m:s	max_rss	max_vms	max_uss
 1:18:49	2712.37	8540.61	2707.09
 logs/F2.1_instrain_profile.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:23:26	16391.92	59669.82	15453.77
+0:52:39	37214.45	79715.80	36284.90
+logs/F2.1_instrain_profile_genes.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:05:00	64684.12	105559.50	5422.24
+logs/F2.1_instrain_profile_genome_wide.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:04:45	6705.46	9050.17	6701.00
+logs/F2.1_instrain_profile_plot.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:03:18	13904.49	16463.54	13899.58
 logs/F2.1_map_to_assembly.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:09:33	833.98	5424.10	828.48
 logs/F2.1_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:27:29	3269.51	8873.62	3264.23
+1:25:55	3258.28	8609.61	3252.98
+logs/F2.1_map_to_rep_MAGs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:45:15	1319.19	8542.61	1313.96
 logs/F2.1_merge_depths.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:02	53.36	4382.85	33.85
@@ -4781,6 +5327,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/F2.1_process_metabat2.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	4.40	442.45	0.66
+logs/F2.1_prodigal_get_orfs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:00:58	55.95	2013.69	39.64
 logs/F2.1_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	65.49	387.61	62.84
@@ -4870,13 +5419,25 @@ h:m:s	max_rss	max_vms	max_uss
 1:17:12	2838.46	8538.61	2833.17
 logs/F2.2_instrain_profile.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:15:22	19779.14	56815.82	18840.53
+0:31:50	49478.25	84691.31	48550.08
+logs/F2.2_instrain_profile_genes.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:06:15	73224.86	114096.68	6344.64
+logs/F2.2_instrain_profile_genome_wide.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:06:59	7260.04	9607.21	7206.84
+logs/F2.2_instrain_profile_plot.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:03:56	15521.39	18079.98	15517.02
 logs/F2.2_map_to_assembly.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:03:11	833.00	5094.90	828.08
 logs/F2.2_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:13:02	3301.54	8466.44	3296.09
+1:21:45	3270.55	8542.61	3264.98
+logs/F2.2_map_to_rep_MAGs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:45:24	1332.93	8206.43	1327.47
 logs/F2.2_merge_depths.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:02	54.92	4382.85	30.18
@@ -4889,6 +5450,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/F2.2_process_metabat2.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	3.18	217.45	0.40
+logs/F2.2_prodigal_get_orfs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:02:04	70.02	888.51	53.51
 logs/F2.2_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	69.41	387.60	56.66
@@ -4978,13 +5542,25 @@ h:m:s	max_rss	max_vms	max_uss
 1:19:38	2735.29	8873.62	2729.91
 logs/F2.3_instrain_profile.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:16:24	19911.22	64162.11	18969.93
+0:41:30	25568.16	68074.56	24639.01
+logs/F2.3_instrain_profile_genes.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:06:14	55919.11	96836.46	5007.41
+logs/F2.3_instrain_profile_genome_wide.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:04:40	6177.22	8520.05	6172.97
+logs/F2.3_instrain_profile_plot.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:02:38	11430.64	13982.73	11426.19
 logs/F2.3_map_to_assembly.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:06:53	833.37	5359.10	827.98
 logs/F2.3_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:39:30	3230.07	8015.87	3224.70
+1:24:07	3236.65	8540.61	3231.29
+logs/F2.3_map_to_rep_MAGs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:45:01	1349.17	8478.61	1344.09
 logs/F2.3_merge_depths.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:01	54.35	4317.85	29.39
@@ -4997,6 +5573,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/F2.3_process_metabat2.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	3.01	217.45	0.40
+logs/F2.3_prodigal_get_orfs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:00:41	57.90	888.84	41.52
 logs/F2.3_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	65.50	387.61	52.72
@@ -5086,13 +5665,25 @@ h:m:s	max_rss	max_vms	max_uss
 1:24:33	2745.61	8542.80	2740.64
 logs/F2.4_instrain_profile.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:20:16	16990.15	59973.06	16053.96
+0:40:30	27209.88	70043.47	27087.31
+logs/F2.4_instrain_profile_genes.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:03:43	47325.46	88263.36	4864.84
+logs/F2.4_instrain_profile_genome_wide.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:06:51	5944.01	8286.98	5937.77
+logs/F2.4_instrain_profile_plot.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:01:55	9022.77	11584.35	9017.89
 logs/F2.4_map_to_assembly.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:10:54	833.40	5424.10	827.85
 logs/F2.4_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-2:12:33	3238.91	7954.39	3233.97
+1:08:24	3268.20	8607.61	3262.79
+logs/F2.4_map_to_rep_MAGs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:46:07	1348.13	8542.61	1342.99
 logs/F2.4_merge_depths.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:01	33.17	4055.65	24.06
@@ -5105,6 +5696,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/F2.4_process_metabat2.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	4.06	438.33	0.57
+logs/F2.4_prodigal_get_orfs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:00:34	58.12	652.34	41.60
 logs/F2.4_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	67.33	387.59	54.71
@@ -5194,13 +5788,25 @@ h:m:s	max_rss	max_vms	max_uss
 1:09:35	2852.46	7550.66	2847.17
 logs/F2.5_instrain_profile.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:06:27	7486.67	48737.29	6557.19
+0:03:27	4941.76	47033.67	4076.14
+logs/F2.5_instrain_profile_genes.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:00:17	8588.90	49799.63	705.59
+logs/F2.5_instrain_profile_genome_wide.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:01:35	2145.20	4489.98	2092.61
+logs/F2.5_instrain_profile_plot.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:00:05	616.48	3224.64	563.30
 logs/F2.5_map_to_assembly.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:02:10	542.25	1068.58	537.20
 logs/F2.5_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:03:51	3332.80	8678.61	3327.64
+1:18:48	3311.00	8473.79	3305.71
+logs/F2.5_map_to_rep_MAGs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:40:23	1348.55	8544.61	1343.57
 logs/F2.5_merge_depths.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:01	15.05	887.57	6.40
@@ -5213,6 +5819,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/F2.5_process_metabat2.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	3.02	217.31	0.32
+logs/F2.5_prodigal_get_orfs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:00:25	56.25	887.83	39.93
 logs/F2.5_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	65.37	387.61	52.74
@@ -5311,16 +5920,25 @@ h:m:s	max_rss	max_vms	max_uss
 0:49:44	2711.15	8542.61	2705.99
 logs/F3.1_instrain_profile.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:08:50	12106.97	55421.11	11167.53
+0:32:05	19858.70	61627.80	18926.17
+logs/F3.1_instrain_profile_genes.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:04:30	34895.02	75908.53	3464.67
+logs/F3.1_instrain_profile_genome_wide.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:05:45	4332.61	6675.64	4327.87
+logs/F3.1_instrain_profile_plot.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:01:50	6431.50	8993.69	6379.46
 logs/F3.1_map_to_assembly.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:14:47	835.12	5357.10	830.28
 logs/F3.1_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:00:10	3136.09	8540.61	3130.76
+0:42:30	3133.38	8542.61	3127.93
 logs/F3.1_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:30:32	1297.76	8542.61	1292.50
+0:31:52	1310.64	8466.45	1305.23
 logs/F3.1_merge_depths.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:02	39.23	4315.84	18.38
@@ -5333,6 +5951,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/F3.1_process_metabat2.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	3.41	434.89	0.18
+logs/F3.1_prodigal_get_orfs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:00:34	70.27	887.83	53.91
 logs/F3.1_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	196.68	581.60	184.18
@@ -5422,16 +6043,25 @@ h:m:s	max_rss	max_vms	max_uss
 0:51:07	2660.66	8542.61	2655.24
 logs/F3.2_instrain_profile.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:14:04	18524.43	62708.08	17584.20
+0:34:28	20940.89	64522.30	20009.65
+logs/F3.2_instrain_profile_genes.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:05:54	45453.76	86420.03	4269.64
+logs/F3.2_instrain_profile_genome_wide.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:06:12	5528.96	7869.89	5518.20
+logs/F3.2_instrain_profile_plot.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:02:45	8956.23	11512.42	8952.12
 logs/F3.2_map_to_assembly.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:06:56	833.65	5426.42	828.86
 logs/F3.2_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:01:50	3233.84	8213.40	3228.52
+0:57:21	3061.09	8542.61	3055.59
 logs/F3.2_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:31:42	1355.48	8473.61	1350.27
+0:31:25	1328.21	8543.06	1323.07
 logs/F3.2_merge_depths.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:02	54.46	4382.85	29.48
@@ -5444,6 +6074,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/F3.2_process_metabat2.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	4.51	438.33	0.56
+logs/F3.2_prodigal_get_orfs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:00:36	69.29	2013.57	52.89
 logs/F3.2_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	65.30	386.55	52.70
@@ -5533,13 +6166,25 @@ h:m:s	max_rss	max_vms	max_uss
 0:57:29	2725.07	8213.40	2719.58
 logs/F3.3_instrain_profile.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:10:19	9776.36	51638.90	8838.64
+0:25:44	16961.81	58479.05	16032.26
+logs/F3.3_instrain_profile_genes.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:03:47	31399.44	72429.37	3906.25
+logs/F3.3_instrain_profile_genome_wide.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:05:09	4259.76	6602.91	4208.14
+logs/F3.3_instrain_profile_plot.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:01:36	5122.50	7684.65	5070.77
 logs/F3.3_map_to_assembly.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:05:48	833.69	5560.11	828.95
 logs/F3.3_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:03:10	3164.57	8542.61	3159.27
+1:03:48	3125.85	8609.61	3120.34
+logs/F3.3_map_to_rep_MAGs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:36:44	1355.33	8542.61	1349.87
 logs/F3.3_merge_depths.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:01	57.09	4384.85	31.72
@@ -5552,6 +6197,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/F3.3_process_metabat2.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	3.46	434.89	0.18
+logs/F3.3_prodigal_get_orfs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:00:30	69.42	2013.69	64.36
 logs/F3.3_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	65.47	387.59	52.74
@@ -5641,13 +6289,25 @@ h:m:s	max_rss	max_vms	max_uss
 1:01:45	2789.86	8542.61	2784.55
 logs/F3.4_instrain_profile.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:13:12	16187.12	58904.67	15250.62
+0:34:12	23143.87	65634.07	22206.10
+logs/F3.4_instrain_profile_genes.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:05:17	53057.46	93975.98	4711.18
+logs/F3.4_instrain_profile_genome_wide.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:06:02	5789.71	8130.52	5736.57
+logs/F3.4_instrain_profile_plot.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:02:56	10618.68	13178.57	10565.20
 logs/F3.4_map_to_assembly.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:07:07	834.90	5426.29	829.86
 logs/F3.4_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:05:25	3242.88	8678.61	3237.49
+0:51:55	3215.20	3732.84	3210.07
+logs/F3.4_map_to_rep_MAGs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:38:45	1296.07	8542.61	1290.67
 logs/F3.4_merge_depths.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:12	45.36	4316.85	22.97
@@ -5660,6 +6320,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/F3.4_process_metabat2.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	3.30	434.89	0.18
+logs/F3.4_prodigal_get_orfs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:00:48	59.67	888.08	54.75
 logs/F3.4_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	66.36	387.61	53.58
@@ -5752,10 +6415,22 @@ h:m:s	max_rss	max_vms	max_uss
 0:51:28	2774.62	8540.80	2769.51
 logs/F3.5_instrain_profile.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:09:44	11002.61	51441.29	10065.33
+0:25:20	18244.54	61036.56	17275.27
+logs/F3.5_instrain_profile_genes.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:03:19	31804.84	72835.73	2844.30
+logs/F3.5_instrain_profile_genome_wide.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:04:48	4314.33	6657.19	4310.01
+logs/F3.5_instrain_profile_plot.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:01:37	5756.93	8318.57	5753.37
 logs/F3.5_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:15:35	3033.44	7953.39	3028.06
+0:56:49	3001.51	8544.80	2995.82
+logs/F3.5_map_to_rep_MAGs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:31:35	1291.19	8542.61	1285.76
 logs/F3.5_merge_depths.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:57	55.29	3392.91	37.27
@@ -5768,6 +6443,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/F3.5_process_metabat2.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	3.43	434.89	0.18
+logs/F3.5_prodigal_get_orfs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:03:56	68.82	2034.28	63.84
 logs/F3.5_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:04	249.56	705.60	236.70
@@ -6751,7 +7429,10 @@ h:m:s	max_rss	max_vms	max_uss
 0:00:23	15.97	701.01	8.61
 logs/instrain_compare.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:46:25	9100.82	51027.14	8224.53
+15:31:51	88523.21	130253.75	87644.29
+logs/instrain_compare_plot.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:01:09	6930.52	9280.52	6927.49
 logs/IPMB12_annotate.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:01:04	61.47	5564.68	52.93
@@ -6952,13 +7633,22 @@ h:m:s	max_rss	max_vms	max_uss
 0:57:51	2869.00	8473.60	2863.86
 logs/M1.1_instrain_profile.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:33:45	30296.31	69744.05	29357.81
+1:03:37	76692.55	117236.05	75756.08
+logs/M1.1_instrain_profile_genes.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:09:35	144822.89	185511.65	11688.09
+logs/M1.1_instrain_profile_genome_wide.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:08:49	14807.70	17152.74	14804.58
+logs/M1.1_instrain_profile_plot.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:10:28	33564.06	36127.36	33560.93
 logs/M1.1_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:16:33	3307.20	8542.61	3301.91
+0:54:18	3320.95	8080.88	3315.59
 logs/M1.1_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:29:12	1370.04	8544.61	1364.89
+0:35:40	1359.83	8544.61	1354.56
 logs/M1.1_merge_depths.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:02	51.96	4380.85	33.85
@@ -6971,6 +7661,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/M1.1_process_metabat2.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	3.40	434.89	0.18
+logs/M1.1_prodigal_get_orfs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:01:30	69.92	652.34	53.36
 logs/M1.1_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	65.46	387.59	52.74
@@ -7069,13 +7762,22 @@ h:m:s	max_rss	max_vms	max_uss
 0:58:54	2921.95	8213.40	2916.62
 logs/M1.2_instrain_profile.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:35:06	29514.45	72782.61	28575.32
+1:05:30	84285.50	123088.09	83350.27
+logs/M1.2_instrain_profile_genes.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:10:55	139944.25	180720.25	10817.41
+logs/M1.2_instrain_profile_genome_wide.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:08:25	14038.82	16380.05	14035.72
+logs/M1.2_instrain_profile_plot.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:11:27	33156.07	35710.05	33102.48
 logs/M1.2_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:17:23	3409.16	8213.40	3403.95
+1:12:02	3428.26	8542.61	3423.32
 logs/M1.2_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:28:53	1358.96	8544.61	1353.54
+0:36:14	1343.11	8542.61	1337.77
 logs/M1.2_merge_depths.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:02	54.38	4317.85	36.21
@@ -7088,6 +7790,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/M1.2_process_metabat2.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	3.46	434.89	0.18
+logs/M1.2_prodigal_get_orfs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:01:19	65.36	2013.70	48.63
 logs/M1.2_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	65.50	387.59	52.75
@@ -7177,10 +7882,22 @@ h:m:s	max_rss	max_vms	max_uss
 1:00:53	2841.04	8473.60	2835.79
 logs/M1.3_instrain_profile.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:30:55	32167.06	76179.67	31229.90
+1:36:05	79409.13	123937.50	78476.91
+logs/M1.3_instrain_profile_genes.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:10:54	139569.63	180339.53	10646.76
+logs/M1.3_instrain_profile_genome_wide.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:08:48	18989.92	21332.65	18986.70
+logs/M1.3_instrain_profile_plot.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:13:24	38505.04	41200.46	38644.07
 logs/M1.3_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:25:01	3349.07	8418.59	3343.89
+1:16:12	3290.27	8540.61	3284.92
+logs/M1.3_map_to_rep_MAGs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:37:32	1377.31	8540.61	1372.29
 logs/M1.3_merge_depths.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:01	57.75	4384.85	31.77
@@ -7193,6 +7910,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/M1.3_process_metabat2.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	4.45	442.45	0.54
+logs/M1.3_prodigal_get_orfs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:01:16	70.14	888.51	65.19
 logs/M1.3_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	65.48	387.61	52.73
@@ -7285,10 +8005,22 @@ h:m:s	max_rss	max_vms	max_uss
 1:05:38	2645.18	8538.80	2640.73
 logs/M1.4_instrain_profile.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:43:25	31379.29	73967.58	30441.00
+1:35:33	81959.07	120746.43	81020.22
+logs/M1.4_instrain_profile_genes.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:09:25	148671.83	189515.80	12250.01
+logs/M1.4_instrain_profile_genome_wide.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:09:14	18965.75	21619.25	18904.23
+logs/M1.4_instrain_profile_plot.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:13:49	37387.00	39939.46	37384.09
 logs/M1.4_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:42:01	2946.94	8278.41	2941.34
+1:14:40	2934.93	8473.60	2929.55
+logs/M1.4_map_to_rep_MAGs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:45:44	1393.09	8542.61	1388.06
 logs/M1.4_merge_depths.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:04	27.30	3858.12	7.65
@@ -7301,6 +8033,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/M1.4_process_metabat2.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	3.24	434.89	0.18
+logs/M1.4_prodigal_get_orfs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:01:39	70.95	2013.56	54.46
 logs/M1.4_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	65.45	387.61	52.71
@@ -7390,13 +8125,22 @@ h:m:s	max_rss	max_vms	max_uss
 0:46:23	2858.11	8609.61	2852.84
 logs/M1.5_instrain_profile.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:29:30	28432.55	69591.95	27492.69
+1:17:52	65955.47	108063.86	65019.17
+logs/M1.5_instrain_profile_genes.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:07:34	121845.54	162533.60	9242.43
+logs/M1.5_instrain_profile_genome_wide.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:05:48	11406.90	13768.31	11354.34
+logs/M1.5_instrain_profile_plot.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:09:33	29000.39	31552.61	28946.68
 logs/M1.5_map_to_mags.benchmark
 h:m:s	max_rss	max_vms	max_uss
-1:02:32	3310.63	8418.59	3305.39
+0:43:29	3321.46	8278.41	3316.07
 logs/M1.5_map_to_rep_MAGs.benchmark
 h:m:s	max_rss	max_vms	max_uss
-0:27:59	1354.20	8473.61	1348.84
+0:29:00	1312.77	8609.62	1307.42
 logs/M1.5_merge_depths.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:02	61.17	4385.04	35.45
@@ -7409,6 +8153,9 @@ h:m:s	max_rss	max_vms	max_uss
 logs/M1.5_process_metabat2.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	3.01	217.45	0.36
+logs/M1.5_prodigal_get_orfs.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:01:18	63.84	330.07	47.22
 logs/M1.5_summarize_metabat2_contig_coverages.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	69.46	387.59	56.64
@@ -15371,6 +16118,111 @@ h:m:s	max_rss	max_vms	max_uss
 logs/R-53146_prepare_genomes.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:02	16.22	1508.45	8.50
+logs/recruit_orfs_g__Apibacter.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:01:56	90.28	901.46	87.25
+logs/recruit_orfs_g__Bartonella.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:02:22	94.82	338.73	91.95
+logs/recruit_orfs_g__Bifidobacterium.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:06:08	119.07	901.13	116.48
+logs/recruit_orfs_g__Bombella.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:00:31	32.49	892.19	29.99
+logs/recruit_orfs_g__Bombilactobacillus.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:03:16	74.75	317.28	71.86
+logs/recruit_orfs_g__Commensalibacter.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:01:02	65.67	310.80	59.24
+logs/recruit_orfs_g__Dysgonomonas.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:03:07	57.36	297.07	54.47
+logs/recruit_orfs_g__Entomomonas.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:00:51	77.88	888.51	75.16
+logs/recruit_orfs_g__Frischella.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:03:31	131.18	901.21	128.31
+logs/recruit_orfs_g__Gilliamella.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:08:05	173.17	414.31	170.56
+logs/recruit_orfs_g__Lactobacillus.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:06:08	84.95	892.34	81.89
+logs/recruit_orfs_g__Parolsenella.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:00:27	26.81	888.98	24.07
+logs/recruit_orfs_g__Pectinatus.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:00:47	83.21	319.75	80.41
+logs/recruit_orfs_g__Saezia.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:01:14	55.85	296.13	53.12
+logs/recruit_orfs_g__Snodgrassella.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:03:37	97.31	341.90	94.50
+logs/recruit_orfs_g__Spiroplasma.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:00:23	28.10	888.51	25.39
+logs/recruit_orfs_g__WRHT01.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:00:34	24.94	267.71	22.02
+logs/recruit_orfs_g__Zymobacter.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:00:56	27.46	272.71	20.84
+logs/SDP_validationg__Apibacter.benchmark
+h:m:s	max_rss	max_vms	max_uss
+1:44:10	88.37	16594.29	74.70
+logs/SDP_validationg__Bartonella.benchmark
+h:m:s	max_rss	max_vms	max_uss
+3:16:47	78.05	16594.29	69.90
+logs/SDP_validationg__Bifidobacterium.benchmark
+h:m:s	max_rss	max_vms	max_uss
+10:19:56	86.73	16527.51	81.72
+logs/SDP_validationg__Bombella.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:10:54	77.39	16659.48	68.82
+logs/SDP_validationg__Bombilactobacillus.benchmark
+h:m:s	max_rss	max_vms	max_uss
+2:44:55	68.98	16527.28	61.33
+logs/SDP_validationg__Commensalibacter.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:52:24	101.27	16590.29	87.89
+logs/SDP_validationg__Dysgonomonas.benchmark
+h:m:s	max_rss	max_vms	max_uss
+2:36:53	75.23	16527.28	70.31
+logs/SDP_validationg__Entomomonas.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:44:36	93.42	16527.28	88.52
+logs/SDP_validationg__Frischella.benchmark
+h:m:s	max_rss	max_vms	max_uss
+4:42:38	95.61	16592.29	90.67
+logs/SDP_validationg__Lactobacillus.benchmark
+h:m:s	max_rss	max_vms	max_uss
+7:11:58	72.77	16523.28	67.59
+logs/SDP_validationg__Parolsenella.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:15:16	63.07	3311.47	49.66
+logs/SDP_validationg__Pectinatus.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:39:03	71.24	16068.07	66.04
+logs/SDP_validationg__Saezia.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:50:44	85.97	16534.29	81.06
+logs/SDP_validationg__Snodgrassella.benchmark
+h:m:s	max_rss	max_vms	max_uss
+2:45:58	78.28	3311.71	73.00
+logs/SDP_validationg__Spiroplasma.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:12:01	70.36	16592.54	61.50
+logs/SDP_validationg__WRHT01.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:25:48	100.69	16592.29	95.73
+logs/SDP_validationg__Zymobacter.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:14:14	59.64	16525.28	44.04
 logs/select_cluster_ref_genomes_mag_database.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:00	79.05	397.66	76.16
@@ -19637,6 +20489,69 @@ h:m:s	max_rss	max_vms	max_uss
 logs/ST1_prepare_genomes.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:00:04	16.10	1508.45	8.71
+logs/subset_orthofiles_by_magOTU_g__113_1.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:00:01	19.64	892.19	16.97
+logs/subset_orthofiles_by_magOTU_g__172_1.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:00:02	27.35	888.48	24.70
+logs/subset_orthofiles_by_magOTU_g__73_1.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:00:01	19.57	889.41	16.94
+logs/subset_orthofiles_by_magOTU_g__Apibacter.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:00:05	20.18	888.48	17.15
+logs/subset_orthofiles_by_magOTU_g__Bartonella.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:00:10	19.99	889.50	17.21
+logs/subset_orthofiles_by_magOTU_g__Bifidobacterium.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:00:10	19.72	888.51	17.12
+logs/subset_orthofiles_by_magOTU_g__Bombella.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:00:05	21.71	264.68	18.95
+logs/subset_orthofiles_by_magOTU_g__Bombilactobacillus.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:00:05	19.59	889.41	16.96
+logs/subset_orthofiles_by_magOTU_g__Commensalibacter.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:00:06	21.59	893.15	19.06
+logs/subset_orthofiles_by_magOTU_g__Dysgonomonas.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:00:07	19.71	888.84	16.99
+logs/subset_orthofiles_by_magOTU_g__Entomomonas.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:00:05	20.04	888.23	17.44
+logs/subset_orthofiles_by_magOTU_g__Frischella.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:00:10	19.82	888.08	17.26
+logs/subset_orthofiles_by_magOTU_g__Gilliamella.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:00:19	19.83	264.68	17.30
+logs/subset_orthofiles_by_magOTU_g__Lactobacillus.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:00:07	31.24	264.43	28.48
+logs/subset_orthofiles_by_magOTU_g__Parolsenella.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:00:03	21.29	888.84	18.67
+logs/subset_orthofiles_by_magOTU_g__Pectinatus.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:00:04	20.07	888.76	17.14
+logs/subset_orthofiles_by_magOTU_g__Saezia.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:00:05	19.80	652.34	17.18
+logs/subset_orthofiles_by_magOTU_g__Snodgrassella.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:00:10	21.59	888.98	18.87
+logs/subset_orthofiles_by_magOTU_g__Spiroplasma.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:00:03	19.97	888.51	16.94
+logs/subset_orthofiles_by_magOTU_g__WRHT01.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:00:05	20.44	888.51	17.54
+logs/subset_orthofiles_by_magOTU_g__Zymobacter.benchmark
+h:m:s	max_rss	max_vms	max_uss
+0:00:06	19.55	888.76	16.79
 logs/summarize_mapping_assembly.benchmark
 h:m:s	max_rss	max_vms	max_uss
 0:02:31	77.71	1398.00	57.76
