@@ -79,6 +79,7 @@ output:
 knitr::opts_chunk$set(engine.opts = list(bash = "-l"))
 knitr::opts_chunk$set(cache=TRUE)
 knitr::opts_chunk$set(echo=FALSE, message=FALSE, error=FALSE, warning=FALSE, results='hide', fig.show='hide')
+# loadhistory(".Rhistory")
 # load libraries
 library(ggplot2)
 library(kableExtra)
@@ -2767,21 +2768,24 @@ Pa_heatmap <- ggplot(abundance_df %>% mutate(PresAb = ifelse(Cov > 1, "Present",
 
 library(dendextend)
 
-grid.arrange(
-    grid.arrange(
+p_cov <- grid.arrange(
+    arrangeGrob(
       grid.rect(gp=gpar(col="white")),
       ggdendrogram(magOTU_clustering_Cov) + theme(axis.text.y = element_text(size = 0)),
       grid.rect(gp=gpar(col="white")),
       ncol = 3,
       widths = c(2, 13, 1)
     ),
-    Cov_heatmap,
+    arrangeGrob(
+      Cov_heatmap
+    ),
     nrow = 2,
     heights = c(1,4)
 )
-ggsave("Figures/12f_heatmap_coverage_clustering.pdf")
+p_cov
+ggsave("Figures/12f_heatmap_coverage_clustering.pdf", p_cov)
 
-grid.arrange(
+p_pa <- grid.arrange(
     arrangeGrob(
       grid.rect(gp=gpar(col="white")),
       ggdendrogram(magOTU_clustering_pa) + theme(axis.text.y = element_text(size = 0)),
@@ -2789,14 +2793,14 @@ grid.arrange(
       ncol = 3,
       widths = c(1.5, 10, 1)
     ),
-    Pa_heatmap,
+    arrangeGrob(
+      Pa_heatmap
+    ),
     nrow = 2,
     heights = c(1,4)
 )
-ggsave("Figures/12f_heatmap_presence_absence_clustering.pdf")
-
-
-
+p_pa
+ggsave("Figures/12f_heatmap_presence_absence_clustering.pdf", p_pa)
 
 df_num_magOTUs <- abundance_df %>%
                     group_by(Sample) %>%

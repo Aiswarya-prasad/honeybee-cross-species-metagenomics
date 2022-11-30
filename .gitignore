@@ -62,3 +62,5 @@ database*/*
 *MetaPop*
 assembly_summary_genbank.txt
 *OLD*
+
+snakemake_bak

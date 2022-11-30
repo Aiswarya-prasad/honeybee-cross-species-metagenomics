@@ -295,30 +295,30 @@ rule backup:
         summarise_db_ortho = lambda wildcards: ["database/MAGs_database_Orthofinder/"+group+"_Orthogroups_summary.csv" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
         summarise_db_ortho_filt = lambda wildcards: ["database/MAGs_database_Orthofinder/"+group+"_Orthogroups_filtered_summary.csv" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
         trees = lambda wildcards: ["07_AnnotationAndPhylogenies/05_IQTree/"+group+"/"+group+"_Phylogeny.contree" for group in [x for x in GROUPS if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_tree) > 4]],
-        # core_cov_txt = lambda wildcards: ["09_MagDatabaseProfiling/CoverageEstimation/Merged/"+group+"_coord.pdf" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]], # got to its respective rule and add desired list of samples in its expansion eg. SAMPLES+SAMPLES_KE
-        # core_cov_plots = lambda wildcards: ["09_MagDatabaseProfiling/CoverageEstimation/Merged/"+group+"_coord.txt" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]], # got to its respective rule and add desired list of samples in its expansion eg. SAMPLES+SAMPLES_KE
-        # instrain_done = "10_instrain/rep_mags.IS.COMPARE/",
-        # instrain_profile_plots = expand("10_instrain/{sample}_profile_plots.done", sample=SAMPLES),
-        # instrain_compare_plots = "10_instrain/compare_plot.done",
-        # coverage_host_unmapped_to_MAGs = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_coverage.tsv", sample=SAMPLES+SAMPLES_KE),
-        # coverage_host_hist_unmapped_to_MAGs = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_coverage_histogram.txt", sample=SAMPLES+SAMPLES_KE),
-        # flagstat_unmapped_to_MAGs = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_host_mapping_flagstat.tsv", sample=SAMPLES+SAMPLES_KE),
-        # coding_density_plots = expand("06_MAG_binning/evaluate_bins/plots/{sample}/{sample}.coding_density_plots.png", sample=SAMPLES),
-        # gc_plots = expand("06_MAG_binning/evaluate_bins/plots/{sample}/{sample}.gc_plots.png", sample=SAMPLES),
-        # marker_pos_plots = expand("06_MAG_binning/evaluate_bins/plots/{sample}/{sample}.marker_pos_plot.png", sample=SAMPLES),
-        # nx_plots = expand("06_MAG_binning/evaluate_bins/plots/{sample}/{sample}.nx_plot.png", sample=SAMPLES),
-        # summary_extended = expand("06_MAG_binning/evaluate_bins/{sample}_checkm.summary_extended", sample=SAMPLES),
+        core_cov_txt = lambda wildcards: ["09_MagDatabaseProfiling/CoverageEstimation/Merged/"+group+"_coord.pdf" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]], # got to its respective rule and add desired list of samples in its expansion eg. SAMPLES+SAMPLES_KE
+        core_cov_plots = lambda wildcards: ["09_MagDatabaseProfiling/CoverageEstimation/Merged/"+group+"_coord.txt" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]], # got to its respective rule and add desired list of samples in its expansion eg. SAMPLES+SAMPLES_KE
+        instrain_done = "10_instrain/rep_mags.IS.COMPARE/",
+        instrain_profile_plots = expand("10_instrain/{sample}_profile_plots.done", sample=SAMPLES),
+        instrain_compare_plots = "10_instrain/compare_plot.done",
+        coverage_host_unmapped_to_MAGs = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_coverage.tsv", sample=SAMPLES+SAMPLES_KE),
+        coverage_host_hist_unmapped_to_MAGs = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_coverage_histogram.txt", sample=SAMPLES+SAMPLES_KE),
+        flagstat_unmapped_to_MAGs = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_host_mapping_flagstat.tsv", sample=SAMPLES+SAMPLES_KE),
+        coding_density_plots = expand("06_MAG_binning/evaluate_bins/plots/{sample}/{sample}.coding_density_plots.png", sample=SAMPLES),
+        gc_plots = expand("06_MAG_binning/evaluate_bins/plots/{sample}/{sample}.gc_plots.png", sample=SAMPLES),
+        marker_pos_plots = expand("06_MAG_binning/evaluate_bins/plots/{sample}/{sample}.marker_pos_plot.png", sample=SAMPLES),
+        nx_plots = expand("06_MAG_binning/evaluate_bins/plots/{sample}/{sample}.nx_plot.png", sample=SAMPLES),
+        summary_extended = expand("06_MAG_binning/evaluate_bins/{sample}_checkm.summary_extended", sample=SAMPLES),
         SDP_validation_done = lambda wildcards: ["12_species_validation/"+group+"/"+group+"_SDP_validation.done" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2 and num_magOTUs_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 1]],
-        # dram_tsv_product_mags = lambda wildcards: expand("08_DRAM_annotations_distill/MAGs/{genome}/product.tsv", genome=get_MAGs_list(checkpoints.make_phylo_table.get().output.out_mags_filt)),
-        # dram_tsv_stats_mags = lambda wildcards: expand("08_DRAM_annotations_distill/MAGs/{genome}/genome_stats.tsv", genome=get_MAGs_list(checkpoints.make_phylo_table.get().output.out_mags_filt)),
-        # dram_html_mags = lambda wildcards: expand("08_DRAM_annotations_distill/MAGs/{genome}/product.html", genome=get_MAGs_list(checkpoints.make_phylo_table.get().output.out_mags_filt)),
-        # dram_xlsx_mags = lambda wildcards: expand("08_DRAM_annotations_distill/MAGs/{genome}/metabolism_summary.xlsx", genome=get_MAGs_list(checkpoints.make_phylo_table.get().output.out_mags_filt)),
-        # annotate_mags = lambda wildcards: expand("08_DRAM_annotations/MAGs/{genome}/working_dir/{genome}/annotations.tsv", genome=get_MAGs_list(checkpoints.make_phylo_table.get().output.out_mags_filt)),
+        dram_tsv_product_mags = lambda wildcards: expand("08_DRAM_annotations_distill/MAGs/{genome}/product.tsv", genome=get_MAGs_list(checkpoints.make_phylo_table.get().output.out_mags_filt)),
+        dram_tsv_stats_mags = lambda wildcards: expand("08_DRAM_annotations_distill/MAGs/{genome}/genome_stats.tsv", genome=get_MAGs_list(checkpoints.make_phylo_table.get().output.out_mags_filt)),
+        dram_html_mags = lambda wildcards: expand("08_DRAM_annotations_distill/MAGs/{genome}/product.html", genome=get_MAGs_list(checkpoints.make_phylo_table.get().output.out_mags_filt)),
+        dram_xlsx_mags = lambda wildcards: expand("08_DRAM_annotations_distill/MAGs/{genome}/metabolism_summary.xlsx", genome=get_MAGs_list(checkpoints.make_phylo_table.get().output.out_mags_filt)),
+        annotate_mags = lambda wildcards: expand("08_DRAM_annotations/MAGs/{genome}/working_dir/{genome}/annotations.tsv", genome=get_MAGs_list(checkpoints.make_phylo_table.get().output.out_mags_filt)),
         # contig_tracker = expand("06_MAG_binning/contig_tracker_after_prokka/{genome}_contig_tracker.tsv", genome=get_MAGs_list(checkpoints.make_phylo_table.get().output.out_mags_filt)),
-        # dram_tsv_product_orfs = expand("08_DRAM_annotations_distill/ORFs/{sample}/product.tsv", sample=SAMPLES),
-        # dram_tsv_stats_orfs = expand("08_DRAM_annotations_distill/ORFs/{sample}/genome_stats.tsv", sample=SAMPLES),
-        # dram_html_orfs = expand("08_DRAM_annotations_distill/ORFs/{sample}/product.html", sample=SAMPLES),
-        # dram_xlsx_orfs = expand("08_DRAM_annotations_distill/ORFs/{sample}/metabolism_summary.xlsx", sample=SAMPLES),
+        dram_tsv_product_orfs = expand("08_DRAM_annotations_distill/ORFs/{sample}/product.tsv", sample=SAMPLES),
+        dram_tsv_stats_orfs = expand("08_DRAM_annotations_distill/ORFs/{sample}/genome_stats.tsv", sample=SAMPLES),
+        dram_html_orfs = expand("08_DRAM_annotations_distill/ORFs/{sample}/product.html", sample=SAMPLES),
+        dram_xlsx_orfs = expand("08_DRAM_annotations_distill/ORFs/{sample}/metabolism_summary.xlsx", sample=SAMPLES),
         # html = PROJECT_IDENTIFIER+"_Report.html",
         rmd = PROJECT_IDENTIFIER+"_Report.Rmd",
         isolates = "config/IsolateGenomeInfo.csv",
@@ -796,13 +796,14 @@ rule dram_annotate_orfs:
     conda: "envs/dram-env.yaml"
     shell:
         """
-        dram_outdir=${{{output.dram_annotations}/working_dir*/}}
+        dram_annotations={output.dram_annotations}
+        dram_outdir=${{dram_annotations/working_dir*/}}
         # DRAM-setup.py import_config --config_loc {input.dram_config}
         rm -rf ${{dram_outdir}} # snakemake creates it bt DRAM will complain
         which DRAM.py
         DRAM-setup.py version
         DRAM.py annotate_genes -i {input.scaffolds} -o ${{dram_outdir}} --min_contig_size 999 --threads {threads} --verbose --config_loc {input.dram_config} --keep_tmp_dir
-        dram_outdir_distill=${{{output.dram_annotations}/06_DRAM_annotations*/}}06_DRAM_annotations_distill/{wildcards.sample}
+        dram_outdir_distill=${{dram_annotations/06_DRAM_annotations*/}}06_DRAM_annotations_distill/{wildcards.sample}
         rm -rf ${{dram_outdir_distill}} # snakemake creates it bt DRAM will complain
         DRAM.py distill -i {output.dram_annotations} -o ${{dram_outdir_distill}} --trna_path {output.dram_trnas} --rrna_path {output.dram_rrnas} --config_loc {input.dram_config}
         """
@@ -1012,8 +1013,9 @@ rule binning:
     shell:
         # metabat2 -i {input.assembly} -a {input.depth_file_merged} -o {params.prefix} --minContig {params.min_contig_size} --maxEdges {params.max_edges} -x {params.min_cv} --numThreads {threads} --minClsSize {params.min_bin_length} --saveCls
         """
-        bins_dir=${{{output.marker}/\.bins*/}}
-        prefix=${{{output.marker}/\.bins*/}}/{wildcards.sample}-metabat2/MAG
+        marker={output.marker}
+        bins_dir=${{marker/\.bins*/}}
+        prefix=${{marker/\.bins*/}}/{wildcards.sample}-metabat2/MAG
         metabat2 -i {input.assembly} -a {input.depth_file_merged} -o ${{prefix}} --minContig {params.min_contig_size} --maxEdges {params.max_edges} -x {params.min_cv} --numThreads {threads}
         """
 
@@ -1049,8 +1051,9 @@ rule process_metabat2:
     benchmark: "logs/{sample}_process_metabat2.benchmark"
     shell:
         """
-        outpath=${{{output.all_mags_marker}/\.done*/}}
-        all_mags=${{{output.all_mags_marker}/\.done*/}}/{wildcards.sample}
+        all_mags_marker={output.all_mags_marker}
+        outpath=${{all_mags_marker/\.done*/}}
+        all_mags=${{all_mags_marker/\.done*/}}/{wildcards.sample}
         mkdir -p ${{all_mags}}
         dir=${{input.sample_bins_done/\.bins*/}}
         echo "getting mags from "${{dir}}
@@ -1188,7 +1191,8 @@ rule checkm_evaluation:
     benchmark: "logs/{sample}_checkm_evaluation.benchmark"
     shell:
         """
-        bins=${{input.all_mags_marker/\.done*/}}
+        all_mags_marker={input.all_mags_marker}
+        bins=${{all_mags_marker/\.done*/}}
         out_file={output.checkm_summary}
         checkm lineage_wf -x fa ${{bins}} ${{out_file/_checkm.summary/}} --threads {threads} -f {output.checkm_summary} --tab_table
         # checkm lineage_wf -x fa ${{bins}} ${{out_file/_checkm.summary/}} --threads {threads} -f {output.checkm_summary} --tab_table --aai_strain 0.95
@@ -1219,7 +1223,8 @@ rule checkm_plots:
     benchmark: "logs/{sample}_checkm_evaluation.benchmark"
     shell:
         """
-        bins=${{input.all_mags_marker/\.done*/}}
+        all_mags_marker=input.all_mags_marker
+        bins=${{all_mags_marker/\.done*/}}
         out_file={input.checkm_summary}
         out_dir=${{out_file/_checkm.summary/}}
         plts_dir=${{out_dir}}/plots/{wildcards.sample}/
@@ -1617,12 +1622,13 @@ rule dram_annotate_mags:
     conda: "envs/dram-env.yaml"
     shell:
         """
-        dram_outdir=${{{output.dram_annotations}/working_dir*/}}
+        dram_annotations={output.dram_annotations}
+        dram_outdir=${{dram_annotations/working_dir*/}}
         rm -rf ${{dram_outdir}} # snakemake creates it bt DRAM will complain
         which DRAM.py
         DRAM-setup.py version
         DRAM.py annotate_genes -i {input.scaffolds} -o ${{dram_outdir}} --min_contig_size 999 --threads {threads} --verbose --config_loc {input.dram_config} --keep_tmp_dir --gtdb_taxonomy {input.gtdb} --checkm_quality {input.checkm_concat}
-        dram_outdir_distill=${{{output.dram_annotations}/06_DRAM_annotations*/}}06_DRAM_annotations_distill/{wildcards.genome}
+        dram_outdir_distill=${{dram_annotations/06_DRAM_annotations*/}}06_DRAM_annotations_distill/{wildcards.genome}
         rm -rf ${{dram_outdir_distill}} # snakemake creates it bt DRAM will complain
         DRAM.py distill -i {output.dram_annotations} -o ${{dram_outdir_distill}} --trna_path {output.dram_trnas} --rrna_path {output.dram_rrnas} --config_loc {input.dram_config}
         """
@@ -1904,8 +1910,8 @@ rule concat_all_mags:
         gff_files = lambda wildcards: expand("database/MAGs_database_gff_files/{genome}.gff", genome=get_MAGs_list(checkpoints.make_phylo_table.get().output.out_mags_filt)),
         faa_files = lambda wildcards: expand("database/MAGs_database_faa_files/{genome}.faa", genome=get_MAGs_list(checkpoints.make_phylo_table.get().output.out_mags_filt)),
     output:
-        mag_database = "database/MAGs_database",
-        bwa_index = multiext("database/MAGs_database", ".amb", ".ann", ".bwt", ".pac", ".sa"),
+        # mag_database = "database/MAGs_database",
+        # bwa_index = multiext("database/MAGs_database", ".amb", ".ann", ".bwt", ".pac", ".sa"),
         samtools_index = "database/MAGs_database.fai",
     params:
         mailto="aiswarya.prasad@unil.ch",
@@ -2051,7 +2057,8 @@ rule extract_orthologs_mag_database:
     threads: 5
     shell:
         """
-        ortho_seq_dir=${{{output.done}/\.done*/}}
+        done={output.done}
+        ortho_seq_dir=${{done/\.done*/}}
         python3 scripts/extract_orthologs_phylo.py --orthofile {input.ortho_single} --outdir ${{ortho_seq_dir}} --faadir {params.faadir} --ffndir {params.ffndir}
         """
 # make this collect OGs from a checkpoint and process them and then follow with perc id filtering.
@@ -2453,7 +2460,8 @@ rule instrain_profile:
     threads: 16
     shell:
         """
-        outdir=${{{output.genome_info}/{wildcards.sample}_profile*/}}
+        genome_info={output.genome_info}
+        outdir=${{genome_info/{wildcards.sample}_profile*/}}
         inStrain profile {input.bam} {input.genomes} -o ${{outdir}} -p {threads} -g {input.genes} -s {input.stb}
         """
 
@@ -2549,7 +2557,8 @@ rule instrain_compare:
     threads: 16
     shell:
         """
-        outdir=${{{output.comparisonsTable}/{params.db_name}*/}}
+        comparisonsTable={output.comparisonsTable}
+        outdir=${{comparisonsTable/{params.db_name}*/}}
         inStrain compare -i {input.profiles} -s {input.stb} -p {threads} -o {output.outdir}
         """
 
@@ -2598,7 +2607,8 @@ rule subset_orthofiles_by_magOTU:
           echo 'Creating ORF db which is a concatenated file of all identified genes from each sample'
           cat {input.orfs} > {params.orf_db}
         fi
-        magOTU_seqs_dir_path=${{{output.magOTU_seqs_dir_path}/\.done*/}}
+        magOTU_seqs_dir_path_done={output.magOTU_seqs_dir_path}
+        magOTU_seqs_dir_path=${{magOTU_seqs_dir_path_done/\.done*/}}
         python scripts/subset_magOTU_OG_ffns.py --group {wildcards.group} --ref_info {input.ref_info} --input_seq_dir {input.og_seq_dir} --magOTU_seqs_dir_path ${{magOTU_seqs_dir_path}} --log_path {log}
         """
 
