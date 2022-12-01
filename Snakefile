@@ -303,10 +303,11 @@ rule backup:
         coverage_host_unmapped_to_MAGs = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_coverage.tsv", sample=SAMPLES+SAMPLES_KE),
         coverage_host_hist_unmapped_to_MAGs = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_coverage_histogram.txt", sample=SAMPLES+SAMPLES_KE),
         flagstat_unmapped_to_MAGs = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_host_mapping_flagstat.tsv", sample=SAMPLES+SAMPLES_KE),
-        coding_density_plots = expand("06_MAG_binning/evaluate_bins/plots/{sample}/{sample}.coding_density_plots.png", sample=SAMPLES),
-        gc_plots = expand("06_MAG_binning/evaluate_bins/plots/{sample}/{sample}.gc_plots.png", sample=SAMPLES),
-        marker_pos_plots = expand("06_MAG_binning/evaluate_bins/plots/{sample}/{sample}.marker_pos_plot.png", sample=SAMPLES),
-        nx_plots = expand("06_MAG_binning/evaluate_bins/plots/{sample}/{sample}.nx_plot.png", sample=SAMPLES),
+        # coding_density_plots = expand("06_MAG_binning/evaluate_bins/{sample}/plots/{MAG(s)}.coding_density_plots.png", sample=SAMPLES),
+        # gc_plots = expand("06_MAG_binning/evaluate_bins/{sample}/plots/{MAG(s)}.gc_plots.png", sample=SAMPLES),
+        # marker_pos_plots = expand("06_MAG_binning/evaluate_bins/{sample}/plots/{MAG(s)}.marker_pos_plot.png", sample=SAMPLES),
+        # nx_plots = expand("06_MAG_binning/evaluate_bins/{sample}/plots/{MAG(s)}.nx_plot.png", sample=SAMPLES),
+        plots_marker = expand("06_MAG_binning/evaluate_bins/{sample}/plots.done", sample=SAMPLES),
         summary_extended = expand("06_MAG_binning/evaluate_bins/{sample}_checkm.summary_extended", sample=SAMPLES),
         SDP_validation_done = lambda wildcards: ["12_species_validation/"+group+"/"+group+"_SDP_validation.done" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2 and num_magOTUs_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 1]],
         dram_tsv_product_mags = lambda wildcards: expand("08_DRAM_annotations_distill/MAGs/{genome}/product.tsv", genome=get_MAGs_list(checkpoints.make_phylo_table.get().output.out_mags_filt)),
@@ -802,7 +803,8 @@ rule dram_annotate_orfs:
         rm -rf ${{dram_outdir}} # snakemake creates it bt DRAM will complain
         which DRAM.py
         DRAM-setup.py version
-        DRAM.py annotate_genes -i {input.scaffolds} -o ${{dram_outdir}} --min_contig_size 999 --threads {threads} --verbose --config_loc {input.dram_config} --keep_tmp_dir
+        DRAM.py annotate_genes -i {input.scaffolds} -o ${{dram_outdir}} --threads {threads} --verbose --config_loc {input.dram_config} --keep_tmp_dir
+        # DRAM.py annotate_genes -i {input.scaffolds} -o ${{dram_outdir}} --min_contig_size 999 --threads {threads} --verbose --config_loc {input.dram_config} --keep_tmp_dir
         dram_outdir_distill=${{dram_annotations/06_DRAM_annotations*/}}06_DRAM_annotations_distill/{wildcards.sample}
         rm -rf ${{dram_outdir_distill}} # snakemake creates it bt DRAM will complain
         DRAM.py distill -i {output.dram_annotations} -o ${{dram_outdir_distill}} --trna_path {output.dram_trnas} --rrna_path {output.dram_rrnas} --config_loc {input.dram_config}
@@ -1204,12 +1206,14 @@ rule checkm_plots:
         checkm_summary = "06_MAG_binning/evaluate_bins/{sample}_checkm.summary",
         lineage_ms = "06_MAG_binning/evaluate_bins/{sample}/lineage.ms",
     output:
-        coding_density_plots = "06_MAG_binning/evaluate_bins/plots/{sample}/{sample}.coding_density_plots.png",
-        gc_plots = "06_MAG_binning/evaluate_bins/plots/{sample}/{sample}.gc_plots.png",
-        marker_pos_plots = "06_MAG_binning/evaluate_bins/plots/{sample}/{sample}.marker_pos_plot.png",
-        nx_plots = "06_MAG_binning/evaluate_bins/plots/{sample}/{sample}.nx_plot.png",
+        # coding_density_plots = "06_MAG_binning/evaluate_bins/{sample}/plots/{MAG(s)}.coding_density_plots.png",
+        # gc_plots = "06_MAG_binning/evaluate_bins/{sample}/plots/{MAG(s)}.gc_plots.png",
+        # marker_pos_plots = "06_MAG_binning/evaluate_bins/{sample}/plots/{MAG(s)}.marker_pos_plot.png",
+        # nx_plots = "06_MAG_binning/evaluate_bins/{sample}/plots/{MAG(s)}.nx_plots.png",
+        plots_marker = "06_MAG_binning/evaluate_bins/{sample}/plots.done",
         summary_extended = "06_MAG_binning/evaluate_bins/{sample}_checkm.summary_extended"
     params:
+        extension="fa",
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         # jobname="give_name",
@@ -1219,8 +1223,8 @@ rule checkm_plots:
         mem_mb = convertToMb("50G") # needs at least roughly 40G
     threads: 8
     conda: "envs/mags-env.yaml"
-    log: "logs/{sample}_checkm_evaluation.log"
-    benchmark: "logs/{sample}_checkm_evaluation.benchmark"
+    log: "logs/{sample}_checkm_plots.log"
+    benchmark: "logs/{sample}_checkm_plots.benchmark"
     shell:
         """
         all_mags_marker=input.all_mags_marker
@@ -1228,11 +1232,13 @@ rule checkm_plots:
         out_file={input.checkm_summary}
         out_dir=${{out_file/_checkm.summary/}}
         plts_dir=${{out_dir}}/plots/{wildcards.sample}/
-        checkm qa -t 24 -o 2 --tab_table -f {input.lineage_ms} ${{out_dir}}
-        checkm gc_plot ${{bins}} ${{plts_dir}} 95
-        checkm coding_plot ${{out_dir}} ${{bins}} ${{plts_dir}} 95
-        checkm nx_plot ${{bins}} ${{plts_dir}}
-        checkm marker_plot ${{out_dir}} ${{bins}} ${{plts_dir}}
+        markers_file={input.lineage_ms}
+        analyze_dir=${{markers_file/lineage.ms/}}
+        checkm qa -t 24 -o 2 --tab_table ${{markers_file}} ${{out_dir}} -f {output.summary_extended}
+        checkm gc_plot -x {params.extension} ${{bins}} ${{plts_dir}} 95
+        checkm coding_plot -x {params.extension} ${{out_dir}} ${{bins}} ${{plts_dir}} 95
+        checkm nx_plot -x {params.extension} ${{bins}} ${{plts_dir}}
+        checkm marker_plot -x {params.extension} ${{out_dir}} ${{bins}} ${{plts_dir}}
         """
 
 rule prepare_info_for_drep:
@@ -1627,7 +1633,8 @@ rule dram_annotate_mags:
         rm -rf ${{dram_outdir}} # snakemake creates it bt DRAM will complain
         which DRAM.py
         DRAM-setup.py version
-        DRAM.py annotate_genes -i {input.scaffolds} -o ${{dram_outdir}} --min_contig_size 999 --threads {threads} --verbose --config_loc {input.dram_config} --keep_tmp_dir --gtdb_taxonomy {input.gtdb} --checkm_quality {input.checkm_concat}
+        DRAM.py annotate_genes -i {input.scaffolds} -o ${{dram_outdir}} --threads {threads} --verbose --config_loc {input.dram_config} --keep_tmp_dir --gtdb_taxonomy {input.gtdb} --checkm_quality {input.checkm_concat}
+        # DRAM.py annotate_genes -i {input.scaffolds} -o ${{dram_outdir}} --min_contig_size 999 --threads {threads} --verbose --config_loc {input.dram_config} --keep_tmp_dir --gtdb_taxonomy {input.gtdb} --checkm_quality {input.checkm_concat}
         dram_outdir_distill=${{dram_annotations/06_DRAM_annotations*/}}06_DRAM_annotations_distill/{wildcards.genome}
         rm -rf ${{dram_outdir_distill}} # snakemake creates it bt DRAM will complain
         DRAM.py distill -i {output.dram_annotations} -o ${{dram_outdir_distill}} --trna_path {output.dram_trnas} --rrna_path {output.dram_rrnas} --config_loc {input.dram_config}
@@ -2287,7 +2294,7 @@ rule core_cov:
 
 rule merge_core_cov:
     input:
-        core_cov_per_sample = expand("09_MagDatabaseProfiling/CoverageEstimation/{sample}/{{group}}_corecov.txt", sample=SAMPLES)
+        core_cov_per_sample = expand("09_MagDatabaseProfiling/CoverageEstimation/{sample}/{{group}}_corecov.txt", sample=SAMPLES+SAMPLES_KE)
     output:
         core_cov_merged = "09_MagDatabaseProfiling/CoverageEstimation/Merged/{group}_corecov.txt"
     params:
