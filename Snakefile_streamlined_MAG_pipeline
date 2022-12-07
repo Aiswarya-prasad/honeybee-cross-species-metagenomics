@@ -1,0 +1,175 @@
+################################################################################
+################################## MAGS ########################################
+################################################################################
+# This part of the pipleine takes takes host filtered reads and reconstructs MAGS
+# This part of the pipeline is divided in several steps:
+#   (1): The host-filtered reads are assembled using metaspades
+#   (2): backmapping where the read of each sample are mapped against the assembly
+#        of every other sample
+#   (3): scaffold ae binned into MAGS in functon of their coverage across samples
+#        using metabat2
+################################################################################
+################################################################################
+
+# (1)
+# the following rules use spades to assemble the metagenomes of every sample.
+# then assembly are filtered in function of length and coverage
+
+rule assemble_host_filtered:
+    input:
+        R1 = "../data/host_filtered_reads/{sample}_R1_HF.fastq.gz",
+        R2 = "../data/host_filtered_reads/{sample}_R2_HF.fastq.gz"
+    output:
+        scaffolds="../results/assembly/HF_assembly/{sample}_metaspades/{sample}_contigs.fasta",
+        graph = "../results/assembly/HF_assembly/{sample}_metaspades/{sample}_assembly_graph.fastg",
+        spades_log = "../results/assembly/HF_assembly/{sample}_metaspades/{sample}_spades.log"
+    params:
+        memory_limit = 200,
+        dir=directory("../scratch_link/assembly/HF_assembly/{sample}_metaspades/")
+    threads: 40
+    resources:
+        account="pengel_beemicrophage",
+        mem_mb= 250000,
+        runtime= "24:00:00"
+    log:
+        "logs/assembly/HF/{sample}_assemble_HF.log"
+    benchmark:
+        "logs/assembly/HF/{sample}_assemble_HF.benchmark"
+    conda:
+        "envs/assembly.yaml"
+    shell:
+        "spades.py --meta --pe1-1 {input.R1} --pe1-2 {input.R2} \
+        -o {params.dir} \
+        -k 21,33,55,77,99,127 -m {params.memory_limit} -t {threads}; "
+        "mv {params.dir}/contigs.fasta {output.scaffolds}; "
+        "mv {params.dir}/assembly_graph.fastg {output.graph}; "
+        "mv {params.dir}/spades.log {output.spades_log}; "
+
+rule parse_HF_assemblies:
+    input:
+        scaffolds = "../results/assembly/HF_assembly/{sample}_metaspades/{sample}_contigs.fasta"
+    output:
+        parsed_scaffold="../results/assembly/HF_assembly/{sample}_metaspades/{sample}_contigs_parsed.fasta",
+        filt_tab=temp("../results/assembly/HF_assembly/{sample}_contigs_tab.txt")
+    params:
+        length_t = 1000,
+        cov_t = 1
+    resources:
+        account="pengel_beemicrophage",
+        mem_mb= 2000,
+        runtime= "00:30:00"
+    log:
+        "logs/assembly/HF/{sample}_parse_assembly_HF.log"
+    script:
+        "scripts/assembly/parse_spades_metagenome.py"
+
+rule aggragate_filtering_tabs:
+    input:
+        expand("../results/assembly/HF_assembly/{sample}_contigs_tab.txt", sample=config["samples"])
+    output:
+        all_filt_tab="../results/assembly/HF_assembly/all_HFassemblies_summary_tab.txt"
+    resources:
+        account="pengel_beemicrophage",
+        mem_mb= 2000,
+        runtime= "00:15:00"
+    log:# (2)
+        "logs/assembly/HF/aggragate_filterig.log"
+    benchmark:
+        "logs/assembly/HF/aggragate_filterig.benchmark"
+    shell:
+        "echo -e 'sample\tcontig\tlength\tcov\taccepted' > {output}; "
+        "cat {input} >> {output}"
+
+# (2)
+# The following rules perform a mapping of all samples against all samples
+# to obtain a depth profile for the assembly of each sample
+
+rule backmapping:
+    input:
+        assembly = expand("../results/assembly/HF_assembly/{sam_name2}B_metaspades/{sam_name2}B_contigs_parsed.fasta", sam_name2=config["sam_names"]), # we bin only bacteria
+        R1 = "../data/host_filtered_reads/{sam_name}B_R1_HF.fastq.gz",
+        R2 = "../data/host_filtered_reads/{sam_name}B_R2_HF.fastq.gz"
+    output:
+        sam=temp(expand("../results/MAG_binning/backmapping/{{sam_name}}B/{{sam_name}}B_mapped_to_{sam_name2}B_contigs_parsed.sam", sam_name2=config["sam_names"])),
+        refstats="../results/MAG_binning/backmapping/{sam_name}B/{sam_name}B_refstats.txt"
+    params:
+        dir="../results/MAG_binning/backmapping/{sam_name}B/",
+        all_assemblies=",".join(expand("../results/assembly/HF_assembly/{sam_name}B_metaspades/{sam_name}B_contigs_parsed.fasta", sam_name=config["sam_names"])),
+        xmx="200g"
+    resources:
+        account="pengel_beemicrophage",
+        runtime="24:00:00",
+        mem_mb = "250000"
+    threads: 15
+    conda: "envs/mags_env.yaml"
+    log:
+    "logs/MAGs/backmapping/{sam_name}B_backmapping.log"
+    benchmark: "logs/MAGs/backmappig/{sam_name}B_backmapping.benchmark"
+    shell:
+        "bbsplit.sh in1={input.R1} in2={input.R2} ref={params.all_assemblies} \
+        basename={params.dir}/{wildcards.sam_name}B_mapped_to_%.sam \
+        refstats={output.refstats} rebuild=t nodisk=t ambiguous2=all \
+        nzo=f -Xmx{params.xmx} threads={threads}"
+
+
+rule backmapping_depths:
+    input:
+        sam= "../results/MAG_binning/backmapping/{sam_name}B/{sam_name}B_mapped_to_{sam_name2}B_contigs_parsed.sam"
+    output:
+        bam= temp("../results/MAG_binning/backmapping/{sam_name}B/{sam_name}B_mapped_to_{sam_name2}B_contigs_parsed.bam"),
+        depth= temp("../results/MAG_binning/backmapping/{sam_name}B/{sam_name}B_mapped_to_{sam_name2}B_contigs_parsed.depth")
+    resources:
+        account="pengel_beemicrophage",
+        runtime="10:00:00",
+        mem_mb = "10000"
+    threads: 15
+    conda: "envs/mags_env.yaml"
+    log: "logs/MAGs/backmapping/{sam_name}B_{sam_name2}_depth.log"
+    benchmark: "logs/MAGs/backmappig/{sam_name}B_{sam_name2}_depth.benchmark"
+    shell:
+        "samtools view -bh {input.sam} | samtools sort - > {output.bam}; "
+        "export OMP_NUM_THREADS={threads}; "
+        "jgi_summarize_bam_contig_depths --outputDepth {output.depth} {output.bam}"
+
+rule merge_depths:
+    input:
+        depth_files = expand("../results/MAG_binning/backmapping/{sam_name}B/{sam_name}B_mapped_to_{{sam_name2}}B_contigs_parsed.depth", sam_name=config["sam_names"])
+    output:
+        depth_file_merged = "../results/MAG_binning/backmapping/merged_depths/{sam_name2}B_global_depth.txt"
+    resources:
+        account="pengel_beemicrophage",
+        runtime="1:00:00",
+        mem_mb = "10000"
+    threads: 4
+    conda: "envs/mags_env.yaml"
+    log: "logs/MAGs/backmapping/{sam_name2}B_merge_depth.log"
+    shell:
+        "scripts/MAGs/merge_depths.pl {input.depth_files} > {output.depth_file_merged}"
+
+# (3)
+# The following rules are used to bin the contigs of every assembly into MAGs
+# using the mapping information of section 2
+
+rule binning:
+    input:
+        assembly = "../results/assembly/HF_assembly/{sam_name2}B_metaspades/{sam_name2}B_contigs_parsed.fasta",
+        depth_file_merged = "../results/MAG_binning/backmapping/merged_depths/{sam_name2}B_global_depth.txt"
+    output:
+        marker = "../results/MAG_binning/bins/{sam_name2}B-metabat2.bins.done",
+    params:
+        min_contig_size=2500, # Metabat2 default
+        min_bin_size=200000, # Metabat2 default
+        max_edges=200, # Metabat2 default
+        min_cv=1, # Metabat2 default
+    resources:
+        account="pengel_beemicrophage",
+        mem_mb= 2000,
+        runtime= "01:00:00"
+    threads: 16
+    conda: "envs/mags_env.yaml"
+    log: "logs/MAGs/binning/{sam_name2}B_binning.log"
+    benchmark: "logs/MAGs/binning/{sam_name2}B_binning.benchmark"
+    shell:
+        "bins_dir=${{{output.marker}/\.bins*/}}; "
+        "prefix=${{{output.marker}/\.bins*/}}/{wildcards.sam_name2}B-metabat2/MAG; "
+        "metabat2 -i {input.assembly} -a {input.depth_file_merged} -o ${{prefix}} --minContig {params.min_contig_size} --maxEdges {params.max_edges} -x {params.min_cv} --numThreads {threads}"
