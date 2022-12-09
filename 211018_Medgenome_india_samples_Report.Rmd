@@ -861,11 +861,7 @@ Total_reads_species <- ggplot(filter(df_plot_reads, Type %in% c("Trimmed")), aes
                             make_theme(theme_name=theme_few(), leg_pos="bottom",
                                        guide_nrow = 1,
                                        x_angle=45 ,x_vj=1.2, x_hj=1, x_size=7,
-                                       y_angle=0 ,y_vj=0, y_{
-  "key": "alt+cmd+p",
-  "command": "r.runAboveChunks",
-  "when": "editorTextFocus && editorLangId == 'rmd'"
-}hj=0, y_size=12) +
+                                       y_angle=0 ,y_vj=0, y_hj=0, y_size=12) +
                                 scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
                                 scale_fill_manual(values=host_order_color)
                                   ggsave("Figures/00b-Total_reads_species_after_trimming.pdf")
@@ -3216,7 +3212,8 @@ qpcr_df_info <- qpcr_df %>%
 # qpcr_df_info
 ```
 
-```{r parse_qPCR_results, dev = 'pdf', results='hold', fig.show = 'hold', out.width = '100%', fig.align =
+
+```{r parse_qPCR_results dev = 'pdf', results='hold', fig.show = 'hold', out.width = '100%'}
 ggplot(qpcr_df_info %>% filter(!is.na(Host)) %>% unique(),
        aes(x = factor(Host, levels = c(host_order, "Control_1", "Control_2", "Control_3")),
            y = Ct_mean,

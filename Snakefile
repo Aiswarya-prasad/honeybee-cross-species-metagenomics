@@ -1227,7 +1227,7 @@ rule checkm_plots:
     benchmark: "logs/{sample}_checkm_plots.benchmark"
     shell:
         """
-        all_mags_marker=input.all_mags_marker
+        all_mags_marker={input.all_mags_marker}
         bins=${{all_mags_marker/\.done*/}}
         out_file={input.checkm_summary}
         out_dir=${{out_file/_checkm.summary/}}
