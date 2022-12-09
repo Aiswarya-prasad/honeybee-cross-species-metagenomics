@@ -2204,10 +2204,13 @@ rule map_to_MAGs:
         genome_db = "database/MAGs_database",
         index = multiext("database/MAGs_database", ".amb", ".ann", ".bwt", ".pac", ".sa"),
     output:
-        bam = "09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}.bam",
+        bam_mapped = "09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_mapped.bam",
+        sam_mapped = temp("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_mapped.sam"),
+        bam = temp("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}.bam"),
         sam = temp("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}.sam"),
         mag_mapping_flagstat = "09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_flagstat.tsv",
     params:
+        perl_extract_mapped = "scripts/filter_sam_aln_length.pl",
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         jobname="{sample}_microbiomedb_mapping",
@@ -2224,6 +2227,8 @@ rule map_to_MAGs:
         bwa mem -t {threads} {input.genome_db} {input.reads1} {input.reads2} > {output.sam}
         samtools view -bh {output.sam} | samtools sort - > {output.bam}
         samtools flagstat -O tsv {output.bam} > {output.mag_mapping_flagstat}
+        samtools view -h -F4 -@ {threads} {output.sam} | samtools view - -F 0x800 -h | perl {params.perl_extract_mapped} - > {output.sam_mapped}
+        samtools view -bh {output.sam_mapped} | samtools sort - > {output.bam_mapped}
         """
 
 rule map_unmapped_reads_to_host:
