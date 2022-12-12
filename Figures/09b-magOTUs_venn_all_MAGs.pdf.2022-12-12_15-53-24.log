@@ -1,0 +1,15 @@
+INFO [2022-12-12 15:53:24] $x
+INFO [2022-12-12 15:53:24] observations_host_all
+INFO [2022-12-12 15:53:24] 
+INFO [2022-12-12 15:53:24] $category.names
+INFO [2022-12-12 15:53:24] names(observations_host_all)
+INFO [2022-12-12 15:53:24] 
+INFO [2022-12-12 15:53:24] $output
+INFO [2022-12-12 15:53:24] T
+INFO [2022-12-12 15:53:24] 
+INFO [2022-12-12 15:53:24] $filename
+INFO [2022-12-12 15:53:24] [1] "Figures/09b-magOTUs_venn_all_MAGs.pdf"
+INFO [2022-12-12 15:53:24] 
+INFO [2022-12-12 15:53:24] $fill
+INFO [2022-12-12 15:53:24] host_order_color[!which(host_order_color == c("Apis andreniformis"))]
+INFO [2022-12-12 15:53:24] 

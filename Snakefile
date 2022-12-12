@@ -1210,7 +1210,7 @@ rule checkm_plots:
         # gc_plots = "06_MAG_binning/evaluate_bins/{sample}/plots/{MAG(s)}.gc_plots.png",
         # marker_pos_plots = "06_MAG_binning/evaluate_bins/{sample}/plots/{MAG(s)}.marker_pos_plot.png",
         # nx_plots = "06_MAG_binning/evaluate_bins/{sample}/plots/{MAG(s)}.nx_plots.png",
-        plots_marker = "06_MAG_binning/evaluate_bins/{sample}/plots.done",
+        plots_marker = touch("06_MAG_binning/evaluate_bins/{sample}/plots.done"),
         summary_extended = "06_MAG_binning/evaluate_bins/{sample}_checkm.summary_extended"
     params:
         extension="fa",
@@ -1605,7 +1605,7 @@ rule dram_annotate_mags:
         scaffolds = "07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.faa",
         dram_config = "config/dram_config.json",
         gtdb = rules.gtdb_annotate.output.tax_info,
-        checkm_concat = expand(rules.checkm_plots.output.summary_extended, sample=SAMPLES)
+        checkm_concat = rules.concat_checkm_extended.output.checkm_concat
     output:
         dram_annotations = "08_DRAM_annotations/MAGs/{genome}/working_dir/{genome}/annotations.tsv",
         dram_trnas = "08_DRAM_annotations/MAGs/{genome}/working_dir/{genome}/trnas.tsv",

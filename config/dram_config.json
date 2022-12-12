@@ -12,8 +12,9 @@
   },
   "custom_dbs": null,
   "database_descriptions": {
-    "pfam_hmm_dat": "/reference/dram/Pfam-A.hmm.dat.gz",
+    "pfam_hmm": "/reference/dram/Pfam-A.hmm.dat.gz",
     "dbcan_fam_activities": "/reference/dram/CAZyDB.07302020.fam-activities.txt",
+    "dbcan_subfam_ec": null,
     "vog_annotations": "/reference/dram/vog_annotations_latest.tsv.gz"
   },
   "dram_sheets": {
