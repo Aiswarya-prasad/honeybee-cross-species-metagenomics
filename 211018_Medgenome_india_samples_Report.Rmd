@@ -300,10 +300,10 @@ get_host_from_sample_name <- function(sample_name){
   if (grepl("Ac", sample_name)) {
     return("Apis cerana")
   }
-  if (grepl("M1.|M2.|M3.|M4.|M5.|M6.|M7.|M8.|M9.", sample_name)) {
+  if (grepl("M1.|M2.|M3.|M4.|M5.|M6.|M7.|M8.|M9.|DrY|GrY|AmAi|AmIu", sample_name)) {
     return("Apis mellifera")
   }
-  if (grepl("C1.|C2.|C3.|C4.|C5.|C6.|C7.|C8.|C9.", sample_name)) {
+  if (grepl("C1.|C2.|C3.|C4.|C5.|C6.|C7.|C8.|C9.|AcCh|AcKn", sample_name)) {
     return("Apis cerana")
   }
   if (grepl("D1.|D2.|D3.|D4.|D5.|D6.|D7.|D8.|D9.", sample_name)) {
@@ -498,6 +498,36 @@ samples_MY <- c("M2.1", "M2.2", "M2.3", "M2.4", "M2.5",
               "A6.1","A6.2","A6.3","A6.4","A6.5"
             )
 samples <- c(samples_IN, samples_KE)
+if (samples_KE[1] %in% samples) {
+  samples <- c("M1.1", "M1.2", "M1.3", "M1.4", "M1.5",
+              "AmAi01", "AmAi02", "AmAi03", "AmAi04", "AmAi05",
+              "AmAi06", "AmAi07", "AmAi08", "AmAi09", "AmAi10",
+              "AmIu01", "AmIu02", "AmIu03", "AmIu04", "AmIu05",
+              "AmIu06", "AmIu07", "AmIu08", "AmIu09", "AmIu10",
+              "DrY1_F1", "DrY1_F2", "DrY1_F3", "DrY1_F4", "DrY1_F5", "DrY1_F6",
+              "DrY1_N1", "DrY1_N2", "DrY1_N3", "DrY1_N4", "DrY1_N5", "DrY1_N6",
+              "DrY1_W1", "DrY1_W2", "DrY1_W3", "DrY1_W4", "DrY1_W5", "DrY1_W6",
+              "DrY2_F1", "DrY2_F2", "DrY2_F3", "DrY2_F4", "DrY2_F5", "DrY2_F6",
+              "DrY2_N1", "DrY2_N2", "DrY2_N3", "DrY2_N4", "DrY2_N5", "DrY2_N6",
+              "DrY2_W1", "DrY2_W2", "DrY2_W3", "DrY2_W4", "DrY2_W5", "DrY2_W6",
+              "GrY2_F1", "GrY2_F2", "GrY2_F3", "GrY2_F4", "GrY2_F5", "GrY2_F6",
+              "GrY2_N1", "GrY2_N2", "GrY2_N3", "GrY2_N4", "GrY2_N5", "GrY2_N6",
+              "GrY2_W1", "GrY2_W2", "GrY2_W3", "GrY2_W4", "GrY2_W5", "GrY2_W6",
+              "C1.1", "C1.2", "C1.3", "C1.4", "C1.5",
+              "C2.1", "C2.2", "C2.3", "C2.4", "C2.5",
+              "C3.1", "C3.2", "C3.3", "C3.4", "C3.5",
+              "AcKn01", "AcKn02", "AcKn03", "AcKn04", "AcKn05",
+              "AcKn06", "AcKn07", "AcKn08", "AcKn09", "AcKn10",
+              "AcCh01", "AcCh02", "AcCh03", "AcCh04", "AcCh05",
+              "AcCh06", "AcCh07", "AcCh08", "AcCh09", "AcCh10",
+              "D1.1","D1.2","D1.3","D1.4","D1.5",
+              "D2.1","D2.2","D2.3","D2.4","D2.5",
+              "D3.1","D3.2","D3.3","D3.4","D3.5",
+              "F1.1","F1.2","F1.3","F1.4","F1.5",
+              "F2.1","F2.2","F2.3","F2.4","F2.5",
+              "F3.1","F3.2","F3.3","F3.4","F3.5"
+    )
+}
 colonies <- c("M_1", "M_1", "M_1", "M_1", "M_1",
              "M_DrY2_F","M_DrY2_F","M_Ai","M_Iu",
               "C_1", "C_1", "C_1", "C_1", "C_1",
@@ -764,38 +794,66 @@ setwd("/scratch/aprasad/211018_Medgenome_india_samples")
 # make mapping summary from flagstat tsv
 df_reads <- data.frame()
 for (sample in samples) {
-  number_raw_R1 <- read.csv(unz(paste0("fastqc/raw/", sample, "_R1_fastqc.zip"), paste0(sample, "_R1_fastqc/fastqc_data.txt")), sep = "\t") %>%
+  if (file.exists(paste0("fastqc/raw/", sample, "_R1_fastqc.zip"))) {
+    number_raw_R1 <- read.csv(unz(paste0("fastqc/raw/", sample, "_R1_fastqc.zip"), paste0(sample, "_R1_fastqc/fastqc_data.txt")), sep = "\t") %>%
+                filter(.[[1]] == "Total Sequences") %>%
+                  pull() %>%
+                    as.integer()  
+  } else {
+    number_raw_R1 <- NA
+  }
+  if (file.exists(paste0("fastqc/raw/", sample, "_R2_fastqc.zip"))) {
+    number_raw_R2 <- read.csv(unz(paste0("fastqc/raw/", sample, "_R2_fastqc.zip"), paste0(sample, "_R2_fastqc/fastqc_data.txt")), sep = "\t") %>%
                 filter(.[[1]] == "Total Sequences") %>%
                   pull() %>%
                     as.integer()
-  number_raw_R2 <- read.csv(unz(paste0("fastqc/raw/", sample, "_R2_fastqc.zip"), paste0(sample, "_R2_fastqc/fastqc_data.txt")), sep = "\t") %>%
-                filter(.[[1]] == "Total Sequences") %>%
-                  pull() %>%
-                    as.integer()
-  number_trimmed_R1 <- read.csv(unz(paste0("fastqc/trim/", sample, "_R1_trim_fastqc.zip"), paste0(sample, "_R1_trim_fastqc/fastqc_data.txt")), sep = "\t") %>%
-                filter(.[[1]] == "Total Sequences") %>%
-                  pull() %>%
-                    as.integer()
-  number_trimmed_R2 <- read.csv(unz(paste0("fastqc/trim/", sample, "_R2_trim_fastqc.zip"), paste0(sample, "_R2_trim_fastqc/fastqc_data.txt")), sep = "\t") %>%
-                filter(.[[1]] == "Total Sequences") %>%
-                  pull() %>%
-                    as.integer()
+  } else {
+    number_raw_R2 <- NA
+  }
+  if (file.exists(paste0("fastqc/trim/", sample, "_R1_trim_fastqc.zip"))) {
+    number_trimmed_R1 <- read.csv(unz(paste0("fastqc/trim/", sample, "_R1_trim_fastqc.zip"), paste0(sample, "_R1_trim_fastqc/fastqc_data.txt")), sep = "\t") %>%
+                  filter(.[[1]] == "Total Sequences") %>%
+                    pull() %>%
+                      as.integer()
+  } else {
+    number_trimmed_R1 <- NA
+  }
+  if (file.exists(paste0("fastqc/trim/", sample, "_R2_trim_fastqc.zip"))) {
+    number_trimmed_R2 <- read.csv(unz(paste0("fastqc/trim/", sample, "_R2_trim_fastqc.zip"), paste0(sample, "_R2_trim_fastqc/fastqc_data.txt")), sep = "\t") %>%
+                  filter(.[[1]] == "Total Sequences") %>%
+                    pull() %>%
+                      as.integer()
+  } else {
+    number_trimmed_R2 <- NA
+  }
   raw_reads <- number_raw_R1 + number_raw_R2
   trimmed <- number_trimmed_R1 + number_trimmed_R2
-  mapped_host_db <- read.csv(paste0("02_HostMapping/", sample, "_flagstat.tsv"), sep = "\t") %>%
+  if (file.exists(paste0("02_HostMapping/", sample, "_flagstat.tsv"))) {
+    mapped_host_db <- read.csv(paste0("02_HostMapping/", sample, "_flagstat.tsv"), sep = "\t") %>%
                       filter(.[[3]] == "with itself and mate mapped") %>%
                         pull(1) %>%
                           as.integer()
+  } else {
+   mapped_host_db <- NA 
+  }
   unmapped_host_db <- trimmed - mapped_host_db
-  mapped_mic_db <- read.csv(paste0("04_MicrobiomeMappingDirect/", sample, "_flagstat.tsv"), sep = "\t") %>%
+  if (file.exists(paste0("04_MicrobiomeMappingDirect/", sample, "_flagstat.tsv"))) {
+    mapped_mic_db <- read.csv(paste0("04_MicrobiomeMappingDirect/", sample, "_flagstat.tsv"), sep = "\t") %>%
                       filter(.[[3]] == "with itself and mate mapped") %>%
                         pull(1) %>%
                           as.integer()
+  } else {
+   mapped_mic_db <- NA 
+  }
   unmapped_mic_db <- trimmed - mapped_mic_db
-  mapped_mic_db_host_filtered <- read.csv(paste0("03_MicrobiomeMapping/", sample, "_flagstat.tsv"), sep = "\t") %>%
+  if (file.exists(paste0("03_MicrobiomeMapping/", sample, "_flagstat.tsv"))) {
+    mapped_mic_db_host_filtered <- read.csv(paste0("03_MicrobiomeMapping/", sample, "_flagstat.tsv"), sep = "\t") %>%
                       filter(.[[3]] == "with itself and mate mapped") %>%
                         pull(1) %>%
                           as.integer()
+  } else {
+   mapped_mic_db_host_filtered <- NA 
+  }
   unmapped_sequential <- unmapped_host_db - mapped_mic_db_host_filtered
   values_to_bind <- c(sample, as.integer(c(raw_reads, trimmed, mapped_host_db, unmapped_host_db, mapped_mic_db, unmapped_mic_db, mapped_mic_db_host_filtered, unmapped_sequential)))
   df_reads <- rbind(df_reads, values_to_bind)
@@ -1102,6 +1160,7 @@ ggsave("Figures/04c-motus_all_legend.pdf")
 # g <- grid.arrange(arrangeGrob(assigned_plot, ncol = 2, widths = c(4, 2)), plot_motus_high_prev, nrow = 2, heights = c(1.2, 2))
 #   ggsave("Figures/04a-motus.pdf", g)
 plot_motus_filt
+plot_motus_high_prev
 ```
 
 # MAG analysis
@@ -2313,7 +2372,6 @@ observations_host_all <- list(
    `Apis dorsata` = c(pivot_wider(summarise(group_by(vis_magOTUs_df_all, Host), Cluster, .groups = "keep"), names_from = Host, values_from = Cluster, values_fn = list) %>% pull(`Apis dorsata`) %>% unlist),
    `Apis florea` = c(pivot_wider(summarise(group_by(vis_magOTUs_df_all, Host), Cluster, .groups = "keep"), names_from = Host, values_from = Cluster, values_fn = list) %>% pull(`Apis florea`) %>% unlist)
 )
-
 # magOTU_all_venn <- ggVennDiagram(observations_host_all) +
 #                     scale_fill_gradient(low = brewer.pal(8, "Blues")[1], high = brewer.pal(8, "Blues")[6]) +
 #                       scale_color_manual(values=host_order_color) +
@@ -2333,8 +2391,9 @@ observations <- vis_magOTUs_df_all %>%
                   group_by(sample) %>%
                     summarise(Cluster, .groups="keep") %>%
                       pivot_wider(names_from = sample, values_from = Cluster, values_fn = list)
-df_magOTUs_vegan <- data.frame(matrix(nrow = length(samples), ncol = length(unique(vis_magOTUs_df_all$Cluster))))
-rownames(df_magOTUs_vegan) <- samples
+
+df_magOTUs_vegan <- data.frame(matrix(nrow = length(vis_magOTUs_df_all %>% pull(Sample) %>% unique), ncol = length(unique(vis_magOTUs_df_all$Cluster))))
+rownames(df_magOTUs_vegan) <- vis_magOTUs_df_all %>% pull(Sample) %>% unique
 colnames(df_magOTUs_vegan) <- unique(vis_magOTUs_df_all$Cluster)
 
 for (sample in rownames(df_magOTUs_vegan)) {
@@ -2500,6 +2559,34 @@ num_genomes <- ggplot(Number_genomes_df %>% filter(Type != "genomes"),
                            x_angle=0 ,x_vj=0, x_hj=0, x_size=12,
                            y_angle=0 ,y_vj=0, y_hj=0, y_size=12)
                 ggsave("Figures/10a-Number_of_genomes_per_group.pdf")
+
+# write.csv(vis_magOTUs_df %>% ungroup() %>% select(ID, Cluster, Genus), "Figures/magOTU_categories.csv")
+
+vis_magOTUs_df_w_categories <- vis_magOTUs_df %>% 
+                                left_join(read.csv("Figures/magOTU_categories.csv")) %>%
+                                  mutate(Category = as.factor(Category))
+# only filtered mags
+num_genomes_by_magOTU <- ggplot(vis_magOTUs_df_w_categories,
+                      aes(y = factor(Genus, genera), fill = factor(Category, c(1:15)))) +
+                geom_bar(stat = "count") +
+                labs(x = "Number of genomes", y = "Genus group") +
+                make_theme(leg_pos="none", palettefill = "Paired",
+                           max_colors = 15,
+                           x_angle=0 ,x_vj=0, x_hj=0, x_size=12,
+                           y_angle=0 ,y_vj=0, y_hj=0, y_size=12)
+                ggsave("Figures/10d-Number_of_genomes_by_group_per_magOTU.pdf")
+
+num_genomes_by_magOTU_panels <- ggplot(vis_magOTUs_df_w_categories,
+                      aes(x = Cluster, fill = factor(Category, c(1:15)))) +
+                geom_bar(stat = "count") +
+                labs(y = "Number of genomes", x = "Genus group") +
+                facet_wrap(~Genus, scales = "free_x") +
+                geom_hline(yintercept = 1) +
+                make_theme(leg_pos="none", palettefill = "Paired",
+                           max_colors = 15,
+                           x_angle=45 ,x_vj=1, x_hj=1, x_size=5,
+                           y_angle=0 ,y_vj=0, y_hj=0, y_size=12)
+                ggsave("Figures/10e-Number_of_genomes_per_group_per_magOTU.pdf")
 
 
 plot_present_in <- ggplot(orthogroups_present_in,
@@ -3020,48 +3107,78 @@ ggplot(drep_dist_ordered, aes(x = reference, y = querry)) +
 ```{r mapping_to_MAGs}
 df_reads_MAGsDB <- data.frame()
 for (sample in samples) {
-  number_trimmed_R1 <- read.csv(unz(paste0("fastqc/trim/", sample, "_R1_trim_fastqc.zip"), paste0(sample, "_R1_trim_fastqc/fastqc_data.txt")), sep = "\t") %>%
-                filter(.[[1]] == "Total Sequences") %>%
-                  pull() %>%
-                    as.integer()
-  number_trimmed_R2 <- read.csv(unz(paste0("fastqc/trim/", sample, "_R2_trim_fastqc.zip"), paste0(sample, "_R2_trim_fastqc/fastqc_data.txt")), sep = "\t") %>%
-                filter(.[[1]] == "Total Sequences") %>%
-                  pull() %>%
-                    as.integer()
+  if (file.exists(paste0("fastqc/trim/", sample, "_R1_trim_fastqc.zip"))) {
+    number_trimmed_R1 <- read.csv(unz(paste0("fastqc/trim/", sample, "_R1_trim_fastqc.zip"), paste0(sample, "_R1_trim_fastqc/fastqc_data.txt")), sep = "\t") %>%
+                  filter(.[[1]] == "Total Sequences") %>%
+                    pull() %>%
+                      as.integer()
+  } else {
+    number_trimmed_R1 <- NA
+  }
+  if (file.exists(paste0("fastqc/trim/", sample, "_R2_trim_fastqc.zip"))) {
+    number_trimmed_R2 <- read.csv(unz(paste0("fastqc/trim/", sample, "_R2_trim_fastqc.zip"), paste0(sample, "_R2_trim_fastqc/fastqc_data.txt")), sep = "\t") %>%
+                  filter(.[[1]] == "Total Sequences") %>%
+                    pull() %>%
+                      as.integer()
+  } else {
+    number_trimmed_R2 <- NA
+  }
   raw_reads <- number_raw_R1 + number_raw_R2
   trimmed <- number_trimmed_R1 + number_trimmed_R2
-  mapped_full_db <- read.csv(paste0("09_MagDatabaseProfiling/MAGsDatabaseMapping/", sample, "_flagstat.tsv"), sep = "\t") %>%
-                      filter(.[[3]] == "with itself and mate mapped") %>%
-                        pull(1) %>%
-                          as.integer()
-  mapped_rep_db <- read.csv(paste0("09_MagDatabaseProfiling/SNVProfiling/Mapping/", sample, "_flagstat.tsv"), sep = "\t") %>%
-                      filter(.[[3]] == "with itself and mate mapped") %>%
-                        pull(1) %>%
-                          as.integer()
-  mapped_host_db <- read.csv(paste0("02_HostMapping/", sample, "_flagstat.tsv"), sep = "\t") %>%
-                      filter(.[[3]] == "with itself and mate mapped") %>%
-                        pull(1) %>%
-                          as.integer()
+  if (file.exists(paste0("09_MagDatabaseProfiling/MAGsDatabaseMapping/", sample, "_flagstat.tsv"))) {
+    mapped_full_db <- read.csv(paste0("09_MagDatabaseProfiling/MAGsDatabaseMapping/", sample, "_flagstat.tsv"), sep = "\t") %>%
+                        filter(.[[3]] == "with itself and mate mapped") %>%
+                          pull(1) %>%
+                            as.integer()
+  } else {
+    mapped_full_db <- NA
+  }
+  if (file.exists(paste0("09_MagDatabaseProfiling/SNVProfiling/Mapping/", sample, "_flagstat.tsv"))) {
+    mapped_rep_db <- read.csv(paste0("09_MagDatabaseProfiling/SNVProfiling/Mapping/", sample, "_flagstat.tsv"), sep = "\t") %>%
+                        filter(.[[3]] == "with itself and mate mapped") %>%
+                          pull(1) %>%
+                            as.integer()
+  } else {
+    mapped_rep_db <- NA
+  }
+  if (file.exists(paste0("09_MagDatabaseProfiling/MAGsDatabaseMapping/", sample, "_host_mapping_flagstat.tsv"))) {
+    mapped_host_db <- read.csv(paste0("09_MagDatabaseProfiling/MAGsDatabaseMapping/", sample, "_host_mapping_flagstat.tsv"), sep = "\t") %>%
+                        filter(.[[3]] == "with itself and mate mapped") %>%
+                          pull(1) %>%
+                            as.integer()
+  } else {
+    mapped_host_db <- NA
+  }
   host_filtered <- trimmed - mapped_host_db
-  mapped_full_db_host_filtered <- read.csv(paste0("09_MagDatabaseProfiling/MAGsDatabaseMapping/", sample, "_host-filtered_flagstat.tsv"), sep = "\t") %>%
-                      filter(.[[3]] == "with itself and mate mapped") %>%
-                        pull(1) %>%
-                          as.integer()
-  values_to_bind <- c(sample, as.integer(c(raw_reads, trimmed, mapped_full_db, mapped_rep_db, host_filtered, mapped_full_db_host_filtered, mapped_host_db)))
+  unmapped_all <- trimmed - mapped_host_db - mapped_full_db
+  if (file.exists(paste0("09_MagDatabaseProfiling/MAGsDatabaseMapping/", sample, "_host-filtered_flagstat.tsv"))) {
+    mapped_full_db_host_filtered <- read.csv(paste0("09_MagDatabaseProfiling/MAGsDatabaseMapping/", sample, "_host-filtered_flagstat.tsv"), sep = "\t") %>%
+                        filter(.[[3]] == "with itself and mate mapped") %>%
+                          pull(1) %>%
+                            as.integer()
+  } else {
+    mapped_full_db_host_filtered <- NA
+  }
+  values_to_bind <- c(sample, as.integer(c(raw_reads, trimmed, mapped_full_db, mapped_rep_db, host_filtered, mapped_full_db_host_filtered, mapped_host_db, unmapped_all)))
   df_reads_MAGsDB <- rbind(df_reads_MAGsDB, values_to_bind)
 }
 # setwd("~/NAS_recherche/D2c/aprasad/20211018_aprasad_ApisCrossSpeciesAnalysis/Analysis/211018_Medgenome_india_samples")
 # df_reads_MAGsDB
 # trimmed, mapped_full_db, mapped_rep_db, host_filtered, mapped_full_db_host_filtered
-df_colnames <- c("Sample", "Raw", "Trimmed", "Mapped_to_all_MAGs", "Mapped_to_rep_MAGs", "Host_filtered_reads", "Mapped_to_all_MAGs_after_host_filtering", "host_mapped")
+df_colnames <- c("Sample", "Raw", "Trimmed", "MAGs_DB", "Mapped_to_rep_MAGs", "Host_filtered_reads", "MAGs_DB_after_host_filtering", "Host", "Unmapped")
 colnames(df_reads_MAGsDB) <- df_colnames
 df_reads_MAGsDB <- df_reads_MAGsDB %>%
               mutate(across(!c("Sample"), as.integer))
 df_reads_MAGsDB_plot <- df_reads_MAGsDB %>%
-                          mutate(sum = Host_filtered_reads + Mapped_to_all_MAGs) %>%
-                          mutate(perc_mapped = Mapped_to_all_MAGs/Trimmed*100) %>%
+                          mutate(sum = Host_filtered_reads + MAGs_DB) %>%
+                          mutate(perc_mapped = MAGs_DB/Trimmed*100) %>%
+                          mutate(perc_mags = MAGs_DB/Trimmed*100) %>%
+                          mutate(perc_mags_no_host = MAGs_DB/(Trimmed-Host)*100) %>%
+                          mutate(perc_unmapped_no_host = MAGs_DB/Trimmed-Host)*100) %>%
+                          mutate(perc_host = Host/Trimmed*100) %>%
+                          mutate(perc_unmapped_all = 100-perc_mags-perc_host) %>%
                           mutate(perc_unmapped = 100-perc_mapped) %>%
-                          mutate(perc_mapped_hf = Mapped_to_all_MAGs_after_host_filtering/host_filtered*100) %>%
+                          mutate(perc_mapped_hf = MAGs_DB_after_host_filtering/host_filtered*100) %>%
                           mutate(perc_unmapped_hf = 100-perc_mapped_hf) %>%
                           pivot_longer(!Sample, names_to = "Type", values_to = "Number")
 
@@ -3080,10 +3197,10 @@ ggplot(df_reads_MAGsDB_plot %>% filter(Type %in% c("Trimmed", "Host_filtered_rea
                                          x_angle=0 ,x_vj=0, x_hj=0, x_size=7,
                                          y_angle=0 ,y_vj=0, y_hj=0, y_size=12)
 
-ggplot(df_reads_MAGsDB_plot %>% filter(Type %in% c("Trimmed", "Host_filtered_reads", "Mapped_to_all_MAGs")),
+ggplot(df_reads_MAGsDB_plot %>% filter(Type %in% c("Trimmed", "Host_filtered_reads", "MAGs_DB")),
        aes(y=factor(Sample, levels = samples),
                     x=Number,
-                    fill=factor(Type, levels = c("Trimmed", "Host_filtered_reads", "Mapped_to_all_MAGs")))) +
+                    fill=factor(Type, levels = c("Trimmed", "Host_filtered_reads", "MAGs_DB")))) +
                         geom_bar(stat="identity", position = "dodge") +
                           # ggtitle("Total reads per sample") +
                             labs(y = "Sample",
@@ -3094,11 +3211,11 @@ ggplot(df_reads_MAGsDB_plot %>% filter(Type %in% c("Trimmed", "Host_filtered_rea
                                          x_angle=0 ,x_vj=0, x_hj=0, x_size=12,
                                          y_angle=0 ,y_vj=0, y_hj=0, y_size=7)
 ggplot(df_reads_MAGsDB_plot %>%
-        filter(Type %in% c("Trimmed", "Mapped_to_all_MAGs")) %>%
+        filter(Type %in% c("Trimmed", "MAGs_DB")) %>%
           mutate(Host = Vectorize(get_host_from_sample_name)(Sample)),
        aes(x=factor(Sample, levels = samples),
                     y=Number,
-                    fill=factor(Type, levels = c("Trimmed", "Mapped_to_all_MAGs")))) +
+                    fill=factor(Type, levels = c("Trimmed", "MAGs_DB")))) +
                         geom_bar(stat="identity", position = "dodge") +
                           # ggtitle("Total reads per sample") +
                             labs(x = "Sample",
@@ -3113,10 +3230,29 @@ ggplot(df_reads_MAGsDB_plot %>%
                               ggsave("Figures/13b-mapping_to_MAGs.pdf")
 
 ggplot(df_reads_MAGsDB_plot %>%
-        filter(Type %in% c("perc_mapped", "perc_unmapped")),
+        filter(Type %in% c("MAGs_DB", "Host", "Unmapped")) %>%
+          mutate(Host = Vectorize(get_host_from_sample_name)(Sample)),
+       aes(x=factor(Sample, levels = samples),
+                    y=Number,
+                    fill=factor(Type, levels = c("Unmapped", "Host", "MAGs_DB")))) +
+                        geom_bar(stat="identity", position = "stack") +
+                          # ggtitle("Total reads per sample") +
+                            labs(x = "Sample",
+                                 y = "Percentage of reads (paired end)",
+                                 fill = "Mapped to") +
+                              facet_wrap(~Host, scales = "free_x") +
+                              scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
+                              make_theme(theme_name=theme_few(), leg_pos="bottom",
+                                         guide_nrow = 1,
+                                         x_angle=45 ,x_vj=1, x_hj=1, x_size=5,
+                                         y_angle=0 ,y_vj=0, y_hj=0, y_size=10)
+                              # ggsave("Figures/13b-mapping_to_MAGs.pdf")
+
+ggplot(df_reads_MAGsDB_plot %>%
+        filter(Type %in% c("perc_mags", "perc_host", "perc_unmapped_all")),
        aes(y=factor(Sample, levels = samples),
                     x=Number,
-                    fill=factor(Type, levels = c("perc_mapped", "perc_unmapped")))) +
+                    fill=factor(Type, levels = c("perc_unmapped_all", "perc_host", "perc_mags")))) +
                         geom_bar(stat="identity", position = "stack") +
                           # ggtitle("Total reads per sample") +
                             labs(y = "Sample",
@@ -3128,26 +3264,28 @@ ggplot(df_reads_MAGsDB_plot %>%
                                          x_angle=0 ,x_vj=0, x_hj=0, x_size=12,
                                          y_angle=0 ,y_vj=0, y_hj=0, y_size=7)
                               ggsave("Figures/13a-mapping_to_MAGs_perc.pdf")
+
 ggplot(df_reads_MAGsDB_plot %>%
-        filter(Type %in% c("perc_mapped_hf", "perc_unmapped_hf")),
+        filter(Type %in% c("perc_mags_no_host", "perc_unmapped_no_host")),
        aes(y=factor(Sample, levels = samples),
                     x=Number,
-                    fill=factor(Type, levels = c("perc_mapped_hf", "perc_unmapped_hf")))) +
+                    fill=factor(Type, levels = c("perc_mags_no_host", "perc_unmapped_no_host")))) +
                         geom_bar(stat="identity", position = "stack") +
                           # ggtitle("Total reads per sample") +
                             labs(y = "Sample",
-                                 x = "Percentage of host-filtered reads (paired end)",
+                                 x = "Percentage of reads (paired end)",
                                  fill = "Mapped or unmapped to MAGs DB") +
                               # scale_x_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
                               make_theme(theme_name=theme_few(), leg_pos="right",
                                          guide_nrow = 6,
                                          x_angle=0 ,x_vj=0, x_hj=0, x_size=12,
                                          y_angle=0 ,y_vj=0, y_hj=0, y_size=7)
-                              ggsave("Figures/13a-mapping_to_MAGs_perc_host-filtered.pdf")
-ggplot(df_reads_MAGsDB_plot %>% filter(Type %in% c("Mapped_to_all_MAGs", "Mapped_to_rep_MAGs")),
+                              ggsave("Figures/13-mapping_to_MAGs_no_host_perc.pdf")
+
+ggplot(df_reads_MAGsDB_plot %>% filter(Type %in% c("MAGs_DB", "Mapped_to_rep_MAGs")),
        aes(y=factor(Sample, levels = samples),
                     x=Number,
-                    fill=factor(Type, levels = c("Mapped_to_all_MAGs", "Mapped_to_rep_MAGs")))) +
+                    fill=factor(Type, levels = c("MAGs_DB", "Mapped_to_rep_MAGs")))) +
                         geom_bar(stat="identity", position = "dodge") +
                           # ggtitle("Total reads per sample") +
                             labs(y = "Sample",
