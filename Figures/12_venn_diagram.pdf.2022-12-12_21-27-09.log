@@ -1,0 +1,16 @@
+INFO [2022-12-12 21:27:09] $x
+INFO [2022-12-12 21:27:09] observations_host
+INFO [2022-12-12 21:27:09] 
+INFO [2022-12-12 21:27:09] $category.names
+INFO [2022-12-12 21:27:09] names(observations_host)
+INFO [2022-12-12 21:27:09] 
+INFO [2022-12-12 21:27:09] $output
+INFO [2022-12-12 21:27:09] T
+INFO [2022-12-12 21:27:09] 
+INFO [2022-12-12 21:27:09] $filename
+INFO [2022-12-12 21:27:09] paste0("Figures/", "12_venn_diagram.pdf")
+INFO [2022-12-12 21:27:09] 
+INFO [2022-12-12 21:27:09] $fill
+INFO [2022-12-12 21:27:09] host_order_color
+INFO [2022-12-12 21:27:09] 
+ERROR [2022-12-12 21:27:09] Unexpected parameter length for "fill"

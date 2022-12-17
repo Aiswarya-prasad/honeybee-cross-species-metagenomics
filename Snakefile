@@ -310,16 +310,12 @@ rule backup:
         plots_marker = expand("06_MAG_binning/evaluate_bins/{sample}/plots.done", sample=SAMPLES),
         summary_extended = expand("06_MAG_binning/evaluate_bins/{sample}_checkm.summary_extended", sample=SAMPLES),
         SDP_validation_done = lambda wildcards: ["12_species_validation/"+group+"/"+group+"_SDP_validation.done" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2 and num_magOTUs_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 1]],
-        dram_tsv_product_mags = lambda wildcards: expand("08_DRAM_annotations_distill/MAGs/{genome}/product.tsv", genome=get_MAGs_list(checkpoints.make_phylo_table.get().output.out_mags_filt)),
-        dram_tsv_stats_mags = lambda wildcards: expand("08_DRAM_annotations_distill/MAGs/{genome}/genome_stats.tsv", genome=get_MAGs_list(checkpoints.make_phylo_table.get().output.out_mags_filt)),
-        dram_html_mags = lambda wildcards: expand("08_DRAM_annotations_distill/MAGs/{genome}/product.html", genome=get_MAGs_list(checkpoints.make_phylo_table.get().output.out_mags_filt)),
-        dram_xlsx_mags = lambda wildcards: expand("08_DRAM_annotations_distill/MAGs/{genome}/metabolism_summary.xlsx", genome=get_MAGs_list(checkpoints.make_phylo_table.get().output.out_mags_filt)),
-        annotate_mags = lambda wildcards: expand("08_DRAM_annotations/MAGs/{genome}/working_dir/{genome}/annotations.tsv", genome=get_MAGs_list(checkpoints.make_phylo_table.get().output.out_mags_filt)),
+        dram_tsv_product_mags = "08_DRAM_annotations_distill/MAGs/product.tsv",
+        dram_tsv_stats_mags = "08_DRAM_annotations_distill/MAGs/genome_stats.tsv",
+        dram_html_mags = "08_DRAM_annotations_distill/MAGs/product.html",
+        dram_xlsx_mags = "08_DRAM_annotations_distill/MAGs/metabolism_summary.xlsx",
         # contig_tracker = expand("06_MAG_binning/contig_tracker_after_prokka/{genome}_contig_tracker.tsv", genome=get_MAGs_list(checkpoints.make_phylo_table.get().output.out_mags_filt)),
-        dram_tsv_product_orfs = expand("08_DRAM_annotations_distill/ORFs/{sample}/product.tsv", sample=SAMPLES),
-        dram_tsv_stats_orfs = expand("08_DRAM_annotations_distill/ORFs/{sample}/genome_stats.tsv", sample=SAMPLES),
-        dram_html_orfs = expand("08_DRAM_annotations_distill/ORFs/{sample}/product.html", sample=SAMPLES),
-        dram_xlsx_orfs = expand("08_DRAM_annotations_distill/ORFs/{sample}/metabolism_summary.xlsx", sample=SAMPLES),
+        dram_annotation_orfs = expand("08_DRAM_annotations/ORFs/{sample}/annotations.tsv", sample=["M1.5"]),
         # html = PROJECT_IDENTIFIER+"_Report.html",
         rmd = PROJECT_IDENTIFIER+"_Report.Rmd",
         isolates = "config/IsolateGenomeInfo.csv",
@@ -776,15 +772,10 @@ rule dram_annotate_orfs:
         scaffolds = "12_species_validation/metagenomic_orfs/{sample}/{sample}.faa",
         dram_config = "config/dram_config.json"
     output:
-        dram_annotations = "08_DRAM_annotations/ORFs/{sample}/working_dir/{sample}_scaffolds/annotations.tsv",
-        dram_trnas = "08_DRAM_annotations/ORFs/{sample}/working_dir/{sample}_scaffolds/trnas.tsv",
-        dram_rrnas = "08_DRAM_annotations/ORFs/{sample}/working_dir/{sample}_scaffolds/rrnas.tsv",
-        dram_tsv_product = "08_DRAM_annotations_distill/ORFs/{sample}/product.tsv",
-        dram_tsv_stats = "08_DRAM_annotations_distill/ORFs/{sample}/genome_stats.tsv",
-        dram_html = "08_DRAM_annotations_distill/ORFs/{sample}/product.html",
-        dram_xlsx = "08_DRAM_annotations_distill/ORFs/{sample}/metabolism_summary.xlsx",
+        dram_annotations = "08_DRAM_annotations/ORFs/{sample}/annotations.tsv",
     params:
         db_location = "/reference/dram",
+        dram_outdir = lambda wildcards: os.path.join("08_DRAM_annotations/ORFs/", wildcards.sample),
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         account="pengel_spirit",
@@ -795,19 +786,21 @@ rule dram_annotate_orfs:
     log: "logs/dram_annotate_orfs_{sample}.log"
     benchmark: "logs/dram_annotate_orfs_{sample}.benchmark"
     conda: "envs/dram-env.yaml"
+    conda: "envs/mags-env.yaml"
     shell:
         """
-        dram_annotations={output.dram_annotations}
-        dram_outdir=${{dram_annotations/working_dir*/}}
-        # DRAM-setup.py import_config --config_loc {input.dram_config}
-        rm -rf ${{dram_outdir}} # snakemake creates it bt DRAM will complain
+        source /etc/profile.d/lmodstacks.sh
+        dcsrsoft use old
+        export PATH=/dcsrsoft/spack/external/dram/v1.2.4/bin:$PATH
+        module load gcc/9.3.0 python
+        module load hmmer mmseqs2 prodigal infernal trnascan-se barrnap
         which DRAM.py
+        dram_annotations={output.dram_annotations}
+        dram_outdir=${{dram_annotations/annotations.tsv}}
         DRAM-setup.py version
-        DRAM.py annotate_genes -i {input.scaffolds} -o ${{dram_outdir}} --threads {threads} --verbose --config_loc {input.dram_config} --keep_tmp_dir
-        # DRAM.py annotate_genes -i {input.scaffolds} -o ${{dram_outdir}} --min_contig_size 999 --threads {threads} --verbose --config_loc {input.dram_config} --keep_tmp_dir
-        dram_outdir_distill=${{dram_annotations/06_DRAM_annotations*/}}06_DRAM_annotations_distill/{wildcards.sample}
-        rm -rf ${{dram_outdir_distill}} # snakemake creates it bt DRAM will complain
-        DRAM.py distill -i {output.dram_annotations} -o ${{dram_outdir_distill}} --trna_path {output.dram_trnas} --rrna_path {output.dram_rrnas} --config_loc {input.dram_config}
+        ###
+        rm -rf ${{dram_outdir}} # snakemake creates it but DRAM will complain
+        DRAM.py annotate_genes -i {input.scaffolds} -o ${{dram_outdir}} --threads {threads} --verbose
         """
 
 rule map_to_assembly:
@@ -1602,42 +1595,86 @@ rule concat_checkm_extended:
 
 rule dram_annotate_mags:
     input:
-        scaffolds = "07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.faa",
+        scaffolds = lambda wildcards: expand("07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.fna", genome=get_MAGs_list(checkpoints.make_phylo_table.get().output.out_mags_filt)),
         dram_config = "config/dram_config.json",
         gtdb = rules.gtdb_annotate.output.tax_info,
         checkm_concat = rules.concat_checkm_extended.output.checkm_concat
     output:
-        dram_annotations = "08_DRAM_annotations/MAGs/{genome}/working_dir/{genome}/annotations.tsv",
-        dram_trnas = "08_DRAM_annotations/MAGs/{genome}/working_dir/{genome}/trnas.tsv",
-        dram_rrnas = "08_DRAM_annotations/MAGs/{genome}/working_dir/{genome}/rrnas.tsv",
-        dram_tsv_product = "08_DRAM_annotations_distill/MAGs/{genome}/product.tsv",
-        dram_tsv_stats = "08_DRAM_annotations_distill/MAGs/{genome}/genome_stats.tsv",
-        dram_html = "08_DRAM_annotations_distill/MAGs/{genome}/product.html",
-        dram_xlsx = "08_DRAM_annotations_distill/MAGs/{genome}/metabolism_summary.xlsx",
+        dram_annotations = "08_DRAM_annotations/MAGs/annotations.tsv", 
+        dram_trnas = "08_DRAM_annotations/MAGs/trnas.tsv",        
+        dram_rrnas = "08_DRAM_annotations/MAGs/rrnas.tsv",        
     params:
         db_location = "/reference/dram",
+        dram_outdir = "08_DRAM_annotations/MAGs/",
+        input_pattern = "07_AnnotationAndPhylogenies/01_prokka/*/*.fna",
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         account="pengel_spirit",
-        runtime_s=convertToSec("1-20:00:00")
+        runtime_s=convertToSec("1-22:50:00")
     resources:
-        mem_mb = convertToMb("512")
+        mem_mb = convertToMb("512G")
     threads: 8
-    log: "logs/dram_annotate_mags_{genome}.log"
-    benchmark: "logs/dram_annotate_mags_{genome}.benchmark"
-    conda: "envs/dram-env.yaml"
+    log: "logs/dram_annotate_mags.log"
+    benchmark: "logs/dram_annotate_mags.benchmark"
+    # conda: "envs/dram-env.yaml"
+    conda: "envs/mags-env.yaml"
     shell:
         """
-        dram_annotations={output.dram_annotations}
-        dram_outdir=${{dram_annotations/working_dir*/}}
-        rm -rf ${{dram_outdir}} # snakemake creates it bt DRAM will complain
+        source /etc/profile.d/lmodstacks.sh
+        dcsrsoft use old
+        export PATH=/dcsrsoft/spack/external/dram/v1.2.4/bin:$PATH
+        module load gcc/9.3.0 python
+        module load hmmer mmseqs2 prodigal infernal trnascan-se barrnap
         which DRAM.py
         DRAM-setup.py version
-        DRAM.py annotate_genes -i {input.scaffolds} -o ${{dram_outdir}} --threads {threads} --verbose --config_loc {input.dram_config} --keep_tmp_dir --gtdb_taxonomy {input.gtdb} --checkm_quality {input.checkm_concat}
-        # DRAM.py annotate_genes -i {input.scaffolds} -o ${{dram_outdir}} --min_contig_size 999 --threads {threads} --verbose --config_loc {input.dram_config} --keep_tmp_dir --gtdb_taxonomy {input.gtdb} --checkm_quality {input.checkm_concat}
-        dram_outdir_distill=${{dram_annotations/06_DRAM_annotations*/}}06_DRAM_annotations_distill/{wildcards.genome}
-        rm -rf ${{dram_outdir_distill}} # snakemake creates it bt DRAM will complain
-        DRAM.py distill -i {output.dram_annotations} -o ${{dram_outdir_distill}} --trna_path {output.dram_trnas} --rrna_path {output.dram_rrnas} --config_loc {input.dram_config}
+        ###
+        dram_annotations={output.dram_annotations}
+        dram_outdir=${{dram_annotations/annotations.tsv}}
+        rm -rf ${{dram_outdir}} # snakemake creates it but DRAM will complain
+        DRAM.py annotate -i {params.input_pattern} -o ${{dram_outdir}} --threads {threads} --verbose --min_contig_size 999 --gtdb_taxonomy {input.gtdb} --checkm_quality {input.checkm_concat}
+        """
+
+rule dram_distill_mags:
+    input:
+        dram_annotations = "08_DRAM_annotations/MAGs/annotations.tsv",
+        dram_trnas = "08_DRAM_annotations/MAGs/trnas.tsv",
+        dram_rrnas = "08_DRAM_annotations/MAGs/rrnas.tsv",
+        dram_config = "config/dram_config.json",
+        gtdb = rules.gtdb_annotate.output.tax_info,
+        checkm_concat = rules.concat_checkm_extended.output.checkm_concat
+    output:
+        dram_tsv_product = "08_DRAM_annotations_distill/MAGs/product.tsv",
+        dram_tsv_stats = "08_DRAM_annotations_distill/MAGs/genome_stats.tsv",
+        dram_html = "08_DRAM_annotations_distill/MAGs/product.html",
+        dram_xlsx = "08_DRAM_annotations_distill/MAGs/metabolism_summary.xlsx",
+    params:
+        db_location = "/reference/dram",
+        dram_outdir = "08_DRAM_annotations/MAGs/",
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("1-22:50:00")
+    resources:
+        mem_mb = convertToMb("612G")
+    threads: 8
+    log: "logs/dram_distill_mags.log"
+    benchmark: "logs/dram_distill_mags.benchmark"
+    # conda: "envs/dram-env.yaml"
+    conda: "envs/mags-env.yaml"
+    shell:
+        """
+        source /etc/profile.d/lmodstacks.sh
+        dcsrsoft use old
+        export PATH=/dcsrsoft/spack/external/dram/v1.2.4/bin:$PATH
+        module load gcc/9.3.0 python
+        module load hmmer mmseqs2 prodigal infernal trnascan-se barrnap
+        which DRAM.py
+        DRAM-setup.py version
+        ###
+        dram_annotations={input.dram_annotations}
+        dram_outdir_distill=${{dram_annotations/08_DRAM_annotations*/}}08_DRAM_annotations_distill
+        rm -rf ${{dram_outdir_distill}} # snakemake creates it but DRAM will complain
+        DRAM.py distill -i {input.dram_annotations} -o ${{dram_outdir_distill}} --trna_path {input.dram_trnas} --rrna_path {input.dram_rrnas}
         """
 
 rule prepare_faa:
@@ -2477,59 +2514,8 @@ rule instrain_profile:
         inStrain profile {input.bam} {input.genomes} -o ${{outdir}} -p {threads} -g {input.genes} -s {input.stb}
         """
 
-# profile_genes   -> Calculate gene-level metrics on an inStrain profile [DEPRECATED; PROVIDE GENES TO profile]
-#     genome_wide     -> Calculate genome-level metrics on an inStrain profile [DEPRECATED; PROVIDE .stb FILES TO profile / compare]
-# rule instrain_profile_genes:
-#     input:
-#         genomes = "10_instrain/rep_mags.fasta",
-#         stb = "10_instrain/rep_mags_stb.tsv",
-#         genes = "10_instrain/rep_mags_genes.fna",
-#         profile = "10_instrain/{sample}_profile.IS/",
-#     output:
-#         done = touch("10_instrain/{sample}_profile_genes.done")
-#     params:
-#         mailto="aiswarya.prasad@unil.ch",
-#         account="pengel_spirit",
-#         runtime_s=convertToSec("0-20:10:00"),
-#     resources:
-#         mem_mb = convertToMb("200G")
-#     conda: "envs/snv-env.yaml"
-#     log: "logs/{sample}_instrain_profile_genes.log"
-#     benchmark: "logs/{sample}_instrain_profile_genes.benchmark"
-#     threads: 16
-#     shell:
-#         """
-#         inStrain profile_genes -i {input.profile} -g {input.genes} -p {threads}
-#         """
-
-# rule instrain_profile_genome_wide:
-#     input:
-#         genomes = "10_instrain/rep_mags.fasta",
-#         stb = "10_instrain/rep_mags_stb.tsv",
-#         genes = "10_instrain/rep_mags_genes.fna",
-#         profile = "10_instrain/{sample}_profile.IS/",
-#     output:
-#         done = touch("10_instrain/{sample}_profile_genome_wide.done")
-#     params:
-#         database_mode=lambda wildcards: "--database_mode" if wildcards.sample not in ["F1.1", "F1.5", "F2.5", "D2.2", "D2.4"] else "",
-#         mailto="aiswarya.prasad@unil.ch",
-#         account="pengel_spirit",
-#         runtime_s=convertToSec("0-20:10:00"),
-#     resources:
-#         mem_mb = convertToMb("200G")
-#     conda: "envs/snv-env.yaml"
-#     log: "logs/{sample}_instrain_profile_genome_wide.log"
-#     benchmark: "logs/{sample}_instrain_profile_genome_wide.benchmark"
-#     threads: 16
-#     shell:
-#         """
-#         inStrain genome_wide -i {input.profile} -s {input.stb} -p {threads}
-#         """
-
 rule instrain_profile_plot:
     input:
-        profile_genes = "10_instrain/{sample}_profile_genes.done",
-        genome_wide = "10_instrain/{sample}_profile_genome_wide.done",
         profile = "10_instrain/{sample}_profile.IS/",
     output:
         done = touch("10_instrain/{sample}_profile_plots.done")
