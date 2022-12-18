@@ -315,7 +315,7 @@ rule backup:
         dram_html_mags = "08_DRAM_annotations_distill/MAGs/product.html",
         dram_xlsx_mags = "08_DRAM_annotations_distill/MAGs/metabolism_summary.xlsx",
         # contig_tracker = expand("06_MAG_binning/contig_tracker_after_prokka/{genome}_contig_tracker.tsv", genome=get_MAGs_list(checkpoints.make_phylo_table.get().output.out_mags_filt)),
-        dram_annotation_orfs = expand("08_DRAM_annotations/ORFs/{sample}/annotations.tsv", sample=["M1.5"]),
+        dram_annotation_orfs = expand("08_DRAM_annotations/ORFs/{sample}/annotations.tsv", sample=SAMPLES),
         # html = PROJECT_IDENTIFIER+"_Report.html",
         rmd = PROJECT_IDENTIFIER+"_Report.Rmd",
         isolates = "config/IsolateGenomeInfo.csv",
@@ -1631,7 +1631,7 @@ rule dram_annotate_mags:
         dram_annotations={output.dram_annotations}
         dram_outdir=${{dram_annotations/annotations.tsv}}
         rm -rf ${{dram_outdir}} # snakemake creates it but DRAM will complain
-        DRAM.py annotate -i {params.input_pattern} -o ${{dram_outdir}} --threads {threads} --verbose --min_contig_size 999 --gtdb_taxonomy {input.gtdb} --checkm_quality {input.checkm_concat}
+        DRAM.py annotate -i \"{params.input_pattern}\" -o ${{dram_outdir}} --threads {threads} --verbose --min_contig_size 999 --gtdb_taxonomy {input.gtdb} --checkm_quality {input.checkm_concat}
         """
 
 rule dram_distill_mags:
