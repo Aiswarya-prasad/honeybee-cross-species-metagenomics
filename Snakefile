@@ -1606,7 +1606,7 @@ rule dram_annotate_mags:
     params:
         db_location = "/reference/dram",
         dram_outdir = "08_DRAM_annotations/MAGs/",
-        input_pattern = "07_AnnotationAndPhylogenies/01_prokka/*/*.fna",
+        input_pattern = "07_AnnotationAndPhylogenies/01_prokka/MAG*/MAG*.fna",
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         account="pengel_spirit",
