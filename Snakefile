@@ -1595,27 +1595,28 @@ rule concat_checkm_extended:
 
 rule dram_annotate_mags:
     input:
-        scaffolds = lambda wildcards: expand("07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.fna", genome=get_MAGs_list(checkpoints.make_phylo_table.get().output.out_mags_filt)),
+        mag = "07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.fna",
         dram_config = "config/dram_config.json",
         gtdb = rules.gtdb_annotate.output.tax_info,
         checkm_concat = rules.concat_checkm_extended.output.checkm_concat
     output:
-        dram_annotations = "08_DRAM_annotations/MAGs/annotations.tsv", 
-        dram_trnas = "08_DRAM_annotations/MAGs/trnas.tsv",        
-        dram_rrnas = "08_DRAM_annotations/MAGs/rrnas.tsv",        
+        dram_annotations = "08_DRAM_annotations/MAGs/{genome}/annotations.tsv", 
+        dram_trnas = "08_DRAM_annotations/MAGs/{genome}/trnas.tsv",        
+        dram_rrnas = "08_DRAM_annotations/MAGs/{genome}/rrnas.tsv",        
     params:
         db_location = "/reference/dram",
         dram_outdir = "08_DRAM_annotations/MAGs/",
-        input_pattern = "07_AnnotationAndPhylogenies/01_prokka/MAG*/MAG*.fna",
+        # input_pattern = "07_AnnotationAndPhylogenies/01_prokka/*/*.fna",
+        # input_pattern = "07_AnnotationAndPhylogenies/01_prokka/MAG*/MAG*.fna",
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         account="pengel_spirit",
-        runtime_s=convertToSec("1-22:50:00")
+        runtime_s=convertToSec("0-05:00:00")
     resources:
         mem_mb = convertToMb("512G")
     threads: 8
-    log: "logs/dram_annotate_mags.log"
-    benchmark: "logs/dram_annotate_mags.benchmark"
+    log: "logs/dram_annotate_mags_{genome}.log"
+    benchmark: "logs/dram_annotate_mags_{genome}.benchmark"
     # conda: "envs/dram-env.yaml"
     conda: "envs/mags-env.yaml"
     shell:
@@ -1631,7 +1632,48 @@ rule dram_annotate_mags:
         dram_annotations={output.dram_annotations}
         dram_outdir=${{dram_annotations/annotations.tsv}}
         rm -rf ${{dram_outdir}} # snakemake creates it but DRAM will complain
-        DRAM.py annotate -i \"{params.input_pattern}\" -o ${{dram_outdir}} --threads {threads} --verbose --min_contig_size 999 --gtdb_taxonomy {input.gtdb} --checkm_quality {input.checkm_concat}
+        DRAM.py annotate -i {input.mag} -o ${{dram_outdir}} --threads {threads} --verbose --min_contig_size 999 --gtdb_taxonomy {input.gtdb} --checkm_quality {input.checkm_concat}
+        """
+
+rule dram_merge_annotated_mags:
+    input:
+        annotations = lambda wildcards: expand("08_DRAM_annotations/MAGs/{genome}/annotations.tsv", genome=get_MAGs_list(checkpoints.make_phylo_table.get().output.out_mags_filt)),
+        trnas = lambda wildcards: expand("08_DRAM_annotations/MAGs/{genome}/trnas.tsv", genome=get_MAGs_list(checkpoints.make_phylo_table.get().output.out_mags_filt)),
+        rrnas = lambda wildcards: expand("08_DRAM_annotations/MAGs/{genome}/rrnas.tsv", genome=get_MAGs_list(checkpoints.make_phylo_table.get().output.out_mags_filt)),
+    output:
+        dram_annotations = "08_DRAM_annotations/MAGs/annotations.tsv",       
+        dram_trnas = "08_DRAM_annotations/MAGs/trnas.tsv",
+        dram_rrnas = "08_DRAM_annotations/MAGs/rrnas.tsv",
+    params:
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-0:10:00")
+    resources:
+        mem_mb = convertToMb("10G")
+    threads: 8
+    log: "logs/dram_merge_annotated_mags.log"
+    benchmark: "logs/dram_merge_annotated_mags.benchmark"
+    # conda: "envs/dram-env.yaml"
+    conda: "envs/mags-env.yaml"
+    shell:
+        """
+        cat {input.annotations} | head -1 > {output.dram_annotations}
+        for file in {input.annotations};
+        do
+            cat $file | tail -n +2 >> {output.dram_annotations}
+        done
+        cat {input.trnas} | head -1 > {output.dram_trnas}
+        for file in {input.trnas};
+        do
+            cat $file | tail -n +2 >> {output.dram_trnas}
+        done
+        
+        cat {input.rrnas} | head -1 > {output.dram_rrnas}
+        for file in {input.rrnas};
+        do
+           cat $file | tail -n +2 >> {output.dram_rrnas}
+        done
         """
 
 rule dram_distill_mags:
@@ -1653,9 +1695,9 @@ rule dram_distill_mags:
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         account="pengel_spirit",
-        runtime_s=convertToSec("1-22:50:00")
+        runtime_s=convertToSec("0-1:00:00")
     resources:
-        mem_mb = convertToMb("612G")
+        mem_mb = convertToMb("100G")
     threads: 8
     log: "logs/dram_distill_mags.log"
     benchmark: "logs/dram_distill_mags.benchmark"

@@ -26,6 +26,7 @@
 logs/*
 fastqc/*
 database/*
+Figures/*
 00_RawData*/*
 01_Trimmed*/*
 02_HostMapping*/*
@@ -62,5 +63,6 @@ database*/*
 *MetaPop*
 assembly_summary_genbank.txt
 *OLD*
-
+temp*
+bench*
 snakemake_bak

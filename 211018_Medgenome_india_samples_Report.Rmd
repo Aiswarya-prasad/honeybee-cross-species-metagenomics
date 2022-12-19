@@ -2743,7 +2743,7 @@ paginate_save(cluster_completeness_number, "Cluster", "Figures/11x-clusters_comp
 score_hist
 ```
 
-```{r figures_for_the poster}
+```{r figures_for_the_poster}
 cluster_tax_info <- vis_magOTUs_df %>%
                       ungroup() %>%
                       select(Genus, Species, Cluster, Num_mags) %>%
@@ -2906,26 +2906,38 @@ abundance_df_matrix_Cov <-  abundance_df %>% filter(!is.na(cluster_name)) %>%
                           filter(Sample %in% samples_IN) %>%
                             pivot_wider(names_from=cluster_name, values_from=Cov, values_fn = as.vector) %>% remove_rownames %>%
                             column_to_rownames(var="Sample")
+
+column_ha = HeatmapAnnotation(Host = rownames(abundance_df_matrix_pa) %>% as.data.frame() %>% mutate(Host = Vectorize(get_host_from_sample_name)(.)) %>% pull(Host),
+                              col = list(Host = host_order_color)
+                          )
+row_ha = rowAnnotation(Genus = colnames(abundance_df_matrix_pa) %>% as.data.frame() %>% left_join(cluster_tax_info %>% ungroup() %>% select(Genus, cluster_name), by = c(. = "cluster_name")) %>% pull(Genus),
+                       col = list(Genus = unlist(genusColors))
+                    )
+
 Heatmap(t(abundance_df_matrix_pa), 
         col = c("#ffffff", "#1a88c9"),
         # col = brewer.pal(2, "Pastel1"),
         clustering_method_columns = 'ward.D2',
+        top_annotation = column_ha, right_annotation = row_ha,
           cluster_rows = F)
 Heatmap(t(abundance_df_matrix_pa), 
         col = c("#ffffff", "#1a88c9"),
         # col = brewer.pal(2, "Pastel1"),
         clustering_method_columns = 'ward.D2',
+        top_annotation = column_ha, right_annotation = row_ha,
           cluster_rows = T)
 Heatmap(t(abundance_df_matrix_Cov_rel),
         col = colorRamp2(c(0, 10, 100), colors = c("#ffffff", "#1a88c9", "#1a3869")),
         # col = colorRamp2(c(0, 10, 100), colors = c(brewer.pal(9, "BrBG")[9], brewer.pal(9, "BrBG")[5], brewer.pal(9, "BrBG")[1])),
         clustering_method_columns = 'ward.D2',
-          cluster_rows = T)
+        top_annotation = column_ha, right_annotation = row_ha,
+          cluster_rows = F)
 Heatmap(t(abundance_df_matrix_Cov),
         col = colorRamp2(c(0, 100, 1000, 10000), colors = c("#ffffff", "#1a88c9", "#08519c", "#08306b")),
         # col = colorRamp2(c(0, 10, 100), colors = c(brewer.pal(9, "BrBG")[9], brewer.pal(9, "BrBG")[5], brewer.pal(9, "BrBG")[1])),
         clustering_method_columns = 'ward.D2',
-          cluster_rows = T)
+        top_annotation = column_ha, right_annotation = row_ha,
+          cluster_rows = F)
 
 data_otu <- abundance_df %>% filter(!is.na(cluster_name)) %>%
                           select(Sample, cluster_name, Cov) %>%
@@ -3489,7 +3501,7 @@ ggplot(df_reads_MAGsDB_plot %>%
                                          guide_nrow = 6,
                                          x_angle=0 ,x_vj=0, x_hj=0, x_size=12,
                                          y_angle=0 ,y_vj=0, y_hj=0, y_size=7)
-                              ggsave("Figures/13a-mapping_to_MAGs_perc.pdf")
+                               ggsave("Figures/13a-mapping_to_MAGs_perc.pdf")
 ggplot(df_reads_MAGsDB_plot %>%
         filter(Type %in% c("perc_mags_no_host", "perc_unmapped_no_host")),
        aes(y=factor(Sample, levels = samples),
