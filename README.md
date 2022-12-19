@@ -744,6 +744,7 @@ $$A * Completeness - B * Contamination + C * (Contamination * frac{strainheterog
 "It makes no sense to perform bootstrap with less than 4 sequences" from IQTree
 
 ## extra info to be curated later
+
 meaning of benchmark output
 
 colname | type (unit) | description
@@ -793,3 +794,13 @@ cpu_time | float(-) | CPU time summed for user and system
   *  no
 *  mag_coverage_software
   *  bwa #get version
+
+### Logging and redirecting stdout and stderr
+
+Some scripts or tools write the output to stdout and others write outputs and errors while writing the output to a specified file. Logging will have to be done accordingly.
+
+If the tool is writing the desired output to stdout, only the stderr shout be redirected to the log file. This can be done using `>2` for example, `command 2> log.txt 1> output.txt`
+
+If the tool is writing the desired output to a file and stdout is only going to include messages for logging, stderr and stdout can both be redirected to the same log file using `&>` for example, `command &> log.txt`
+
+Look [here](https://www.gnu.org/software/bash/manual/html_node/Redirections.html#:~:text=Redirection%20allows%20commands'%20file%20handles,the%20current%20shell%20execution%20environment.) for more information.

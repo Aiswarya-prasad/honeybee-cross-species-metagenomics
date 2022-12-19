@@ -1081,7 +1081,7 @@ Non_specific_reads
 ## Community profiling with mOTUs
 
 ```{r motus_summary}
-df_motus_raw <- read.csv("03_motus_profile/samples_merged.motus", sep = "\t", skip = 2, stringsAsFactors=FALSE)
+df_motus_raw <- read.csv("02_motus_profile/samples_merged.motus", sep = "\t", skip = 2, stringsAsFactors=FALSE)
 colnames(df_motus_raw)[1] <- "taxonomy"
 df_motus_raw <- df_motus_raw %>%
               mutate(across(!c("taxonomy"), as.numeric)) %>%
@@ -2913,32 +2913,35 @@ column_ha = HeatmapAnnotation(Host = rownames(abundance_df_matrix_pa) %>% as.dat
 row_ha = rowAnnotation(Genus = colnames(abundance_df_matrix_pa) %>% as.data.frame() %>% left_join(cluster_tax_info %>% ungroup() %>% select(Genus, cluster_name), by = c(. = "cluster_name")) %>% pull(Genus),
                        col = list(Genus = unlist(genusColors))
                     )
-
+pdf("Figures/16-presence_absence_heatmap.pdf")
 Heatmap(t(abundance_df_matrix_pa), 
         col = c("#ffffff", "#1a88c9"),
         # col = brewer.pal(2, "Pastel1"),
         clustering_method_columns = 'ward.D2',
         top_annotation = column_ha, right_annotation = row_ha,
           cluster_rows = F)
-Heatmap(t(abundance_df_matrix_pa), 
-        col = c("#ffffff", "#1a88c9"),
-        # col = brewer.pal(2, "Pastel1"),
-        clustering_method_columns = 'ward.D2',
-        top_annotation = column_ha, right_annotation = row_ha,
-          cluster_rows = T)
+dev.off()
+pdf("Figures/16-relative_abundance_heatmap.pdf")
 Heatmap(t(abundance_df_matrix_Cov_rel),
         col = colorRamp2(c(0, 10, 100), colors = c("#ffffff", "#1a88c9", "#1a3869")),
         # col = colorRamp2(c(0, 10, 100), colors = c(brewer.pal(9, "BrBG")[9], brewer.pal(9, "BrBG")[5], brewer.pal(9, "BrBG")[1])),
         clustering_method_columns = 'ward.D2',
         top_annotation = column_ha, right_annotation = row_ha,
           cluster_rows = F)
+dev.off()
+column_ha = HeatmapAnnotation(Host = rownames(abundance_df_matrix_Cov) %>% as.data.frame() %>% mutate(Host = Vectorize(get_host_from_sample_name)(.)) %>% pull(Host),
+                              col = list(Host = host_order_color)
+                          )
+row_ha = rowAnnotation(Genus = colnames(abundance_df_matrix_Cov) %>% as.data.frame() %>% left_join(cluster_tax_info %>% ungroup() %>% select(Genus, cluster_name), by = c(. = "cluster_name")) %>% pull(Genus),
+                       col = list(Genus = unlist(genusColors))
+                    )
 Heatmap(t(abundance_df_matrix_Cov),
-        col = colorRamp2(c(0, 100, 1000, 10000), colors = c("#ffffff", "#1a88c9", "#08519c", "#08306b")),
+        col = colorRamp2(c(0, 100, 1000), colors = c("#ffffff", "#1a88c9", "#08306b")),
         # col = colorRamp2(c(0, 10, 100), colors = c(brewer.pal(9, "BrBG")[9], brewer.pal(9, "BrBG")[5], brewer.pal(9, "BrBG")[1])),
         clustering_method_columns = 'ward.D2',
         top_annotation = column_ha, right_annotation = row_ha,
           cluster_rows = F)
-
+data_otu %>% rowSums
 data_otu <- abundance_df %>% filter(!is.na(cluster_name)) %>%
                           select(Sample, cluster_name, Cov) %>%
                           mutate(Cov = round(Cov, 0)) %>%
@@ -3001,8 +3004,12 @@ rarec <- function (x, step = 1, sample, xlab = "Sample Size", ylab = "Species",
   }
   invisible(out)
 }
-pdf("Figures/16-rarecurve.pdf")
-rarec(data_otu, step = 20, sample = raremax, cols = colors_list, cex = 0.3)
+pdf("Figures/16-rarecurve_all.pdf")
+rarec(data_otu, step = 50, sample = raremax, cols = colors_list, cex = 0.3)
+dev.off()
+pdf("Figures/16-rarecurve_IN.pdf")
+colors_list_IN = c(rep("#e41a1c", 15), rep("#984ea3", 15), rep("#4daf4a", 15), rep("#377eb8", 5))
+rarec(data_otu %>% filter(row.names(data_otu) %in% samples_IN), step = 50, sample = raremax, cols = colors_list_IN, cex = 0.5)
 dev.off()
 
 ggplot(df_reads_MAGsDB %>%

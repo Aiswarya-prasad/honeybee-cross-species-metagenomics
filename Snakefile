@@ -170,20 +170,6 @@ def convertToSec(string):
     total = total + 24*60*60*int(days)
     return(total)
 
-def make_count_dict(filepath):
-    """
-    This function is used by the rule "summarize mapping"
-    to parse the file containing counts from bam files
-    """
-    count_dict = {}
-    with open(filepath) as  fh:
-        for line in fh:
-            sample = line.split(" ")[0]
-            count = int(line.split(" ")[1])
-            if sample not in count_dict.keys():
-                count_dict[sample] = count
-    return(count_dict)
-
 def num_genomes_in_group(group, path):
     """
     This function finds the number of genomes in group
@@ -223,8 +209,6 @@ def num_magOTUs_in_group(group_provided, path):
     else:
         return(0)
 
-
-
 def get_MAGs_list(path):
     """
     read list of MAGs from checkpoint output
@@ -247,33 +231,6 @@ def get_MAGs_list(path):
             g_list.append(genome)
         return(g_list)
 
-def get_cluster_dict(path):
-    """
-    return a dict with keys as magOTU clusters with list of corresponding MAGs
-    as values
-    """
-    cluster_list_dict = {}
-    if os.path.isfile(path):
-        pass
-    else:
-        print(f"Could not find file at {path}")
-    with open(path, "r", encoding='utf-8-sig') as info_fh:
-        for line in info_fh:
-            line = line.strip()
-            if line.startswith("ID"):
-                continue
-            genome = line.split("\t")[0]
-            type = line.split("\t")[10]
-            if type != "MAGs":
-                continue
-            cluster = line.split("\t")[11]
-            # only include groups of interest!
-            if cluster not in cluster_list_dict.keys():
-                cluster_list_dict[cluster] = [genome]
-            else:
-                cluster_list_dict[cluster].append(genome)
-    return(cluster_list_dict)
-
 if LOCAL_BACKUP:
     localrules: backup
 
@@ -282,11 +239,10 @@ rule backup:
         flagstat_02 = expand("02_HostMapping/{sample}_flagstat.tsv", sample=SAMPLES),
         coverage_host = expand("02_HostMapping/{sample}_coverage.tsv", sample=SAMPLES),
         coverage_host_hist = expand("02_HostMapping/{sample}_coverage_histogram.txt", sample=SAMPLES),
-        # flagstat_03 = expand("03_MicrobiomeMapping/{sample}_flagstat.tsv", sample=SAMPLES),
-        # flagstat_04 = expand("04_MicrobiomeMappingDirect/{sample}_flagstat.tsv", sample=SAMPLES),
+        
         qc_raw = expand("fastqc/raw/{sample}_{read}_fastqc.html", sample=SAMPLES+SAMPLES_KE, read=config["READS"]),
         qc_trimmed = expand("fastqc/trim/{sample}_{read}_trim_fastqc.html", sample=SAMPLES+SAMPLES_KE, read=config["READS"]),
-        motus_merged = "03_motus_profile/samples_merged.motus", # got to its respective rule and add desired list of samples in its expansion eg. SAMPLES+SAMPLES_KE
+        motus_merged = "02_motus_profile/samples_merged.motus", # got to its respective rule and add desired list of samples in its expansion eg. SAMPLES+SAMPLES_KE
         summary_assembly = "05_Assembly/MapToAssembly/Assembly_mapping_summary.csv",
         contig_fates = expand("06_MAG_binning/contig_fates/{sample}_contig_fates.csv", sample=SAMPLES),
         sample_contig_coverages = expand("06_MAG_binning/contig_fates/backmapping_coverages/{sample}_contig_coverages.csv", sample=SAMPLES),
@@ -490,12 +446,12 @@ rule make_genome_list:
     shell:
         "cat {input.db} | grep \">\" | sed \"s/>//\" > {output.txt}"
 
-rule run_motus:
+rule run_motus: # added
     input:
         reads1 = "01_Trimmed/{sample}_R1_trim.fastq.gz",
         reads2 = "01_Trimmed/{sample}_R2_trim.fastq.gz",
     output:
-        motus_temp = "03_motus_profile/{sample}.motus"
+        motus_temp = "02_motus_profile/{sample}.motus"
     params:
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
@@ -506,9 +462,9 @@ rule run_motus:
         mem_mb = convertToMb("50G")
     threads: 8
     log: "logs/{sample}_run_motus.log"
-    # log: "03_motus_profile/{sample}_run_motus.log"
+    # log: "02_motus_profile/{sample}_run_motus.log"
     benchmark: "logs/{sample}_run_motus.benchmark"
-    # benchmark: "03_motus_profile/{sample}_run_motus.benchmark"
+    # benchmark: "02_motus_profile/{sample}_run_motus.benchmark"
     conda: "envs/motus-env.yaml"
     shell:
         """
@@ -516,11 +472,11 @@ rule run_motus:
         motus profile -f {input.reads1} -r {input.reads2} -n {wildcards.sample} -o {output.motus_temp}  -t {threads}
         """
 
-rule merge_motus:
+rule merge_motus: # added
     input:
-        motus_temp = expand("03_motus_profile/{sample}.motus", sample=SAMPLES+SAMPLES_KE)
+        motus_temp = expand("02_motus_profile/{sample}.motus", sample=SAMPLES+SAMPLES_KE)
     output:
-        motus_merged = "03_motus_profile/samples_merged.motus"
+        motus_merged = "02_motus_profile/samples_merged.motus"
     params:
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
@@ -531,9 +487,9 @@ rule merge_motus:
         mem_mb = convertToMb("50G")
     threads: 8
     log: "logs/merge_motus.log"
-    # log: "03_motus_profile/merge_motus.log"
+    # log: "02_motus_profile/merge_motus.log"
     benchmark: "logs/merge_motus.benchmark"
-    # benchmark: "03_motus_profile/merge_motus.benchmark"
+    # benchmark: "02_motus_profile/merge_motus.benchmark"
     conda: "envs/motus-env.yaml"
     shell:
         """
@@ -685,7 +641,7 @@ rule host_mapping_extract_host_filtered_reads:
 # and others such as Anvio
 ###############################
 
-rule assemble_host_unmapped:
+rule assemble_host_unmapped:  # added
     input:
         reads1 = rules.host_mapping_extract_host_filtered_reads.output.reads1,
         reads2 = rules.host_mapping_extract_host_filtered_reads.output.reads2,
@@ -743,12 +699,18 @@ rule prodigal_get_orfs:
         scaffolds = "05_Assembly/host_unmapped/{sample}_scaffolds.fasta"
     output:
         orfs = "12_species_validation/metagenomic_orfs/{sample}_orfs.ffn",
+        # orfs = "06_MetagenomicORFs{sample}_orfs.ffn",
         filt_log = "12_species_validation/metagenomic_orfs/{sample}_orfs_filt_sumary.log",
+        # filt_log = "06_MetagenomicORFs{sample}_orfs_filt_sumary.log",
         scaffolds_ffn = "12_species_validation/metagenomic_orfs/{sample}/{sample}.ffn",
+        # scaffolds_ffn = "06_MetagenomicORFs{sample}/{sample}.ffn",
         scaffolds_faa = "12_species_validation/metagenomic_orfs/{sample}/{sample}.faa",
+        # scaffolds_faa = "06_MetagenomicORFs{sample}/{sample}.faa",
         scaffolds_gff = "12_species_validation/metagenomic_orfs/{sample}/{sample}.gff"
+        # scaffolds_gff = "06_MetagenomicORFs{sample}/{sample}.gff"
     params:
         outdir = "12_species_validation/metagenomic_orfs/{sample}/",
+        # outdir = "06_MetagenomicORFs{sample}/",
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         account="pengel_spirit",
@@ -770,6 +732,7 @@ rule prodigal_get_orfs:
 rule dram_annotate_orfs:
     input:
         scaffolds = "12_species_validation/metagenomic_orfs/{sample}/{sample}.faa",
+        # scaffolds = "06_MetagenomicORFs{sample}/{sample}.faa",
         dram_config = "config/dram_config.json"
     output:
         dram_annotations = "08_DRAM_annotations/ORFs/{sample}/annotations.tsv",
@@ -803,7 +766,7 @@ rule dram_annotate_orfs:
         DRAM.py annotate_genes -i {input.scaffolds} -o ${{dram_outdir}} --threads {threads} --verbose
         """
 
-rule map_to_assembly:
+rule map_to_assembly: # added
     input:
         reads1 = rules.host_mapping_extract_host_filtered_reads.output.reads1,
         reads2 = rules.host_mapping_extract_host_filtered_reads.output.reads2,
@@ -838,7 +801,7 @@ rule map_to_assembly:
         samtools flagstat -O tsv {output.bam} > {output.flagstat}
         """
 
-rule summarize_mapping_assembly:
+rule summarize_mapping_assembly: # added
     input:
         scaffolds = expand("05_Assembly/host_unmapped/{sample}_scaffolds.fasta", sample=SAMPLES),
         scaffolds_unparsed = expand("05_Assembly/host_unmapped/{sample}_scaffolds_unparsed.fasta", sample=SAMPLES),
@@ -1633,6 +1596,14 @@ rule dram_annotate_mags:
         dram_outdir=${{dram_annotations/annotations.tsv}}
         rm -rf ${{dram_outdir}} # snakemake creates it but DRAM will complain
         DRAM.py annotate -i {input.mag} -o ${{dram_outdir}} --threads {threads} --verbose --min_contig_size 999 --gtdb_taxonomy {input.gtdb} --checkm_quality {input.checkm_concat}
+        if [ ! -f {output.dram_trnas} ];
+        then
+            touch {output.dram_trnas}
+        fi
+        if [ ! -f {output.dram_rrnas} ];
+        then
+            touch {output.dram_rrnas}
+        fi
         """
 
 rule dram_merge_annotated_mags:
@@ -2625,6 +2596,7 @@ rule instrain_compare_plot:
 rule subset_orthofiles_by_magOTU:
     input:
         orfs = expand("12_species_validation/metagenomic_orfs/{sample}_orfs.ffn", sample=SAMPLES),
+        # orfs = expand("06_MetagenomicORFs{sample}_orfs.ffn", sample=SAMPLES),
         ref_info = lambda wildcards: checkpoints.make_phylo_table.get().output.out_mags_filt,
         og_seq_dir = "database/MAGs_database_Orthofinder/{group}/single_ortholog_sequences"
     output:
@@ -2768,7 +2740,7 @@ rule SDP_validation:
 #         flagstat_04 = expand("04_MicrobiomeMappingDirect/{sample}_flagstat.tsv", sample=SAMPLES),
 #         qc_raw = expand("fastqc/raw/{sample}_{read}_fastqc.html", sample=SAMPLES, read=config["READS"]),
 #         qc_trimmed = expand("fastqc/trim/{sample}_{read}_trim_fastqc.html", sample=SAMPLES, read=config["READS"]),
-#         motus_merged = "03_motus_profile/samples_merged.motus", # got to its respective rule and add desired list of samples in its expansion
+#         motus_merged = "02_motus_profile/samples_merged.motus", # got to its respective rule and add desired list of samples in its expansion
 #         summary_assembly = "05_Assembly/MapToAssembly/Assembly_mapping_summary.csv",
 #         contig_fates = expand("06_MAG_binning/contig_fates/{sample}_contig_fates.csv", sample=SAMPLES),
 #         sample_contig_coverages = expand("06_MAG_binning/contig_fates/backmapping_coverages/{sample}_contig_coverages.csv", sample=SAMPLES),

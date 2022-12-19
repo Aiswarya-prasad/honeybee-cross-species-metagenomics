@@ -21,8 +21,8 @@ mkdir -p "$outdir"/03_MicrobiomeMapping
 rsync -r --progress -v $prefix/03_MicrobiomeMapping/*_flagstat.tsv "$outdir"/03_MicrobiomeMapping
 mkdir -p "$outdir"/04_MicrobiomeMappingDirect
 rsync -r --progress -v $prefix/04_MicrobiomeMappingDirect/*_flagstat.tsv "$outdir"/04_MicrobiomeMappingDirect
-mkdir -p "$outdir"/03_motus_profile
-rsync -r --progress -v $prefix/03_motus_profile/samples_merged.motus "$outdir"/03_motus_profile
+mkdir -p "$outdir"/02_motus_profile
+rsync -r --progress -v $prefix/02_motus_profile/samples_merged.motus "$outdir"/02_motus_profile
 mkdir -p "$outdir"/05_Assembly/
 mkdir -p "$outdir"/05_Assembly/MapToAssembly
 rsync -r --progress -v $prefix/05_Assembly/MapToAssembly/Assembly_mapping_summary.csv "$outdir"/05_Assembly/MapToAssembly
