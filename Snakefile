@@ -1629,21 +1629,20 @@ rule dram_merge_annotated_mags:
     conda: "envs/mags-env.yaml"
     shell:
         """
-        cat {input.annotations} | head -1 > {output.dram_annotations}
+        cat {input.annotations} | head -1 > {output.dram_annotations} 2> {log}
         for file in {input.annotations};
         do
-            cat $file | tail -n +2 >> {output.dram_annotations}
+            cat $file | tail -n +2 >> {output.dram_annotations} 2>> {log}
         done
-        cat {input.trnas} | head -1 > {output.dram_trnas}
+        cat {input.trnas} | head -1 > {output.dram_trnas} 2>> {log}
         for file in {input.trnas};
         do
-            cat $file | tail -n +2 >> {output.dram_trnas}
-        done
-        
-        cat {input.rrnas} | head -1 > {output.dram_rrnas}
+            cat $file | tail -n +2 >> {output.dram_trnas} 2>> {log}
+        done 
+        cat {input.rrnas} | head -1 > {output.dram_rrnas} 2>> {log}
         for file in {input.rrnas};
         do
-           cat $file | tail -n +2 >> {output.dram_rrnas}
+           cat $file | tail -n +2 >> {output.dram_rrnas} 2>> {log}
         done
         """
 

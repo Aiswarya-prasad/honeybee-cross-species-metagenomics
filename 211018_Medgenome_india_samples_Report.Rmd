@@ -831,10 +831,28 @@ Groups <- c("g__Bombilactobacillus",
             "g__Commensalibacter",
             "g__Apilactobacillus",
             "g__Bombella")
+# path to files of interest - currently path as in curnagl
+# to be written and checked manually
+qpcr_results <- c(
+  "/nas/FAC/FBM/DMF/pengel/spirit/D2c/aprasad/20211018_aprasad_ApisCrossSpeciesAnalysis/Analysis/SampleProcessing/qPCRs/plate1/plate1-2022-11-17_115607_Results.xls",
+  "/nas/FAC/FBM/DMF/pengel/spirit/D2c/aprasad/20211018_aprasad_ApisCrossSpeciesAnalysis/Analysis/SampleProcessing/qPCRs/plate2/plate2-2022-11-17_142003_Results.xls",
+  "/nas/FAC/FBM/DMF/pengel/spirit/D2c/aprasad/20211018_aprasad_ApisCrossSpeciesAnalysis/Analysis/SampleProcessing/qPCRs/plate3/plate3-2022-11-17_161529_Results.xls",
+  "/nas/FAC/FBM/DMF/pengel/spirit/D2c/aprasad/20211018_aprasad_ApisCrossSpeciesAnalysis/Analysis/SampleProcessing/qPCRs/plate4/plate4-2022-11-17_181034_Results.xls"
+  # "/nas/FAC/FBM/DMF/pengel/spirit/D2c/aprasad/20211018_aprasad_ApisCrossSpeciesAnalysis/Analysis/SampleProcessing/qPCRs/plate5/plate5-2023-01-xx_xxxxxx_Results.xls"
+  # "/nas/FAC/FBM/DMF/pengel/spirit/D2c/aprasad/20211018_aprasad_ApisCrossSpeciesAnalysis/Analysis/SampleProcessing/qPCRs/plate6/plate6-2023-01-xx_xxxxxx_Results.xls"
+  # "/nas/FAC/FBM/DMF/pengel/spirit/D2c/aprasad/20211018_aprasad_ApisCrossSpeciesAnalysis/Analysis/SampleProcessing/qPCRs/plate7/plate7-2023-01-xx_xxxxxx_Results.xls"
+)
+path_df_meta_complete <- "/nas/FAC/FBM/DMF/pengel/spirit/D2c/aprasad/20211018_aprasad_ApisCrossSpeciesAnalysis/DataCollection/221108_metadata_compiled.xlsx"
+df_meta_complete <- read_xlsx(path_df_meta_complete, sheet = "Compiled", range = "A368:AH567", col_names = F)
+colnames(df_meta_complete) <- read_xlsx(path_df_meta_complete, sheet = "Compiled", range = "A1:AH1", col_names = F)
+df_meta_complete <- df_meta_complete %>%
+                      rename(ID_long = ID) %>%
+                        rename(ID = Short_name)
+workig_dir <- "/scratch/aprasad/221220_Medgenome_india_samples"
 ```
 
 ```{r read_mapping_data, results='hold'}
-setwd("/scratch/aprasad/211018_Medgenome_india_samples")
+setwd(working_dir)
 # make mapping summary from flagstat tsv
 df_reads <- data.frame()
 for (sample in samples) {
@@ -920,6 +938,89 @@ df_meta %>% group_by(SpeciesID, Country, Colony) %>% tally()
 df_plot_reads <- pivot_longer(df_reads, !Sample, values_to = "Number", names_to = "Type") %>%
                   merge(select(df_meta, Sample, SpeciesID), by="Sample")
 df_plot_reads$Number <- as.integer(df_plot_reads$Number)
+df_meta_complete
+```
+
+## Summary of DNA extraction results
+
+```{r DNA_concentrations}
+df_concentrations <- df_meta_complete %>%
+  select(ID, Concentration) %>%
+    left_join(df_meta, by = c("ID" = "Sample")) %>%
+      mutate(Host = Vectorize(get_host_from_sample_name)(ID)) %>%
+        mutate(Location = Vectorize(get_location_from_sample_name)(ID))
+
+ggplot(df_concentrations %>% filter(ID %in% c(samples_IN, samples_MY)), 
+        aes(y = factor(ID, rev(c(samples_IN, samples_MY))),
+            x = Concentration,
+            # fill = factor(Host, host_order),
+            shape = Location,
+            color = factor(Host, host_order)
+          )
+        ) +
+  geom_point() +
+  facet_wrap(~Host, scales = "free") +
+  geom_hline(yintercept = 6.5, linetype = "solid") +
+   geom_hline(yintercept = 14.5, linetype = "solid") +
+   geom_hline(yintercept = 22.5, linetype = "solid") +
+   geom_hline(yintercept = 30.5, linetype = "solid") +
+    labs(color = "Host species", y = "Sample name", x = "Concentration (ng/uL) - Aliquot of 10 uL") +
+    make_theme(setFill = F, setCol = F, guide_nrow = 3) +
+    geom_vline(xintercept = 0, linetype = "solid", alpha = 0.5) +
+    geom_vline(xintercept = 1, linetype = "solid", color = "#1a9850", alpha = 1) +
+    geom_vline(xintercept = 5, linetype = "solid", color = "#fee08b", alpha = 1) +
+    geom_vline(xintercept = 10, linetype = "solid", color = "#d73027", alpha = 1) +
+      scale_fill_manual(values=host_order_color) +
+      scale_color_manual(values=host_order_color_dark)
+      ggsave("Figures/00-DNA_Concentrations_compared.pdf")
+
+# write.csv(df_concentrations %>% filter(ID %in% samples_MY) %>% select(ID, Concentration, Host), "Figures/Concentrations_for_plotting_edited_manually.csv", row.names = F)
+df_concentrations_edited <- read.csv("Figures/Concentrations_for_plotting_edited_manually.csv")
+ggplot(df_concentrations_edited %>% filter(ID %in% samples_MY) %>% mutate(Host_name = Vectorize(get_host_from_sample_name)(ID)), 
+        aes(y = factor(ID, rev(samples_MY)),
+            x = Concentration,
+            # fill = factor(Host, host_order),
+            color = factor(Host_name, host_order)
+          )
+        ) +
+  geom_point() +
+  facet_wrap(~Host, scales = "free") +
+  geom_hline(yintercept = 6.5, linetype = "solid") +
+   geom_hline(yintercept = 14.5, linetype = "solid") +
+   geom_hline(yintercept = 22.5, linetype = "solid") +
+   geom_hline(yintercept = 30.5, linetype = "solid") +
+    labs(color = "Host species", y = "Sample name", x = "Concentration (ng/uL) - Aliquot of 10 uL") +
+    make_theme(setFill = F, setCol = F, guide_nrow = 3) +
+    geom_vline(xintercept = 0, linetype = "solid", alpha = 0.5) +
+    geom_vline(xintercept = 1, linetype = "solid", color = "#d73027", alpha = 1) +
+    geom_vline(xintercept = 5, linetype = "solid", color = "#fee08b", alpha = 1) +
+    geom_vline(xintercept = 10, linetype = "solid", color = "#1a9850", alpha = 1) +
+      scale_fill_manual(values=host_order_color) +
+      scale_color_manual(values=host_order_color_dark)
+      ggsave("Figures/00-DNA_Concentrations_with_subset.pdf")
+
+ggplot(df_concentrations %>% filter(ID %in% samples_MY),
+        aes(y = factor(ID, rev(samples_MY)),
+            x = Concentration,
+            # fill = factor(Host, host_order),
+            color = factor(Host, host_order)
+          )
+        ) +
+  geom_point() +
+  facet_wrap(~Host, scales = "free") +
+  geom_hline(yintercept = 6.5, linetype = "solid") +
+   geom_hline(yintercept = 14.5, linetype = "solid") +
+   geom_hline(yintercept = 22.5, linetype = "solid") +
+   geom_hline(yintercept = 30.5, linetype = "solid") +
+    labs(color = "Host species", y = "Sample name", x = "Concentration (ng/uL) - Aliquot of 10 uL") +
+    make_theme(setFill = F, setCol = F, guide_nrow = 3) +
+    geom_vline(xintercept = 0, linetype = "solid", alpha = 0.5) +
+    geom_vline(xintercept = 1, linetype = "solid", color = "#d73027", alpha = 1) +
+    geom_vline(xintercept = 5, linetype = "solid", color = "#fee08b", alpha = 1) +
+    geom_vline(xintercept = 10, linetype = "solid", color = "#1a9850", alpha = 1) +
+      scale_fill_manual(values=host_order_color) +
+      scale_color_manual(values=host_order_color_dark)
+      ggsave("Figures/00-DNA_Concentrations.pdf")
 ```
 
 ## Total number of reads before and after trimming
@@ -3544,13 +3645,6 @@ ggplot(df_reads_MAGsDB_plot %>% filter(Type %in% c("MAGs_DB", "Mapped_to_rep_MAG
 ```
 
 ```{r parse_qPCR_results}
-qpcr_results <- c(
-  "/nas/FAC/FBM/DMF/pengel/spirit/D2c/aprasad/20211018_aprasad_ApisCrossSpeciesAnalysis/Analysis/SampleProcessing/qPCRs/plate1/plate1-2022-11-17_115607_Results.xls",
-  # "/nas/FAC/FBM/DMF/pengel/spirit/D2c/aprasad/20211018_aprasad_ApisCrossSpeciesAnalysis/Analysis/SampleProcessing/qPCRs/plate2/plate2-2022-11-17_142003_Results.xls",
-  "/nas/FAC/FBM/DMF/pengel/spirit/D2c/aprasad/20211018_aprasad_ApisCrossSpeciesAnalysis/Analysis/SampleProcessing/qPCRs/plate3/plate3-2022-11-17_161529_Results.xls",
-  "/nas/FAC/FBM/DMF/pengel/spirit/D2c/aprasad/20211018_aprasad_ApisCrossSpeciesAnalysis/Analysis/SampleProcessing/qPCRs/plate4/plate4-2022-11-17_181034_Results.xls"
-)
-
 qpcr_df <- data.frame()
 plate_num <- 1
 for(x in qpcr_results){
