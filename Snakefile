@@ -1629,20 +1629,38 @@ rule dram_merge_annotated_mags:
     conda: "envs/mags-env.yaml"
     shell:
         """
-        cat {input.annotations} | head -1 > {output.dram_annotations} 2> {log}
         for file in {input.annotations};
         do
-            cat $file | tail -n +2 >> {output.dram_annotations} 2>> {log}
+            if [ ! -f {output.dram_annotations} ];
+            then
+                cat $file | head -1 > {output.dram_annotations} 2> {log}
+            fi
+            if [ ! -f $file ];
+            then
+                cat $file | tail -n +2 >> {output.dram_annotations} 2>> {log}
+            fi
         done
-        cat {input.trnas} | head -1 > {output.dram_trnas} 2>> {log}
         for file in {input.trnas};
         do
-            cat $file | tail -n +2 >> {output.dram_trnas} 2>> {log}
+            if [ ! -f {output.dram_trnas} ];
+            then
+                cat $file | head -1 > {output.dram_trnas} 2>> {log}
+            fi
+            if [ ! -f $file ];
+            then
+                cat $file | tail -n +2 >> {output.dram_trnas} 2>> {log}
+            fi
         done 
-        cat {input.rrnas} | head -1 > {output.dram_rrnas} 2>> {log}
         for file in {input.rrnas};
         do
-           cat $file | tail -n +2 >> {output.dram_rrnas} 2>> {log}
+            if [ ! -f {output.dram_rrnas} ];
+            then
+                cat $file | head -1 > {output.dram_rrnas} 2>> {log}
+            fi
+            if [ ! -f $file ];
+            then
+                cat $file | tail -n +2 >> {output.dram_rrnas} 2>> {log}
+            fi
         done
         """
 
