@@ -13,3 +13,5 @@ dependencies:
   - argparse
   - time
   - tabulate
+  - panel
+  - bokeh

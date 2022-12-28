@@ -716,7 +716,7 @@ rule prodigal_get_orfs:
         account="pengel_spirit",
         runtime_s=convertToSec("0-2:10:00"),
     resources:
-        mem_mb = 16000
+        mem_mb = convertToMb("16G")
     threads: 8
     log: "logs/{sample}_prodigal_get_orfs.log"
     benchmark: "logs/{sample}_prodigal_get_orfs.benchmark"

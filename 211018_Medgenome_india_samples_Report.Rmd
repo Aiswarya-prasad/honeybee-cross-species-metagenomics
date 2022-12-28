@@ -4296,5 +4296,5 @@ density_plot_by_host("12_species_validation/g__Zymobacter/g__Zymobacter_104_0_pe
 ```
 
 ```{r make_metadata_summary_MAGs}
-colnames(df_MAGs_metadata) <- c("Numbe_of_scaffolds", )
+# colnames(df_MAGs_metadata) <- c("Numbe_of_scaffolds", )
 ```
