@@ -266,10 +266,11 @@ rule backup:
         plots_marker = expand("06_MAG_binning/evaluate_bins/{sample}/plots.done", sample=SAMPLES),
         summary_extended = expand("06_MAG_binning/evaluate_bins/{sample}_checkm.summary_extended", sample=SAMPLES),
         SDP_validation_done = lambda wildcards: ["12_species_validation/"+group+"/"+group+"_SDP_validation.done" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2 and num_magOTUs_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 1]],
-        dram_tsv_product_mags = "08_DRAM_annotations_distill/MAGs/product.tsv",
-        dram_tsv_stats_mags = "08_DRAM_annotations_distill/MAGs/genome_stats.tsv",
-        dram_html_mags = "08_DRAM_annotations_distill/MAGs/product.html",
-        dram_xlsx_mags = "08_DRAM_annotations_distill/MAGs/metabolism_summary.xlsx",
+        dram_annotation_mags = "08_DRAM_annotations_distill/MAGs/annotations.tsv",
+        # dram_tsv_product_mags = "08_DRAM_annotations_distill/MAGs/product.tsv",
+        # dram_tsv_stats_mags = "08_DRAM_annotations_distill/MAGs/genome_stats.tsv",
+        # dram_html_mags = "08_DRAM_annotations_distill/MAGs/product.html",
+        # dram_xlsx_mags = "08_DRAM_annotations_distill/MAGs/metabolism_summary.xlsx",
         # contig_tracker = expand("06_MAG_binning/contig_tracker_after_prokka/{genome}_contig_tracker.tsv", genome=get_MAGs_list(checkpoints.make_phylo_table.get().output.out_mags_filt)),
         dram_annotation_orfs = expand("08_DRAM_annotations/ORFs/{sample}/annotations.tsv", sample=SAMPLES),
         # html = PROJECT_IDENTIFIER+"_Report.html",
@@ -1612,10 +1613,11 @@ rule dram_merge_annotated_mags:
         trnas = lambda wildcards: expand("08_DRAM_annotations/MAGs/{genome}/trnas.tsv", genome=get_MAGs_list(checkpoints.make_phylo_table.get().output.out_mags_filt)),
         rrnas = lambda wildcards: expand("08_DRAM_annotations/MAGs/{genome}/rrnas.tsv", genome=get_MAGs_list(checkpoints.make_phylo_table.get().output.out_mags_filt)),
     output:
-        dram_annotations = "08_DRAM_annotations/MAGs/annotations.tsv",       
-        dram_trnas = "08_DRAM_annotations/MAGs/trnas.tsv",
-        dram_rrnas = "08_DRAM_annotations/MAGs/rrnas.tsv",
+        dram_annotations = "08_DRAM_annotations_distill/MAGs/annotations.tsv",       
+        dram_trnas = "08_DRAM_annotations_distill/MAGs/trnas.tsv",
+        dram_rrnas = "08_DRAM_annotations_distill/MAGs/rrnas.tsv",
     params:
+        results_dir="08_DRAM_annotations/MAGs/",
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         account="pengel_spirit",
@@ -1629,46 +1631,20 @@ rule dram_merge_annotated_mags:
     conda: "envs/mags-env.yaml"
     shell:
         """
-        for file in {input.annotations};
-        do
-            if [ ! -f {output.dram_annotations} ];
-            then
-                cat $file | head -1 > {output.dram_annotations} 2> {log}
-            fi
-            if [ ! -f $file ];
-            then
-                cat $file | tail -n +2 >> {output.dram_annotations} 2>> {log}
-            fi
-        done
-        for file in {input.trnas};
-        do
-            if [ ! -f {output.dram_trnas} ];
-            then
-                cat $file | head -1 > {output.dram_trnas} 2>> {log}
-            fi
-            if [ ! -f $file ];
-            then
-                cat $file | tail -n +2 >> {output.dram_trnas} 2>> {log}
-            fi
-        done 
-        for file in {input.rrnas};
-        do
-            if [ ! -f {output.dram_rrnas} ];
-            then
-                cat $file | head -1 > {output.dram_rrnas} 2>> {log}
-            fi
-            if [ ! -f $file ];
-            then
-                cat $file | tail -n +2 >> {output.dram_rrnas} 2>> {log}
-            fi
-        done
+        # execute manually. Does not work on cluster for some reason.
+        cat {params.results_dir}/*/annotations.tsv | head -1 > {output.dram_annotations} 2> {log}
+        cat {params.results_dir}/*/trnas.tsv | head -1 > {output.dram_trnas} 2>> {log}
+        cat {params.results_dir}/*/rrnas.tsv | head -1 > {output.dram_rrnas} 2>> {log}
+        cat {params.results_dir}/*/annotations.tsv | tail -n +2 >> {output.dram_annotations} 2>> {log}
+        cat {params.results_dir}/*/trnas.tsv | tail -n +2 >> {output.dram_trnas} 2>> {log}
+        cat {params.results_dir}/*/rrnas.tsv | tail -n +2 >> {output.dram_rrnas} 2>> {log}
         """
 
 rule dram_distill_mags:
     input:
-        dram_annotations = "08_DRAM_annotations/MAGs/annotations.tsv",
-        dram_trnas = "08_DRAM_annotations/MAGs/trnas.tsv",
-        dram_rrnas = "08_DRAM_annotations/MAGs/rrnas.tsv",
+        dram_annotations = "08_DRAM_annotations_distill/MAGs/annotations.tsv",
+        dram_trnas = "08_DRAM_annotations_distill/MAGs/trnas.tsv",
+        dram_rrnas = "08_DRAM_annotations_distill/MAGs/rrnas.tsv",
         dram_config = "config/dram_config.json",
         gtdb = rules.gtdb_annotate.output.tax_info,
         checkm_concat = rules.concat_checkm_extended.output.checkm_concat
