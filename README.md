@@ -1,12 +1,10 @@
-Note that this pipeline is a work in progress so some parts of the documentation may not be up-to-date yet. If you would like to use it and / or have questions, contact me! Aiswarya Prasad (aiswarya.prasad@unil.ch)
+Note that this pipeline is a work in progress so some parts of the documentation may not be up-to-date yet. If you would like to have questions or require clarification, contact Aiswarya Prasad. (aiswarya.prasad@unil.ch)
 
 # honeybee-MAGs
 
-The aim of this pipeline is to start from raw data (R1 and R2 fastq reads), assemble and bin scaffolds into MAGs, cluster them into magOTUs (slightly different from Kirsten's SDPs!), estimate the "core" coverage of each of the magOTUs and then finally also SNP profiling across samples based on the high quality MAGs chosen. There are also a lot of stats and comparisons made along the way.
+The aim of this pipeline is to document the steps used to process raw shotgun metagenomic data (R1 and R2 fastq reads), assemble and bin scaffolds into MAGs, cluster them into magOTUs, estimate the "core" coverage of each of the magOTUs and then finally also SNP profiling across samples based on the high quality MAGs chosen. The pipeline also anotates ORFs and MAGs and includes a section for SDP validation (from Kirsten_Ellegaard's work) and making phylogenies of MAGs. Downstream analysis is performed using independent scripts and documented in their respective directories. All scripts are present in the scripts directory in general.
 
-First, I list some general / technical details that might be useful if you want to either use this pipeline and / or grab some rules. Following this I have mentioned some details of the my project for which I am working on this pipeline.
-
-In this file, each of the rules in the Snakefile and the associated are explained in more detail. Every step is taken care of by Snakemake as instructed in the Snakefile. None of the scripts are expected to be run independently. The overall approach is to have to ultimate rules, `compile_report` and `backup` which will ask for all the desired outputs and the rules themselves compile an Rmd report that contains code for the visualization of outputs from various files in the pipeline and copy important files (currently it copies the entire working directory but the backup script will be modified to only copy import checkpoints) to a specified local or remote backup location.
+In this file, each of the rules in the Snakefile and the associated are explained in more detail. Every step is taken care of by Snakemake as instructed in the Snakefile. None of the scripts are expected to be run independently. The overall approach is to have to the ultimate rule named `backup` which will ask for all the desired outputs and copy important files (currently it copies the entire working directory but the backup script will be modified to only copy important checkpoints) to a specified local or remote backup location.
 
 If you wish to not run any rules, remove the entries correponding to their outputs from the list of inputs to these rules.
 
@@ -14,10 +12,10 @@ If you wish to not run any rules, remove the entries correponding to their outpu
 
 All paths are specified with respect to the working directory. Snakemake also happily understands this. In the process of writing this pipeline "211018_Medgenome_india_samples" was the name of my project and the working directory, `/scratch/aprasad/211018_Medgenome_india_samples` on curnagl. So if you see this appear anywhere, you know what to do!
 
-To get started with this pipeline you will need (some of) the following files.
+To get started with this pipeline you will need the following files.
 
 + config/config.yaml
-  - This is used by Snakemake to get some important information.
+  - This is used by Snakemake to get some important information. It is best to create it manually or using a script that will read a metadatasheet compiled manually.
     + The list of samples is used by snakemake to decide which samples are to be processed
     + The Adapters section specifies the adapters.fa file to be given to trimmmomatic for each group of samples
     + The section READS and TYPES are used to infer the names/paths of certain files

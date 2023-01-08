@@ -239,10 +239,10 @@ rule backup:
         flagstat_02 = expand("02_HostMapping/{sample}_flagstat.tsv", sample=SAMPLES),
         coverage_host = expand("02_HostMapping/{sample}_coverage.tsv", sample=SAMPLES),
         coverage_host_hist = expand("02_HostMapping/{sample}_coverage_histogram.txt", sample=SAMPLES),
-        
         qc_raw = expand("fastqc/raw/{sample}_{read}_fastqc.html", sample=SAMPLES+SAMPLES_KE, read=config["READS"]),
         qc_trimmed = expand("fastqc/trim/{sample}_{read}_trim_fastqc.html", sample=SAMPLES+SAMPLES_KE, read=config["READS"]),
         motus_merged = "02_motus_profile/samples_merged.motus", # got to its respective rule and add desired list of samples in its expansion eg. SAMPLES+SAMPLES_KE
+        scaffolds = expand("05_Assembly/trimmed/{sample}_scaffolds.fasta", sample=SAMPLES_INDIA),
         summary_assembly = "05_Assembly/MapToAssembly/Assembly_mapping_summary.csv",
         contig_fates = expand("06_MAG_binning/contig_fates/{sample}_contig_fates.csv", sample=SAMPLES),
         sample_contig_coverages = expand("06_MAG_binning/contig_fates/backmapping_coverages/{sample}_contig_coverages.csv", sample=SAMPLES),
@@ -641,6 +641,59 @@ rule host_mapping_extract_host_filtered_reads:
 # explore the use of based on Shini lab's pipeline
 # and others such as Anvio
 ###############################
+
+rule assemble_trimmed:  # added
+    input:
+        reads1 = rules.trim.output.reads1,
+        reads2 = rules.trim.output.reads2,
+    output:
+        scaffolds_unparsed = temp("05_Assembly/trimmed/{sample}_scaffolds_unparsed.fasta"),
+        scaffolds = "05_Assembly/trimmed/{sample}_scaffolds.fasta",
+        graph = "05_Assembly/trimmed/{sample}_assembly_graph.fastg",
+        spades_log = "05_Assembly/trimmed/{sample}_spades.log",
+    params:
+        outdir = lambda wildcards: "05_Assembly/trimmed/"+wildcards.sample,
+        filt_py = "scripts/parse_spades_metagenome.py",
+        length_t = 1000,
+        cov_t = 1,
+        memory_limit = lambda wildcards: "550" if wildcards.sample in ["M1.4", "D2.1", "D2.4", "D2.5", "F3.5"] else "200",
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        jobname="{sample}_assemble_trimmed",
+        account="pengel_spirit",
+        runtime_s=lambda wildcards: convertToSec("1-20:00:00") if wildcards.sample in ["M1.4", "D2.1", "D2.4", "D2.5", "F3.5"] else convertToSec("0-20:00:00"),
+    resources:
+        mem_mb = lambda wildcards: convertToMb("350G") if wildcards.sample in ["M1.4", "D2.1", "D2.5", "F3.5"] else ( convertToMb("450G") if wildcards.sample == "D2.4" else convertToMb("200G") ),
+    retries: 2
+    threads: 4
+    log: "05_Assembly/trimmed/{sample}_assemble_trimmed.log"
+    benchmark: "05_Assembly/trimmed/{sample}_assemble_trimmed.benchmark"
+    conda: "envs/spades-env.yaml"
+    shell:
+        """
+        if [ -f \"{params.outdir}/scaffolds.fasta\" ]; then
+          echo {params.outdir}/scaffolds.fasta\" exists copying and cleaning\"
+        else
+          if [ -d \"{params.outdir}/\" ]; then
+            echo {params.outdir}\" exists resuming spades\"
+            spades.py --continue -o {params.outdir} || true
+          else
+            echo \"{params.outdir} not found. Starting new spades run.\"
+            spades.py -m {params.memory_limit} --meta -1 {input.reads1} -2 {input.reads2} -t {threads} -o {params.outdir} || true
+          fi
+        fi
+        if [ -f \"{params.outdir}/scaffolds.fasta\" ]; then
+          cp {params.outdir}/scaffolds.fasta {output.scaffolds_unparsed}
+        else
+          echo \"assembly may have failed for \"{wildcards.sample}
+          echo \"touching file \"{output.scaffolds_unparsed}
+          touch {output.scaffolds_unparsed}
+        fi
+        python3 {params.filt_py} -i {output.scaffolds_unparsed} -o {output.scaffolds} -l {params.length_t} -c {params.cov_t}
+        cp {params.outdir}/assembly_graph.fastg {output.graph}
+        cp {params.outdir}/spades.log {output.spades_log}
+        rm -rf {params.outdir}
+        """
 
 rule assemble_host_unmapped:  # added
     input:
