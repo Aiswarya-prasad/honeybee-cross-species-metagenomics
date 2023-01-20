@@ -12,6 +12,7 @@ import itertools
 configfile: "config/config.yaml"
 LOCAL_BACKUP = config["LocalBackup"]
 SAMPLES_INDIA = config["SAMPLES_INDIA"]
+SAMPLES_MY = config["SAMPLES_MY"]
 SAMPLES_KE = config["SAMPLES_KE"]
 # SAMPLES_KE = []
 SAMPLES = SAMPLES_INDIA
@@ -236,11 +237,14 @@ if LOCAL_BACKUP:
 
 rule backup:
     input:
+        qc_raw = expand("fastqc/raw/{sample}_{read}_fastqc.html", sample=SAMPLES_MY, read=config["READS"]),
+        qc_trimmed = expand("fastqc/trim/{sample}_{read}_trim_fastqc.html", sample=SAMPLES_MY, read=config["READS"]),
         flagstat_02 = expand("02_HostMapping/{sample}_flagstat.tsv", sample=SAMPLES),
+        flagstat_02_MY = expand("02_HostMapping/{sample}_flagstat.tsv", sample=SAMPLES_MY),
         coverage_host = expand("02_HostMapping/{sample}_coverage.tsv", sample=SAMPLES),
-        coverage_host_hist = expand("02_HostMapping/{sample}_coverage_histogram.txt", sample=SAMPLES),
-        qc_raw = expand("fastqc/raw/{sample}_{read}_fastqc.html", sample=SAMPLES+SAMPLES_KE, read=config["READS"]),
-        qc_trimmed = expand("fastqc/trim/{sample}_{read}_trim_fastqc.html", sample=SAMPLES+SAMPLES_KE, read=config["READS"]),
+        coverage_host_MY = expand("02_HostMapping/{sample}_coverage.tsv", sample=SAMPLES_MY),
+        coverage_host_hist = expand("02_HostMapping/{sample}_coverage_histogram.txt", sample=SAMPLES_MY),
+        coverage_host_hist_MY = expand("02_HostMapping/{sample}_coverage_histogram.txt", sample=SAMPLES),
         motus_merged = "02_motus_profile/samples_merged.motus", # got to its respective rule and add desired list of samples in its expansion eg. SAMPLES+SAMPLES_KE
         scaffolds = expand("05_Assembly/trimmed/{sample}_scaffolds.fasta", sample=SAMPLES_INDIA),
         summary_assembly = "05_Assembly/MapToAssembly/Assembly_mapping_summary.csv",
@@ -248,6 +252,7 @@ rule backup:
         sample_contig_coverages = expand("06_MAG_binning/contig_fates/backmapping_coverages/{sample}_contig_coverages.csv", sample=SAMPLES),
         ortho_summary = expand("07_AnnotationAndPhylogenies/02_orthofinder/{group}_Orthogroups_summary.csv", group=GROUPS),
         mag_mapping_flagstat = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_flagstat.tsv", sample=SAMPLES+SAMPLES_KE),
+        mag_mapping_flagstat_MY = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_flagstat.tsv", sample=SAMPLES_MY),
         summarise_db_ortho = lambda wildcards: ["database/MAGs_database_Orthofinder/"+group+"_Orthogroups_summary.csv" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
         summarise_db_ortho_filt = lambda wildcards: ["database/MAGs_database_Orthofinder/"+group+"_Orthogroups_filtered_summary.csv" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2]],
         trees = lambda wildcards: ["07_AnnotationAndPhylogenies/05_IQTree/"+group+"/"+group+"_Phylogeny.contree" for group in [x for x in GROUPS if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_tree) > 4]],
@@ -259,6 +264,9 @@ rule backup:
         coverage_host_unmapped_to_MAGs = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_coverage.tsv", sample=SAMPLES+SAMPLES_KE),
         coverage_host_hist_unmapped_to_MAGs = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_coverage_histogram.txt", sample=SAMPLES+SAMPLES_KE),
         flagstat_unmapped_to_MAGs = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_host_mapping_flagstat.tsv", sample=SAMPLES+SAMPLES_KE),
+        coverage_host_unmapped_to_MAGs_MY = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_coverage.tsv", sample=SAMPLES_MY),
+        coverage_host_hist_unmapped_to_MAGs_MY = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_coverage_histogram.txt", sample=SAMPLES_MY),
+        flagstat_unmapped_to_MAGs_MY = expand("09_MagDatabaseProfiling/MAGsDatabaseMapping/{sample}_host_mapping_flagstat.tsv", sample=SAMPLES_MY),
         # coding_density_plots = expand("06_MAG_binning/evaluate_bins/{sample}/plots/{MAG(s)}.coding_density_plots.png", sample=SAMPLES),
         # gc_plots = expand("06_MAG_binning/evaluate_bins/{sample}/plots/{MAG(s)}.gc_plots.png", sample=SAMPLES),
         # marker_pos_plots = expand("06_MAG_binning/evaluate_bins/{sample}/plots/{MAG(s)}.marker_pos_plot.png", sample=SAMPLES),
@@ -475,7 +483,7 @@ rule run_motus: # added
 
 rule merge_motus: # added
     input:
-        motus_temp = expand("02_motus_profile/{sample}.motus", sample=SAMPLES+SAMPLES_KE)
+        motus_temp = expand("02_motus_profile/{sample}.motus", sample=SAMPLES+SAMPLES_KE+SAMPLES_MY)
     output:
         motus_merged = "02_motus_profile/samples_merged.motus"
     params:
@@ -2395,7 +2403,7 @@ rule core_cov:
 
 rule merge_core_cov:
     input:
-        core_cov_per_sample = expand("09_MagDatabaseProfiling/CoverageEstimation/{sample}/{{group}}_corecov.txt", sample=SAMPLES+SAMPLES_KE)
+        core_cov_per_sample = expand("09_MagDatabaseProfiling/CoverageEstimation/{sample}/{{group}}_corecov.txt", sample=SAMPLES+SAMPLES_KE+SAMPLES_MY)
     output:
         core_cov_merged = "09_MagDatabaseProfiling/CoverageEstimation/Merged/{group}_corecov.txt"
     params:
