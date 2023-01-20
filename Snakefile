@@ -656,14 +656,14 @@ rule assemble_trimmed:  # added
         filt_py = "scripts/parse_spades_metagenome.py",
         length_t = 1000,
         cov_t = 1,
-        memory_limit = lambda wildcards: "550" if wildcards.sample in ["M1.4", "D2.1", "D2.4", "D2.5", "F3.5"] else "200",
+        memory_limit = lambda wildcards: "650" if wildcards.sample in ["M1.4", "D2.1", "D2.4", "D2.5", "F3.5"] else "200",
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         jobname="{sample}_assemble_trimmed",
         account="pengel_spirit",
         runtime_s=lambda wildcards: convertToSec("1-20:00:00") if wildcards.sample in ["M1.4", "D2.1", "D2.4", "D2.5", "F3.5"] else convertToSec("0-20:00:00"),
     resources:
-        mem_mb = lambda wildcards: convertToMb("350G") if wildcards.sample in ["M1.4", "D2.1", "D2.5", "F3.5"] else ( convertToMb("450G") if wildcards.sample == "D2.4" else convertToMb("200G") ),
+        mem_mb = lambda wildcards: convertToMb("350G") if wildcards.sample in ["M1.4", "D2.1", "D2.5", "F3.5"] else ( convertToMb("650G") if wildcards.sample == "D2.4" else convertToMb("200G") ),
     retries: 2
     threads: 4
     log: "05_Assembly/trimmed/{sample}_assemble_trimmed.log"
