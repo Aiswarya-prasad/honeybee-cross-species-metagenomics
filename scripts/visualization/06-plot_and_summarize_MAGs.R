@@ -10,6 +10,10 @@ source('scripts/visualization/utilities.R', chdir = TRUE)
 
 source('scripts/visualization/05-read_MAG_metadata.R', chdir = TRUE)
 
+##############
+# analyse data and plot
+##############
+
 vis_magOTUs_df_all_means <- vis_magOTUs_df_all %>%
                         group_by(Sample) %>%
                           summarise(Sample, completeness, contamination, N50, Host) %>%
