@@ -1,8 +1,12 @@
+##############
+# functions used
+##############
+
 source('scripts/visualization/utilities.R', chdir = TRUE)
 
-############
-# read info
-############
+##############
+# files to be read
+##############
 
 df_reads <- data.frame()
 for (sample in samples) {
@@ -72,6 +76,11 @@ for (sample in samples) {
 }
 # parse this later
 # read.csv(paste0("02_HostMapping/", sample, "_coverage.tsv"), sep = "\t")
+
+##############
+# analyse data and plot
+##############
+
 df_colnames <- c("Sample", "Raw", "Trimmed", "Mapped_host", "Unmapped_host", "Mapped_microbiome", "Unmapped_microbiome", "Mapped_microbiome_filtered", "Unmapped_filtered")
 colnames(df_reads) <- df_colnames
 df_reads <- df_reads %>%

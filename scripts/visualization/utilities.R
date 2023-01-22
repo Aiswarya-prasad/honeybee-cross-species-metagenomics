@@ -1,3 +1,7 @@
+##############
+# load libraries
+##############
+
 library(ggplot2)
 library(kableExtra)
 library(readxl)
@@ -20,6 +24,10 @@ library(phyloseq)
 library(ggdendro)
 library(dendextend)
 library(ComplexHeatmap)
+
+##############
+# define functions used
+##############
 
 make_theme <- function(theme_name=theme_classic() ,max_colors=0, palettefill="Pastel1", palettecolor="Dark2", modify_guide = T,
                         setFill=TRUE, setCol=TRUE,
@@ -388,7 +396,7 @@ paginate_save <- function(plot, variable, plot_name, pass_nrow = 5, pass_ncol = 
 }
 
 ##############
-# manually defined vectors
+# define important vectors (manually done)
 ##############
 
 samples_IN <- c("M1.1", "M1.2", "M1.3", "M1.4", "M1.5",
@@ -518,13 +526,7 @@ sdps <- c('firm4_1', 'firm4_2',
           'gilli_1', 'gilli_2', 'gilli_3', 'gilli_4', 'gilli_5', 'gilli_6',
           'gilli_apis_andre', 'gilli_apis_dorsa', 'gilli_bombus')
 # Data_dir <- "04_CoreCov_211018_Medgenome_india_samples"
-
-#########################################################
-# Vector of colors for Phylotypes and SDPs and families
-#########################################################
-# Family colors
 # species <- c('s__Bombilactobacillus mellis', 's__Lactobacillus panisapium', 's__', 's__Gilliamella apicola_E', 's__Bombilactobacillus mellifer', 's__Lactobacillus apis', 's__Snodgrassella alvi', 's__Lactobacillus melliventris', 's__Lactobacillus helsingborgensis', 's__Frischella perrara', 's__Enterobacter hormaechei_A', 's__Apibacter sp002964915', 's__Snodgrassella alvi_E', 's__Frischella japonica', 's__Gilliamella apicola_F', 's__Spiroplasma melliferum', 's__Bartonella apis', 's__Apibacter adventoris', 's__Apilactobacillus kunkeei_A', 's__Hafnia paralvei', 's__Pantoea vagans', 's__Gilliamella apicola_K', 's__Gilliamella apicola', 's__Snodgrassella alvi_G', 's__Bifidobacterium indicum', 's__Gilliamella apicola_N', 's__Klebsiella variicola', 's__Commensalibacter sp003202795', 's__Gilliamella apicola_Q')
-# speciesColors
 genera <- c(
     "g__Lactobacillus",
     "g__Bifidobacterium",
@@ -742,8 +744,12 @@ Groups <- c("g__Bombilactobacillus",
             "g__Commensalibacter",
             "g__Apilactobacillus",
             "g__Bombella")
-# path to files of interest - currently path as in curnagl
-# to be written and checked manually
+working_dir <- "/scratch/aprasad/211018_Medgenome_india_samples"
+
+##############
+# files read (manual)
+##############
+
 qpcr_results <- c(
   "/nas/FAC/FBM/DMF/pengel/spirit/D2c/aprasad/20211018_aprasad_ApisCrossSpeciesAnalysis/Analysis/SampleProcessing/qPCRs/plate1/plate1-2022-11-17_115607_Results.xls",
   "/nas/FAC/FBM/DMF/pengel/spirit/D2c/aprasad/20211018_aprasad_ApisCrossSpeciesAnalysis/Analysis/SampleProcessing/qPCRs/plate2/plate2-2022-11-17_142003_Results.xls",
@@ -756,9 +762,13 @@ qpcr_results <- c(
 path_df_meta_complete <- "/nas/FAC/FBM/DMF/pengel/spirit/D2c/aprasad/20211018_aprasad_ApisCrossSpeciesAnalysis/DataCollection/221220_metadata_compiled.xlsx"
 df_meta_complete <- read_xlsx(path_df_meta_complete, sheet = "Compiled", range = "A368:AH567", col_names = F)
 colnames(df_meta_complete) <- read_xlsx(path_df_meta_complete, sheet = "Compiled", range = "A1:AH1", col_names = F)
+
+##############
+# analyse data and execute code
+##############
+
 df_meta_complete <- df_meta_complete %>%
                       rename(ID_long = ID) %>%
                         rename(ID = Short_name)
-working_dir <- "/scratch/aprasad/211018_Medgenome_india_samples"
 setwd(working_dir)
 

@@ -1,3 +1,17 @@
+##############
+# functions used
+##############
+
+source('scripts/visualization/utilities.R', chdir = TRUE)
+
+##############
+# files to be read
+##############
+
+##############
+# analyse data and plot
+##############
+
 df_concentrations <- df_meta_complete %>%
   select(ID, Concentration) %>%
     left_join(df_meta, by = c("ID" = "Sample")) %>%
