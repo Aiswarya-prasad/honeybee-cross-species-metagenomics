@@ -701,6 +701,8 @@ and if resuming a failed or stopped run, use:
 
 `snakemake -p --use-conda --conda-prefix /work/FAC/FBM/DMF/pengel/spirit/aprasad/Miniconda3/spirit_envs --conda-frontend conda --profile slurm --restart-times 0 --keep-going --rerun-incomplete`
 
+`snakemake -p --use-conda --conda-prefix /scratch/aprasad/built-envs/ --conda-frontend mamba --profile slurm --restart-times 0 -r --cluster-cancel scancel --keep-going --rerun-incomplete --rerun-triggers mtime` (as of 22/01/23)
+
 conda environments are all specified in `envs/` and built by snakemake under various names in `/work/FAC/FBM/DMF/pengel/spirit/aprasad/Miniconda3/spirit_envs`
 
 Run the pipeline in the conda environment called `snakmake_with_samtools` in the cluster. It is a clone of the snakemake environment made as recommended by Snakemake [docs](https://snakemake.readthedocs.io/en/stable/getting_started/installation.html#installation-via-conda-mamba) followed by `conda install biopython` and later `conda install samtools` in it. This is so that Kirsten's core_cov script works (specific conda environments can only be specified for rules using bash).
