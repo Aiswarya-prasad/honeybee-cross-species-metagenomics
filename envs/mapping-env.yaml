@@ -17,3 +17,4 @@ dependencies:
   - bbmap
   - muscle=3.8.1551
   - biopython
+  - subread

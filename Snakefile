@@ -245,6 +245,7 @@ rule backup:
         coverage_host_MY = expand("02_HostMapping/{sample}_coverage.tsv", sample=SAMPLES_MY),
         coverage_host_hist = expand("02_HostMapping/{sample}_coverage_histogram.txt", sample=SAMPLES_MY),
         coverage_host_hist_MY = expand("02_HostMapping/{sample}_coverage_histogram.txt", sample=SAMPLES),
+        # motus_temp = expand("02_motus_profile/{sample}.motus", sample=SAMPLES+SAMPLES_MY),
         motus_merged = "02_motus_profile/samples_merged.motus", # got to its respective rule and add desired list of samples in its expansion eg. SAMPLES+SAMPLES_KE
         scaffolds = expand("05_Assembly/trimmed/{sample}_scaffolds.fasta", sample=SAMPLES_INDIA),
         summary_assembly = "05_Assembly/MapToAssembly/Assembly_mapping_summary.csv",
@@ -483,7 +484,7 @@ rule run_motus: # added
 
 rule merge_motus: # added
     input:
-        motus_temp = expand("02_motus_profile/{sample}.motus", sample=SAMPLES+SAMPLES_KE+SAMPLES_MY)
+        motus_temp = expand("02_motus_profile/{sample}.motus", sample=SAMPLES+SAMPLES_MY)
     output:
         motus_merged = "02_motus_profile/samples_merged.motus"
     params:

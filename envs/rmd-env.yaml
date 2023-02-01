@@ -32,7 +32,9 @@ dependencies:
   - r-ggdendro
   - r-pheatmap
   - r-heatmaply
+  - r-ggnewscale
   - r-readxl
+  - r-betapart
   - bioconductor-phyloseq
   - bioconductor-biostrings
   - bioconductor-complexheatmap

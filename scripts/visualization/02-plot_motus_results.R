@@ -41,6 +41,8 @@ df_motus_raw <- df_motus_raw %>%
 
 df_motus <- as.data.frame(t(df_motus_raw)) %>%
               rownames_to_column("Sample") %>%
+              filter(Sample != "M2.1.1") %>%
+              filter(Sample != "M2.2.1") %>%
               pivot_longer(!Sample, names_to = "motu", values_to = "rel_ab") %>%
                 group_by(Sample, motu) %>%
                   mutate(Present = ifelse(rel_ab > 0, 1, 0)) %>%
@@ -58,7 +60,8 @@ df_motus_combined <- left_join(df_motus, df_meta)  %>%
                               group_by(Sample) %>%
                               mutate(mean_rel_ab = mean(rel_ab)) %>%
                                 mutate(motu_condensed = Vectorize(condense_motu)(motu))
-
+# df_motus_combined %>%
+#               pull(Sample) %>% unique
 motu_list <- df_motus_combined %>%
               pull(motu) %>% unique
 
@@ -74,24 +77,26 @@ df_assigned_plot <- df_motus_combined %>%
                               select(Sample, assigned, unassigned) %>%
                                 pivot_longer(!Sample, values_to = "proportion", names_to = "Type")
 
-assigned_plot <- ggplot(df_assigned_plot, aes(y = factor(Sample, samples), x = proportion, fill = factor(Type, levels = c("unassigned", "assigned")))) +
+assigned_plot <- ggplot(df_assigned_plot, aes(y = factor(Sample, samples_IN_MY), x = proportion, fill = factor(Type, levels = c("unassigned", "assigned")))) +
                   geom_bar(position = "stack", stat = "identity") +
                   labs(fill = "Type", x = "Proportion", y = "Sample") +
                     make_theme(leg_pos = "right", guide_nrow = 20, leg_size = 7,
-                               y_size = 8, y_hj = 1, y_vj = 0.5
+                               y_size = 7, y_hj = 1, y_vj = 0.5
                     )
                     # ggsave("Figures/02-motus_unassigned.pdf")
 
-plot_motus_high_prev <- ggplot(df_motus_combined, aes(x = factor(Sample, samples), y = rel_ab, fill = factor(motu_condensed, motus))) +
+plot_motus_high_prev <- ggplot(df_motus_combined %>% mutate(Host = Vectorize(get_host_from_sample_name)(Sample)),
+                                aes(y = factor(Sample, samples_IN_MY), x = rel_ab, fill = factor(motu_condensed, motus))) +
                 geom_bar(position = "stack", stat = "identity") +
                 labs(fill = "mOTU", x = "mOTUs2 Relative abundance", y = "Sample") +
+                facet_wrap(~ factor(Host, host_order), scale = "free_y") %>%
                   make_theme(max_colors = length(unique(motus)),
                              setFill = F,
                              leg_pos = "bottom",
                              guide_nrow = 3,
                              leg_size = 8,
-                             x_angle=45 ,x_vj=1.2, x_hj=1, x_size=7,
-                             y_angle=0 ,y_vj=0, y_hj=0, y_size=12
+                             x_angle=0 ,x_vj=0, x_hj=0, x_size=12,
+                             y_angle=0 ,y_vj=0, y_hj=0, y_size=7
                   ) +
                   scale_fill_manual(values=motuColors)
                     ggsave("Figures/02-motus.pdf")
@@ -117,7 +122,7 @@ ggplot(df_motus_combined %>% filter(rel_ab > 0.01), aes(y = factor(Sample, sampl
                              leg_size = 7,
                              y_size = 8, y_hj = 1
                   )
-ggsave("Figures/02c-motus_all.pdf")
+
 grid.arrange(get_only_legend(ggplot(df_motus_combined  %>% filter(rel_ab > 0.01), aes(y = factor(Sample, samples), x = rel_ab, fill = factor(motu))) +
                 geom_bar(position = "stack", stat = "identity") +
                 labs(fill = "mOTU", x = "mOTUs2 Relative abundance", y = "Sample") +

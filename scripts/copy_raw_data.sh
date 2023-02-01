@@ -49,8 +49,14 @@ do
   codename="$name"
   finalname="${names[$name]}"
   echo  "copying $codename and calling it $finalname"
-  rsync -av --progress aiswarya@130.223.110.124:/home/aiswarya/mnt/lab_resources/NGS_data/20180612_KE_japan_metagenomes/data/"$codename"_R1.fastq.gz 00_rawdata/"$finalname"_R1.fastq.gz
-  rsync -av --progress aiswarya@130.223.110.124:/home/aiswarya/mnt/lab_resources/NGS_data/20180612_KE_japan_metagenomes/data/"$codename"_R2.fastq.gz 00_rawdata/"$finalname"_R2.fastq.gz
+  rsync -n -avi --progress aiswarya@130.223.110.124:/home/aiswarya/mnt/lab_resources/NGS_data/20180612_KE_japan_metagenomes/data/"$codename"_R1.fastq.gz 00_rawdata/"$finalname"_R1.fastq.gz
+  rsync -n -avi --progress aiswarya@130.223.110.124:/home/aiswarya/mnt/lab_resources/NGS_data/20180612_KE_japan_metagenomes/data/"$codename"_R2.fastq.gz 00_rawdata/"$finalname"_R2.fastq.gz
 done
 
-rsync -av --progress aiswarya@130.223.110.124:/home/aiswarya/mnt/lab_resources/NGS_data/20170310_WINDU179/data/DrY2_F*_R*.fastq.gz 00_rawdata/
+rsync -n -avi --progress aiswarya@130.223.110.124:/home/aiswarya/mnt/lab_resources/NGS_data/20151119_WINDU89/data/DrY*_*_R*.fastq.gz 00_rawdata/
+rsync -n -avi --progress aiswarya@130.223.110.124:/home/aiswarya/mnt/lab_resources/NGS_data/20160415_OBIWAN225/data/DrY*_*_R*.fastq.gz 00_rawdata/
+rsync -n -avi --progress aiswarya@130.223.110.124:/home/aiswarya/mnt/lab_resources/NGS_data/20161216_OBIWAN275/data/DrY*_*_R*.fastq.gz 00_rawdata/
+rsync -n -avi --progress aiswarya@130.223.110.124:/home/aiswarya/mnt/lab_resources/NGS_data/20170310_WINDU179/data/DrY*_*_R*.fastq.gz 00_rawdata/
+rsync -n -avi --progress aiswarya@130.223.110.124:/home/aiswarya/mnt/lab_resources/NGS_data/20170426_OBIWAN300/data/GrY*_*_R*.fastq.gz 00_rawdata/
+rsync -n -avi --progress aiswarya@130.223.110.124:/home/aiswarya/mnt/lab_resources/NGS_data/20170428_WINDU191/data/GrY*_*_R*.fastq.gz 00_rawdata/
+
