@@ -804,3 +804,5 @@ If the tool is writing the desired output to stdout, only the stderr shout be re
 If the tool is writing the desired output to a file and stdout is only going to include messages for logging, stderr and stdout can both be redirected to the same log file using `&>` for example, `command &> log.txt`
 
 Look [here](https://www.gnu.org/software/bash/manual/html_node/Redirections.html#:~:text=Redirection%20allows%20commands'%20file%20handles,the%20current%20shell%20execution%20environment.) for more information.
+
+distill of dram done manually using line of script in the respective directory

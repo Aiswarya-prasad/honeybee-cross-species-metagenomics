@@ -598,6 +598,7 @@ colonies <- c("M_1", "M_1", "M_1", "M_1", "M_1",
 host_order <- c("Apis mellifera", "Apis cerana", "Apis dorsata", "Apis florea", "Apis andreniformis")
 host_order_color <- c("Apis mellifera" = brewer.pal(9, "Pastel1")[2], "Apis cerana" = brewer.pal(9, "Pastel1")[1], "Apis dorsata" = brewer.pal(9, "Pastel1")[4], "Apis florea" = brewer.pal(9, "Pastel1")[3], "Apis andreniformis" = brewer.pal(9, "Pastel1")[5])
 host_order_color_dark <- c("Apis mellifera" = brewer.pal(9, "Set1")[2], "Apis cerana" = brewer.pal(9, "Set1")[1], "Apis dorsata" = brewer.pal(9, "Set1")[4], "Apis florea" = brewer.pal(9, "Set1")[3], "Apis andreniformis" = brewer.pal(9, "Set1")[5])
+location_country_colors <- c("Malaysia" = "#e6f598", "India" = "#e5d8bd", "Japan" = "#fddaec", "Switzerland" = "#d53e4f")
 colony_order <- c("M_1", "M_Iu", "M_Ai", "M_DrY2_F", "C_1", "C_2", "C_3", "C_Kn", "C_Ch", "D_1", "D_2", "D_3", "F_1", "F_2", "F_3")
 location_order <- c("AIST_Am", "UT_Am", "Bee park, GKVK_Am","Les Droites_Am",
                     "NCBS campus_Ac", "Bee park, GKVK_Ac", "Chiba_Ac", "Kanagawa_Ac",
@@ -867,4 +868,3 @@ df_meta <- df_meta %>%
 df_meta %>% group_by(SpeciesID) %>% tally()
 df_meta %>% group_by(SpeciesID, Country) %>% tally()
 df_meta %>% group_by(SpeciesID, Country, Colony) %>% tally()
-

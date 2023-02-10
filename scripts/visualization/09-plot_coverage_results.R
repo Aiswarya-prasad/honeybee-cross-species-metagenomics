@@ -61,7 +61,8 @@ coverage_df <- coords_df %>%
             mutate(Prevalence_host = ifelse(Host=="Apis mellifera", Present/length(samples_am), NA)) %>%
             mutate(Prevalence_host = ifelse(Host=="Apis cerana", Present/length(samples_ac), Prevalence_host)) %>%
             mutate(Prevalence_host = ifelse(Host=="Apis dorsata", Present/length(samples_ad), Prevalence_host)) %>%
-            mutate(Prevalence_host = ifelse(Host=="Apis florea", Present/length(samples_af), Prevalence_host))
+            mutate(Prevalence_host = ifelse(Host=="Apis florea", Present/length(samples_af), Prevalence_host)) %>%
+            mutate(Prevalence_host = ifelse(Host=="Apis andreniformis", Present/length(samples_aa), Prevalence_host))
 
 coverage_df_genus <- coords_df %>%
                 rename(Cluster = magOTU) %>%
@@ -82,7 +83,7 @@ coverage_df_genus <- coords_df %>%
                                   mutate(Prevalence_host = ifelse(Host=="Apis mellifera", Present/length(samples_am), NA)) %>%
                                   mutate(Prevalence_host = ifelse(Host=="Apis cerana",Present/length(samples_ac), Prevalence_host)) %>%
                                   mutate(Prevalence_host = ifelse(Host=="Apis dorsata",Present/length(samples_ad), Prevalence_host)) %>%
-                                  mutate(Prevalence_host = ifelse(Host=="Apis florea",Present/length(samples_af), Prevalence_host))
+                                  mutate(Prevalence_host = ifelse(Host=="Apis florea",Present/length(samples_af), Prevalence_host)) %>%
                                   mutate(Prevalence_host = ifelse(Host=="Apis andreniformis",Present/length(samples_aa), Prevalence_host))
 
 ggplot(coverage_df, aes(y = factor(cluster_name), x = factor(Sample, samples_IN_MY), fill = Cov)) +
@@ -97,33 +98,20 @@ ggplot(coverage_df, aes(y = factor(cluster_name), x = factor(Sample, samples_IN_
 
 ggplot(coverage_df, aes(y = factor(cluster_name), x = factor(Host, host_order), fill = Prevalence_host)) +
                             geom_tile() +
-                              labs(x = "Sample", y = "Cluster", fill = "Prevalence\n(Present = \nCov > 1)\n")+
+                              labs(x = "Sample", y = "magOTU", fill = "Prevalence\n(Present = \nCov > 1)\n")+
                               scale_fill_gradient(na.value = "transparent", low = "#ffffff" , high = "#1a88c9", guide = "colourbar") +
                               # scale_fill_gradient(na.value = "transparent", low = "#ffffff" , high = "#ffc20e", guide = "colourbar") +
                                 coord_fixed(0.1) +
                                 make_theme(setFill = F, modify_guide = F, y_size = 8,
                                   y_hj =1, leg_pos = "right"
                                 )
+                                ggsave("Figures/09-Prevalence_magOTU_by_host.pdf")
 
 ggplot(coverage_df_genus %>% filter(Genus != "g__"), aes(y = factor(Genus, genera), x = factor(Host, host_order), fill = Prevalence_host)) +
                             geom_tile() +
                             geom_text(aes(label = ifelse(Mean > 0, Mean, ""))) +
                               labs(x = "Sample", y = "Genus", fill = "Prevalence\n(Present = \nCov > 1)\nTruncated mean\n(0.01)")+
                               # scale_fill_gradient(na.value = "transparent", low = "#fff5f0" , high = "#99000d", guide = "colourbar") +
-                              scale_fill_gradient(na.value = "transparent", low = "#ffffff" , high = "#1a88c9", guide = "colourbar") +
-                                guides(fill = guide_colourbar(nbin = 8)) +
-                                make_theme(setFill = F, modify_guide = F, y_size = 10,
-                                  x_hj= 0.5, x_size = 10,
-                                  y_hj =1, leg_pos = "right", leg_size = 10
-                                )
-
-ggplot(coverage_df_genus %>% filter(Genus != "g__"), 
-       aes(y = factor(Genus, genera), x = factor(Host, host_order), fill = Prevalence_host)) +
-                            geom_tile() +
-                            geom_text(aes(label = ifelse(Mean > 0, Mean, ""))) +
-                              labs(x = "Sample", y = "Genus", fill = "Prevalence\n(Present = \nCov > 1)\nTruncated mean\n(0.01)")+
-                              # scale_fill_gradient(na.value = "transparent", low = "#fff5f0" , high = "#99000d", guide = "colourbar") +
-                              facet_wrap(~Location) +
                               scale_fill_gradient(na.value = "transparent", low = "#ffffff" , high = "#1a88c9", guide = "colourbar") +
                                 guides(fill = guide_colourbar(nbin = 8)) +
                                 make_theme(setFill = F, modify_guide = F, y_size = 10,
@@ -175,7 +163,7 @@ ggplot(coverage_df %>% filter(Genus != "g__") %>% filter(Sample %in% samples_IN_
                                   x_hj= 0.5, x_size = 10,
                                   y_hj =1, leg_pos = "right", leg_size = 10
                                 )
-                                ggsave(paste0("Figures/", "09_Coverage_scatter_location_compared.pdf"))
+                                ggsave(paste0("Figures/", "09-Coverage_scatter_location_compared.pdf"))
 
 abundance_df <- coords_df %>%
   rename(Cluster = magOTU) %>%
@@ -212,18 +200,68 @@ abundance_df_matrix_Cov <-  abundance_df %>% filter(!is.na(cluster_name)) %>%
                             pivot_wider(names_from=cluster_name, values_from=Cov, values_fn = as.vector) %>% remove_rownames %>%
                             column_to_rownames(var="Sample")
 
+column_ha = HeatmapAnnotation(Host = rownames(abundance_df_matrix_pa[samples_IN,]) %>% as.data.frame() %>% mutate(Host = Vectorize(get_host_from_sample_name)(.)) %>% pull(Host),
+                              col = list(Host = host_order_color)
+                          )
+column_ba = HeatmapAnnotation(Location = rownames(abundance_df_matrix_pa[samples_IN,]) %>% as.data.frame() %>% mutate(Location = Vectorize(get_location_from_sample_name)(.)) %>% pull(Location),
+                              col = list(Location = location_country_colors)
+                          )
+row_ha = rowAnnotation(Genus = colnames(abundance_df_matrix_pa[samples_IN,]) %>% as.data.frame() %>% left_join(cluster_tax_info %>% ungroup() %>% select(Genus, cluster_name), by = c(. = "cluster_name")) %>% pull(Genus),
+                       col = list(Genus = unlist(genusColors))
+                    )
+pdf("Figures/09-presence_absence_heatmap_IN.pdf")
+
+Heatmap(t(abundance_df_matrix_pa[samples_IN,]), 
+        col = c("#ffffff", "#1a88c9"),
+        # col = brewer.pal(2, "Pastel1"),
+        clustering_method_columns = 'ward.D2',
+        top_annotation = column_ha, right_annotation = row_ha,
+        bottom_annotation = column_ba,
+        column_names_gp = grid::gpar(fontsize = 0),
+        heatmap_legend_param = list(title = "Present / Absent", color_bar = "discrete"),
+          cluster_rows = F)
+dev.off()
+column_ha = HeatmapAnnotation(Host = rownames(abundance_df_matrix_pa[samples_IN_MY,]) %>% as.data.frame() %>% mutate(Host = Vectorize(get_host_from_sample_name)(.)) %>% pull(Host),
+                              col = list(Host = host_order_color)
+                          )
+column_ba = HeatmapAnnotation(Location = rownames(abundance_df_matrix_pa[samples_IN_MY,]) %>% as.data.frame() %>% mutate(Location = Vectorize(get_location_from_sample_name)(.)) %>% pull(Location),
+                              col = list(Location = location_country_colors)
+                          )
+row_ha = rowAnnotation(Genus = colnames(abundance_df_matrix_pa[samples_IN_MY,]) %>% as.data.frame() %>% left_join(cluster_tax_info %>% ungroup() %>% select(Genus, cluster_name), by = c(. = "cluster_name")) %>% pull(Genus),
+                       col = list(Genus = unlist(genusColors))
+                    )
+pdf("Figures/09-presence_absence_heatmap_IN.pdf")
+
+Heatmap(t(abundance_df_matrix_pa[samples_IN_MY,]), 
+        col = c("#ffffff", "#1a88c9"),
+        # col = brewer.pal(2, "Pastel1"),
+        clustering_method_columns = 'ward.D2',
+        top_annotation = column_ha, right_annotation = row_ha,
+        bottom_annotation = column_ba,
+        column_names_gp = grid::gpar(fontsize = 0),
+        heatmap_legend_param = list(title = "Present / Absent", color_bar = "discrete"),
+          cluster_rows = F)
+dev.off()
+# pdf("Figures/09-relative_abundance_heatmap.pdf")
 column_ha = HeatmapAnnotation(Host = rownames(abundance_df_matrix_pa) %>% as.data.frame() %>% mutate(Host = Vectorize(get_host_from_sample_name)(.)) %>% pull(Host),
                               col = list(Host = host_order_color)
+                          )
+column_ba = HeatmapAnnotation(Location = rownames(abundance_df_matrix_pa) %>% as.data.frame() %>% mutate(Location = Vectorize(get_location_from_sample_name)(.)) %>% pull(Location),
+                              col = list(Location = location_country_colors)
                           )
 row_ha = rowAnnotation(Genus = colnames(abundance_df_matrix_pa) %>% as.data.frame() %>% left_join(cluster_tax_info %>% ungroup() %>% select(Genus, cluster_name), by = c(. = "cluster_name")) %>% pull(Genus),
                        col = list(Genus = unlist(genusColors))
                     )
 # pdf("Figures/09-presence_absence_heatmap.pdf")
+
 Heatmap(t(abundance_df_matrix_pa), 
         col = c("#ffffff", "#1a88c9"),
         # col = brewer.pal(2, "Pastel1"),
         clustering_method_columns = 'ward.D2',
         top_annotation = column_ha, right_annotation = row_ha,
+        bottom_annotation = column_ba,
+        column_names_gp = grid::gpar(fontsize = 0),
+        heatmap_legend_param = list(title = "Present / Absent", color_bar = "discrete"),
           cluster_rows = F)
 # dev.off()
 # pdf("Figures/09-relative_abundance_heatmap.pdf")

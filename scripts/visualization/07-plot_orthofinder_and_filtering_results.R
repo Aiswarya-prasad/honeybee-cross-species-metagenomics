@@ -98,7 +98,8 @@ plot_number_OGs_mags <- ortho_mags_df %>%
   filter(!is.na(Type)) %>%
     group_by(group, Type) %>%
     filter(group %in% Groups) %>%
-     summarise(Number = n())
+    group_by(group, Type) %>%
+     summarise(Type, Number = n())
 
 ggplot() +
   geom_bar(data = plot_number_OGs_mags,
@@ -142,40 +143,54 @@ ggplot() +
                 xmin = 3400,
                 fill = Isolates)
           ) +
+  geom_vline(xintercept = 500) +
   labs(fill = "Number of Isolates") +
   scale_fill_gradientn(na.value = "transparent", colors = brewer.pal(4, "Reds"), guide = "colourbar") +
   make_theme(leg_pos="right", setFill = F, modify_guide = F
   )
 
-freq_MAGs_df_all <- data.frame()
-freq_Isolates_df_all <- data.frame()
+# For the trees, OGs inferred for isolates along with MAGs were used
+# For core coverage, OGs inferred using only MAGs were used
+
+OG_numbers_df_all <- data.frame()
+OG_trees_numbers_df_all <- data.frame()
 for (group in Groups) {
-  OG_numbers_df <- read.csv(paste0("07_AnnotationAndPhylogenies/02_orthofinder/", group, "/OrthoFinder/Results_", group, "/Orthogroups/Orthogroups.GeneCount.tsv"), sep = "\t")
-  OG_numbers_df_MAGs <- OG_numbers_df %>% select(Orthogroup | Total | starts_with("MAG"))
-  OG_numbers_df_Isolates <- OG_numbers_df %>% select(Orthogroup | !starts_with("MAG"))
-  freq_MAGs_df <- OG_numbers_df_MAGs %>%
-                # single-copy and half core
-                filter(Total <= sum(colnames(.) %in% all_MAGs) - 2) %>%
-                filter(Total > (sum(colnames(.) %in% all_MAGs) - 2)/2 ) %>%
-                                  select(Total) %>%
-                                    mutate(Type = "MAGs") %>%
-                                      mutate(Total_prop = Total/max(Total))
-  freq_Isolates_df <- OG_numbers_df_Isolates %>%
-                    # single-copy and half core
-                    filter(Total <= sum(colnames(.) %in% all_Isolates) - 2) %>%
-                    filter(Total == (sum(colnames(.) %in% all_Isolates) - 2)) %>%
-                      select(Total) %>%
-                        mutate(Type = "Isolates") %>%
-                          mutate(Total_prop = Total/max(Total))
-  freq_MAGs_df_all <- rbind(freq_MAGs_df_all, cbind(freq_MAGs_df, "Group" = rep(group, dim(freq_MAGs_df)[[1]])))
-  freq_Isolates_df_all <- rbind(freq_Isolates_df_all, cbind(freq_Isolates_df, "Group" = rep(group, dim(freq_Isolates_df)[[1]])))
+  OG_trees_numbers_df <- read.csv(paste0("07_AnnotationAndPhylogenies/02_orthofinder/", group, "/OrthoFinder/Results_", group, "/Orthogroups/Orthogroups.GeneCount.tsv"), sep = "\t")
+  group_Isolates <- all_Isolates[which(all_Isolates %in% colnames(OG_trees_numbers_df))]
+  group_MAGs <- all_MAGs[which(all_MAGs %in% colnames(OG_trees_numbers_df))]
+  OG_trees_numbers_df_filt <- OG_trees_numbers_df %>%
+                # single-copy
+                filter(if_all(all_of(c(group_Isolates, group_MAGs)), ~ . <= 1)) %>%
+                # core in isolates
+                filter(if_all(all_of(group_Isolates), ~ . > 0)) %>%
+                # 0.5core in MAGs
+                mutate(Total_MAGs = rowSums(select(., starts_with(group_MAGs)))) %>%
+                  filter(Total_MAGs >= length(group_MAGs)/2) %>%
+                    select(Total, Total_MAGs) %>%
+                      mutate(Group = group)
+  OG_trees_numbers_df_all <- rbind(OG_trees_numbers_df_all, OG_trees_numbers_df_filt)
+  OG_numbers_df <- read.csv(paste0("database/MAGs_database_Orthofinder/", group,"/OrthoFinder/Results_", group, "/Orthogroups/Orthogroups.GeneCount.tsv"), sep = "\t")
+  group_MAGs <- all_MAGs[which(all_MAGs %in% colnames(OG_numbers_df))]
+  OG_numbers_df_filt <- OG_trees_numbers_df_all %>%
+                # single-copy
+                filter(if_all(all_of(c(group_Isolates, group_MAGs)), ~ . <= 1)) %>%
+                # 0.5core in MAGs
+                mutate(Total_MAGs = rowSums(select(., starts_with(group_MAGs)))) %>%
+                  filter(Total_MAGs >= length(group_MAGs)/2) %>%
+                    select(Total, Total_MAGs) %>%
+                      mutate(Group = group)
 }
 
-ggplot(freq_MAGs_df_all, aes(x = Total_prop, fill = Type)) +
+ggplot(rbind(freq_MAGs_df_all, freq_Isolates_df_all), aes(x = Total_prop, fill = Type)) +
     geom_histogram(binwidth=0.05) +
     labs(x = "Proportion of genomes containing orthogroup", y = "Frequency") +
     facet_wrap(~ Group) +
-      make_theme(palettefill="Pastel1")
+    xlim(0, 1) +
+      make_theme(setFill = F, x_angle = 45)
+      ggsave("Figures/07-Frquency_distribution_num_MAGs_for_OG.pdf")
+
+
+
 
 orthogroups_present_in <- Orthogroups_summary_df %>%
   group_by(group, present_in) %>%
