@@ -26,6 +26,13 @@ library(dendextend)
 library(ComplexHeatmap)
 library(ggnewscale)
 
+# system("conda install r-betapart")
+# .libPaths("/scratch/aprasad/211018_Medgenome_india_samples/envs/R-packges/")
+# # system("export TMPDIR=/scratch/aprasad/211018_Medgenome_india_samples/envs/R-packges/tmp")
+# # write("TMPDIR=/scratch/aprasad/211018_Medgenome_india_samples/envs/R-packges/tmp", file=file.path('~/.Renviron'))
+# system("echo $TMPDIR")
+# install.packages("betapart")
+
 ##############
 # define functions used
 ##############
@@ -847,9 +854,9 @@ working_dir <- "/scratch/aprasad/211018_Medgenome_india_samples"
 setwd(working_dir)
 
 path_df_meta_complete <- "/nas/FAC/FBM/DMF/pengel/spirit/D2c/aprasad/20211018_aprasad_ApisCrossSpeciesAnalysis/DataCollection/221220_metadata_compiled.xlsx"
-df_meta_complete <- read_xlsx(path_df_meta_complete, sheet = "Compiled", range = "A368:AH567", col_names = F)
+df_meta_complete <- read_xlsx(path_df_meta_complete, sheet = "Compiled", range = "A368:AH661", col_names = F)
 colnames(df_meta_complete) <- read_xlsx(path_df_meta_complete, sheet = "Compiled", range = "A1:AH1", col_names = F)
-df_meta <- read.csv("config/Metadata_211018_Medgenome_india_samples.csv", sep = ',')
+# df_meta <- read.csv("config/Metadata_211018_Medgenome_india_samples.csv", sep = ',')
 
 ##############
 # analyse data and execute code
@@ -860,11 +867,22 @@ df_meta_complete <- df_meta_complete %>%
                         rename(ID = Short_name) %>%
                           mutate(Sample = ID)
 
-colnames(df_meta)[which(colnames(df_meta) == "ID")] <- "Sample"
-df_meta$SpeciesID <- recode(df_meta$SpeciesID, "Am" = "Apis mellifera", "Ac" = "Apis cerana", "Af" = "Apis florea", "Ad" = "Apis dorsata")
-df_meta <- df_meta %>%
+# colnames(df_meta_complete)[which(colnames(df_meta_complete) == "ID")] <- "Sample"
+# df_meta_complete$Species <- recode(df_meta_complete$Species, "Am" = "Apis mellifera", "Ac" = "Apis cerana", "Af" = "Apis florea", "Ad" = "Apis dorsata")
+colnames(df_meta_complete)
+df_meta_complete <- df_meta_complete %>%
+                      mutate(SpeciesID = Species) %>%
+                        mutate(Species = ifelse(grepl("mellifera", Species, ignore.case = T), "Apis mellifera", Species)) %>%
+                        mutate(Species = ifelse(grepl("cerana", Species, ignore.case = T), "Apis cerana", Species)) %>%
+                        mutate(Species = ifelse(grepl("dorsata", Species, ignore.case = T), "Apis dorsata", Species)) %>%
+                        mutate(Species = ifelse(grepl("florea", Species, ignore.case = T), "Apis florea", Species)) %>%
+                        mutate(Species = ifelse(grepl("andreniformis", Species, ignore.case = T), "Apis andreniformis", Species))
+
+df_meta_complete <- df_meta_complete %>%
+                      mutate(Country = Vectorize(get_location_from_sample_name)(Sample))
+df_meta_complete <- df_meta_complete %>%
             filter(Sample %in% samples) %>%
               arrange(match(Sample, samples))
-df_meta %>% group_by(SpeciesID) %>% tally()
-df_meta %>% group_by(SpeciesID, Country) %>% tally()
-df_meta %>% group_by(SpeciesID, Country, Colony) %>% tally()
+df_meta_complete %>% group_by(Species) %>% tally()
+df_meta_complete %>% group_by(Species, Country) %>% tally()
+df_meta_complete %>% group_by(Species, Country, Colony) %>% tally()

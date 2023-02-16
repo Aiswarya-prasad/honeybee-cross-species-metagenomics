@@ -22,6 +22,65 @@ trim_side_mean <- function(x, trim, type="both") {
         mean(x[max(1,floor(length(x)*trim)):length(x)])}
 }
 
+pcoa_plot <- function(df_pcoa, metadata, variable=Species, color_add=F, color_list) {
+          matrix <- as.matrix(df_pcoa)
+          dist <- as.dist(matrix)
+          res_pcoa <- pcoa(dist)
+          ev1 <- res_pcoa$vectors[,1]
+          ev2 <- res_pcoa$vectors[,2]
+          df_pcoa_new <- data.frame(cbind(ev1,ev2))
+          df_pcoa_new$Sample <- rownames(df_pcoa_new)
+          rownames(df_pcoa_new) <- NULL
+          df_pcoa_new <- left_join(df_pcoa_new, select(metadata, Sample, matches(deparse(substitute(get(variable))))), by = "Sample")
+          perc_axis <- round(((res_pcoa$values$Relative_eig[c(1,2)])*100), digits=1)
+          axis_x_title <- paste0("PCo1 (",perc_axis[1],"%)")
+          axis_y_title <- paste0("PCo2 (",perc_axis[2],"%)")
+          if(color_add) {
+            p <- ggplot(df_pcoa_new, aes(x = ev1,
+                                       y = ev2,
+                                       colour = get(variable)))+
+                geom_point(stat="identity", size=2, shape=19) +
+                  labs(x=axis_x_title, y = axis_y_title, color = "Species") +
+                    make_theme(setFill = F, setCol = F, guide_nrow = 4 ) +
+                      scale_fill_manual(values=color_list)
+          } else {
+            p <- ggplot(df_pcoa_new, aes(x = ev1,
+                                       y = ev2,
+                                       colour = get(variable)))+
+                geom_point(stat="identity", size=2, shape=19) +
+                  labs(x=axis_x_title, y = axis_y_title, color = variable) +
+                    make_theme( max_colors = length(unique(df_pcoa_new[, variable])), guide_nrow = 4 ) 
+          }
+          return(p)
+}
+
+make_cum_curve <- function(samples_vector, pa_df, iterations, name = NA) {
+  num_clusters_matrix <- matrix(nrow = length(samples_vector), ncol = iterations)
+  for (iter in 1:iterations) {
+    clusters_found_cumulative <- c()
+    for (num_samples in 1:length(samples_vector)) {
+      num_new_clusters = 0
+      selected_samples <- sample(samples_vector, num_samples)
+      clusters_found <- colnames(pa_df[selected_samples, which(colSums(pa_df[selected_samples, ]) > 1)])
+      for (cluster in clusters_found) {
+        if (cluster %in% clusters_found_cumulative) {
+          invisible()
+        } else {
+          num_new_clusters <- num_new_clusters + 1
+          clusters_found_cumulative <- c(clusters_found_cumulative, cluster)
+        }
+      }
+      num_clusters_matrix[num_samples, iter] = length(clusters_found_cumulative)
+    }
+  }
+  num_clusters_df <- as.data.frame(num_clusters_matrix)
+  colnames(num_clusters_df) <- do.call(function(x) paste0("curve_", x), list(c(1:iterations)))
+  num_clusters_df <- cbind(sample_size = c(1:length(samples_vector)), num_clusters_df)
+  plot_cum_curve_df <- pivot_longer(num_clusters_df, !sample_size, values_to = "number_of_clusters", names_to = "curve")
+  plot_cum_curve_df <- cbind("name" = name, plot_cum_curve_df)
+  return(plot_cum_curve_df)
+}
+
 ##############
 # files to be read
 ##############
@@ -95,7 +154,6 @@ ggplot(coverage_df, aes(y = factor(cluster_name), x = factor(Sample, samples_IN_
                                   x_size = 0, x_angle = 30, x_hj = 1 , x_vj = 1,
                                   y_hj =1, leg_pos = "right"
                                 )
-
 ggplot(coverage_df, aes(y = factor(cluster_name), x = factor(Host, host_order), fill = Prevalence_host)) +
                             geom_tile() +
                               labs(x = "Sample", y = "magOTU", fill = "Prevalence\n(Present = \nCov > 1)\n")+
@@ -242,7 +300,7 @@ Heatmap(t(abundance_df_matrix_pa[samples_IN_MY,]),
         heatmap_legend_param = list(title = "Present / Absent", color_bar = "discrete"),
           cluster_rows = F)
 dev.off()
-# pdf("Figures/09-relative_abundance_heatmap.pdf")
+
 column_ha = HeatmapAnnotation(Host = rownames(abundance_df_matrix_pa) %>% as.data.frame() %>% mutate(Host = Vectorize(get_host_from_sample_name)(.)) %>% pull(Host),
                               col = list(Host = host_order_color)
                           )
@@ -252,7 +310,7 @@ column_ba = HeatmapAnnotation(Location = rownames(abundance_df_matrix_pa) %>% as
 row_ha = rowAnnotation(Genus = colnames(abundance_df_matrix_pa) %>% as.data.frame() %>% left_join(cluster_tax_info %>% ungroup() %>% select(Genus, cluster_name), by = c(. = "cluster_name")) %>% pull(Genus),
                        col = list(Genus = unlist(genusColors))
                     )
-# pdf("Figures/09-presence_absence_heatmap.pdf")
+pdf("Figures/09-presence_absence_heatmap.pdf")
 
 Heatmap(t(abundance_df_matrix_pa), 
         col = c("#ffffff", "#1a88c9"),
@@ -263,7 +321,7 @@ Heatmap(t(abundance_df_matrix_pa),
         column_names_gp = grid::gpar(fontsize = 0),
         heatmap_legend_param = list(title = "Present / Absent", color_bar = "discrete"),
           cluster_rows = F)
-# dev.off()
+dev.off()
 # pdf("Figures/09-relative_abundance_heatmap.pdf")
 Heatmap(t(abundance_df_matrix_Cov_rel),
         col = colorRamp2(c(0, 10, 100), colors = c("#ffffff", "#1a88c9", "#1a3869")),
@@ -854,3 +912,23 @@ ggplot(df_reads %>%
           scale_x_continuous(labels=unit_format(unit = "M", scale = 1e-6))
           scale_size(labels=unit_format(unit = "M", scale = 1e-6))
           ggsave("Figures/09-Coverage_vs_mapped_reads_g__WRHT01.pdf")
+
+
+dist_mat <- vegdist(abundance_df_matrix_pa, method="bray") 
+ordiplot(dist_mat, display = 'host')
+
+
+df_magOTUs_vegan <- abundance_df_matrix_pa %>%
+                      filter(rowSums(.) > 0)
+
+dist_matrix <- as.matrix(vegdist(df_magOTUs_vegan, "bray"))
+pcoa_magotus <- pcoa_plot(dist_matrix, df_meta_complete, Species, color_add=T, color_list=host_order_color)
+
+          # ggsave("Figures/09d-magOTUs_pcoa.pdf")
+df_plot_cum_curve <- make_cum_curve(samples_am, df_magOTUs_vegan, 50, "Apis mellifera")
+ggplot(data = df_plot_cum_curve, aes(x = sample_size, y = number_of_clusters, color = factor(name, host_order))) +
+                      geom_jitter(position = position_dodge(width=0.7)) +
+                        geom_smooth(se = FALSE) +
+                          labs(color = "Host species", x = "# Bees", y = "Number of magOTUs") +
+                          scale_color_manual(values=host_order_color) +
+                            make_theme(leg_pos = "bottom", setCol = F, guide_nrow = 1)

@@ -100,15 +100,21 @@ plot_number_OGs_mags <- ortho_mags_df %>%
     filter(group %in% Groups) %>%
     group_by(group, Type) %>%
      summarise(Type, Number = n())
-
+plot_number_OGs_mags %>%
+                    select(group) %>% unique %>%
+                    left_join(Number_genomes_df %>%
+                                pivot_wider(names_from = Type, values_from = Number), by = c("group" = "Group")) %>%
+                        ungroup() %>%
+                        filter(group %in% Groups) %>%
+                           mutate(SampleID = row_number()) %>% pull(SampleID)
 ggplot() +
   geom_bar(data = plot_number_OGs_mags,
            aes(
             x = Number,
             y = group,
-            fill = Type), stat = "identity") +
+            fill = Type), position = "stack", stat = "identity") +
   labs(x = "Number of orthogroups", y = "Genus", fill = "Type") +
-  xlim(c(0, 3500)) +
+  xlim(c(-500, 4500)) +
   scale_fill_manual(values = c(brewer.pal(9, "Pastel1")[1],
                                brewer.pal(9, "Pastel1")[2]
                               )
@@ -123,8 +129,8 @@ ggplot() +
                            mutate(SampleID = row_number()), 
             aes(ymin=SampleID - 0.5,
                 ymax=SampleID + 0.5,
-                xmax = 3000,
-                xmin = 3200,
+                xmax = -0,
+                xmin = -200,
                 fill = MAGs)
           ) +
   labs(fill = "Number of MAGs") +
@@ -135,12 +141,14 @@ ggplot() +
                     left_join(Number_genomes_df %>%
                                 pivot_wider(names_from = Type, values_from = Number), by = c("group" = "Group")) %>%
                         ungroup() %>%
+                        select(!Type) %>%
+                        unique() %>%
                         filter(group %in% Groups) %>%
                            mutate(SampleID = row_number()), 
             aes(ymin=SampleID - 0.5,
                 ymax=SampleID + 0.5,
-                xmax = 3200,
-                xmin = 3400,
+                xmax = -200,
+                xmin = -400,
                 fill = Isolates)
           ) +
   geom_vline(xintercept = 500) +
@@ -148,7 +156,15 @@ ggplot() +
   scale_fill_gradientn(na.value = "transparent", colors = brewer.pal(4, "Reds"), guide = "colourbar") +
   make_theme(leg_pos="right", setFill = F, modify_guide = F
   )
-
+ 
+ ortho_mags_df %>%
+  select(group) %>% unique %>%
+  filter(group %in% Groups) %>%
+                    left_join(Number_genomes_df %>%
+                                pivot_wider(names_from = Type, values_from = Number), by = c("group" = "Group")) %>%
+                        ungroup() %>%
+                        filter(group %in% Groups) %>%
+                           mutate(SampleID = row_number())
 # For the trees, OGs inferred for isolates along with MAGs were used
 # For core coverage, OGs inferred using only MAGs were used
 

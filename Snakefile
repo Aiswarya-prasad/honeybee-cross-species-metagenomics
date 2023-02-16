@@ -1722,35 +1722,38 @@ rule summarise_orthogroups:
     script:
         "scripts/summarise_orthogroups.py"
 
-rule get_single_ortho_phylo:
-    input:
-        ortho_file = "07_AnnotationAndPhylogenies/02_orthofinder/{group}/OrthoFinder/Results_{group}/Orthogroups/Orthogroups.txt",
-        genomes_list = lambda wildcards: checkpoints.make_phylo_table.get().output.out_tree,
-    output:
-        single_ortho = "07_AnnotationAndPhylogenies/02_orthofinder/{group}/OrthoFinder/{group}_single_ortho.txt",
-    params:
-        group = lambda wildcards: wildcards.group,
-        mailto="aiswarya.prasad@unil.ch",
-        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        # jobname="{group}_extract_orthologs",
-        account="pengel_spirit",
-        runtime_s=convertToSec("0-2:10:00"),
-    resources:
-        mem_mb = 8000
-    log: "logs/{group}_get_single_ortho_phylo.log"
-    benchmark: "logs/{group}_get_single_ortho_phylo.benchmark"
-    script:
-        "scripts/get_single_ortho_phylo.py"
-
 # eventually use this instead of single ortho (if present in more than half the MAGs cut-off) for core genes
+# rule run_mOTUpan:
+#     input:
+#         faas="../results/pangenomes/{type}/{genus}/genes_faa",
+#         ref_db="../results/reference_db"
+#     output:
+#         pan="../results/pangenomes/{type}/{genus}/{genus}_mOTUpan.tsv"
+#     conda:
+#         "envs/mOTUpan.yaml"
+#     log:
+#         "logs/{type}_pangenomes/{genus}/run_mOTUpan.log"
+#     benchmark:
+#         "logs/{type}_pangenomes/{genus}/run_mOTUpan.benchmark"
+#     threads: 15
+#     params:
+#         boots=10,
+#         chemck_out="../results/pangenomes/checkm_out_tab.tsv"
+#     resources:
+#         account = "pengel_beemicrophage",
+#         mem_mb = 100000,
+#         runtime= "24:00:00"
+#     shell:
+#         "sed -e 's/,/\t/g' {input.ref_db}/data_tables/Chdb.csv > {params.chemck_out}; "
+#         "mOTUpan.py --faas {input.faas}/* -o {output.pan} --checkm {params.chemck_out} --threads {threads}"
 # rule motupan:
 #     input:
-#         fnas = lambda wildcards: expand("07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.fna", genome=get_MAGs_list(checkpoints.make_phylo_table.get().output.out_mags)),
+#         faas = lambda wildcards: expand("07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.fna", genome=get_MAGs_list(checkpoints.make_phylo_table.get().output.out_mags)),
 #         checkm_files = expand("06_MAG_binning/evaluate_bins/{sample}_checkm.summary", sample=SAMPLES),
 #     output:
 #         outfile = "06_MAG_binning/mOTUlizer/mOTUlizer_output.tsv",
-#         checkm_concat = "06_MAG_binning/mOTUlizer/checkm_concat.tsv",
-#         ani_parsed = "06_MAG_binning/mOTUlizer/ani_parsed.tsv"
+#         {genus}/{genus}_mOTUpan.tsv
+#         "07_AnnotationAndPhylogenies/02_orthofinder/{group}/OrthoFinder/{group}_single_ortho.txt",
 #     params:
 #         annotations_dir = "07_AnnotationAndPhylogenies/01_prokka/",
 #         seed_completeness = 50,
@@ -1773,6 +1776,27 @@ rule get_single_ortho_phylo:
 #         cat {input.checkm_files} | grep -v \"Bin Id\" >> {output.checkm_concat}
 #         mOTUlize.py --fnas {params.annotations_dir}/*/*.fna -o {output.outfile} --checkm {output.checkm_concat} --similarities {output.ani_parsed} --MAG-completeness {params.seed_completeness} --prefix \"magOTU_\"
 #         """
+
+rule get_single_ortho_phylo:
+    input:
+        ortho_file = "07_AnnotationAndPhylogenies/02_orthofinder/{group}/OrthoFinder/Results_{group}/Orthogroups/Orthogroups.txt",
+        genomes_list = lambda wildcards: checkpoints.make_phylo_table.get().output.out_tree,
+    output:
+        single_ortho = "07_AnnotationAndPhylogenies/02_orthofinder/{group}/OrthoFinder/{group}_single_ortho.txt",
+    params:
+        group = lambda wildcards: wildcards.group,
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        # jobname="{group}_extract_orthologs",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-2:10:00"),
+    resources:
+        mem_mb = 8000
+    log: "logs/{group}_get_single_ortho_phylo.log"
+    benchmark: "logs/{group}_get_single_ortho_phylo.benchmark"
+    script:
+        "scripts/get_single_ortho_phylo.py"
+
 
 rule extract_orthologs_phylo:
     input:
