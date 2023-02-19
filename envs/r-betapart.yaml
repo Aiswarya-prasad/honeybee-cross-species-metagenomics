@@ -1,0 +1,21 @@
+(done manually)
+mamba create --prefix /work/FAC/FBM/DMF/pengel/spirit/aprasad/Miniconda3/envs/r-betapart-env -c imperial-college-research-computing -c conda-forge -c bioconda r-base r-fastmatch r-tidyverse r-geometry r-picante r-rcdd r-doSNOW r-itertools r-snow r-foreach r-ape
+conda activate /work/FAC/FBM/DMF/pengel/spirit/aprasad/Miniconda3/envs/r-betapart-env
+name: r-betapart-env
+
+channels:
+  - imperial-college-research-computing
+  - bioconda
+  - conda-forge
+
+dependencies:
+  - r-base
+  - r-ape
+  - r-fastmatch
+  - r-geometry
+  - r-picante
+  - r-rcdd
+  - r-doSNOW
+  - r-foreach
+  - r-snow
+  - r-itertools

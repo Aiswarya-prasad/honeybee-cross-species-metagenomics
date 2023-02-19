@@ -44,7 +44,10 @@ vis_magOTUs_df_all <- vis_magOTUs_df_all %>%
                           group_by(Cluster) %>%
                             mutate(Num_mags = n()) %>%
                               mutate(Prevalence_overall = Num_mags/length(samples))
-
+samples_am <- c(vis_magOTUs_df_all %>% filter(Host == "Apis mellifera") %>% pull(Sample) %>% unique %>% as.vector)
+samples_ac <- c(vis_magOTUs_df_all %>% filter(Host == "Apis cerana") %>% pull(Sample) %>% unique %>% as.vector)
+samples_ad <-c(vis_magOTUs_df_all %>% filter(Host == "Apis dorsata") %>% pull(Sample) %>% unique %>% as.vector)
+samples_af <-c(vis_magOTUs_df_all %>% filter(Host == "Apis florea") %>% pull(Sample) %>% unique %>% as.vector)
 vis_magOTUs_df_all <- vis_magOTUs_df_all %>%
                           group_by(Cluster, Host) %>%
                             mutate(Present = n()) %>%
@@ -67,7 +70,3 @@ vis_magOTUs_df$sample <- as.factor(vis_magOTUs_df$sample)
 vis_magOTUs_df$Family <- as.factor(vis_magOTUs_df$Family)
 vis_magOTUs_df$Genus <- as.factor(vis_magOTUs_df$Genus)
 vis_magOTUs_df <- vis_magOTUs_df[order(vis_magOTUs_df$Genus), ]
-
-
-write.csv(vis_magOTUs_df_all, row.names = F, file = "Figures/exported-vis_magOTUs_df_all.csv", quote = F)
-write.csv(vis_magOTUs_df, row.names = F, file = "Figures/exported-vis_magOTUs_df.csv", quote = F)

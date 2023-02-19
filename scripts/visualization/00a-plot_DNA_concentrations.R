@@ -14,7 +14,7 @@ source('scripts/visualization/utilities.R', chdir = TRUE)
 
 df_concentrations <- df_meta_complete %>%
   select(ID, Concentration) %>%
-    # left_join(df_meta, by = c("ID" = "Sample")) %>%
+    left_join(df_meta, by = c("ID" = "Sample")) %>%
       mutate(Host = Vectorize(get_host_from_sample_name)(ID)) %>%
         mutate(Location = Vectorize(get_location_from_sample_name)(ID))
 
@@ -40,7 +40,7 @@ ggplot(df_concentrations %>% filter(ID %in% c(samples_IN, samples_MY)),
     geom_vline(xintercept = 10, linetype = "solid", color = "#d73027", alpha = 1) +
       scale_fill_manual(values=host_order_color) +
       scale_color_manual(values=host_order_color_dark)
-      ggsave("Figures/00-DNA_Concentrations_compared.pdf")
+      ggsave("Figures/00a-DNA_Concentrations_compared.pdf")
 
 # write.csv(df_concentrations %>% filter(ID %in% samples_MY) %>% select(ID, Concentration, Host), "Figures/Concentrations_for_plotting_edited_manually.csv", row.names = F)
 df_concentrations_edited <- read.csv("Figures/Concentrations_for_plotting_edited_manually.csv")
@@ -65,7 +65,7 @@ ggplot(df_concentrations_edited %>% filter(ID %in% samples_MY) %>% mutate(Host_n
     geom_vline(xintercept = 10, linetype = "solid", color = "#1a9850", alpha = 1) +
       scale_fill_manual(values=host_order_color) +
       scale_color_manual(values=host_order_color_dark)
-      ggsave("Figures/00-DNA_Concentrations_with_subset.pdf")
+      ggsave("Figures/00a-DNA_Concentrations_with_subset.pdf")
 
 ggplot(df_concentrations %>% filter(ID %in% samples_MY),
         aes(y = factor(ID, rev(samples_MY)),
@@ -88,4 +88,4 @@ ggplot(df_concentrations %>% filter(ID %in% samples_MY),
     geom_vline(xintercept = 10, linetype = "solid", color = "#1a9850", alpha = 1) +
       scale_fill_manual(values=host_order_color) +
       scale_color_manual(values=host_order_color_dark)
-      ggsave("Figures/00-DNA_Concentrations.pdf")
+      ggsave("Figures/00a-DNA_Concentrations.pdf")

@@ -245,7 +245,6 @@ rule backup:
         coverage_host_MY = expand("02_HostMapping/{sample}_coverage.tsv", sample=SAMPLES_MY),
         coverage_host_hist = expand("02_HostMapping/{sample}_coverage_histogram.txt", sample=SAMPLES_MY),
         coverage_host_hist_MY = expand("02_HostMapping/{sample}_coverage_histogram.txt", sample=SAMPLES),
-        # motus_temp = expand("02_motus_profile/{sample}.motus", sample=SAMPLES+SAMPLES_MY),
         motus_merged = "02_motus_profile/samples_merged.motus", # got to its respective rule and add desired list of samples in its expansion eg. SAMPLES+SAMPLES_KE
         scaffolds = expand("05_Assembly/trimmed/{sample}_scaffolds.fasta", sample=SAMPLES_INDIA),
         summary_assembly = "05_Assembly/MapToAssembly/Assembly_mapping_summary.csv",
@@ -275,6 +274,11 @@ rule backup:
         plots_marker = expand("06_MAG_binning/evaluate_bins/{sample}/plots.done", sample=SAMPLES),
         summary_extended = expand("06_MAG_binning/evaluate_bins/{sample}_checkm.summary_extended", sample=SAMPLES),
         SDP_validation_done = lambda wildcards: ["12_species_validation/"+group+"/"+group+"_SDP_validation.done" for group in [x for x in get_g_dict_for_groups_from_data(checkpoints.make_phylo_table.get().output.out_mags_filt).keys() if num_genomes_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 2 and num_magOTUs_in_group(x, checkpoints.make_phylo_table.get().output.out_mags_filt) > 1]],
+        dram_annotation_mags = "08_DRAM_annotations_distill/MAGs/annotations.tsv",
+        # dram_tsv_product_mags = "08_DRAM_annotations_distill/MAGs/product.tsv",
+        # dram_tsv_stats_mags = "08_DRAM_annotations_distill/MAGs/genome_stats.tsv",
+        # dram_html_mags = "08_DRAM_annotations_distill/MAGs/product.html",
+        # dram_xlsx_mags = "08_DRAM_annotations_distill/MAGs/metabolism_summary.xlsx",
         # contig_tracker = expand("06_MAG_binning/contig_tracker_after_prokka/{genome}_contig_tracker.tsv", genome=get_MAGs_list(checkpoints.make_phylo_table.get().output.out_mags_filt)),
         dram_annotation_orfs = expand("08_DRAM_annotations/ORFs/{sample}/annotations.tsv", sample=SAMPLES),
         # html = PROJECT_IDENTIFIER+"_Report.html",
@@ -479,7 +483,7 @@ rule run_motus: # added
 
 rule merge_motus: # added
     input:
-        motus_temp = expand("02_motus_profile/{sample}.motus", sample=SAMPLES+SAMPLES_MY)
+        motus_temp = expand("02_motus_profile/{sample}.motus", sample=SAMPLES+SAMPLES_KE+SAMPLES_MY)
     output:
         motus_merged = "02_motus_profile/samples_merged.motus"
     params:
@@ -1664,6 +1668,82 @@ rule dram_annotate_mags:
         fi
         """
 
+rule dram_merge_annotated_mags:
+    input:
+        annotations = lambda wildcards: expand("08_DRAM_annotations/MAGs/{genome}/annotations.tsv", genome=get_MAGs_list(checkpoints.make_phylo_table.get().output.out_mags_filt)),
+        trnas = lambda wildcards: expand("08_DRAM_annotations/MAGs/{genome}/trnas.tsv", genome=get_MAGs_list(checkpoints.make_phylo_table.get().output.out_mags_filt)),
+        rrnas = lambda wildcards: expand("08_DRAM_annotations/MAGs/{genome}/rrnas.tsv", genome=get_MAGs_list(checkpoints.make_phylo_table.get().output.out_mags_filt)),
+    output:
+        dram_annotations = "08_DRAM_annotations_distill/MAGs/annotations.tsv",       
+        dram_trnas = "08_DRAM_annotations_distill/MAGs/trnas.tsv",
+        dram_rrnas = "08_DRAM_annotations_distill/MAGs/rrnas.tsv",
+    params:
+        results_dir="08_DRAM_annotations/MAGs/",
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-0:10:00")
+    resources:
+        mem_mb = convertToMb("10G")
+    threads: 8
+    log: "logs/dram_merge_annotated_mags.log"
+    benchmark: "logs/dram_merge_annotated_mags.benchmark"
+    # conda: "envs/dram-env.yaml"
+    conda: "envs/mags-env.yaml"
+    shell:
+        """
+        # execute manually. Does not work on cluster for some reason.
+        cat {params.results_dir}/*/annotations.tsv | head -1 > {output.dram_annotations} 2> {log}
+        cat {params.results_dir}/*/trnas.tsv | head -1 > {output.dram_trnas} 2>> {log}
+        cat {params.results_dir}/*/rrnas.tsv | head -1 > {output.dram_rrnas} 2>> {log}
+        cat {params.results_dir}/*/annotations.tsv | tail -n +2 >> {output.dram_annotations} 2>> {log}
+        cat {params.results_dir}/*/trnas.tsv | tail -n +2 >> {output.dram_trnas} 2>> {log}
+        cat {params.results_dir}/*/rrnas.tsv | tail -n +2 >> {output.dram_rrnas} 2>> {log}
+        """
+
+rule dram_distill_mags:
+    input:
+        dram_annotations = "08_DRAM_annotations_distill/MAGs/annotations.tsv",
+        dram_trnas = "08_DRAM_annotations_distill/MAGs/trnas.tsv",
+        dram_rrnas = "08_DRAM_annotations_distill/MAGs/rrnas.tsv",
+        dram_config = "config/dram_config.json",
+        gtdb = rules.gtdb_annotate.output.tax_info,
+        checkm_concat = rules.concat_checkm_extended.output.checkm_concat
+    output:
+        dram_tsv_product = "08_DRAM_annotations_distill/MAGs/product.tsv",
+        dram_tsv_stats = "08_DRAM_annotations_distill/MAGs/genome_stats.tsv",
+        dram_html = "08_DRAM_annotations_distill/MAGs/product.html",
+        dram_xlsx = "08_DRAM_annotations_distill/MAGs/metabolism_summary.xlsx",
+    params:
+        db_location = "/reference/dram",
+        dram_outdir = "08_DRAM_annotations/MAGs/",
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-1:00:00")
+    resources:
+        mem_mb = convertToMb("100G")
+    threads: 8
+    log: "logs/dram_distill_mags.log"
+    benchmark: "logs/dram_distill_mags.benchmark"
+    # conda: "envs/dram-env.yaml"
+    conda: "envs/mags-env.yaml"
+    shell:
+        """
+        source /etc/profile.d/lmodstacks.sh
+        dcsrsoft use old
+        export PATH=/dcsrsoft/spack/external/dram/v1.2.4/bin:$PATH
+        module load gcc/9.3.0 python
+        module load hmmer mmseqs2 prodigal infernal trnascan-se barrnap
+        which DRAM.py
+        DRAM-setup.py version
+        ###
+        dram_annotations={input.dram_annotations}
+        dram_outdir_distill=${{dram_annotations/08_DRAM_annotations*/}}08_DRAM_annotations_distill
+        rm -rf ${{dram_outdir_distill}} # snakemake creates it but DRAM will complain
+        DRAM.py distill -i {input.dram_annotations} -o ${{dram_outdir_distill}} --trna_path {input.dram_trnas} --rrna_path {input.dram_rrnas}
+        """
+
 rule prepare_faa:
     input:
         info = lambda wildcards: checkpoints.make_phylo_table.get().output.out_tree,
@@ -1722,38 +1802,35 @@ rule summarise_orthogroups:
     script:
         "scripts/summarise_orthogroups.py"
 
+rule get_single_ortho_phylo:
+    input:
+        ortho_file = "07_AnnotationAndPhylogenies/02_orthofinder/{group}/OrthoFinder/Results_{group}/Orthogroups/Orthogroups.txt",
+        genomes_list = lambda wildcards: checkpoints.make_phylo_table.get().output.out_tree,
+    output:
+        single_ortho = "07_AnnotationAndPhylogenies/02_orthofinder/{group}/OrthoFinder/{group}_single_ortho.txt",
+    params:
+        group = lambda wildcards: wildcards.group,
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        # jobname="{group}_extract_orthologs",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-2:10:00"),
+    resources:
+        mem_mb = 8000
+    log: "logs/{group}_get_single_ortho_phylo.log"
+    benchmark: "logs/{group}_get_single_ortho_phylo.benchmark"
+    script:
+        "scripts/get_single_ortho_phylo.py"
+
 # eventually use this instead of single ortho (if present in more than half the MAGs cut-off) for core genes
-# rule run_mOTUpan:
-#     input:
-#         faas="../results/pangenomes/{type}/{genus}/genes_faa",
-#         ref_db="../results/reference_db"
-#     output:
-#         pan="../results/pangenomes/{type}/{genus}/{genus}_mOTUpan.tsv"
-#     conda:
-#         "envs/mOTUpan.yaml"
-#     log:
-#         "logs/{type}_pangenomes/{genus}/run_mOTUpan.log"
-#     benchmark:
-#         "logs/{type}_pangenomes/{genus}/run_mOTUpan.benchmark"
-#     threads: 15
-#     params:
-#         boots=10,
-#         chemck_out="../results/pangenomes/checkm_out_tab.tsv"
-#     resources:
-#         account = "pengel_beemicrophage",
-#         mem_mb = 100000,
-#         runtime= "24:00:00"
-#     shell:
-#         "sed -e 's/,/\t/g' {input.ref_db}/data_tables/Chdb.csv > {params.chemck_out}; "
-#         "mOTUpan.py --faas {input.faas}/* -o {output.pan} --checkm {params.chemck_out} --threads {threads}"
 # rule motupan:
 #     input:
-#         faas = lambda wildcards: expand("07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.fna", genome=get_MAGs_list(checkpoints.make_phylo_table.get().output.out_mags)),
+#         fnas = lambda wildcards: expand("07_AnnotationAndPhylogenies/01_prokka/{genome}/{genome}.fna", genome=get_MAGs_list(checkpoints.make_phylo_table.get().output.out_mags)),
 #         checkm_files = expand("06_MAG_binning/evaluate_bins/{sample}_checkm.summary", sample=SAMPLES),
 #     output:
 #         outfile = "06_MAG_binning/mOTUlizer/mOTUlizer_output.tsv",
-#         {genus}/{genus}_mOTUpan.tsv
-#         "07_AnnotationAndPhylogenies/02_orthofinder/{group}/OrthoFinder/{group}_single_ortho.txt",
+#         checkm_concat = "06_MAG_binning/mOTUlizer/checkm_concat.tsv",
+#         ani_parsed = "06_MAG_binning/mOTUlizer/ani_parsed.tsv"
 #     params:
 #         annotations_dir = "07_AnnotationAndPhylogenies/01_prokka/",
 #         seed_completeness = 50,
@@ -1776,27 +1853,6 @@ rule summarise_orthogroups:
 #         cat {input.checkm_files} | grep -v \"Bin Id\" >> {output.checkm_concat}
 #         mOTUlize.py --fnas {params.annotations_dir}/*/*.fna -o {output.outfile} --checkm {output.checkm_concat} --similarities {output.ani_parsed} --MAG-completeness {params.seed_completeness} --prefix \"magOTU_\"
 #         """
-
-rule get_single_ortho_phylo:
-    input:
-        ortho_file = "07_AnnotationAndPhylogenies/02_orthofinder/{group}/OrthoFinder/Results_{group}/Orthogroups/Orthogroups.txt",
-        genomes_list = lambda wildcards: checkpoints.make_phylo_table.get().output.out_tree,
-    output:
-        single_ortho = "07_AnnotationAndPhylogenies/02_orthofinder/{group}/OrthoFinder/{group}_single_ortho.txt",
-    params:
-        group = lambda wildcards: wildcards.group,
-        mailto="aiswarya.prasad@unil.ch",
-        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        # jobname="{group}_extract_orthologs",
-        account="pengel_spirit",
-        runtime_s=convertToSec("0-2:10:00"),
-    resources:
-        mem_mb = 8000
-    log: "logs/{group}_get_single_ortho_phylo.log"
-    benchmark: "logs/{group}_get_single_ortho_phylo.benchmark"
-    script:
-        "scripts/get_single_ortho_phylo.py"
-
 
 rule extract_orthologs_phylo:
     input:
@@ -2769,3 +2825,104 @@ rule SDP_validation:
 #         rm -rf PROJECT_IDENTIFIER_Report_cache
 #         R -e \"rmarkdown::render('{input.rmd}')\"
 #         """
+
+# rule popcogent:
+#     input:
+#         mags_dir = "database/MAGs_database_ffn_files/",
+#     output:
+#         table = touch("11_popcogent/done")
+#     conda: "envs/popcogent-env.yaml"
+#     threads: 2
+#     params:
+#         file_ext=".fna",
+#         account="pengel_spirit",
+#         runtime_s=convertToSec("0-2:10:00"),
+#     resources:
+#         mem_mb = convertToMb("15G")
+#     log: "logs/popcogent.log"
+#     benchmark: "logs/popcogent.benchmark"
+#     shell:
+#     """
+#     configfile=./config.sh
+#     bash ${configfile} {os.path.join(os.getcwd(), input.mags_dir)} {params.file_ext} {threads}
+#     source ${mugsy_env}
+#     cd scripts/PopCOGenT
+#     if [ "${slurm_str}" = "" ]
+#     	then
+#     		python get_alignment_and_length_bias.py --genome_dir ${genome_dir} --genome_ext ${genome_ext} --alignment_dir ${alignment_dir} --mugsy_path ${mugsy_path} --mugsy_env ${mugsy_env} --base_name ${base_name} --final_output_dir ${final_output_dir} --num_threads ${num_threads} ${keep_alignments}
+#     		python cluster.py --base_name ${base_name} --length_bias_file ${final_output_dir}/${base_name}.length_bias.txt --output_directory ${final_output_dir} --infomap_path ${infomap_path} ${single_cell}
+#     fi
+#     """
+
+# use for imports...
+# sys.path.append
+# from Bio import SeqIO
+# import glob
+# import pandas as pd
+# from itertools import combinations
+# import os
+# from length_bias_functions import *
+#
+#
+# configfile:
+#     "PopCOGenT_config.yml"
+#
+# genome_directory = config["genome_directory"]
+# genome_extension = config["genome_extension"]
+# alignment_dir = config["alignment_dir"]
+# base_name = config["base_name"]
+# output_dir = config["output_directory"]
+# mugsy_path = config["mugsy_path"]
+# clonal_cutoff = config["clonal_cutoff"]
+#
+# strains = [os.path.splitext(os.path.basename(g))[0] for g in glob.glob('%s/*%s'%(genome_directory, genome_extension))]
+# combos = combinations(strains, 2)
+# strains1, strains2 = zip(*combos)
+# seeds = {(g1, g2): random.randint(1, int(1e9)) for g1, g2 in combinations([g for g in glob.glob('%s/*%s'%(genome_directory, genome_extension))], 2)}
+#
+# rule target:
+#     input:
+#         '%s/%s_%s.txt.cluster.tab.txt'%(output_dir, base_name, clonal_cutoff)
+#
+# rule cluster:
+#     input:
+#         "%s/%s.length_bias.txt"%(output_dir, base_name)
+#     output:
+#         '%s/%s_%s.txt.cluster.tab.txt'%(output_dir, base_name, clonal_cutoff)
+#
+#     shell:
+#         "python cluster.py --base_name {config[base_name]} --length_bias_file {input} --clonal_cutoff {config[clonal_cutoff]} --infomap_path {config[infomap_path]} --output_directory {config[output_directory]}"
+#
+# rule concatenate_length_bias_files:
+#     input:
+#         expand(alignment_dir + "{g1}_@_{g2}.length_bias.txt", zip, g1=strains1, g2=strains2)
+#     output:
+#         "%s/%s.length_bias.txt"%(output_dir, base_name)
+#     run:
+#
+#         header = ['Strain 1',
+#          'Strain 2',
+#          'Initial divergence',
+#          'Alignment size',
+#          'Genome 1 size',
+#          'Genome 2 size',
+#          'Observed SSD',
+#          'SSD 95 CI low',
+#          'SSD 95 CI high']
+#         rows = [open(f).read().strip().split() for f in input]
+#         df = pd.DataFrame(rows, columns=header)
+#         df.to_csv(str(output), sep='\t', index=False)
+#
+# rule make_length_bias_file:
+#     input:
+#         g1 = genome_directory + "/{g1}" + genome_extension,
+#         g2 = genome_directory + "/{g2}" + genome_extension
+#     output:
+#         alignment_dir + "{g1}_@_{g2}.length_bias.txt"
+#     run:
+#         seed = seeds[(input['g1'], input['g2'])]
+#         g1 = rename_for_mugsy(input['g1'])
+#         g2 = rename_for_mugsy(input['g2'])
+#         aln = align_genomes(g1, g2, alignment_dir, mugsy_path, seed)
+#
+#         calculate_length_bias(aln, g1, g2, str(output))

@@ -5,79 +5,16 @@
 ##############
 
 source('scripts/visualization/utilities.R', chdir = TRUE)
-source('scripts/visualization/01-plot_mapping_output.R')
-source('scripts/visualization/05-read_MAG_metadata.R')
 
 ##############
 # files to be read
 ##############
 
+source('scripts/visualization/05-read_MAG_metadata.R', chdir = TRUE)
 
 ##############
 # analyse data and plot
 ##############
-
-num_mags_df <- df_reads %>% select(Sample, Trimmed, MAGs_DB, Host_mapped) %>%
-                left_join(vis_magOTUs_df %>% ungroup() %>% group_by(Sample) %>% summarise(Host, Number_genera = n_distinct(Genus), Number_of_mags = n())) %>%
-                left_join(vis_magOTUs_df %>% ungroup() %>% group_by(Sample) %>% summarise(Host, Number_clusters = n_distinct(Cluster))) %>%
-                filter(Sample %in% samples_IN)
-
-
-ggplot() +
-  geom_point(data = num_mags_df,
-             aes(x = MAGs_DB,
-                 y = Number_of_mags,
-                 size = Number_genera,
-                 color = Host)) +
-                 labs(x = "Reads mapped to MAG DB",
-                      y = "Number of medium quality MAGs",
-                      size = "Number of Genera",
-                      color = "Host species"
-                 ) +
-                 make_theme(theme_name=theme_few(), leg_pos="bottom",
-                                         guide_nrow = 1) +
-                                scale_x_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
-                                scale_color_manual(values = host_order_color_dark)
-                                ggsave("Figures/06-number_of_MAGs_per_depth_mapped.pdf")
-ggplot() +
-  geom_point(data = num_mags_df,
-             aes(x = Trimmed,
-                 y = Number_of_mags,
-                 size = Number_genera,
-                 color = Host)) +
-                 labs(x = "Reads after trimming",
-                      y = "Number of medium quality MAGs",
-                      size = "Number of Genera",
-                      color = "Host species") +
-                 make_theme(theme_name=theme_few(), leg_pos="bottom",
-                                         guide_nrow = 1) +
-                                scale_x_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
-                                scale_color_manual(values = host_order_color_dark)
-                                ggsave("Figures/06-number_of_MAGs_per_depth.pdf")
-ggplot() +
-  geom_point(data = num_mags_df,
-             aes(x = Trimmed,
-                 y = Number_of_mags,
-                 size = Number_clusters,
-                 color = Host)) +
-                 labs(x = "Reads after trimming",
-                      y = "Number of medium quality MAGs",
-                      size = "Number of Genera",
-                      color = "Host species") +
-                 make_theme(theme_name=theme_few(), leg_pos="bottom",
-                                         guide_nrow = 2) +
-                                scale_x_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
-                                scale_color_manual(values = host_order_color_dark)
-
-ggplot() +
-  geom_point(data = num_mags_df,
-             aes(x = Host_mapped,
-                 y = Number_of_mags,
-                 color = Host), size = 4) +
-                 make_theme(theme_name=theme_few(), leg_pos="bottom",
-                                         guide_nrow = 1) +
-                                scale_x_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
-                                scale_color_manual(values = host_order_color)
 
 vis_magOTUs_df_all_means <- vis_magOTUs_df_all %>%
                         group_by(Sample) %>%

@@ -1,7 +1,7 @@
 # prefix="aprasad@curnagl.dcsr.unil.ch:/scratch/aprasad/211018_Medgenome_india_samples"
 prefix="/scratch/aprasad/211018_Medgenome_india_samples"
 # outdir="/Users/aiswarya/One*/Work/2-2-Projects/20211018_aprasad_ApisCrossSpeciesAnalysis/Analysis/211018_Medgenome_india_samples"
-outdir="/nas/FAC/FBM/DMF/pengel/spirit/D2c/aprasad/20211018_aprasad_ApisCrossSpeciesAnalysis/Analysis/211018_Medgenome_india_samples_host_filtered"
+outdir="/nas/FAC/FBM/DMF/pengel/spirit/D2c/aprasad/20211018_aprasad_ApisCrossSpeciesAnalysis/Analysis/211018_Medgenome_india_samples"
 # config / input files
 mkdir -p "$outdir"
 mkdir -p "$outdir"/config

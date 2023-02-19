@@ -635,7 +635,7 @@ These samples were from earlier runs:
   + **20151119_WINDU89**	20151119	Kirsten_Ellegaard	6	GTF	Illumina	100	PE	HiSeq 2500	Genomic diversity landscape of the honey bee gut microbiota (2019, NatCom)	Nurses, Year 1, Les Droites
   + **20160415_OBIWAN225**	20160415	Kirsten_Ellegaard	12	GTF	Illumina	100	PE	HiSeq 2500	Genomic diversity landscape of the honey bee gut microbiota (2019, NatCom)	Foragers/Winterbees, Year 1, Les Droites \
   + **20161216_OBIWAN275**	20161216	Kirsten_Ellegaard	6	GTF	Illumina	100	PE	HiSeq 2500	Genomic diversity landscape of the honey bee gut microbiota (2019, NatCom)	Nurses, Year 2, Les Droites \
-  + **20170310_WINDU179**	20170310	Kirsten_Ellegaard	12	GTF	Illumina	100	PE	HiSeq 2500	Genomic diversity landscape of the honey bee gut microbiota (2019, NatCom)	Foragers/Winterbees, Year 2, Les Droites \
+  + **20170310_WINDU179**	20170310	Kirsten_Ellegaard	12	GTF	Illumina	100	PE	HiSeq 2500	Genomic diversity landscape of the honey bee gut microbiota (2019, NatCom)	Foragers/Winterbees, Year 2, Les Droites (**INCLUDED FOR NOW**) \
   + **20170426_OBIWAN300**	20170426	Kirsten_Ellegaard	6	GTF	Illumina	100	PE	HiSeq 2500	Genomic diversity landscape of the honey bee gut microbiota (2019, NatCom)	Nurses, Year 2, Grammont \
   + **20170428_WINDU191**	20170428	Kirsten_Ellegaard	12	GTF	Illumina	100	PE	HiSeq 2500	Genomic diversity landscape of the honey bee gut microbiota (2019, NatCom)	Foragers/Winterbees, Year 2, Grammont \
   + **20180118_OBIWAN338-339**	20180118	Kirsten_Ellegaard	30	GTF	Illumina	100	PE	HiSeq 2500	Metagenomes of individual honey bees, subjected to dietary manipulation and kept in the lab \
@@ -804,5 +804,3 @@ If the tool is writing the desired output to stdout, only the stderr shout be re
 If the tool is writing the desired output to a file and stdout is only going to include messages for logging, stderr and stdout can both be redirected to the same log file using `&>` for example, `command &> log.txt`
 
 Look [here](https://www.gnu.org/software/bash/manual/html_node/Redirections.html#:~:text=Redirection%20allows%20commands'%20file%20handles,the%20current%20shell%20execution%20environment.) for more information.
-
-distill of dram done manually using line of script in the respective directory

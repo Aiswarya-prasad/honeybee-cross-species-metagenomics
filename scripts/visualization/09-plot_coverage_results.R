@@ -22,38 +22,6 @@ trim_side_mean <- function(x, trim, type="both") {
         mean(x[max(1,floor(length(x)*trim)):length(x)])}
 }
 
-pcoa_plot <- function(df_pcoa, metadata, variable=Species, color_add=F, color_list) {
-          matrix <- as.matrix(df_pcoa)
-          dist <- as.dist(matrix)
-          res_pcoa <- pcoa(dist)
-          ev1 <- res_pcoa$vectors[,1]
-          ev2 <- res_pcoa$vectors[,2]
-          df_pcoa_new <- data.frame(cbind(ev1,ev2))
-          df_pcoa_new$Sample <- rownames(df_pcoa_new)
-          rownames(df_pcoa_new) <- NULL
-          df_pcoa_new <- left_join(df_pcoa_new, select(metadata, Sample, matches(deparse(substitute(get(variable))))), by = "Sample")
-          perc_axis <- round(((res_pcoa$values$Relative_eig[c(1,2)])*100), digits=1)
-          axis_x_title <- paste0("PCo1 (",perc_axis[1],"%)")
-          axis_y_title <- paste0("PCo2 (",perc_axis[2],"%)")
-          if(color_add) {
-            p <- ggplot(df_pcoa_new, aes(x = ev1,
-                                       y = ev2,
-                                       colour = get(variable)))+
-                geom_point(stat="identity", size=2, shape=19) +
-                  labs(x=axis_x_title, y = axis_y_title, color = "Species") +
-                    make_theme(setFill = F, setCol = F, guide_nrow = 4 ) +
-                      scale_fill_manual(values=color_list)
-          } else {
-            p <- ggplot(df_pcoa_new, aes(x = ev1,
-                                       y = ev2,
-                                       colour = get(variable)))+
-                geom_point(stat="identity", size=2, shape=19) +
-                  labs(x=axis_x_title, y = axis_y_title, color = variable) +
-                    make_theme( max_colors = length(unique(df_pcoa_new[, variable])), guide_nrow = 4 ) 
-          }
-          return(p)
-}
-
 make_cum_curve <- function(samples_vector, pa_df, iterations, name = NA) {
   num_clusters_matrix <- matrix(nrow = length(samples_vector), ncol = iterations)
   for (iter in 1:iterations) {
@@ -79,6 +47,37 @@ make_cum_curve <- function(samples_vector, pa_df, iterations, name = NA) {
   plot_cum_curve_df <- pivot_longer(num_clusters_df, !sample_size, values_to = "number_of_clusters", names_to = "curve")
   plot_cum_curve_df <- cbind("name" = name, plot_cum_curve_df)
   return(plot_cum_curve_df)
+}
+pcoa_plot <- function(df_pcoa, metadata, variable, color_add=F, color_list, colname_in_metadata = "ID") {
+          matrix <- as.matrix(df_pcoa)
+          dist <- as.dist(matrix)
+          res_pcoa <- pcoa(dist)
+          ev1 <- res_pcoa$vectors[,1]
+          ev2 <- res_pcoa$vectors[,2]
+          df_pcoa_new <- data.frame(cbind(ev1,ev2))
+          df_pcoa_new$Sample <- rownames(df_pcoa_new)
+          rownames(df_pcoa_new) <- NULL
+          df_pcoa_new <- left_join(df_pcoa_new, metadata, by = c("Sample" = colname_in_metadata))
+          perc_axis <- round(((res_pcoa$values$Relative_eig[c(1,2)])*100), digits=1)
+          axis_x_title <- paste0("PCo1 (",perc_axis[1],"%)")
+          axis_y_title <- paste0("PCo2 (",perc_axis[2],"%)")
+          if(color_add) {
+            p <- ggplot(df_pcoa_new, aes(x = ev1,
+                                       y = ev2,
+                                       colour = get(variable)))+
+                geom_point(stat="identity", size=4, shape=19) +
+                  labs(x=axis_x_title, y = axis_y_title, color = variable) +
+                    make_theme(setFill = F, setCol = F, guide_nrow = 4, leg_size = 10 ) +
+                      scale_color_manual(values=color_list)
+          } else {
+            p <- ggplot(df_pcoa_new, aes(x = ev1,
+                                       y = ev2,
+                                       color = get(variable)))+
+                geom_point(stat="identity", size=4, shape=19) +
+                  labs(x=axis_x_title, y = axis_y_title, color = variable) +
+                    make_theme( max_colors = length(unique(df_pcoa_new[, variable])), guide_nrow = 4, leg_size = 10 ) 
+          }
+          return(p)
 }
 
 ##############
@@ -913,19 +912,134 @@ ggplot(df_reads %>%
           scale_size(labels=unit_format(unit = "M", scale = 1e-6))
           ggsave("Figures/09-Coverage_vs_mapped_reads_g__WRHT01.pdf")
 
-
-dist_mat <- vegdist(abundance_df_matrix_pa, method="bray") 
-ordiplot(dist_mat, display = 'host')
-
-
+deep_samples <- df_reads %>% filter(Trimmed > 2e+6) %>% pull(Sample)
+length(deep_samples)
 df_magOTUs_vegan <- abundance_df_matrix_pa %>%
-                      filter(rowSums(.) > 0)
-
+                      filter(rowSums(.) > 0) %>%
+                        filter(row.names(.) %in% deep_samples)
 dist_matrix <- as.matrix(vegdist(df_magOTUs_vegan, "bray"))
-pcoa_magotus <- pcoa_plot(dist_matrix, df_meta_complete, Species, color_add=T, color_list=host_order_color)
 
+pcoa_magotus <- pcoa_plot(dist_matrix, df_meta_complete, "Species", color_add=T, color_list=host_order_color_dark, colname_in_metadata = "ID")
           # ggsave("Figures/09d-magOTUs_pcoa.pdf")
-df_plot_cum_curve <- make_cum_curve(samples_am, df_magOTUs_vegan, 50, "Apis mellifera")
+pcoa_magotus
+# code for betapart functions from
+# https://github.com/cran/betapart
+
+# Latest commit a222c6d on Feb 24, 2012
+betapart.core <- function(x){
+	
+	# test for a binary numeric matrix or data.frame
+	if(! is.matrix(x)){
+		x<-as.matrix(x)
+  	}
+	
+	if(! is.numeric(x))
+    	stop("The data in x is not numeric.",call.=TRUE)
+	
+	# simple test for binary data
+	xvals <-  unique(as.vector(x))
+	if (any(!is.element(xvals, c(0, 1)))) 
+        stop("The table contains values other than 0 and 1: data should be presence/absence.", call. = TRUE)
+
+	shared <- x %*% t(x)
+    not.shared <-  abs(sweep(shared, 2, diag(shared)))
+		
+	sumSi <- sum(diag(shared)) # species by site richness
+    St <- sum(colSums(x) > 0)  # regional species richness
+    a <- sumSi - St            # multi site shared species term
+
+    sum.not.shared <- not.shared + t(not.shared)
+    max.not.shared <- pmax(not.shared, t(not.shared))
+    min.not.shared <- pmin(not.shared, t(not.shared))
+
+	computations<-list(data=x, sumSi=sumSi, St=St, a=a, shared=shared, not.shared=not.shared, 
+	                   sum.not.shared=sum.not.shared, max.not.shared=max.not.shared, 
+	                   min.not.shared=min.not.shared)
+    class(computations)<-"betapart"
+
+	return(computations)
+} 
+# Latest commit 4b59d9c on Feb 24, 2012
+beta.pair <- function(x, index.family="sorensen"){
+	
+	# test for a valid index
+	index.family <- match.arg(index.family, c('jaccard','sorensen'))
+	
+	# test for pre-existing betapart objects
+	if (! inherits(x, "betapart")){	
+		x <- betapart.core(x)
+	}
+	
+	# run the analysis given the index
+	switch(index.family,
+		sorensen = {
+			beta.sim <- x$min.not.shared / (x$min.not.shared + x$shared)
+			beta.sne <- ((x$max.not.shared - x$min.not.shared) / ((2 * x$shared) + x$sum.not.shared)) * (x$shared / (x$min.not.shared + x$shared))
+            beta.sor <- x$sum.not.shared / (2 * x$shared + x$sum.not.shared)
+                
+            pairwise <- list(beta.sim=as.dist(beta.sim), beta.sne=as.dist(beta.sne),beta.sor=as.dist(beta.sor))},
+		jaccard = {
+			beta.jtu <- (2*x$min.not.shared) / ((2*x$min.not.shared) + x$shared)
+	        beta.jne <- ((x$max.not.shared - x$min.not.shared) / (x$shared + x$sum.not.shared)) * (x$shared / ((2*x$min.not.shared) + x$shared))
+	        beta.jac <- x$sum.not.shared / (x$shared + x$sum.not.shared)
+
+	        pairwise <- list(beta.jtu=as.dist(beta.jtu), beta.jne=as.dist(beta.jne),beta.jac=as.dist(beta.jac))})
+
+	return(pairwise)
+}
+beta.multi <- function(x, index.family="sorensen"){
+
+	# test for a valid index
+	index.family <- match.arg(index.family, c('jaccard','sorensen'))
+	
+	# test for pre-existing betapart objects
+	if (! inherits(x, "betapart")){	
+		x <- betapart.core(x)
+	}
+
+	maxbibj <- sum(x$max.not.shared[lower.tri(x$max.not.shared)])
+    minbibj <- sum(x$min.not.shared[lower.tri(x$min.not.shared)])
+	
+	# run the analysis given the index
+	switch(index.family,
+		sorensen = {
+            beta.sim <- minbibj / (minbibj + x$a)
+            beta.sne <- (x$a / (minbibj + x$a)) * ((maxbibj - minbibj) / ((2 * x$a) + maxbibj + minbibj))
+            beta.sor <- (minbibj + maxbibj) / (minbibj + maxbibj + (2 * x$a))
+
+           	multi <- list(beta.SIM=beta.sim, beta.SNE=beta.sne,beta.SOR=beta.sor)},
+		jaccard = {
+            beta.jtu <- (2*minbibj) / ((2*minbibj) + x$a)
+            beta.jne <- (x$a / ((2*minbibj) + x$a)) * ((maxbibj - minbibj) / ((x$a) + maxbibj + minbibj))
+            beta.jac <- (minbibj + maxbibj) / (minbibj + maxbibj + x$a)
+
+           	multi <- list(beta.JTU=beta.jtu, beta.JNE=beta.jne, beta.JAC=beta.jac)})
+
+	return(multi)
+
+}
+str()
+dist_matrix_betapart <- beta.pair(df_magOTUs_vegan, "jaccard")
+dist_matrix_betapart <- beta.pair(df_magOTUs_vegan, "sorensen")
+str(dist_matrix_betapart)
+pcoa_plot(dist_matrix_betapart$beta.sor, df_meta_complete, "Species", color_add=T, color_list=host_order_color_dark)
+pcoa_plot(dist_matrix_betapart$beta.sim, df_meta_complete, "Species", color_add=T, color_list=host_order_color_dark)
+
+pcoa_plot(dist_matrix_betapart$beta.jac, df_meta_complete, "Species", color_add=T, color_list=host_order_color_dark)
+pcoa_plot(dist_matrix_betapart$beta.jtu, df_meta_complete, "Species", color_add=T, color_list=host_order_color_dark)
+
+pcoa_plot(dist_matrix_betapart$beta.jac, df_meta_complete, "Country", color_add=F, color_list=host_order_color_dark)
+pcoa_plot(dist_matrix_betapart$beta.jtu, df_meta_complete, "Country", color_add=F, color_list=host_order_color_dark)
+
+
+
+
+df_plot_cum_curve_m <- make_cum_curve(samples_am, df_magOTUs_vegan, 100, "Apis mellifera")
+df_plot_cum_curve_c <- make_cum_curve(samples_ac, df_magOTUs_vegan, 100, "Apis cerana")
+df_plot_cum_curve_d <- make_cum_curve(samples_ad, df_magOTUs_vegan, 100, "Apis dorsata")
+df_plot_cum_curve_f <- make_cum_curve(samples_af, df_magOTUs_vegan, 100, "Apis florea")
+df_plot_cum_curve_a <- make_cum_curve(samples_aa, df_magOTUs_vegan, 100, "Apis andreniformis")
+df_plot_cum_curve <- rbind(df_plot_cum_curve_m, df_plot_cum_curve_c, df_plot_cum_curve_d, df_plot_cum_curve_f, df_plot_cum_curve_a)
 ggplot(data = df_plot_cum_curve, aes(x = sample_size, y = number_of_clusters, color = factor(name, host_order))) +
                       geom_jitter(position = position_dodge(width=0.7)) +
                         geom_smooth(se = FALSE) +
