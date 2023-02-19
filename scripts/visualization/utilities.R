@@ -459,37 +459,7 @@ samples_MY <- c("M2.1", "M2.2", "M2.3", "M2.4", "M2.5",
               "A5.1","A5.2","A5.3","A5.4","A5.5",
               "A6.1","A6.2","A6.3","A6.4","A6.5"
             )
-samples <- c(samples_IN, samples_KE, samples_MY)
-if (samples_KE[1] %in% samples) {
-  samples <- c("M1.1", "M1.2", "M1.3", "M1.4", "M1.5",
-              "AmAi01", "AmAi02", "AmAi03", "AmAi04", "AmAi05",
-              "AmAi06", "AmAi07", "AmAi08", "AmAi09", "AmAi10",
-              "AmIu01", "AmIu02", "AmIu03", "AmIu04", "AmIu05",
-              "AmIu06", "AmIu07", "AmIu08", "AmIu09", "AmIu10",
-              "DrY1_F1", "DrY1_F2", "DrY1_F3", "DrY1_F4", "DrY1_F5", "DrY1_F6",
-              "DrY1_N1", "DrY1_N2", "DrY1_N3", "DrY1_N4", "DrY1_N5", "DrY1_N6",
-              "DrY1_W1", "DrY1_W2", "DrY1_W3", "DrY1_W4", "DrY1_W5", "DrY1_W6",
-              "DrY2_F1", "DrY2_F2", "DrY2_F3", "DrY2_F4", "DrY2_F5", "DrY2_F6",
-              "DrY2_N1", "DrY2_N2", "DrY2_N3", "DrY2_N4", "DrY2_N5", "DrY2_N6",
-              "DrY2_W1", "DrY2_W2", "DrY2_W3", "DrY2_W4", "DrY2_W5", "DrY2_W6",
-              "GrY2_F1", "GrY2_F2", "GrY2_F3", "GrY2_F4", "GrY2_F5", "GrY2_F6",
-              "GrY2_N1", "GrY2_N2", "GrY2_N3", "GrY2_N4", "GrY2_N5", "GrY2_N6",
-              "GrY2_W1", "GrY2_W2", "GrY2_W3", "GrY2_W4", "GrY2_W5", "GrY2_W6",
-              "C1.1", "C1.2", "C1.3", "C1.4", "C1.5",
-              "C2.1", "C2.2", "C2.3", "C2.4", "C2.5",
-              "C3.1", "C3.2", "C3.3", "C3.4", "C3.5",
-              "AcKn01", "AcKn02", "AcKn03", "AcKn04", "AcKn05",
-              "AcKn06", "AcKn07", "AcKn08", "AcKn09", "AcKn10",
-              "AcCh01", "AcCh02", "AcCh03", "AcCh04", "AcCh05",
-              "AcCh06", "AcCh07", "AcCh08", "AcCh09", "AcCh10",
-              "D1.1","D1.2","D1.3","D1.4","D1.5",
-              "D2.1","D2.2","D2.3","D2.4","D2.5",
-              "D3.1","D3.2","D3.3","D3.4","D3.5",
-              "F1.1","F1.2","F1.3","F1.4","F1.5",
-              "F2.1","F2.2","F2.3","F2.4","F2.5",
-              "F3.1","F3.2","F3.3","F3.4","F3.5"
-    )
-}
+samples <- c(samples_IN, samples_MY, samples_KE)
 colonies <- c("M_1", "M_1", "M_1", "M_1", "M_1",
              "M_DrY2_F","M_DrY2_F","M_Ai","M_Iu",
               "C_1", "C_1", "C_1", "C_1", "C_1",
@@ -771,5 +741,6 @@ df_meta_complete <- df_meta_complete %>%
                       rename(ID_long = ID) %>%
                         rename(ID = Short_name) %>%
                           mutate(Species_long = Species) %>%
-                            mutate(Species = Vectorize(get_host_from_sample_name)(ID))
+                            mutate(Species = Vectorize(get_host_from_sample_name)(ID)) %>%
+                            mutate(Country = Vectorize(get_location_from_sample_name)(ID))
 setwd(working_dir)

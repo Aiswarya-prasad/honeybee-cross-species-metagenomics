@@ -257,6 +257,20 @@ abundance_df_matrix_Cov <-  abundance_df %>% filter(!is.na(cluster_name)) %>%
                             pivot_wider(names_from=cluster_name, values_from=Cov, values_fn = as.vector) %>% remove_rownames %>%
                             column_to_rownames(var="Sample")
 
+df_plot_cum_curve_m <- make_cum_curve(samples_am, df_magOTUs_vegan, 100, "Apis mellifera")
+df_plot_cum_curve_c <- make_cum_curve(samples_ac, df_magOTUs_vegan, 100, "Apis cerana")
+df_plot_cum_curve_d <- make_cum_curve(samples_ad, df_magOTUs_vegan, 100, "Apis dorsata")
+df_plot_cum_curve_f <- make_cum_curve(samples_af, df_magOTUs_vegan, 100, "Apis florea")
+df_plot_cum_curve_a <- make_cum_curve(samples_aa, df_magOTUs_vegan, 100, "Apis andreniformis")
+df_plot_cum_curve <- rbind(df_plot_cum_curve_m, df_plot_cum_curve_c, df_plot_cum_curve_d, df_plot_cum_curve_f, df_plot_cum_curve_a)
+ggplot(data = df_plot_cum_curve, aes(x = sample_size, y = number_of_clusters, color = factor(name, host_order))) +
+                      geom_jitter(position = position_dodge(width=0.7)) +
+                        geom_smooth(se = FALSE) +
+                          labs(color = "Host species", x = "# Bees", y = "Number of magOTUs") +
+                          scale_color_manual(values=host_order_color) +
+                            make_theme(leg_pos = "bottom", setCol = F, guide_nrow = 1)
+
+
 column_ha = HeatmapAnnotation(Host = rownames(abundance_df_matrix_pa[samples_IN,]) %>% as.data.frame() %>% mutate(Host = Vectorize(get_host_from_sample_name)(.)) %>% pull(Host),
                               col = list(Host = host_order_color)
                           )
@@ -912,16 +926,19 @@ ggplot(df_reads %>%
           scale_size(labels=unit_format(unit = "M", scale = 1e-6))
           ggsave("Figures/09-Coverage_vs_mapped_reads_g__WRHT01.pdf")
 
-deep_samples <- df_reads %>% filter(Trimmed > 2e+6) %>% pull(Sample)
-length(deep_samples)
-df_magOTUs_vegan <- abundance_df_matrix_pa %>%
-                      filter(rowSums(.) > 0) %>%
-                        filter(row.names(.) %in% deep_samples)
-dist_matrix <- as.matrix(vegdist(df_magOTUs_vegan, "bray"))
+# vis_magOTUs_df %>% 
+#   select(ID, Host, Genus, Cluster, length, score, furthest_cluster_member, score_representative, Num_mags) %>%
+#     filter(Genus != "g__") %>%
+#     ungroup() %>%
+#       group_by(Cluster) %>%
+#         mutate(Num_host = n_distinct(Host)) %>%
+#           filter(Num_host >= 2) %>%
+#             filter(Num_mags >= 3) %>%
+#               summarise(Cluster, Genus, Num_mags, Num_host) %>% unique()
+# vis_magOTUs_df %>% 
+#   select(ID, Host, Genus, Cluster, length, score, furthest_cluster_member, score_representative, Num_mags) %>%
+#     filter(Cluster == "33_1")
 
-pcoa_magotus <- pcoa_plot(dist_matrix, df_meta_complete, "Species", color_add=T, color_list=host_order_color_dark, colname_in_metadata = "ID")
-          # ggsave("Figures/09d-magOTUs_pcoa.pdf")
-pcoa_magotus
 # code for betapart functions from
 # https://github.com/cran/betapart
 
@@ -1018,31 +1035,83 @@ beta.multi <- function(x, index.family="sorensen"){
 	return(multi)
 
 }
-str()
-dist_matrix_betapart <- beta.pair(df_magOTUs_vegan, "jaccard")
+deep_samples <- df_reads %>% filter(Trimmed > 10e+6) %>% pull(Sample)
+length(deep_samples)
+df_magOTUs_vegan <- abundance_df_matrix_pa %>%
+                      filter(rowSums(.) > 0) %>%
+                        filter(row.names(.) %in% deep_samples)
 dist_matrix_betapart <- beta.pair(df_magOTUs_vegan, "sorensen")
 str(dist_matrix_betapart)
 pcoa_plot(dist_matrix_betapart$beta.sor, df_meta_complete, "Species", color_add=T, color_list=host_order_color_dark)
+pcoa_plot(dist_matrix_betapart$beta.sne, df_meta_complete, "Species", color_add=T, color_list=host_order_color_dark)
 pcoa_plot(dist_matrix_betapart$beta.sim, df_meta_complete, "Species", color_add=T, color_list=host_order_color_dark)
 
-pcoa_plot(dist_matrix_betapart$beta.jac, df_meta_complete, "Species", color_add=T, color_list=host_order_color_dark)
+dist_matrix_betapart <- beta.pair(df_magOTUs_vegan, "jaccard")
 pcoa_plot(dist_matrix_betapart$beta.jtu, df_meta_complete, "Species", color_add=T, color_list=host_order_color_dark)
+pcoa_plot(dist_matrix_betapart$beta.jne, df_meta_complete, "Species", color_add=T, color_list=host_order_color_dark)
+pcoa_plot(dist_matrix_betapart$beta.jac, df_meta_complete, "Species", color_add=T, color_list=host_order_color_dark)
 
-pcoa_plot(dist_matrix_betapart$beta.jac, df_meta_complete, "Country", color_add=F, color_list=host_order_color_dark)
+pcoa_plot(dist_matrix_betapart$beta.sim, df_meta_complete, "Country", color_add=F, color_list=location_color)
 pcoa_plot(dist_matrix_betapart$beta.jtu, df_meta_complete, "Country", color_add=F, color_list=host_order_color_dark)
 
+dist_matrix_betapart <- beta.multi(df_magOTUs_vegan, "sorensen")
+str(dist_matrix_betapart)
 
+# beta.sim dist object, dissimilarity matrix accounting for spatial turnover (replacement),
+# measured as Simpson pair-wise dissimilarity
+# beta.sne dist object, dissimilarity matrix accounting for nestedness-resultant dissimilarity, measured as the nestedness-fraction of Sorensen pair-wise dissimilarity
+# beta.sor dist object, dissimilarity matrix accounting for total dissimilarity, measured as
+# Sorensen pair-wise dissimilarity (a monotonic transformation of beta diversity)
+# For index.family="jaccard" the three matrices are:
+# beta.jtu dist dissimilarity matrix accounting for spatial turnover, measured as the turnoverfraction of Jaccard pair-wise dissimilarity
+# beta.jne dist object, dissimilarity matrix accounting for nestedness-resultant dissimilarity, measured as the nestedness-fraction of Jaccard pair-wise dissimilarity
+# beta.jac dist object, dissimilarity matrix accounting for beta diversity, measured as Jaccard pair-wise dissimilarity (a monotonic transformation of beta diversity)
 
+grouping_vec <- df_meta_complete %>% filter(ID %in% rownames(df_magOTUs_vegan)) %>% pull(Species)
+anosim(dist_matrix_betapart$beta.jtu, grouping_vec, distance = "jaccard", permutations = 9999)
 
-df_plot_cum_curve_m <- make_cum_curve(samples_am, df_magOTUs_vegan, 100, "Apis mellifera")
-df_plot_cum_curve_c <- make_cum_curve(samples_ac, df_magOTUs_vegan, 100, "Apis cerana")
-df_plot_cum_curve_d <- make_cum_curve(samples_ad, df_magOTUs_vegan, 100, "Apis dorsata")
-df_plot_cum_curve_f <- make_cum_curve(samples_af, df_magOTUs_vegan, 100, "Apis florea")
-df_plot_cum_curve_a <- make_cum_curve(samples_aa, df_magOTUs_vegan, 100, "Apis andreniformis")
-df_plot_cum_curve <- rbind(df_plot_cum_curve_m, df_plot_cum_curve_c, df_plot_cum_curve_d, df_plot_cum_curve_f, df_plot_cum_curve_a)
-ggplot(data = df_plot_cum_curve, aes(x = sample_size, y = number_of_clusters, color = factor(name, host_order))) +
-                      geom_jitter(position = position_dodge(width=0.7)) +
-                        geom_smooth(se = FALSE) +
-                          labs(color = "Host species", x = "# Bees", y = "Number of magOTUs") +
-                          scale_color_manual(values=host_order_color) +
-                            make_theme(leg_pos = "bottom", setCol = F, guide_nrow = 1)
+df_to_test <- abundance_df_matrix_pa %>%
+                      filter(rowSums(.) > 0)
+                        # filter(rownames(.) %in% c(samples_IN, samples_MY))
+                          # filter(rownames(.) %in% c(samples_am, samples_ac, samples_af, samples_ad))
+adonis2(df_to_test ~ Species + Country, data = df_meta_complete %>% filter(ID %in% rownames(df_to_test)))
+
+get_host_divergence <- function(sample_1, sample_2) {
+  host_1 <- get_host_from_sample_name(sample_1)
+  host_1 <- strsplit(host_1, " ")[[1]][[2]]
+  host_2 <- get_host_from_sample_name(sample_2)
+  host_2 <- strsplit(host_2, " ")[[1]][[2]]
+  mellifera <- c(0, 1, 2, 4, 4)
+  cerana <- c(1, 0, 2, 4, 4)
+  dorsata <- c(2, 2, 0, 3, 3)
+  florea <- c(4, 4, 3, 0, 1)
+  andreniformis <- c(4, 4, 3, 1, 0)
+  host_divergence_mat <- rbind(mellifera, cerana, dorsata, florea, andreniformis)
+  colnames(host_divergence_mat) <- c("mellifera", "cerana", "dorsata", "florea", "andreniformis")
+  index_list <- list("mellifera" = 1, "cerana" = 2, "dorsata" = 3, "florea" = 4, "andreniformis" = 5)
+  host_divergence <- host_divergence_mat[as.numeric(index_list[host_1]), as.numeric(index_list[host_2])]
+  return(host_divergence)
+}
+
+dist_matrix_betapart <- beta.pair(df_magOTUs_vegan, "jaccard")
+dist_matrix_betapart$beta.jtu
+sample_host_div <- data.frame()
+for (sample in samples) {
+  sample_host_div <- rbind(sample_host_div, rep(0, length((samples))))
+}
+colnames(sample_host_div) <- samples
+rownames(sample_host_div) <- samples
+for (sample_1 in samples) {
+  for (sample_2 in samples) {
+    ind_1 <- as.numeric(which(samples == sample_1))
+    ind_2 <- as.numeric(which(samples == sample_2))
+    sample_host_div[ind_1, ind_2] <- get_host_divergence(sample_1, sample_2)
+  }
+}
+
+samples_am <- df_meta_complete %>% filter(Species == "Apis mellifera") %>% pull(ID)
+samples_ac <- df_meta_complete %>% filter(Species == "Apis cerana") %>% pull(ID)
+samples_ad <- df_meta_complete %>% filter(Species == "Apis dorsata") %>% pull(ID)
+samples_af <- df_meta_complete %>% filter(Species == "Apis florea") %>% pull(ID)
+samples_aa <- df_meta_complete %>% filter(Species == "Apis andreniformis") %>% pull(ID)
+
