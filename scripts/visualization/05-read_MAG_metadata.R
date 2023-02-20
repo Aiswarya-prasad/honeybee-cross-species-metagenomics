@@ -70,3 +70,5 @@ vis_magOTUs_df$sample <- as.factor(vis_magOTUs_df$sample)
 vis_magOTUs_df$Family <- as.factor(vis_magOTUs_df$Family)
 vis_magOTUs_df$Genus <- as.factor(vis_magOTUs_df$Genus)
 vis_magOTUs_df <- vis_magOTUs_df[order(vis_magOTUs_df$Genus), ]
+
+

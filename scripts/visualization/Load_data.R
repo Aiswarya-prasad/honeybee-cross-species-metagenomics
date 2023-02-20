@@ -1,3 +1,7 @@
+
+# equivalent to running relevant sections of
+# utilities, 01 and 05
+
 ##############
 # load libraries
 ##############
@@ -24,7 +28,6 @@ library(phyloseq)
 library(ggdendro)
 library(dendextend)
 library(ComplexHeatmap)
-library(ggnewscale)
 
 ##############
 # define functions used
@@ -136,9 +139,6 @@ get_phylotype <- function(SDP){
   return(phy)
 }
 get_host_from_colony <- function(colony_name){
-  if (is.na(colony_name)) {
-    return(NA)
-  }
   # only works if sdps are written in the right format
   # phylotype_x (eg. Am_xx)
   host_name = strsplit(colony_name, "_")[[1]][1]
@@ -161,9 +161,6 @@ get_host_from_colony <- function(colony_name){
 }
 
 get_sample_name <- function(magname){
-  if (is.na(magname)) {
-    return(NA)
-  }
   if (startsWith(magname, "MAG_")){
     paste0(head(strsplit(strsplit(magname, "MAG_")[[1]][2], "_")[[1]], -1), collapse="_")
   } else {
@@ -172,9 +169,6 @@ get_sample_name <- function(magname){
 }
 
 get_host_name <- function(magname){
-  if (is.na(magname)) {
-    return(NA)
-  }
   if (startsWith(magname, "MAG_")){
     sample_name = strsplit(magname, "MAG_")[[1]][2]
     if (grepl("Dr|Gr", sample_name)) {
@@ -186,23 +180,18 @@ get_host_name <- function(magname){
     if (grepl("Ac", sample_name)) {
       return("Apis cerana")
     }
-    if (grepl("M1.|M2.|M3.|M4.|M5.|M6.|M7.|M8.|M9.|DrY|GrY|AmAi|AmIu", sample_name)) {
     if (grepl("M1.|M2.|M3.", sample_name)) {
       return("Apis mellifera")
     }
-    if (grepl("C1.|C2.|C3.|C4.|C5.|C6.|C7.|C8.|C9.|AcCh|AcKn", sample_name)) {
     if (grepl("C1.|C2.|C3.", sample_name)) {
       return("Apis cerana")
     }
-    if (grepl("D1.|D2.|D3.|D4.|D5.|D6.|D7.|D8.|D9.", sample_name)) {
     if (grepl("D1.|D2.|D3.", sample_name)) {
       return("Apis dorsata")
     }
-    if (grepl("F1.|F2.|F3.|F4.|F5.|F6.|F7.|F8.|F9.", sample_name)) {
     if (grepl("F1.|F2.|F3.", sample_name)) {
       return("Apis florea")
     }
-    if (grepl("A1.|A2.|A3.|A4.|A5.|A6.|A7.|A8.|A9.", sample_name)) {
     if (grepl("A1.|A2.|A3.", sample_name)) {
       return("Apis andreniformis")
     }
@@ -219,23 +208,18 @@ get_host_name <- function(magname){
     if (grepl("Ac", sample_name)) {
       return("Apis cerana")
     }
-    if (grepl("M1.|M2.|M3.|M4.|M5.|M6.|M7.|M8.|M9.|DrY|GrY|AmAi|AmIu", sample_name)) {
     if (grepl("M1.|M2.|M3.", sample_name)) {
       return("Apis mellifera")
     }
-    if (grepl("C1.|C2.|C3.|C4.|C5.|C6.|C7.|C8.|C9.|AcCh|AcKn", sample_name)) {
     if (grepl("C1.|C2.|C3.", sample_name)) {
       return("Apis cerana")
     }
-    if (grepl("D1.|D2.|D3.|D4.|D5.|D6.|D7.|D8.|D9.", sample_name)) {
     if (grepl("D1.|D2.|D3.", sample_name)) {
       return("Apis dorsata")
     }
-    if (grepl("F1.|F2.|F3.|F4.|F5.|F6.|F7.|F8.|F9.", sample_name)) {
     if (grepl("F1.|F2.|F3.", sample_name)) {
       return("Apis florea")
     }
-    if (grepl("A1.|A2.|A3.|A4.|A5.|A6.|A7.|A8.|A9.", sample_name)) {
     if (grepl("A1.|A2.|A3.", sample_name)) {
       return("Apis andreniformis")
     }
@@ -244,9 +228,6 @@ get_host_name <- function(magname){
 }
 
 get_host_from_sample_name <- function(sample_name){
-  if (is.na(sample_name)) {
-    return(NA)
-  }
   if (grepl("Am", sample_name)) {
     return("Apis mellifera")
   }
@@ -272,9 +253,6 @@ get_host_from_sample_name <- function(sample_name){
 }
 
 get_location_from_sample_name <- function(sample_name){
-  if (is.na(sample_name)) {
-    return(NA)
-  }
   if (grepl("Am|Ac", sample_name)) {
     return("Japan")
   }
@@ -485,106 +463,7 @@ samples_MY <- c("M2.1", "M2.2", "M2.3", "M2.4", "M2.5",
               "A5.1","A5.2","A5.3","A5.4","A5.5",
               "A6.1","A6.2","A6.3","A6.4","A6.5"
             )
-samples_IN_MY <- c("M1.1", "M1.2", "M1.3", "M1.4", "M1.5",
-              "M2.1", "M2.2", "M2.3", "M2.4", "M2.5",
-              "M3.1", "M3.2", "M3.3", "M3.4", "M3.5",
-              "M4.1", "M4.2", "M4.3", "M4.4", "M4.5",
-              "M5.1", "M5.2", "M5.3", "M5.4", "M5.5",
-              "M6.1", "M6.2", "M6.3", "M6.4", "M6.5",
-              "M7.1", "M7.2", "M7.3", "M7.4", "M7.5",
-              "C1.1", "C1.2", "C1.3", "C1.4", "C1.5",
-              "C2.1", "C2.2", "C2.3", "C2.4", "C2.5",
-              "C3.1", "C3.2", "C3.3", "C3.4", "C3.5",
-              "C4.1", "C4.2", "C4.3", "C4.4", "C4.5",
-              "C5.1", "C5.2", "C5.3", "C5.4", "C5.5",
-              "C6.1", "C6.2", "C6.3", "C6.4", "C6.5",
-              "C7.1", "C7.2", "C7.3", "C7.4", "C7.5",
-              "C8.1", "C8.2", "C8.3", "C8.4", "C8.5",
-              "C9.1", "C9.2", "C9.3", "C9.4", "C9.5",
-              "D1.1","D1.2","D1.3","D1.4","D1.5",
-              "D2.1","D2.2","D2.3","D2.4","D2.5",
-              "D3.1","D3.2","D3.3","D3.4","D3.5",
-              "D4.1","D4.2","D4.3","D4.4","D4.5",
-              "D5.1","D5.2","D5.3","D5.4","D5.5",
-              "D6.1","D6.2","D6.3","D6.4","D6.5",
-              "D7.1","D7.2","D7.3","D7.4","D7.5",
-              "D8.1","D8.2","D8.3","D8.4","D8.5",
-              "D9.1","D9.2","D9.3","D9.4","D9.5",
-              "F1.1","F1.2","F1.3","F1.4","F1.5",
-              "F2.1","F2.2","F2.3","F2.4","F2.5",
-              "F3.1","F3.2","F3.3","F3.4","F3.5",
-              "F4.1","F4.2","F4.3","F4.4","F4.5",
-              "F5.1","F5.2","F5.3","F5.4","F5.5",
-              "F6.1","F6.2","F6.3","F6.4","F6.5",
-              "F7.1","F7.2","F7.3","F7.4","F7.5",
-              "F8.1","F8.2","F8.3","F8.4","F8.5",
-              "F9.1","F9.2","F9.3","F9.4","F9.5",
-              "A1.1","A1.2","A1.3","A1.4","A1.5",
-              "A2.1","A2.2","A2.3","A2.4","A2.5",
-              "A3.1","A3.2","A3.3","A3.4","A3.5",
-              "A4.1","A4.2","A4.3","A4.4","A4.5",
-              "A5.1","A5.2","A5.3","A5.4","A5.5",
-              "A6.1","A6.2","A6.3","A6.4","A6.5"
-            )            
 samples <- c(samples_IN, samples_MY, samples_KE)
-samples_am <- c("M1.1", "M1.2", "M1.3", "M1.4", "M1.5",
-              "M2.1", "M2.2", "M2.3", "M2.4", "M2.5",
-              "M3.1", "M3.2", "M3.3", "M3.4", "M3.5",
-              "M4.1", "M4.2", "M4.3", "M4.4", "M4.5",
-              "M5.1", "M5.2", "M5.3", "M5.4", "M5.5",
-              "M6.1", "M6.2", "M6.3", "M6.4", "M6.5",
-              "M7.1", "M7.2", "M7.3", "M7.4", "M7.5",
-              "AmAi01", "AmAi02", "AmAi03", "AmAi04", "AmAi05",
-              "AmAi06", "AmAi07", "AmAi08", "AmAi09", "AmAi10",
-              "AmIu01", "AmIu02", "AmIu03", "AmIu04", "AmIu05",
-              "DrY2_W1", "DrY2_W2", "DrY2_W3", "DrY2_W4", "DrY2_W5", "DrY2_W6",
-              "GrY2_F1", "GrY2_F2", "GrY2_F3", "GrY2_F4", "GrY2_F5", "GrY2_F6",
-              "GrY2_N1", "GrY2_N2", "GrY2_N3", "GrY2_N4", "GrY2_N5", "GrY2_N6",
-              "GrY2_W1", "GrY2_W2", "GrY2_W3", "GrY2_W4", "GrY2_W5", "GrY2_W6"
-            )
-samples_ac <- c("C1.1", "C1.2", "C1.3", "C1.4", "C1.5",
-              "C2.1", "C2.2", "C2.3", "C2.4", "C2.5",
-              "C3.1", "C3.2", "C3.3", "C3.4", "C3.5",
-              "C4.1", "C4.2", "C4.3", "C4.4", "C4.5",
-              "C5.1", "C5.2", "C5.3", "C5.4", "C5.5",
-              "C6.1", "C6.2", "C6.3", "C6.4", "C6.5",
-              "C7.1", "C7.2", "C7.3", "C7.4", "C7.5",
-              "C8.1", "C8.2", "C8.3", "C8.4", "C8.5",
-              "C9.1", "C9.2", "C9.3", "C9.4", "C9.5",
-              "AcKn01", "AcKn02", "AcKn03", "AcKn04", "AcKn05",
-              "AcKn06", "AcKn07", "AcKn08", "AcKn09", "AcKn10",
-              "AcCh01", "AcCh02", "AcCh03", "AcCh04", "AcCh05",
-              "AcCh06", "AcCh07", "AcCh08", "AcCh09", "AcCh10"
-            )
-samples_ad <- c("D1.1","D1.2","D1.3","D1.4","D1.5",
-              "D1.1","D1.2","D1.3","D1.4","D1.5",
-              "D2.1","D2.2","D2.3","D2.4","D2.5",
-              "D3.1","D3.2","D3.3","D3.4","D3.5",
-              "D4.1","D4.2","D4.3","D4.4","D4.5",
-              "D5.1","D5.2","D5.3","D5.4","D5.5",
-              "D6.1","D6.2","D6.3","D6.4","D6.5",
-              "D7.1","D7.2","D7.3","D7.4","D7.5",
-              "D8.1","D8.2","D8.3","D8.4","D8.5",
-              "D9.1","D9.2","D9.3","D9.4","D9.5"
-            )
-samples_af <- c("F1.1","F1.2","F1.3","F1.4","F1.5",
-              "F2.1","F2.2","F2.3","F2.4","F2.5",
-              "F3.1","F3.2","F3.3","F3.4","F3.5",
-              "F4.1","F4.2","F4.3","F4.4","F4.5",
-              "F5.1","F5.2","F5.3","F5.4","F5.5",
-              "F6.1","F6.2","F6.3","F6.4","F6.5",
-              "F7.1","F7.2","F7.3","F7.4","F7.5",
-              "F8.1","F8.2","F8.3","F8.4","F8.5",
-              "F9.1","F9.2","F9.3","F9.4","F9.5"
-            )
-samples_aa <- c("A1.1","A1.2","A1.3","A1.4","A1.5",
-              "A2.1","A2.2","A2.3","A2.4","A2.5",
-              "A3.1","A3.2","A3.3","A3.4","A3.5",
-              "A4.1","A4.2","A4.3","A4.4","A4.5",
-              "A5.1","A5.2","A5.3","A5.4","A5.5",
-              "A6.1","A6.2","A6.3","A6.4","A6.5"
-            )
-
 colonies <- c("M_1", "M_1", "M_1", "M_1", "M_1",
              "M_DrY2_F","M_DrY2_F","M_Ai","M_Iu",
               "C_1", "C_1", "C_1", "C_1", "C_1",
@@ -597,11 +476,9 @@ colonies <- c("M_1", "M_1", "M_1", "M_1", "M_1",
               "F_1","F_1","F_1","F_1","F_1",
               "F_2","F_2","F_2","F_2","F_2",
               "F_3","F_3","F_3","F_3","F_3")
-
 host_order <- c("Apis mellifera", "Apis cerana", "Apis dorsata", "Apis florea", "Apis andreniformis")
 host_order_color <- c("Apis mellifera" = brewer.pal(9, "Pastel1")[2], "Apis cerana" = brewer.pal(9, "Pastel1")[1], "Apis dorsata" = brewer.pal(9, "Pastel1")[4], "Apis florea" = brewer.pal(9, "Pastel1")[3], "Apis andreniformis" = brewer.pal(9, "Pastel1")[5])
 host_order_color_dark <- c("Apis mellifera" = brewer.pal(9, "Set1")[2], "Apis cerana" = brewer.pal(9, "Set1")[1], "Apis dorsata" = brewer.pal(9, "Set1")[4], "Apis florea" = brewer.pal(9, "Set1")[3], "Apis andreniformis" = brewer.pal(9, "Set1")[5])
-location_country_colors <- c("India" = brewer.pal(9, "Set3")[1], "Switzerland" = brewer.pal(9, "Pastel1")[8], "Malaysia" = brewer.pal(9, "Pastel1")[6], "Japan" = brewer.pal(9, "Pastel1")[7])
 colony_order <- c("M_1", "M_Iu", "M_Ai", "M_DrY2_F", "C_1", "C_2", "C_3", "C_Kn", "C_Ch", "D_1", "D_2", "D_3", "F_1", "F_2", "F_3")
 location_order <- c("AIST_Am", "UT_Am", "Bee park, GKVK_Am","Les Droites_Am",
                     "NCBS campus_Ac", "Bee park, GKVK_Ac", "Chiba_Ac", "Kanagawa_Ac",
@@ -871,3 +748,192 @@ df_meta_complete <- df_meta_complete %>%
                             mutate(Species = Vectorize(get_host_from_sample_name)(ID)) %>%
                             mutate(Country = Vectorize(get_location_from_sample_name)(ID))
 setwd(working_dir)
+
+
+df_reads <- data.frame()
+for (sample in samples) {
+  if (file.exists(paste0("fastqc/raw/", sample, "_R1_fastqc.zip"))) {
+    number_raw_R1 <- read.csv(unz(paste0("fastqc/raw/", sample, "_R1_fastqc.zip"), paste0(sample, "_R1_fastqc/fastqc_data.txt")), sep = "\t") %>%
+                filter(.[[1]] == "Total Sequences") %>%
+                  pull() %>%
+                    as.integer()  
+  } else {
+    number_raw_R1 <- NA
+  }
+  if (file.exists(paste0("fastqc/raw/", sample, "_R2_fastqc.zip"))) {
+    number_raw_R2 <- read.csv(unz(paste0("fastqc/raw/", sample, "_R2_fastqc.zip"), paste0(sample, "_R2_fastqc/fastqc_data.txt")), sep = "\t") %>%
+                filter(.[[1]] == "Total Sequences") %>%
+                  pull() %>%
+                    as.integer()
+  } else {
+    number_raw_R2 <- NA
+  }
+  if (file.exists(paste0("fastqc/trim/", sample, "_R1_trim_fastqc.zip"))) {
+    number_trimmed_R1 <- read.csv(unz(paste0("fastqc/trim/", sample, "_R1_trim_fastqc.zip"), paste0(sample, "_R1_trim_fastqc/fastqc_data.txt")), sep = "\t") %>%
+                  filter(.[[1]] == "Total Sequences") %>%
+                    pull() %>%
+                      as.integer()
+  } else {
+    number_trimmed_R1 <- NA
+  }
+  if (file.exists(paste0("fastqc/trim/", sample, "_R2_trim_fastqc.zip"))) {
+    number_trimmed_R2 <- read.csv(unz(paste0("fastqc/trim/", sample, "_R2_trim_fastqc.zip"), paste0(sample, "_R2_trim_fastqc/fastqc_data.txt")), sep = "\t") %>%
+                  filter(.[[1]] == "Total Sequences") %>%
+                    pull() %>%
+                      as.integer()
+  } else {
+    number_trimmed_R2 <- NA
+  }
+  raw_reads <- number_raw_R1 + number_raw_R2
+  trimmed <- number_trimmed_R1 + number_trimmed_R2
+  if (file.exists(paste0("02_HostMapping/", sample, "_flagstat.tsv"))) {
+    mapped_host_db <- read.csv(paste0("02_HostMapping/", sample, "_flagstat.tsv"), sep = "\t") %>%
+                      filter(.[[3]] == "with itself and mate mapped") %>%
+                        pull(1) %>%
+                          as.integer()
+  } else {
+   mapped_host_db <- NA 
+  }
+  unmapped_host_db <- trimmed - mapped_host_db
+  if (file.exists(paste0("04_MicrobiomeMappingDirect/", sample, "_flagstat.tsv"))) {
+    mapped_mic_db <- read.csv(paste0("04_MicrobiomeMappingDirect/", sample, "_flagstat.tsv"), sep = "\t") %>%
+                      filter(.[[3]] == "with itself and mate mapped") %>%
+                        pull(1) %>%
+                          as.integer()
+  } else {
+   mapped_mic_db <- NA 
+  }
+  unmapped_mic_db <- trimmed - mapped_mic_db
+  if (file.exists(paste0("03_MicrobiomeMapping/", sample, "_flagstat.tsv"))) {
+    mapped_mic_db_host_filtered <- read.csv(paste0("03_MicrobiomeMapping/", sample, "_flagstat.tsv"), sep = "\t") %>%
+                      filter(.[[3]] == "with itself and mate mapped") %>%
+                        pull(1) %>%
+                          as.integer()
+  } else {
+   mapped_mic_db_host_filtered <- NA 
+  }
+  unmapped_sequential <- unmapped_host_db - mapped_mic_db_host_filtered
+  values_to_bind <- c(sample, as.integer(c(raw_reads, trimmed, mapped_host_db, unmapped_host_db, mapped_mic_db, unmapped_mic_db, mapped_mic_db_host_filtered, unmapped_sequential)))
+  df_reads <- rbind(df_reads, values_to_bind)
+}
+# parse this later
+# read.csv(paste0("02_HostMapping/", sample, "_coverage.tsv"), sep = "\t")
+
+##############
+# analyse data and plot
+##############
+
+df_colnames <- c("Sample", "Raw", "Trimmed", "Mapped_host", "Unmapped_host", "Mapped_microbiome", "Unmapped_microbiome", "Mapped_microbiome_filtered", "Unmapped_filtered")
+colnames(df_reads) <- df_colnames
+df_reads <- df_reads %>%
+              mutate(across(!c("Sample"), as.integer))
+df_meta <- read.csv("config/Metadata_211018_Medgenome_india_samples.csv", sep = ',')
+colnames(df_meta)[which(colnames(df_meta) == "ID")] <- "Sample"
+df_meta$SpeciesID <- recode(df_meta$SpeciesID, "Am" = "Apis mellifera", "Ac" = "Apis cerana", "Af" = "Apis florea", "Ad" = "Apis dorsata")
+df_meta <- df_meta %>%
+            filter(Sample %in% samples) %>%
+              arrange(match(Sample, samples))
+df_meta %>% group_by(SpeciesID) %>% tally()
+df_meta %>% group_by(SpeciesID, Country) %>% tally()
+df_meta %>% group_by(SpeciesID, Country, Colony) %>% tally()
+df_plot_reads <- pivot_longer(df_reads, !Sample, values_to = "Number", names_to = "Type") %>%
+                  merge(select(df_meta, Sample, SpeciesID), by="Sample")
+df_plot_reads$Number <- as.integer(df_plot_reads$Number)
+
+df_gtdbk_bac <- read.csv("06_MAG_binning/gtdbtk_out_dir/classify/gtdbtk.bac120.summary.tsv", sep = "\t")
+drep_Bdb <- read.csv("06_MAG_binning/drep_results/data_tables/Bdb.csv", sep = ",")
+drep_gInformation <- read.csv("06_MAG_binning/drep_results/data_tables/genomeInfo.csv", sep = ",")
+drep_Sdb <- read.csv("06_MAG_binning/drep_results/data_tables/Sdb.csv", sep = ",")
+drep_Widb <- read.csv("06_MAG_binning/drep_results/data_tables/Widb.csv", sep = ",")
+MAGs_collated <- read.csv("06_MAG_binning/all_GenomeInfo_auto.tsv", sep = "\t")
+
+##############
+# analyse data and plot
+##############
+
+cluster_info <- drep_Widb %>%
+                  select(genome, score, cluster, cluster_members, furthest_cluster_member) %>%
+                    rename(score_representative = score) %>%
+                    mutate(representative_genome = Vectorize(format_genome_name)(genome)) %>%
+                      select(!genome)
+MAGs_collated_info <- left_join(MAGs_collated, mutate(drep_gInformation, genome = Vectorize(format_genome_name)(genome)), by = c("ID"="genome"))
+# Number of MAGs coming from each host species
+vis_magOTUs_df_all <- MAGs_collated_info %>%
+                        group_by(Sample) %>%
+                            mutate(all_quality = ifelse(completeness > 50 & contamination < 5 & N50 > 10000, "Pass", "Fail")) %>%
+                            mutate(Completeness_quality = cut(completeness ,breaks=c(-1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 95, 100, 110),
+                                                            labels = c("<10", "10-20", "20-30", "30-40", "40-50", "50-60", "60-70", "70-80", "80-90", "90-95", "95-100", "100"))
+                                                          ) %>%
+                              mutate(Contamination_quality = cut(contamination ,breaks=c(-1, 0, 5, 10, 100),
+                                                              labels = c("0", "0-5", "5-10", ">10"))
+                                                          ) %>%
+                              mutate(N50_quality = cut(N50 ,breaks=c(0, 10000, 50000, 100000, 200000, 500000, 1000000, 2000000, Inf), labels = c("<10Kb", "10-50Kb", "50-100Kb", "100-200Kb", "200-500Kb", "0.5-1Mb", "1-2Mb", ">2Mb"))) %>%
+                                mutate(sample = Vectorize(get_sample_name)(ID)) %>%
+                                filter(grepl("MAG_", ID)) %>%
+                                  mutate(Host = Vectorize(get_host_name)(ID)) # %>%
+                                    # mutate(num_contigs = Vectorize(get_num_contigs_per_bin)(ID))
+vis_magOTUs_df_all <- vis_magOTUs_df_all %>%
+                          group_by(Cluster) %>%
+                            mutate(Num_mags = n()) %>%
+                              mutate(Prevalence_overall = Num_mags/length(samples))
+samples_am <- c(vis_magOTUs_df_all %>% filter(Host == "Apis mellifera") %>% pull(Sample) %>% unique %>% as.vector)
+samples_ac <- c(vis_magOTUs_df_all %>% filter(Host == "Apis cerana") %>% pull(Sample) %>% unique %>% as.vector)
+samples_ad <-c(vis_magOTUs_df_all %>% filter(Host == "Apis dorsata") %>% pull(Sample) %>% unique %>% as.vector)
+samples_af <-c(vis_magOTUs_df_all %>% filter(Host == "Apis florea") %>% pull(Sample) %>% unique %>% as.vector)
+vis_magOTUs_df_all <- vis_magOTUs_df_all %>%
+                          group_by(Cluster, Host) %>%
+                            mutate(Present = n()) %>%
+                            mutate(Prevalence = ifelse(Host=="Apis mellifera", Present/length(samples_am), NA)) %>%
+                            mutate(Prevalence = ifelse(Host=="Apis cerana", Present/length(samples_ac), Prevalence)) %>%
+                            mutate(Prevalence = ifelse(Host=="Apis dorsata", Present/length(samples_ad), Prevalence)) %>%
+                            mutate(Prevalence = ifelse(Host=="Apis florea", Present/length(samples_af), Prevalence)) %>%
+                              # left_join(summarise(group_by(contigs_depths_df, bin), mean_coverage = mean(depth), .groups = "drop"), by = c("ID" = "bin")) %>%
+                                arrange(Genus)
+vis_magOTUs_df_all <- left_join(vis_magOTUs_df_all, cluster_info, by = c("Cluster" = "cluster")) %>%
+                        left_join(drep_Sdb %>%
+                                    mutate(ID = Vectorize(format_genome_name)(genome)) %>%
+                                    select(!genome)
+                        )
+vis_magOTUs_df <- vis_magOTUs_df_all %>%
+                    filter(all_quality == "Pass")
+vis_magOTUs_df$Host <- as.factor(recode(vis_magOTUs_df$Host, Am="Apis mellifera", Ac="Apis cerana", Ad="Apis dorsata", Af="Apis florea"))
+vis_magOTUs_df$Cluster <- as.factor(vis_magOTUs_df$Cluster)
+vis_magOTUs_df$sample <- as.factor(vis_magOTUs_df$sample)
+vis_magOTUs_df$Family <- as.factor(vis_magOTUs_df$Family)
+vis_magOTUs_df$Genus <- as.factor(vis_magOTUs_df$Genus)
+vis_magOTUs_df <- vis_magOTUs_df[order(vis_magOTUs_df$Genus), ]
+
+abundance_df <- coords_df %>%
+  rename(Cluster = magOTU) %>%
+    left_join(cluster_tax_info %>% filter(!is.na(cluster_name))) %>%
+      mutate(Host = Vectorize(get_host_name)(Sample)) %>%
+        mutate(Cov = ifelse(is.na(Cov), 0, Cov)) %>%
+          mutate(MedianCov = ifelse(is.na(MedianCov), 0, MedianCov)) %>%
+            select(Sample, Cov, cluster_name, Host) %>%
+              left_join(select(df_reads, Trimmed, Sample), by = "Sample") %>%
+                  rename(NumReads = Trimmed) %>%
+                    mutate(CovNorm = Cov/NumReads)
+
+abundance_df_matrix <-  abundance_df %>% filter(!is.na(cluster_name)) %>%
+                          mutate(PresAb = ifelse(CovNorm > 0, 1, 0)) %>%
+                          select(Sample, cluster_name, PresAb) %>%
+                            pivot_wider(names_from=cluster_name, values_from=PresAb, values_fn = as.vector) %>% remove_rownames %>%
+                            column_to_rownames(var="Sample")
+
+abundance_df_matrix_pa <-  abundance_df %>% filter(!is.na(cluster_name)) %>%
+                          mutate(PresAb = ifelse(Cov > 1, 1, 0)) %>%
+                          select(Sample, cluster_name, PresAb) %>%
+                            pivot_wider(names_from=cluster_name, values_from=PresAb, values_fn = as.vector) %>% remove_rownames %>%
+                            column_to_rownames(var="Sample")
+
+abundance_df_matrix_Cov_rel <-  abundance_df %>% filter(!is.na(cluster_name)) %>%
+                          select(Sample, cluster_name, Cov) %>%
+                            pivot_wider(names_from=cluster_name, values_from=Cov, values_fn = as.vector) %>% remove_rownames %>%
+                            column_to_rownames(var="Sample") %>%
+                              mutate(across(-1)*100/rowSums(across(-1)))
+
+abundance_df_matrix_Cov <-  abundance_df %>% filter(!is.na(cluster_name)) %>%
+                          select(Sample, cluster_name, Cov) %>%
+                          filter(Sample %in% samples_IN) %>%
+                            pivot_wider(names_from=cluster_name, values_from=Cov, values_fn = as.vector) %>% remove_rownames %>%
+                            column_to_rownames(var="Sample")
