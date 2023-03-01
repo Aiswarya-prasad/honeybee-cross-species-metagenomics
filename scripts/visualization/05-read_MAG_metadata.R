@@ -44,10 +44,7 @@ vis_magOTUs_df_all <- vis_magOTUs_df_all %>%
                           group_by(Cluster) %>%
                             mutate(Num_mags = n()) %>%
                               mutate(Prevalence_overall = Num_mags/length(samples))
-samples_am <- c(vis_magOTUs_df_all %>% filter(Host == "Apis mellifera") %>% pull(Sample) %>% unique %>% as.vector)
-samples_ac <- c(vis_magOTUs_df_all %>% filter(Host == "Apis cerana") %>% pull(Sample) %>% unique %>% as.vector)
-samples_ad <-c(vis_magOTUs_df_all %>% filter(Host == "Apis dorsata") %>% pull(Sample) %>% unique %>% as.vector)
-samples_af <-c(vis_magOTUs_df_all %>% filter(Host == "Apis florea") %>% pull(Sample) %>% unique %>% as.vector)
+
 vis_magOTUs_df_all <- vis_magOTUs_df_all %>%
                           group_by(Cluster, Host) %>%
                             mutate(Present = n()) %>%

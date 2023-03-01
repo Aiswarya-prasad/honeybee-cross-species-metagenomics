@@ -1,0 +1,494 @@
+#*********Work in progress*********#
+
+##############
+# functions used
+##############
+
+source('scripts/visualization/Load_data.R', chdir = TRUE)
+
+##############
+# files to be read
+##############
+
+# made using scripts/count_genes_in_contigs.py
+num_genes_binned <- read.csv("/scratch/aprasad/211018_Medgenome_india_samples/Figures/Number_genes_binned.csv")
+pcoa_plot <- function(df_pcoa, metadata, variable, color_add=F, color_list, colname_in_metadata = "ID", shape_add = F, shape_var) {
+          matrix <- as.matrix(df_pcoa)
+          dist <- as.dist(matrix)
+          res_pcoa <- pcoa(dist)
+          ev1 <- res_pcoa$vectors[,1]
+          ev2 <- res_pcoa$vectors[,2]
+          df_pcoa_new <- data.frame(cbind(ev1,ev2))
+          df_pcoa_new$Sample <- rownames(df_pcoa_new)
+          rownames(df_pcoa_new) <- NULL
+          df_pcoa_new <- left_join(df_pcoa_new, metadata, by = c("Sample" = colname_in_metadata))
+          perc_axis <- round(((res_pcoa$values$Relative_eig[c(1,2)])*100), digits=1)
+          axis_x_title <- paste0("PCo1 (",perc_axis[1],"%)")
+          axis_y_title <- paste0("PCo2 (",perc_axis[2],"%)")
+          if(color_add & shape_add) {
+            p <- ggplot(df_pcoa_new, aes(x = ev1,
+                                       y = ev2,
+                                       shape = get(shape_var),
+                                       colour = get(variable)))+
+                geom_point(stat="identity", size=4) +
+                  labs(x=axis_x_title, y = axis_y_title, color = variable, shape = shape_var) +
+                    make_theme(setFill = F, setCol = F, guide_nrow = 7, leg_size = 10 ) +
+                      scale_color_manual(values=color_list)
+          } else {
+            if (color_add) {
+              p <- ggplot(df_pcoa_new, aes(x = ev1,
+                                       y = ev2,
+                                       colour = get(variable)))+
+                geom_point(stat="identity", size=4, shape=19) +
+                  labs(x=axis_x_title, y = axis_y_title, color = variable) +
+                    make_theme(setFill = F, setCol = F, guide_nrow = 7, leg_size = 10 ) +
+                      scale_color_manual(values=color_list)
+            } else {
+              p <- ggplot(df_pcoa_new, aes(x = ev1,
+                                       y = ev2,
+                                       color = get(variable)))+
+                geom_point(stat="identity", size=4, shape=19) +
+                  labs(x=axis_x_title, y = axis_y_title, color = variable) +
+                    make_theme( max_colors = length(unique(df_pcoa_new[, variable])), guide_nrow = 7, leg_size = 10 ) 
+            }
+          }
+          return(p)
+}
+
+make_col_list <- function(my_vec, my_palette = "Spectral") {
+  uniq_names <- unique(my_vec)
+  num_ele <- length(uniq_names)
+  if (num_ele <= 3) {
+    diff_ele = 3 - num_ele
+    num_ele = 3
+    uniq_names <- c(uniq_names, rep("s__", diff_ele))
+    cols_used <- brewer.pal(5, my_palette)[1:3]
+  }
+  if (num_ele <= 9 & num_ele > 3) {
+    cols_used <- brewer.pal(num_ele, my_palette)
+  } else {
+    if (my_palette == "Pastel2") {
+      cols_used <- colorRampPalette(brewer.pal(8, my_palette))(num_ele)
+    } else {
+      cols_used <- colorRampPalette(brewer.pal(9, my_palette))(num_ele)
+    }
+  }
+  col_list <- c(cols_used)
+  names(col_list) = uniq_names
+  return(col_list)
+}
+
+plot_heatmap_custom <- function(my_matrix, bottom_annotation_name = "Genus", col_input, clust_r = F, clust_c = T, grid_line_col = "white") {
+  my_layer_fun = function (j, i, x, y, w, h, fill) {
+                grid.rect(x = x, y = y, width = w, heigh = h,
+                          gp = gpar(col = grid_line_col, fill = NA)
+                )
+                # ind_mat = restore_matrix(j, i, x, y)
+                # ind = unique(c(ind_mat[2, ], ind_mat[, 3]))
+                # grid.points(x[ind], y[ind], pch = 16, size = unit(4, "mm"))
+
+             }
+  # my_cell_fun = function (j, i, x, y, w, h, fill) {
+  #               grid.rect(x = x, y = y, width = w, heigh = h,
+  #                         gp = gpar(col = "white", fill = NA)
+  #               )
+  #               grid.circle(x = x, y = y, r = abs(my_matrix[i, j]/2 * min(unit.c(w, h))),
+  #                         gp = gpar(col = NA, fill = "black")
+  #               )
+
+  #            }
+  genus_names = rownames(my_matrix) %>% as.data.frame() %>%
+                            left_join(vis_magOTUs_df_all %>% ungroup(), by = c(. = "ID")) %>%
+                              pull(Genus)
+  species_names = rownames(my_matrix) %>% as.data.frame() %>%
+                            left_join(vis_magOTUs_df_all %>% ungroup(), by = c(. = "ID")) %>%
+                              pull(Species)
+  magOTU_names = rownames(my_matrix) %>% as.data.frame() %>%
+                            left_join(vis_magOTUs_df_all %>% ungroup(), by = c(. = "ID")) %>%
+                              pull(Cluster)
+  host_names = rownames(my_matrix) %>% as.data.frame() %>%
+                            left_join(vis_magOTUs_df_all %>% ungroup(), by = c(. = "ID")) %>%
+                            pull(Host) %>% as.character()
+  row_names = rownames(my_matrix) %>% as.data.frame() %>%
+                            left_join(vis_magOTUs_df_all %>% ungroup(), by = c(. = "ID")) %>%
+                              pull(Genus)
+  anno_host_col = HeatmapAnnotation(Host = host_names,
+                                          col = list(Host = host_order_color)
+                                    )
+  anno_genus_col = HeatmapAnnotation(Genus = genus_names,
+                                            col = list(Genus = genusColors_char
+                                                      )
+                                     )
+  anno_magOTU_col = HeatmapAnnotation(magOTU = magOTU_names,
+                                            col = list(magOTU = make_col_list(magOTU_names)
+                                                      )
+                                     )
+  anno_species_col = HeatmapAnnotation(Species = species_names,
+                                            col = list(Species = make_col_list(species_names)
+                                                      )
+                                     )
+  anno_all_col = HeatmapAnnotation(Genus = genus_names,
+                                   Species = species_names,
+                                   magOTU = magOTU_names,
+                                            col = list(Genus = genusColors_char,
+                                                       Species = make_col_list(species_names, "Spectral"),
+                                                       magOTU = make_col_list(magOTU_names, "Paired")
+                                                        )
+                                     )
+  anno_g_s_col = HeatmapAnnotation(Genus = genus_names,
+                                   Species = species_names,
+                                            col = list(Genus = genusColors_char,
+                                                       Species = make_col_list(species_names, "Paired")
+                                                        )
+                                     )
+  anno_m_s_col = HeatmapAnnotation(Species = species_names,
+                                   magOTU = magOTU_names,
+                                            col = list(Species = make_col_list(species_names, "Spectral"),
+                                                       magOTU = make_col_list(magOTU_names, "Paired")
+                                                        )
+                                     )
+  anno_m_g_col = HeatmapAnnotation(Genus = genus_names,
+                                   magOTU = magOTU_names,
+                                            col = list(Genus = genusColors_char,
+                                                       magOTU = make_col_list(magOTU_names, "Paired")
+                                                        )
+                                     )
+  bottom_annotation_obj = anno_genus_col
+  if (bottom_annotation_name == "Genus") {
+    bottom_annotation_obj = anno_genus_col
+  }
+  if (bottom_annotation_name == "Species") {
+    bottom_annotation_obj = anno_species_col
+  }
+  if (bottom_annotation_name == "magOTU") {
+    bottom_annotation_obj = anno_magOTU_col
+  }
+  if (bottom_annotation_name == "Genus_Species") {
+    bottom_annotation_obj = anno_g_s_col
+  }
+  if (bottom_annotation_name == "magOTU_Species") {
+    bottom_annotation_obj = anno_g_s_col
+  }
+  if (bottom_annotation_name == "magOTU_Genus") {
+    bottom_annotation_obj = anno_m_g_col
+  }
+  if (bottom_annotation_name == "All") {
+    bottom_annotation_obj = anno_all_col
+  }
+  heatmap_obj = Heatmap(t(my_matrix), 
+            # col = colorRamp2(c(limit_l, limit_h), c("#9ecae1", "#08306b")),
+            col = col_input,
+            # clustering_method_columns = 'ward.D2',
+            top_annotation = anno_host_col,
+            bottom_annotation = bottom_annotation_obj,
+            # left_annotation = anno_host_row,
+            column_names_gp = grid::gpar(fontsize = 0),
+            row_names_gp = grid::gpar(fontsize = 10),
+            # heatmap_legend_param = list(title = "Number of genes", color_bar = "Continuous"),
+            layer_fun = my_layer_fun,
+            # cell_fun = my_cell_fun,
+            cluster_columns = clust_c,
+            # row_dend_reorder = T,
+            cluster_rows = clust_r
+            )
+  draw(heatmap_obj, merge_legend = TRUE)
+}
+
+metabolism_carbon <- read_excel("/scratch/aprasad/211018_Medgenome_india_samples/08_DRAM_annotations/MAGs_distill_manual/distill_all/distilled/metabolism_summary.xlsx", sheet = "carbon utilization")
+metabolism_transporters <- read_excel("/scratch/aprasad/211018_Medgenome_india_samples/08_DRAM_annotations/MAGs_distill_manual/distill_all/distilled/metabolism_summary.xlsx", sheet = "Transporters")
+metabolism_energy <- read_excel("/scratch/aprasad/211018_Medgenome_india_samples/08_DRAM_annotations/MAGs_distill_manual/distill_all/distilled/metabolism_summary.xlsx", sheet = "Energy")
+metabolism_nitrogen <- read_excel("/scratch/aprasad/211018_Medgenome_india_samples/08_DRAM_annotations/MAGs_distill_manual/distill_all/distilled/metabolism_summary.xlsx", sheet = "Organic Nitrogen")
+product_tsv <- read.csv("/scratch/aprasad/211018_Medgenome_india_samples/08_DRAM_annotations/MAGs_distill_manual/distill_all/distilled/product.tsv", sep = "\t")
+
+##############
+# analyse data and plot
+##############
+
+
+ggplot() +
+  geom_bar(data = num_genes_binned,
+           aes(x = Sample,
+             y = Perc_genes_binned
+           ),
+           stat = "identity",
+           fill = brewer.pal(9, "Pastel1")[2]
+          ) +
+    labs(x = "Sample", y = "Percentage genes in binned contigs") +
+    scale_y_continuous(labels=unit_format(unit = "%"), limits = c(0, 100)) +
+    make_theme(setFill = F,
+               x_angle = 40, x_hj = 1, x_vj = 1)
+    ggsave("Figures/08-perc_binned_genes.pdf")
+
+metabolism_carbon
+metabolism_transporters
+metabolism_energy
+metabolism_nitrogen
+
+metabolism_nitrogen_mat <- metabolism_nitrogen %>%
+                              select(!c(gene_description, module, header, subheader)) %>%
+                              t %>%
+                              as.data.frame
+# colnames(metabolism_nitrogen_mat) <- metabolism_nitrogen_mat[1,]
+metabolism_nitrogen_mat <- metabolism_nitrogen_mat[-1,] %>%
+                                    mutate_if(is.character,as.numeric)
+dist_matrix_nitrogen <- vegdist(metabolism_nitrogen_mat, method = "bray")
+
+pcoa_plot(dist_matrix_nitrogen, vis_magOTUs_df_all, "Host", color_add = T, host_order_color_dark, "ID")
+pcoa_plot(dist_matrix_nitrogen, vis_magOTUs_df_all, "Genus", color_add = T, genusColors, "ID", shape_add = F)
+pcoa_plot(dist_matrix_nitrogen, vis_magOTUs_df_all, "Genus", color_add = T, genusColors, "ID", shape_add = T, "Host")
+
+
+metabolism_energy_mat <- metabolism_energy %>%
+                              select(!c(gene_description, module, header, subheader)) %>%
+                              t %>%
+                              as.data.frame
+# colnames(metabolism_energy_mat) <- metabolism_energy_mat[1,]
+metabolism_energy_mat <- metabolism_energy_mat[-1,] %>%
+                                    mutate_if(is.character,as.numeric)
+dist_matrix_energy <- vegdist(metabolism_energy_mat, method = "bray")
+
+pcoa_plot(dist_matrix_energy, vis_magOTUs_df_all, "Host", color_add = T, host_order_color_dark, "ID")
+pcoa_plot(dist_matrix_energy, vis_magOTUs_df_all, "Genus", color_add = T, genusColors, "ID", shape_add = F)
+pcoa_plot(dist_matrix_energy, vis_magOTUs_df_all, "Genus", color_add = T, genusColors, "ID", shape_add = T, "Host")
+
+
+metabolism_transporters_mat <- metabolism_transporters %>%
+                              select(!c(gene_description, module, header, subheader)) %>%
+                              t %>%
+                              as.data.frame
+metabolism_transporters_mat <- metabolism_transporters_mat[-1,] %>%
+                                    mutate_if(is.character,as.numeric)
+dist_matrix_transporters <- vegdist(metabolism_transporters_mat, method = "bray")
+colnames(metabolism_transporters_mat) <- metabolism_transporters_mat[1,]
+
+pcoa_plot(dist_matrix_transporters, vis_magOTUs_df_all, "Host", color_add = T, host_order_color_dark, "ID")
+pcoa_plot(dist_matrix_transporters, vis_magOTUs_df_all, "Genus", color_add = T, genusColors, "ID", shape_add = F)
+pcoa_plot(dist_matrix_transporters, vis_magOTUs_df_all, "Genus", color_add = T, genusColors, "ID", shape_add = T, "Host")
+
+
+metabolism_carbon_mat <- metabolism_carbon %>%
+                              select(!c(gene_description, module, header, subheader)) %>%
+                              t %>%
+                              as.data.frame
+metabolism_carbon_mat <- metabolism_carbon_mat[-1,] %>%
+                                    mutate_if(is.character,as.numeric)
+colnames(metabolism_carbon_mat) <- metabolism_carbon_mat[1,]
+dist_matrix_carbon <- vegdist(metabolism_carbon_mat, method = "bray")
+
+pcoa_plot(dist_matrix_carbon, vis_magOTUs_df_all, "Host", color_add = T, host_order_color_dark, "ID")
+pcoa_plot(dist_matrix_carbon, vis_magOTUs_df_all, "Genus", color_add = T, genusColors, "ID", shape_add = F)
+pcoa_plot(dist_matrix_carbon, vis_magOTUs_df_all, "Genus", color_add = T, genusColors, "ID", shape_add = T, "Host")
+# Extracellular pectin degradation
+genes_of_interest <- c("PL22", "PL11", "PL1", "CBM20", "GH43", "GH31", "GH76", "GH125", "GH92", "GH51", "GH5", "GH28", "CE12", "CE8", "GH105", "GH13", "GH57", "GH133", "GH97")
+# genes_of_interest <- c("CE12", "PL1", "PL9", "PL22", "GH2", "GH28", "GH32", "GH36", "GH38", "GH4", "GH43", "GH78", "GH105", "GT107", "GT2", "GH1")
+metabolism_goi_mat <- metabolism_carbon %>%
+                              filter(gene_id %in% c(genes_of_interest)) %>%
+                              select(!c(gene_description, module, header, subheader)) %>%
+                              t %>%
+                              as.data.frame
+colnames(metabolism_goi_mat) <- metabolism_goi_mat[1,]
+metabolism_goi_mat <- metabolism_goi_mat[-1,] %>%
+                                    mutate_if(is.character,as.numeric) %>%
+                                      filter(rowSums(.) > 0)
+dist_matrix_goi <- vegdist(metabolism_goi_mat, method = "jaccard")
+
+pcoa_plot(dist_matrix_goi, vis_magOTUs_df_all, "Host", color_add = T, host_order_color_dark, "ID")
+pcoa_plot(dist_matrix_goi, vis_magOTUs_df_all, "Genus", color_add = T, genusColors, "ID", shape_add = F)
+pcoa_plot(dist_matrix_goi, vis_magOTUs_df_all, "Genus", color_add = T, genusColors, "ID", shape_add = T, "Host")
+
+
+metabolism_carbon_df <- metabolism_carbon %>%
+                              mutate(Type = ifelse(gene_id %in% c(genes_of_interest), "pectin", "other")) %>%
+                              # select(!c(gene_description, module, header, subheader)) %>%
+                              group_by(gene_id) %>%
+                              summarise(subheader, across(where(is.numeric), sum)) %>% t %>% as.data.frame
+
+colnames(metabolism_carbon_df) <- metabolism_carbon_df[1,]
+metabolism_carbon_df <- metabolism_carbon_df[-1,] %>%
+                                    mutate_if(is.character,as.numeric) %>%
+                                    rownames_to_column("ID") %>%
+                                    left_join(vis_magOTUs_df_all)
+
+dist_matrix_product_pathway <- vegdist(product_tsv %>%
+                                select(c(1:14)) %>%
+                                  column_to_rownames("genome"))
+pcoa_plot(dist_matrix_product_pathway, vis_magOTUs_df_all, "Host", color_add = T, host_order_color_dark, "ID")
+pcoa_plot(dist_matrix_product_pathway, vis_magOTUs_df_all, "Genus", color_add = T, genusColors, "ID")
+logic_to_num <- function(x) {
+  if (x) {
+    return(1)
+  }
+  return(0)
+}
+# cazy
+dist_matrix_product_others <- vegdist(product_tsv %>%
+                                select(c(1,34:52)) %>%
+                                  column_to_rownames("genome") %>% mutate(across(!where(is.numeric), Vectorize(logic_to_num))) %>%
+                                  filter(rowSums(.) > 0), 
+                                  method = "jaccard"
+                                  )
+pcoa_plot(dist_matrix_product_others, vis_magOTUs_df_all, "Host", color_add = T, host_order_color_dark, "ID")
+pcoa_plot(dist_matrix_product_others, vis_magOTUs_df_all, "Genus", color_add = T, genusColors, "ID")
+
+
+df_other <- product_tsv %>%
+                  select(c(1,34:52)) %>%
+                   column_to_rownames("genome") %>%
+                    mutate(across(!where(is.numeric), Vectorize(logic_to_num))) %>%
+                    filter(rowSums(.) > 0) %>%
+                      as.matrix
+
+# plot_heatmap(df_other, c("#a6cee3", "#ffffff"))
+# plot_heatmap(metabolism_transporters_mat , colorRamp2(c(0, 10), c("#9ecae1", "#08306b")))
+
+mags_chosen <- vis_magOTUs_df_all %>% ungroup() %>%
+          filter(Genus %in% c("g__Lactobacillus"
+                             )
+                ) %>%
+            arrange(Host, Cluster) %>% 
+              pull(ID)
+plot_heatmap_custom(metabolism_goi_mat %>% 
+                      filter(rownames(.) %in% mags_chosen) %>%
+                      rownames_to_column("genome") %>%
+                      mutate(genome = factor(genome, levels = mags_chosen)) %>%
+                      arrange(genome) %>%
+                      mutate(genome = as.vector(genome)) %>%
+                      column_to_rownames("genome") %>%
+                      filter(rowSums(.) > 0),
+                    colorRamp2(c(0, 20), c("#9ecae1", "#08306b")), clust_c = F, bottom_annotation_name = "All", grid_line_col = NA)
+
+mags_chosen <- vis_magOTUs_df_all %>% ungroup() %>%
+          filter(Genus %in% c("g__Dysgonomonas"
+                             )
+                ) %>%
+            arrange(Host, Cluster) %>%
+              pull(ID)
+plot_heatmap_custom(metabolism_goi_mat %>%
+                      filter(rownames(.) %in% mags_chosen) %>%
+                      rownames_to_column("genome") %>%
+                      mutate(genome = factor(genome, levels = mags_chosen)) %>%
+                      arrange(genome) %>%
+                      mutate(genome = as.vector(genome)) %>%
+                      column_to_rownames("genome") %>%
+                      filter(rowSums(.) > 0),
+                    colorRamp2(c(0, 20), c("#9ecae1", "#08306b")), clust_c = F, bottom_annotation_name = "magOTU_Genus", grid_line_col = NA)
+
+mags_chosen <- vis_magOTUs_df_all %>% ungroup() %>%
+          filter(Genus %in% c("g__Gilliamella"
+                             )
+                ) %>%
+            arrange(Genus, Host, Cluster) %>% 
+            pull(ID)
+plot_heatmap_custom(metabolism_goi_mat %>% 
+                    filter(rownames(.) %in% mags_chosen) %>%
+                      rownames_to_column("genome") %>%
+                      mutate(genome = factor(genome, levels = mags_chosen)) %>%
+                      arrange(genome) %>%
+                      mutate(genome = as.vector(genome)) %>%
+                      column_to_rownames("genome") %>%
+                      filter(rowSums(.) > 0),
+                    colorRamp2(c(0, 20), c("#9ecae1", "#08306b")), clust_c = F, bottom_annotation_name = "magOTU_Genus", grid_line_col = NA)
+# List of interesting dysgonomonas MAGs with those genes
+metabolism_goi_mat %>%
+  filter(rownames(.) %in% mags_chosen) %>%
+  select(PL1, PL22, PL11, GH5, GH51, GH57, GH105, CE12) %>%
+  filter(rowSums(.) > 0)
+
+# MAG_D3.4_25 MAG_D3.4_10 MAG_D3.2_3 MAG_D2.3_4 MAG_D2.2_5 MAG_C1.2_10 MAG_C1.4_18 MAG_C1.5_19 MAG_C2.1_16 MAG_C2.5_14 MAG_C3.5_3
+vis_magOTUs_df_all %>% ungroup() %>%
+  filter(ID %in% c("MAG_D3.4_25", "MAG_D3.4_10", "MAG_D3.2_3", "MAG_D2.3_4", "MAG_D2.2_5", "MAG_C1.2_10", "MAG_C1.4_18", "MAG_C1.5_19", "MAG_C2.1_16", "MAG_C2.5_14", "MAG_C3.5_3")) %>%
+  select(Cluster)
+
+mags_chosen <- vis_magOTUs_df_all %>% ungroup() %>%
+          filter(Genus %in% c("g__Dysgonomonas",
+                              "g__Bifidobacterium",
+                              "g__Gilliamella",
+                              "g__Snodgrasella",
+                              "g__Lactobacillus",
+                              "g__Bombilactobacillus",
+                              "g__Frischella"
+                             )
+                ) %>%
+            arrange(Genus, Host, Cluster) %>% 
+            pull(ID)
+pdf("Figures/08-Cazyme_genes_of_interest.pdf")
+plot_heatmap_custom(metabolism_goi_mat %>% 
+                      filter(rownames(.) %in% mags_chosen) %>%
+                      rownames_to_column("genome") %>%
+                      mutate(genome = factor(genome, levels = mags_chosen)) %>%
+                      arrange(genome) %>%
+                      mutate(genome = as.vector(genome)) %>%
+                      column_to_rownames("genome") %>%
+                      filter(rowSums(.) > 0),
+                    colorRamp2(c(0, 20), c("#9ecae1", "#08306b")), clust_c = F, bottom_annotation_name = "Genus_Species", grid_line_col = NA)
+dev.off()
+
+
+mags_chosen <- vis_magOTUs_df_all %>% ungroup() %>%
+            arrange(Genus, Cluster) %>% 
+            pull(ID)
+products_subset <- product_tsv %>%
+                                select(matches("cyto"), genome) %>%
+                                  filter(genome %in% mags_chosen) %>%
+                                  mutate(genome = factor(genome, levels = mags_chosen)) %>%
+                                  arrange(genome) %>%
+                                  column_to_rownames("genome") %>%
+                                  filter(rowSums(.) > 0)
+plot_heatmap_custom(products_subset %>%
+                      filter(rowSums(.) > 0), c("#9ecae1", "#08306b"), clust_c = F, bottom_annotation_name = "Genus", grid_line_col = NA)
+mags_chosen <- vis_magOTUs_df_all %>% ungroup() %>%
+                filter(Genus %in% c("g__Lactobacillus",
+                                    "g__Bombilactobacillus",
+                                    "g__Bifidobacterium",
+                                    "g__Gilliamella",
+                                    "g__Snodgrassella",
+                                    "g__Frischella",
+                                    "g__Dysgonomonas",
+                                    "g__Pectinatus",
+                                    "g__Apibacter",
+                                    "g__Commensalibacter",
+                                    "g__Bartonella",
+                                    "g__Bombella",
+                                    "g__WRHT01"
+                                  )
+                      ) %>%
+                  # arrange(Host) %>%
+                  arrange(Host, Genus, Cluster) %>%
+                  pull(ID)
+products_subset <- product_tsv %>%
+                                select(matches("cyto"), genome) %>%
+                                  filter(genome %in% mags_chosen) %>%
+                                  mutate(genome = factor(genome, levels = mags_chosen)) %>%
+                                  arrange(genome) %>%
+                                  column_to_rownames("genome") %>%
+                                  filter(rowSums(.) > 0)
+plot_heatmap_custom(products_subset %>%
+                      filter(rowSums(.) > 0), c("#9ecae1", "#08306b"), clust_c = F, bottom_annotation_name = "Genus", grid_line_col = NA)
+mags_chosen <- vis_magOTUs_df_all %>% ungroup() %>%
+                filter(Genus %in% c("g__Lactobacillus",
+                                    "g__Bombilactobacillus",
+                                    "g__Bifidobacterium",
+                                    "g__Gilliamella",
+                                    "g__Snodgrassella",
+                                    "g__Frischella",
+                                    "g__Dysgonomonas",
+                                    "g__Pectinatus",
+                                    "g__Apibacter",
+                                    "g__Commensalibacter",
+                                    "g__Bartonella",
+                                    "g__Bombella",
+                                    "g__WRHT01"
+                                  )
+                      ) %>%
+                  # arrange(Host) %>%
+                  arrange(Genus, Host, Cluster) %>%
+                  pull(ID)
+products_subset <- product_tsv %>%
+                                select(matches("cyto"), genome) %>%
+                                  filter(genome %in% mags_chosen) %>%
+                                  mutate(genome = factor(genome, levels = mags_chosen)) %>%
+                                  arrange(genome) %>%
+                                  column_to_rownames("genome") %>%
+                                  filter(rowSums(.) > 0)
+plot_heatmap_custom(products_subset %>%
+                      filter(rowSums(.) > 0), c("#9ecae1", "#08306b"), clust_c = F, bottom_annotation_name = "Genus", grid_line_col = NA)

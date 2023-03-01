@@ -713,6 +713,33 @@ genusColors <- list("g__Bombilactobacillus" = head(colorRampPalette(c(brewer.pal
                     "g__Parolsenella" = head(colorRampPalette(c(brewer.pal(11, "BrBG")[2], "#FFFFFF"))(10), -1)[8],
                     "g__" = "#000000"
 )
+genusColors_char <- c("g__Bombilactobacillus" = head(colorRampPalette(c(brewer.pal(11, "Spectral")[1], "#FFFFFF"))(10), -1)[1],
+                    "g__Lactobacillus" = head(colorRampPalette(c(brewer.pal(11, "Spectral")[1], "#FFFFFF"))(10), -1)[4],
+                    "g__Bifidobacterium" = brewer.pal(11, "Spectral")[3],
+                    "g__Gilliamella" = brewer.pal(11, "Spectral")[11],
+                    "g__Frischella" = brewer.pal(11, "Spectral")[8],
+                    "g__Bartonella" = brewer.pal(11, "Spectral")[7],
+                    "g__Snodgrassella" = brewer.pal(11, "Spectral")[10],
+                    "g__Apibacter" = brewer.pal(11, "Spectral")[4],
+                    "g__Commensalibacter" = brewer.pal(11, "Spectral")[6],
+                    "g__Bombella" = brewer.pal(11, "Spectral")[5],
+                    "g__Apilactobacillus" = brewer.pal(11, "Spectral")[9],
+                    "g__Dysgonomonas" = brewer.pal(11, "Spectral")[2],
+                    "g__Spiroplasma" = brewer.pal(8, "Set1")[8],
+                    "g__WRHT01" = brewer.pal(8, "Dark2")[3],
+                    "g__Pectinatus" = brewer.pal(8, "Dark2")[1],
+                    "g__Enterobacter" = head(colorRampPalette(c(brewer.pal(11, "BrBG")[2], "#FFFFFF"))(10), -1)[1],
+                    "g__Zymobacter" = head(colorRampPalette(c(brewer.pal(11, "BrBG")[2], "#FFFFFF"))(10), -1)[2],
+                    "g__Entomomonas"= head(colorRampPalette(c(brewer.pal(11, "BrBG")[2], "#FFFFFF"))(10), -1)[4],
+                    "g__Saezia" = head(colorRampPalette(c(brewer.pal(11, "BrBG")[2], "#FFFFFF"))(10), -1)[6],
+                    "g__Parolsenella" = head(colorRampPalette(c(brewer.pal(11, "BrBG")[2], "#FFFFFF"))(10), -1)[8],
+                    "g__Klebsiella" = "#000000",
+                    "g__Hafnia" = "#000000",
+                    "g__JAATFO01" = "#000000",
+                    "g__Floricoccus" = "#000000",
+                    "g__Pantoea" = "#000000",
+                    "g__" = "#000000"
+)
 
 families <- c("f__Lactobacillaceae", "f__Bifidobacteriaceae", "f__Enterobacteriaceae", "f__Neisseriaceae", "f__Rhizobiaceae_A", "f__Selenomonadaceae", "f__Weeksellaceae", "f__Dysgonomonadaceae", "f__Mycoplasmataceae", "f__Halomonadaceae", "f__Pseudomonadaceae", "f__Burkholderiaceae", "f__Atopobiaceae", "f__Desulfovibrionaceae", "f__Acetobacteraceae", "f__", "f__Streptococcaceae")
 familyColors <- list(
@@ -871,3 +898,8 @@ df_meta_complete <- df_meta_complete %>%
                             mutate(Species = Vectorize(get_host_from_sample_name)(ID)) %>%
                             mutate(Country = Vectorize(get_location_from_sample_name)(ID))
 setwd(working_dir)
+
+
+########################
+# calculated_using scripts/calc_ref_genome_sizes.sh
+########################

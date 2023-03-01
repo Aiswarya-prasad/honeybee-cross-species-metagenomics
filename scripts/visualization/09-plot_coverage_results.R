@@ -22,6 +22,8 @@ trim_side_mean <- function(x, trim, type="both") {
         mean(x[max(1,floor(length(x)*trim)):length(x)])}
 }
 
+# Make
+
 make_cum_curve <- function(samples_vector, pa_df, iterations, name = NA) {
   num_clusters_matrix <- matrix(nrow = length(samples_vector), ncol = iterations)
   for (iter in 1:iterations) {
@@ -143,6 +145,188 @@ coverage_df_genus <- coords_df %>%
                                   mutate(Prevalence_host = ifelse(Host=="Apis dorsata",Present/length(samples_ad), Prevalence_host)) %>%
                                   mutate(Prevalence_host = ifelse(Host=="Apis florea",Present/length(samples_af), Prevalence_host)) %>%
                                   mutate(Prevalence_host = ifelse(Host=="Apis andreniformis",Present/length(samples_aa), Prevalence_host))
+
+
+get_ID_from_scaffold <- function(my_name) {
+  split_name <- strsplit(my_name, "|", fixed = T)[[1]]
+  if (length(split_name) == 3) {
+    return(paste0(strsplit(split_name[[3]], "_")[[1]][1:3], collapse="_"))
+  } else {
+    return(my_name)
+  }
+}
+
+# Go over all the below code for instrain plots again...
+# instrain_mapping <- data.frame()
+# for (sample in samples_IN) {
+#   sample_mapping_scaffold_instrain <- read.csv(paste0("/scratch/aprasad/211018_Medgenome_india_samples/10_instrain/",sample,"_profile.IS/output/",sample,"_profile.IS_scaffold_info.tsv"), sep = "\t") %>%
+#     mutate(ID = Vectorize(get_ID_from_scaffold)(scaffold)) %>%
+#     select(ID, length, breadth) %>%
+#       mutate(sample = sample)
+#   instrain_mapping <- rbind(instrain_mapping, sample_mapping_instrain)
+# } 
+instrain_mapping <- data.frame()
+for (sample in samples_IN) {
+  sample_mapping_scaffold_instrain <- read.csv(paste0("/scratch/aprasad/211018_Medgenome_india_samples/10_instrain/",sample,"_profile.IS/output/",sample,"_profile.IS_scaffold_info.tsv"), sep = "\t") %>%
+    mutate(ID = Vectorize(get_ID_from_scaffold)(scaffold)) %>%
+    select(ID, length, breadth) %>%
+      mutate(sample = sample)
+  sample_mapping_instrain <- read.csv(paste0("/scratch/aprasad/211018_Medgenome_india_samples/10_instrain/",sample,"_profile.IS/output/",sample,"_profile.IS_mapping_info.tsv"), sep = "\t", skip = 1) %>%
+    mutate(ID = Vectorize(get_ID_from_scaffold)(scaffold)) %>%
+      select(ID, filtered_pairs, mean_PID, unfiltered_pairs) %>%
+      mutate(sample = sample) %>%
+      left_join(sample_mapping_scaffold_instrain, by = c("ID", "sample"))
+  instrain_mapping <- rbind(instrain_mapping, sample_mapping_instrain)
+} 
+
+instrain_mapping_magOTU <- instrain_mapping %>%
+                      left_join(vis_magOTUs_df_all %>% 
+                                ungroup() %>%
+                                  select(ID, Genus, Cluster, Ref_status) %>%
+                                    filter(Ref_status == 1) %>%
+                                      mutate(magOTU = paste0(Genus, "-", Cluster)) %>%
+                                        select(ID, magOTU, Genus),
+                                by = "ID"
+                                )
+plot_mapping_df <- instrain_mapping_magOTU %>%
+                    filter(ID != "all_scaffolds") %>%
+                    mutate(magOTU = as.factor(magOTU)) %>%
+                    select(!ID) %>%
+                    group_by(sample, magOTU) %>%
+                      mutate(Mapped = sum(filtered_pairs)) %>%
+                      mutate(mul_factor = length*breadth) %>%
+                      mutate(Mapped_corrected = sum(filtered_pairs)*mul_factor) %>%
+                      ungroup() %>%
+                      group_by(sample) %>%
+                      mutate(instrain_summed = sum(Mapped)) %>%
+                      mutate(percent_mapped = Mapped/sum(Mapped)*100)
+
+plot_mapping_df_total <- instrain_mapping_magOTU %>%
+                          mutate(magOTU = as.factor(magOTU)) %>%
+                          mutate(instrain_mapped = filtered_pairs*2) %>%
+                          filter(ID == "all_scaffolds") %>%
+                          left_join(instrain_mapping_magOTU %>%
+                                    filter(ID != "all_scaffolds") %>%
+                                    group_by(sample, magOTU) %>%
+                                      mutate(Mapped = filtered_pairs) %>%
+                                      ungroup() %>%
+                                      group_by(sample) %>%
+                                      summarise(sample, instrain_summed = sum(Mapped)) %>% unique
+                                      ) %>%
+                          left_join(df_reads %>% select(Sample, Trimmed, Mapped_microbiome), by = c("sample" = "Sample")) %>%
+                          select(sample, instrain_mapped, instrain_summed, Trimmed, Mapped_microbiome) %>%
+                          # select(!c(length, breadth, magOTU, Genus)) %>%
+                          pivot_longer(!sample, names_to = "Type", values_to = "Reads")
+                            # group_by(sample, Genus) %>%
+                            # mutate(Mapped = sum(filtered_pairs)*2)
+ggplot() +
+  geom_bar(data = plot_mapping_df_total %>% filter(Type %in% c("instrain_mapped", "instrain_summed")),
+           aes(x = Reads,
+               y = sample,
+               fill = Type
+           ),
+           stat = "identity", position = "dodge"
+  ) +
+  # scale_fill_manual(values = genusColors) +
+  make_theme(theme_name=theme_few(), leg_pos="bottom",
+                                         guide_nrow = 10,
+                                         setFill = T, max_colors = 3,
+                                         x_angle=45 ,x_vj=1.2, x_hj=1, x_size=12,
+                                         y_angle=0 ,y_vj=0, y_hj=0, y_size=12) +
+    scale_x_continuous(labels=unit_format(unit = "M", scale = 1e-6))
+
+ggplot() +
+  geom_bar(data = plot_mapping_df_total %>% filter(Type %in% c("instrain_mapped", "Trimmed", "Mapped_microbiome")),
+           aes(x = Reads,
+               y = sample,
+               fill = Type
+           ),
+           stat = "identity", position = "dodge"
+  ) +
+  # scale_fill_manual(values = genusColors) +
+  make_theme(theme_name=theme_few(), leg_pos="bottom",
+                                         guide_nrow = 10,
+                                         setFill = T, max_colors = 3,
+                                         x_angle=45 ,x_vj=1.2, x_hj=1, x_size=12,
+                                         y_angle=0 ,y_vj=0, y_hj=0, y_size=12) +
+    scale_x_continuous(labels=unit_format(unit = "M", scale = 1e-6))
+
+ggplot() +
+  geom_bar(data = plot_mapping_df,
+           aes(x = Mapped,
+               y = sample,
+               fill = Genus
+           ),
+           stat = "identity", position = "stack"
+  ) +
+  # scale_fill_manual(values = genusColors) +
+  make_theme(theme_name=theme_few(), leg_pos="bottom",
+                                         guide_nrow = 10,
+                                         setFill = T, max_colors = length(unique(plot_mapping_df$Genus)),
+                                         x_angle=45 ,x_vj=1.2, x_hj=1, x_size=12,
+                                         y_angle=0 ,y_vj=0, y_hj=0, y_size=12) +
+    scale_x_continuous(labels=unit_format(unit = "M", scale = 1e-6))
+
+ggplot() +
+  geom_bar(data = plot_mapping_df,
+           aes(x = Mapped,
+               y = sample,
+               fill = Genus
+           ),
+           stat = "identity", position = "stack"
+  ) +
+  geom_bar(data = plot_mapping_df_total  %>% filter(Type %in% c("Mapped_microbiome")),
+           aes(x = Reads,
+               y = sample
+           ),
+           stat = "identity", position ="stack", width = 0.5, fill = "black", alpha = 0.1
+  ) +
+  scale_fill_manual(values = extend_colors(unique(plot_mapping_df$Genus), genusColors)) +
+  make_theme(theme_name=theme_few(), leg_pos="bottom",
+                                         guide_nrow = 10,
+                                         setFill = F, max_colors = length(unique(plot_mapping_df$Genus)),
+                                         x_angle=45 ,x_vj=1.2, x_hj=1, x_size=12,
+                                         y_angle=0 ,y_vj=0, y_hj=0, y_size=12) +
+    scale_x_continuous(labels=unit_format(unit = "M", scale = 1e-6))
+    
+# ggplot() +
+#   geom_bar(data = plot_mapping_df,
+#            aes(x = Mapped,
+#                y = sample,
+#                fill = Genus
+#            ),
+#            stat = "identity", position = "stack"
+#   ) +
+#   # geom_bar(data = plot_mapping_df_total  %>% filter(Type %in% c("Mapped_microbiome")),
+#   #          aes(x = Reads,
+#   #              y = sample
+#   #          ),
+#   #          stat = "identity", position ="stack", width = 0.5, fill = "black", alpha = 0.25
+#   # ) +
+#   scale_fill_manual(values = extend_colors(unique(plot_mapping_df$Genus), genusColors)) +
+#   make_theme(theme_name=theme_few(), leg_pos="bottom",
+#                                          guide_nrow = 10,
+#                                          setFill = F, max_colors = length(unique(plot_mapping_df$Genus)),
+#                                          x_angle=45 ,x_vj=1.2, x_hj=1, x_size=12,
+#                                          y_angle=0 ,y_vj=0, y_hj=0, y_size=12) +
+#     scale_x_continuous(labels=unit_format(unit = "M", scale = 1e-6))
+
+ggplot() +
+  geom_bar(data = plot_mapping_df,
+           aes(x = percent_mapped,
+               y = sample,
+               fill = Genus
+           ),
+           stat = "identity", position = "stack"
+  ) +
+  scale_fill_manual(values = extend_colors(unique(plot_mapping_df$Genus), genusColors)) +
+  make_theme(theme_name=theme_few(), leg_pos="bottom",
+                                         guide_nrow = 10,
+                                         setFill = F, max_colors = length(unique(plot_mapping_df$Genus)),
+                                         x_angle=45 ,x_vj=1.2, x_hj=1, x_size=12,
+                                         y_angle=0 ,y_vj=0, y_hj=0, y_size=12) +
+    scale_x_continuous(labels=unit_format(unit = "%"))
+
 
 ggplot(coverage_df, aes(y = factor(cluster_name), x = factor(Sample, samples_IN_MY), fill = Cov)) +
                             geom_tile() +
@@ -1047,15 +1231,12 @@ pcoa_plot(dist_matrix_betapart$beta.sne, df_meta_complete, "Species", color_add=
 pcoa_plot(dist_matrix_betapart$beta.sim, df_meta_complete, "Species", color_add=T, color_list=host_order_color_dark)
 
 dist_matrix_betapart <- beta.pair(df_magOTUs_vegan, "jaccard")
-pcoa_plot(dist_matrix_betapart$beta.jtu, df_meta_complete, "Species", color_add=T, color_list=host_order_color_dark)
-pcoa_plot(dist_matrix_betapart$beta.jne, df_meta_complete, "Species", color_add=T, color_list=host_order_color_dark)
 pcoa_plot(dist_matrix_betapart$beta.jac, df_meta_complete, "Species", color_add=T, color_list=host_order_color_dark)
+pcoa_plot(dist_matrix_betapart$beta.jne, df_meta_complete, "Species", color_add=T, color_list=host_order_color_dark)
+pcoa_plot(dist_matrix_betapart$beta.jtu, df_meta_complete, "Species", color_add=T, color_list=host_order_color_dark)
 
-pcoa_plot(dist_matrix_betapart$beta.sim, df_meta_complete, "Country", color_add=F, color_list=location_color)
-pcoa_plot(dist_matrix_betapart$beta.jtu, df_meta_complete, "Country", color_add=F, color_list=host_order_color_dark)
-
-dist_matrix_betapart <- beta.multi(df_magOTUs_vegan, "sorensen")
-str(dist_matrix_betapart)
+dist_matrix_betapart_multi <- beta.multi(df_magOTUs_vegan, "sorensen")
+str(dist_matrix_betapart_multi)
 
 # beta.sim dist object, dissimilarity matrix accounting for spatial turnover (replacement),
 # measured as Simpson pair-wise dissimilarity
@@ -1076,6 +1257,8 @@ df_to_test <- abundance_df_matrix_pa %>%
                           # filter(rownames(.) %in% c(samples_am, samples_ac, samples_af, samples_ad))
 adonis2(df_to_test ~ Species + Country, data = df_meta_complete %>% filter(ID %in% rownames(df_to_test)))
 
+# distances from tree in this paper. Measured by eye for now as the number of nodes separating them.
+
 get_host_divergence <- function(sample_1, sample_2) {
   host_1 <- get_host_from_sample_name(sample_1)
   host_1 <- strsplit(host_1, " ")[[1]][[2]]
@@ -1092,9 +1275,11 @@ get_host_divergence <- function(sample_1, sample_2) {
   host_divergence <- host_divergence_mat[as.numeric(index_list[host_1]), as.numeric(index_list[host_2])]
   return(host_divergence)
 }
-
-dist_matrix_betapart <- beta.pair(df_magOTUs_vegan, "jaccard")
-dist_matrix_betapart$beta.jtu
+df_magOTUs_vegan_IN_MY <- abundance_df_matrix_pa %>%
+                      filter(rowSums(.) > 0) %>%
+                      filter()
+dist_matrix_betapart <- beta.pair(df_magOTUs_vegan_IN_MY, "jaccard")
+sample_bac_div <- dist_matrix_betapart$beta.jac
 sample_host_div <- data.frame()
 for (sample in samples) {
   sample_host_div <- rbind(sample_host_div, rep(0, length((samples))))
@@ -1109,9 +1294,84 @@ for (sample_1 in samples) {
   }
 }
 
-samples_am <- df_meta_complete %>% filter(Species == "Apis mellifera") %>% pull(ID)
-samples_ac <- df_meta_complete %>% filter(Species == "Apis cerana") %>% pull(ID)
-samples_ad <- df_meta_complete %>% filter(Species == "Apis dorsata") %>% pull(ID)
-samples_af <- df_meta_complete %>% filter(Species == "Apis florea") %>% pull(ID)
-samples_aa <- df_meta_complete %>% filter(Species == "Apis andreniformis") %>% pull(ID)
+# samples_subset_am <- df_meta_complete %>% filter(Species == "Apis mellifera") %>% pull(ID)
+# samples_subset_ac <- df_meta_complete %>% filter(Species == "Apis cerana") %>% pull(ID)
+# samples_subset_ad <- df_meta_complete %>% filter(Species == "Apis dorsata") %>% pull(ID)
+# samples_subset_af <- df_meta_complete %>% filter(Species == "Apis florea") %>% pull(ID)
+# samples_subset_aa <- df_meta_complete %>% filter(Species == "Apis andreniformis") %>% pull(ID)
 
+
+sample_host_div <- sample_host_div %>% 
+  filter(row.names(.) %in% as.vector(as.matrix(sample_bac_div) %>% row.names))
+
+
+sample_host_div_df <- sample_host_div %>%
+                        as.matrix %>%
+                        as.data.frame %>%
+                        rownames_to_column("Sample") %>%
+                        filter(Sample %in% samples_IN_MY) %>%
+                        pivot_longer(!Sample, names_to = "Compared", values_to = "dist_h")
+sample_bac_div_df <- sample_bac_div %>%
+                        as.matrix %>%
+                        as.data.frame %>%
+                        rownames_to_column("Sample") %>%
+                        filter(Sample %in% samples_IN_MY) %>%
+                          pivot_longer(!Sample, names_to = "Compared", values_to = "dist_b") %>%
+                          mutate(Host_s = Vectorize(get_host_from_sample_name)(Sample)) %>%
+                          mutate(Host_c = Vectorize(get_host_from_sample_name)(Compared)) %>%
+                          mutate(Type_b = ifelse(Host_s == Host_c, "Within", "Between")) %>%
+                          mutate(Hosts_compared = paste0(Host_s, "_", Host_c))
+dissimilarities_df_median <- left_join(sample_bac_div_df, sample_host_div_df) %>%
+                        group_by(Hosts_compared) %>%
+                        summarise(dist_h, median_b = median(dist_b)) %>%
+                        unique
+
+# dissimilarities_df <- left_join(sample_bac_div_df, sample_host_div_df) %>%
+#                         filter(Sample %in% c("M1.2", "C1.2", "D1.2", "F1.2", "A1.2"))
+
+# mantel(sample_host_div, sample_bac_div, method="pearson", permutations=1000)
+
+ggplot() +
+  geom_point(data=dissimilarities_df,
+             aes(x = factor(dist_h),
+                 y = dist_b
+                #  color = Host_s,
+                #  shape = Type_b
+             )
+            ) +
+  geom_point(data=dissimilarities_df_median,
+             aes(x = factor(dist_h),
+                 y = median_b
+             ), size = 5, color = "red"
+            ) +
+    labs(x = "Host divergence (# nodes between)", y = "Microbiome dissimilarity (jaccard)") +
+    # scale_color_manual(values = host_order_color_dark) +
+    make_theme(setCol = F, setFill = F, guide_nrow = 5)
+
+cor.test(dissimilarities_df_median$dist_h, dissimilarities_df_median$median_b, method = "pearson")
+
+split_by_pattern <- function(my_name, pattern, index) {
+  return(strsplit(my_name, pattern)[[1]][[index]])
+}
+bac_median_mat <- dissimilarities_df_median %>%
+                    ungroup() %>%
+                    mutate(Compared1 = Vectorize(split_by_pattern)(Hosts_compared, "_", 1)) %>%
+                    mutate(Compared2 = Vectorize(split_by_pattern)(Hosts_compared, "_", 2)) %>%
+                    select(!c(dist_h, Hosts_compared)) %>%
+                    pivot_wider(Compared1, names_from = Compared2, values_from = median_b) %>%
+                    column_to_rownames("Compared1")
+host_median_mat <- dissimilarities_df_median %>%
+                    ungroup() %>%
+                    mutate(Compared1 = Vectorize(split_by_pattern)(Hosts_compared, "_", 1)) %>%
+                    mutate(Compared2 = Vectorize(split_by_pattern)(Hosts_compared, "_", 2)) %>%
+                    select(!c(median_b, Hosts_compared)) %>%
+                    pivot_wider(Compared1, names_from = Compared2, values_from = dist_h) %>%
+                    column_to_rownames("Compared1")
+
+bac_median_mat[1,]
+host_median_mat[1,]
+mantel(as.dist(bac_median_mat), as.dist(host_median_mat), method = "pearson", permutations = 9999)
+mantel.test(bac_median_mat, host_median_mat, method = "pearson", permutations = 9999)
+cor.test(dissimilarities_df_median$dist_h, dissimilarities_df_median$median_b, method = "pearson")$estimate
+
+pcoa_plot(as.dist(sample_host_div), df_meta_complete, "Species", color_add=T, color_list=host_order_color_dark)
