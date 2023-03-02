@@ -1,24 +1,27 @@
-##############
-# functions used
-##############
+---
+title: "Honeybee cross-species analysis - 03"
+author: Aiswarya Prasad
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  prettydoc::html_pretty:
+    theme: cayman
+    <!-- other fun themes: architect leonids hpstr cayman -->
+    highlight: github
+    math: katex
+    number_sections: true
+    df_print: paged
+    cold-folding: hide
+    toc: true
+---
 
-source('scripts/visualization/utilities.R', chdir = TRUE)
+# Initialization
 
-##############
-# files to be read
-##############
+To intialize complete all of or relevant sections of `scripts/visualization/Load_data.R`.
 
-df_assembly <- read.csv("05_Assembly/MapToAssembly/Assembly_mapping_summary.csv", sep = ',')
-df_assembly <- merge(df_assembly, df_meta, by="Sample")
-df_assembly$SpeciesID <- recode(df_assembly$SpeciesID, "Am" = "Apis mellifera", "Ac" = "Apis cerana", "Af" = "Apis florea", "Ad" = "Apis dorsata")
-
-##############
-# analyse data and plot
-##############
-
+```{r assembly_plots}
 assembly_sizes <- ggplot(df_assembly, aes(y = factor(Sample, levels=samples),
                                           x = Assembly.size,
-                                          fill = factor(SpeciesID, host_order)
+                                          fill = factor(Species, host_order)
                                         )
                                       ) +
                     geom_bar(stat = "identity") +
@@ -33,13 +36,9 @@ assembly_sizes <- ggplot(df_assembly, aes(y = factor(Sample, levels=samples),
                             scale_fill_manual(values=host_order_color)
                           # ggsave("Figures/03-AssemblySizes.pdf")
 
-df_assembly_plot <- df_assembly %>%
-  select(Sample, Number.of.reads, Number.mapped) %>%
-    mutate(Number.unmapped = Number.of.reads - Number.mapped) %>%
-    rename(Unmapped = Number.unmapped, Mapped = Number.mapped) %>%
-     pivot_longer(cols = 3:4, names_to ="Type", values_to = "Number")
 
-number_mapped_assembly <- ggplot(df_assembly, aes(y = factor(Sample, levels=samples), x = Number.mapped, fill = factor(SpeciesID, host_order))) +
+
+number_mapped_assembly <- ggplot(df_assembly, aes(y = factor(Sample, levels=samples), x = Number.mapped, fill = factor(Species, host_order))) +
                             geom_bar(stat = "identity") +
                             labs(x = "Number of reads mapped to assembly", y = "Sample", fill = "Type") +
                             scale_x_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
@@ -50,23 +49,9 @@ number_mapped_assembly <- ggplot(df_assembly, aes(y = factor(Sample, levels=samp
                                 scale_fill_manual(values=host_order_color)
                               # ggsave("Figures/03-NumberAssembled.pdf")
 
-df_assembly_plot <- df_assembly %>%
-  select(Sample, Number.of.reads, Number.mapped) %>%
-    mutate(Number.unmapped = Number.of.reads - Number.mapped) %>%
-    mutate(percent_mapped = Number.mapped/Number.of.reads*100) %>%
-    mutate(percent_unmapped = Number.unmapped/Number.of.reads*100) %>%
-    rename(Unmapped = percent_unmapped, Mapped = percent_mapped, Unmapped_number = Number.unmapped, Mapped_number = Number.mapped) %>%
-    select(Sample, Mapped, Unmapped) %>%
-     pivot_longer(cols = 2:3, names_to ="Type", values_to = "Percent")
 
-df_assembly_plot_number <- df_assembly %>%
-  select(Sample, Number.of.reads, Number.mapped) %>%
-    mutate(Number.unmapped = Number.of.reads - Number.mapped) %>%
-    mutate(percent_mapped = Number.mapped/Number.of.reads*100) %>%
-    mutate(percent_unmapped = Number.unmapped/Number.of.reads*100) %>%
-    rename(Unmapped = Number.unmapped, Mapped = Number.mapped) %>%
-    select(Sample, Mapped, Unmapped) %>%
-     pivot_longer(cols = 2:3, names_to ="Type", values_to = "Number")
+
+
 
 number_mapped_assembly <- ggplot(df_assembly_plot_number, aes(y = factor(Sample, levels=samples), x = Number, fill = factor(Type, levels = c("Unmapped", "Mapped")))) +
                             geom_bar(stat = "identity") +
@@ -75,7 +60,7 @@ number_mapped_assembly <- ggplot(df_assembly_plot_number, aes(y = factor(Sample,
                               make_theme(x_angle = 60, x_hj = 1, x_vj = 1, max_colors = length(unique(df_assembly_plot$Type)), x_size = 7, guide_nrow = 1)
                               # ggsave("Figures/03-NumberMappedtoAssembly.pdf")
 
-Number_contig_plot <- ggplot(df_assembly, aes(y = factor(Sample, levels=samples), x = Number.of.filtered.scaffolds, fill = factor(SpeciesID, levels = rev(host_order)))) +
+Number_contig_plot <- ggplot(df_assembly, aes(y = factor(Sample, levels=samples), x = Number.of.filtered.scaffolds, fill = factor(Species, levels = rev(host_order)))) +
                             geom_bar(stat = "identity") +
                             labs(y = "Sample", x = "Number of scaffolds", fill = "Host") +
                             scale_x_continuous(labels=unit_format(unit = "K", scale = 1e-4)) +
@@ -93,9 +78,9 @@ percent_mapped_assembly <- ggplot(df_assembly_plot, aes(y = factor(Sample, level
                               make_theme(x_angle = 60, x_hj = 1, x_vj = 1, max_colors = length(unique(df_assembly_plot$Type)), x_size = 7, guide_nrow = 1)
                               # ggsave("Figures/03-ProportionMappedtoAssembly.pdf")
 
-Total_data_species <- ggplot(mutate(filter(df_plot_reads, Type == "Raw" ), amount_data = Number*2*150), aes(y=factor(Sample, levels = samples),
+Total_data_species <- ggplot(mutate(filter(df_reads_plot, Type == "Raw" ), amount_data = Number*2*150), aes(y=factor(Sample, levels = samples),
                                       x=amount_data,
-                                      fill = SpeciesID)) +
+                                      fill = Host)) +
                         geom_bar(stat="identity") +
                             ylab("Sample") +
                             xlab("Number of reads (paired end)") +
@@ -106,9 +91,9 @@ Total_data_species <- ggplot(mutate(filter(df_plot_reads, Type == "Raw" ), amoun
                                 scale_x_continuous(labels=unit_format(unit = "G", scale = 1e-9)) +
                                 scale_fill_manual(values=host_order_color)
 
-Total_reads_species_temp <- ggplot(filter(df_plot_reads, Type == "Raw"), aes(y=factor(Sample, levels = samples),
+Total_reads_species_temp <- ggplot(filter(df_reads_plot, Type == "Raw"), aes(y=factor(Sample, levels = samples),
                                       x=Number,
-                                      fill = SpeciesID)) +
+                                      fill = Host)) +
                         geom_bar(stat="identity") +
                           # ggtitle("Total reads per sample") +
                             ylab("Sample") +
@@ -136,3 +121,4 @@ g <- grid.arrange(
  g
  ggsave("Figures/03-Assembly_summary.pdf", g)
 Number_contig_plot
+```
