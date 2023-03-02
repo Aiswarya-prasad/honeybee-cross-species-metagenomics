@@ -36,3 +36,5 @@ dependencies:
   - bioconductor-phyloseq
   - bioconductor-biostrings
   - bioconductor-complexheatmap
+  # - r-ggpubr
+  # - r-ggnewscale
