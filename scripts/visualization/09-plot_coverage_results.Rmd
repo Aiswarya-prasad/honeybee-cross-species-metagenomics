@@ -50,7 +50,7 @@ make_cum_curve <- function(samples_vector, pa_df, iterations, name = NA) {
   plot_cum_curve_df <- cbind("name" = name, plot_cum_curve_df)
   return(plot_cum_curve_df)
 }
-pcoa_plot <- function(df_pcoa, metadata, variable, color_add=F, color_list, colname_in_metadata = "ID") {
+pretty_pcoa_plot <- function(df_pcoa, metadata, variable, color_add=F, color_list, colname_in_metadata = "ID") {
           matrix <- as.matrix(df_pcoa)
           dist <- as.dist(matrix)
           res_pcoa <- pcoa(dist)
