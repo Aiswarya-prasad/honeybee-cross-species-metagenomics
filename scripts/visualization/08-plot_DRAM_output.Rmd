@@ -1,14 +1,24 @@
-#*********Work in progress*********#
+---
+title: "Honeybee cross-species analysis - 06"
+author: Aiswarya Prasad
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  prettydoc::html_pretty:
+    theme: cayman
+    <!-- other fun themes: architect leonids hpstr cayman -->
+    highlight: github
+    math: katex
+    number_sections: true
+    df_print: paged
+    cold-folding: hide
+    toc: true
+---
 
-##############
-# functions used
-##############
+# Initialization
 
-source('scripts/visualization/Load_data.R', chdir = TRUE)
+To intialize complete all of or relevant sections of `scripts/visualization/Load_data.R`.
 
-##############
-# files to be read
-##############
+
 
 # made using scripts/count_genes_in_contigs.py
 num_genes_binned <- read.csv("/scratch/aprasad/211018_Medgenome_india_samples/Figures/Number_genes_binned.csv")

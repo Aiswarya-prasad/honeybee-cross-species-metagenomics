@@ -1,112 +1,136 @@
-#*********Work in progress*********#
+---
+title: "Honeybee cross-species analysis - 06"
+author: Aiswarya Prasad
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  prettydoc::html_pretty:
+    theme: cayman
+    <!-- other fun themes: architect leonids hpstr cayman -->
+    highlight: github
+    math: katex
+    number_sections: true
+    df_print: paged
+    cold-folding: hide
+    toc: true
+---
 
-##############
-# functions used
-##############
+# Initialization
 
-source('scripts/visualization/utilities.R', chdir = TRUE)
+To intialize complete all of or relevant sections of `scripts/visualization/Load_data.R`.
 
-##############
-# files to be read
-##############
+There are two types of orthofinder runs. One, was using isolate genomes combined with MAGs (for trees) and the other with only MAGs (for core cov estimation). 
+The former was used for phylogenetic trees. Using genes that are found in all isolates plus genes that were found in at least 50% of MAGs. Using genes that were missing in too many MAGs would lead to sections with missing data (how does this affect the tree?). Otherwise this is not a huge concern. motupan could be interesting to get around this issue.
 
-source('scripts/visualization/05-read_MAG_metadata.R', chdir = TRUE)
+The latter was used for estimating coverage of magOTUs. The idea was to pick a conserved set of genes and divide coverage by their combined length in order to get coverage of the respective magOTU. Ideally, we would only use core genes that are present in all MAGs. 
+We also want to avoid using genes that are too close in sequence identity between magOTUs. However, this leaves us with almost no genes for g__Bifidobacterium magOTUs. So for now, I skipped this step. We will be able to  some genes that are supposed to be core might be missing in some MAGs. Genes that are too close will not have discriminatory power anymore but since the sequences are likely to be distributed uniformly between overlapping magOTUs, this should not be a huge influence. As for genes that may not be core but are included anyway, the magOTUs that lack this genes may be underestimated. Upon taking the median of all gene coverages, this should be reduced but it might still be useful to take an motupan approach to avoid these effects.
 
-genera_list <- c()
+Below is a summary of the number of genes used and how and where they occured.
 
-for (file_name in list.files("database/MAGs_database_Orthofinder/")) {
-  if (!grepl(".csv", file_name)) {
-    genus_name <- file_name
-  }
-  if (!(genus_name %in% genera_list)) {
-    genera_list <- c(genera_list, genus_name)
-  }
-}
-all_Isolates <- c()
-all_MAGs <- c()
-Number_genomes_df <- data.frame()
-for (group in Groups) {
-  OG_numbers_df <- read.csv(paste0("07_AnnotationAndPhylogenies/02_orthofinder/", group, "/OrthoFinder/Results_", group, "/Orthogroups/Orthogroups.GeneCount.tsv"), sep = "\t")
-  genomes <- head(colnames(OG_numbers_df)[-1], -1)
-  MAGs <- genomes[which(grepl("MAG", genomes, fixed=TRUE))]
-  all_MAGs <- c(all_MAGs, MAGs)
-  Isolates <- genomes[which(!grepl("MAG", genomes, fixed=TRUE))]
-  all_Isolates <- c(all_Isolates, Isolates)
-  Number_genomes_df <- rbind(Number_genomes_df,
-                             cbind(
-                                MAGs = length(MAGs),
-                                Isolates = length(Isolates),
-                                genomes = length(genomes),
-                                Group = group
-                              )
-                            )
-}
-Number_genomes_df <- pivot_longer(Number_genomes_df, !Group, names_to = "Type", values_to = "Number") %>%
-                      mutate(Number = as.numeric(Number))
-ortho_mags_df <- data.frame()
-ortho_mags_filt_df <- data.frame()
-for (genus_name in genera_list) {
-  orthofinder_filtered_summary <- read.csv(paste0("database/MAGs_database_Orthofinder/", genus_name,"_Orthogroups_filtered_summary.csv"))
-  orthofinder_summary <- read.csv(paste0("database/MAGs_database_Orthofinder/", genus_name,"_Orthogroups_summary.csv"))
-  ortho_mags_df <- rbind(ortho_mags_df, orthofinder_summary)
-  ortho_mags_filt_df <- rbind(ortho_mags_filt_df, orthofinder_filtered_summary)
-}
-ortho_w_isolates_df <- data.frame()
-for (group in Groups) {
-  orthofinder_summary_w_isolates <- read.csv(paste0("07_AnnotationAndPhylogenies/02_orthofinder/", group, "_Orthogroups_summary.csv"))
-  ortho_w_isolates_df <- rbind(ortho_w_isolates_df, orthofinder_summary_w_isolates)
-}
+# Number of genes used for trees
 
-Orthogroups_summary_df <- data.frame()
-for (group in Groups) {
-  OG_summary <- read.csv(paste0("07_AnnotationAndPhylogenies/02_orthofinder/", group, "_Orthogroups_summary.csv"), sep = ",")
-  Orthogroups_summary_df <- rbind(Orthogroups_summary_df,
-                                  OG_summary
-                            ) %>%
-                              filter(present_in != "None")
-}
-
-##############
-# analyse data and plot
-##############
-
-# core genes used for trees
-# ortho_w_isolates_df %>% pull(status) %>% unique()
+```{r summary1}
 ortho_w_isolates_df %>%
   filter(status %in% c("Isolates:ScpCore ; MAGs:ScpCore", "Isolates:ScpCore ; MAGs:ScpCore0.5")) %>%
     group_by(group) %>%
       summarise(genes_used = n())
-
-plot_number_OGs <- ortho_w_isolates_df %>%
-  mutate(Type = ifelse(status %in% c("Isolates:ScpCore ; MAGs:ScpCore0.5"), "Present in at least 50% MAGs", NA)) %>%
-  mutate(Type = ifelse(status %in% c("Isolates:ScpCore ; MAGs:ScpCore"), "Present in all MAGs", Type)) %>%
-  filter(!is.na(Type)) %>%
-    group_by(group, Type) %>%
-     summarise(Number = n())
-
-# core genes used for core_cov
-ortho_mags_df %>% pull(status) %>% unique()
+# ortho_w_isolates_df %>% pull(status) %>% unique()
+```
+# Number of genes used for core cov
+```{r summary2}
+# ortho_mags_df %>% pull(status) %>% unique()
 ortho_mags_df %>%
   filter(status %in% c("; MAGs:ScpCore", "; MAGs:ScpCore0.5")) %>%
     group_by(group) %>%
       summarise(genes_used = n()) %>%
         print(n = 50)
+```
+## Heatmaps of OrthoFinder results
 
-plot_number_OGs_mags <- ortho_mags_df %>%
-  mutate(Type = ifelse(status %in% c("; MAGs:ScpCore0.5"), "Present in at least 50% MAGs", NA)) %>%
-  mutate(Type = ifelse(status %in% c("; MAGs:ScpCore"), "Present in all MAGs", Type)) %>%
-  filter(!is.na(Type)) %>%
-    group_by(group, Type) %>%
-    filter(group %in% Groups) %>%
-    group_by(group, Type) %>%
-     summarise(Type, Number = n())
-plot_number_OGs_mags %>%
-                    select(group) %>% unique %>%
-                    left_join(Number_genomes_df %>%
-                                pivot_wider(names_from = Type, values_from = Number), by = c("group" = "Group")) %>%
-                        ungroup() %>%
-                        filter(group %in% Groups) %>%
-                           mutate(SampleID = row_number()) %>% pull(SampleID)
+Code is below it saves heatmaps at `Figures/07-Orthogroup_heatmaps/*.pdf`.
+
+```{r ortho_genes_heatmap}
+combined_info_df <- vis_magOTUs_df_all %>%
+                      select(colnames(reference_genomes_info)) %>%
+                        rbind(reference_genomes_info)
+genus_iter = "g__Bifidobacterium"
+
+for (genus_iter in genera) {
+  pdf(paste0("Figures/07-Orthogroup_heatmaps/", genus_iter, "_OG_counts.pdf"))
+  my_upper_count <- 20
+  my_heatmap <- pretty_orthogene_heatmaps(get_genecount_matrix(my_genus=genus_iter, upper_count = my_upper_count), 
+     col_fun = colorRamp2(c(0, 1, 2, 5, my_upper_count), c("#e6f5d0", "#7fbc41", brewer.pal(9, "RdPu")[1], brewer.pal(9, "RdPu")[8], brewer.pal(9, "RdPu")[9])))
+  draw(my_heatmap, merge_legend = TRUE, column_title=paste0("Number of OG genes: ", ncol(my_heatmap)), column_title_gp=grid::gpar(fontsize=12))
+  dev.off()
+  pdf(paste0("Figures/07-Orthogroup_heatmaps/", genus_iter, "_OG_scp.pdf"))
+  my_heatmap <- pretty_orthogene_heatmaps(get_scp_matrix(my_genus=genus_iter), 
+     col_fun = brewer.pal(9, "RdPu")[c(2,4)])
+  draw(my_heatmap, merge_legend = TRUE, column_title=paste0("All single copy genes", "Number of OG genes: ", ncol(my_heatmap)), column_title_gp=grid::gpar(fontsize=12))
+  dev.off()
+  pdf(paste0("Figures/07-Orthogroup_heatmaps/", genus_iter, "_OG_isolate_core.pdf"))
+  my_heatmap <- pretty_orthogene_heatmaps(get_isolate_core_matrix(my_genus=genus_iter), 
+      col_fun = brewer.pal(9, "RdPu")[c(2,4)])
+  draw(my_heatmap, merge_legend = TRUE, column_title=paste0("Core in isolates and present in some mags", "Number of OG genes: ", ncol(my_heatmap)), column_title_gp=grid::gpar(fontsize=12))
+  dev.off()
+  pdf(paste0("Figures/07-Orthogroup_heatmaps/", genus_iter, "_OG_mag_half_core.pdf"))
+  my_heatmap <- pretty_orthogene_heatmaps(get_half_core_mag_matrix(my_genus=genus_iter), 
+      col_fun = brewer.pal(9, "RdPu")[c(2,4)])
+  draw(my_heatmap, merge_legend = TRUE, column_title=paste0("All single copy genes", "Number of OG genes: ", ncol(my_heatmap)), column_title_gp=grid::gpar(fontsize=12))
+  dev.off()
+  pdf(paste0("Figures/07-Orthogroup_heatmaps/", genus_iter, "_OG_mag_half_core_mags_only.pdf"))
+  my_heatmap <- pretty_orthogene_heatmaps(get_half_core_mag_matrix(my_genus=genus_iter, only_mags = T, with_isolates = F), 
+      col_fun = brewer.pal(9, "RdPu")[c(2,4)])
+  draw(my_heatmap, merge_legend = TRUE, column_title=paste0("Genes present in at least 50% of the MAGs", "Number of OG genes: ", ncol(my_heatmap)), column_title_gp=grid::gpar(fontsize=12))
+  dev.off()
+}
+```
+
+```{r extra_plots}
+cluster_size_histogram <- ggplot(vis_magOTUs_df_all, aes(x = cluster_members, fill = factor(Genus, genera))) +
+  geom_histogram(binwidth = 0.5) +
+  labs(x = "Number of members", y = "Number of MAGs", fill = "Genus") +
+    make_theme(setF = F,
+               leg_pos="right", leg_size = 7,
+               guide_nrow= 21
+    ) +
+      scale_fill_manual(values=genusColors)
+      ggsave("Figures/11b-cluster_size_histogram.pdf")
+
+get_num_clusters_and_MAGs_CMT <- function(df_info, cut_off_value){
+  df_info %>%
+    ungroup() %>%
+      mutate(CMT = completeness - 5*contamination) %>%
+        filter(CMT > cut_off_value) %>%
+          summarise(MAGs = n_distinct(ID), Clusters = n_distinct(Cluster)) %>%
+            as.list()
+}
+get_num_clusters_and_MAGs_CMT(vis_magOTUs_df_all, 0)[["MAGs"]]
+get_num_clusters_and_MAGs_CMT(vis_magOTUs_df_all, 0)[["Clusters"]]
+
+ggplot(vis_magOTUs_df_all, aes(y = Cluster, fill = factor(Genus, genera))) +
+  geom_bar() +
+  labs(x = "Number of MAGs", y = "Cluster", fill = "Genus") +
+    make_theme(setF = F,
+               leg_pos="right", leg_size = 7,
+               guide_nrow= 21, y_size = 3
+    ) +
+    geom_vline(xintercept = 1) +
+    facet_grid(~Host) +
+      scale_fill_manual(values=genusColors)
+cluster_completeness_number <- ggplot(vis_magOTUs_df_all, aes(y = Completeness_quality, x=cluster_members, fill = factor(Genus, genera))) +
+  geom_bar(stat = "identity") +
+  labs(x = "Completeness", y = "Cluster", fill = "Genus") +
+    make_theme(setF = F,
+               leg_pos="right", leg_size = 7,
+               guide_nrow= 21, y_size = 3
+    ) +
+    geom_vline(xintercept = 1) +
+    facet_wrap_paginate(~Cluster, ncol = 5, nrow = 7,
+                      scales = "fixed", strip.position = "top", page = 5) +
+      scale_fill_manual(values=genusColors)
+```
+
+# core genes used for core_cov
+
 ggplot() +
   geom_bar(data = plot_number_OGs_mags,
            aes(
@@ -273,48 +297,7 @@ score_hist <- ggplot(vis_magOTUs_df_all, aes(x = score, fill = factor(Host, host
                 ) +
                   scale_fill_manual(values=host_order_color)
                   ggsave("Figures/11a-mag_drep_scores_histogram.pdf")
-cluster_size_histogram <- ggplot(vis_magOTUs_df_all, aes(x = cluster_members, fill = factor(Genus, genera))) +
-  geom_histogram(binwidth = 0.5) +
-  labs(x = "Number of members", y = "Number of MAGs", fill = "Genus") +
-    make_theme(setF = F,
-               leg_pos="right", leg_size = 7,
-               guide_nrow= 21
-    ) +
-      scale_fill_manual(values=genusColors)
-      ggsave("Figures/11b-cluster_size_histogram.pdf")
 
-get_num_clusters_and_MAGs_CMT <- function(df_info, cut_off_value){
-  df_info %>%
-    ungroup() %>%
-      mutate(CMT = completeness - 5*contamination) %>%
-        filter(CMT > cut_off_value) %>%
-          summarise(MAGs = n_distinct(ID), Clusters = n_distinct(Cluster)) %>%
-            as.list()
-}
-get_num_clusters_and_MAGs_CMT(vis_magOTUs_df_all, 0)[["MAGs"]]
-get_num_clusters_and_MAGs_CMT(vis_magOTUs_df_all, 0)[["Clusters"]]
-
-ggplot(vis_magOTUs_df_all, aes(y = Cluster, fill = factor(Genus, genera))) +
-  geom_bar() +
-  labs(x = "Number of MAGs", y = "Cluster", fill = "Genus") +
-    make_theme(setF = F,
-               leg_pos="right", leg_size = 7,
-               guide_nrow= 21, y_size = 3
-    ) +
-    geom_vline(xintercept = 1) +
-    facet_grid(~Host) +
-      scale_fill_manual(values=genusColors)
-cluster_completeness_number <- ggplot(vis_magOTUs_df_all, aes(y = Completeness_quality, x=cluster_members, fill = factor(Genus, genera))) +
-  geom_bar(stat = "identity") +
-  labs(x = "Completeness", y = "Cluster", fill = "Genus") +
-    make_theme(setF = F,
-               leg_pos="right", leg_size = 7,
-               guide_nrow= 21, y_size = 3
-    ) +
-    geom_vline(xintercept = 1) +
-    facet_wrap_paginate(~Cluster, ncol = 5, nrow = 7,
-                      scales = "fixed", strip.position = "top", page = 5) +
-      scale_fill_manual(values=genusColors)
 
 paginate_save(cluster_completeness_number, "Cluster", "Figures/11x-clusters_completeness_numbers.pdf",
               pass_nrow = 7)

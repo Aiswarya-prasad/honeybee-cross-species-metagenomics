@@ -976,7 +976,8 @@ df_meta_complete <- df_meta_complete %>%
                             mutate(Country = Vectorize(get_location_from_sample_name)(ID))
 ```
 
-### Initialization for 00a plot DNA concentration
+## Initialization for 00a plot DNA concentration
+### Load and parse data
 ```{r init_00a}
 df_concentrations <- df_meta_complete %>%
   select(ID, Concentration) %>%
@@ -984,8 +985,9 @@ df_concentrations <- df_meta_complete %>%
         mutate(Location = Vectorize(get_location_from_sample_name)(ID))
 ```
 
-### Definitions and functions
+## Initialization for 00b plot qPCR values
 
+### Definitions and functions
 ```{r 00b-functions_and_definitions}
 qpcr_results <- c(
   "/nas/FAC/FBM/DMF/pengel/spirit/D2c/aprasad/20211018_aprasad_ApisCrossSpeciesAnalysis/Analysis/qPCRs/plate1/plate1-2022-11-17_115607_Results.xls",
@@ -997,7 +999,6 @@ qpcr_results <- c(
   "/nas/FAC/FBM/DMF/pengel/spirit/D2c/aprasad/20211018_aprasad_ApisCrossSpeciesAnalysis/Analysis/qPCRs/plate7/plate7-2023-02-Malaysia_samples_Results.xls"
 )
 ```
-
 ### Load and parse data
 
 sample C7.1 was repeated in plate 6 and 7. Consider the value from plate 7 (both values were close)
@@ -1030,8 +1031,6 @@ for(x in qpcr_results){
 }
 ```
 
-### Initialization for 00b plot qPCR values
-
 ```{r 00b-intialize}
 # qpcr_df %>% summarise(Sample.Name, Ct) %>% filter(grepl("Control", Sample.Name))
 # qpcr_df_info %>% summarise()
@@ -1057,6 +1056,8 @@ qpcr_df_info <- qpcr_df %>%
 
 To do a sanity check use `qpcr_df_info %>% summarise(n())`. 
 `r qpcr_df_info %>% summarise(n())`
+
+## Initialization for 01 plot mapping results
 
 ### Definitions and functions
 ### Load and parse data
@@ -1139,8 +1140,6 @@ for (sample in samples) {
 # read.csv(paste0("02_HostMapping/", sample, "_coverage.tsv"), sep = "\t")
 ```
 
-### Initialization for 01 plot mapping results
-
 ```{r load_reads}
 df_colnames <- c("Sample", "Raw", "Trimmed", "MAGs_DB", "Mapped_to_rep_MAGs", "Host_filtered_reads", "MAGs_DB_after_host_filtering", "Host_mapped", "Unmapped")
 colnames(df_reads) <- df_colnames
@@ -1171,6 +1170,8 @@ df_reads_updated <-  df_reads %>%
           mutate(Total_depth = ifelse(Trimmed >= 50e+06, "Target_reached", "Insufficient"))
 ```
 
+## Initialization for 02 plot motus result
+
 ### Definitions and functions
 
 ```{r 02-functions_and definitions}
@@ -1197,8 +1198,6 @@ extend_colors_motus <- function(names_vec){
 ```{r load_and_parse_data}
 df_motus_raw <- read.csv("02_motus_profile/samples_merged.motus", sep = "\t", skip = 2, stringsAsFactors=FALSE)
 ```
-
-### Initialization for 02 plot motus result
 
 ```{r 02-init}
 colnames(df_motus_raw)[1] <- "taxonomy"
@@ -1230,6 +1229,7 @@ df_motus_combined <- left_join(df_motus, df_meta_complete, by = c("Sample" = "ID
                                 mutate(motu_condensed = Vectorize(condense_motu)(motu))
 ```
 
+## Initialization for 03 Assembly summary
 ### Definitions and functions
 ### Load and parse data
 
@@ -1237,8 +1237,6 @@ df_motus_combined <- left_join(df_motus, df_meta_complete, by = c("Sample" = "ID
 df_assembly <- read.csv("05_Assembly/MapToAssembly/Assembly_mapping_summary.csv", sep = ',') %>%
                 left_join(df_meta_complete, by=c("Sample" = "ID"))
 ```
-
-### Initialization for 03 Assembly summary
 
 ```{r 03-init}
 df_assembly_plot <- df_assembly %>%
@@ -1267,13 +1265,15 @@ df_assembly_plot_number <- df_assembly %>%
 ```
 
 
+## Initialization for 04 xxx
 ### Definitions and functions
 ### Load and parse data
-### Initialization for 04 xxx
 
+## Initialization for 05 xxx
 ### Definitions and functions
 ### Load and parse data
-### Initialization for 05 xxx
+
+## Initialization for 06 plot and summarize mags
 
 ### Definitions and functions
 
@@ -1309,25 +1309,25 @@ make_col_list <- function(my_vec, my_palette = "Spectral") {
   return(col_list)
 }
 my_col_fun <- colorRamp2(c(0.7, 0.8, 0.9, 0.93, 0.94, 0.95, 1), c("#c6dbef", "#9ecae1", "#2171b5", "#4d9221", "#fddbc7", "#b2182b", "#67000d"))
-pretty_ani_heatmaps <- function(matrix, row_split = "magotus", add_values = F, value_size = 10, limit_l = 0.95, limit_h = 1, col_fun = colorRamp2(c(limit_l, limit_h), c("#9ecae1", "#08306b"))) {
+pretty_ani_heatmaps <- function(matrix, mags_info_df=vis_magOTUs_df, row_split = "magotus", add_values = F, value_size = 10, limit_l = 0.95, limit_h = 1, col_fun = colorRamp2(c(limit_l, limit_h), c("#9ecae1", "#08306b"))) {
   host_names <- rownames(matrix) %>% as.data.frame() %>%
                   as.data.frame() %>%
-                        left_join(vis_magOTUs_df %>%
+                        left_join(mags_info_df %>%
                           ungroup() %>%
                             select(ID, Host), by = c(. = "ID")) %>% pull(Host)
   magOTU_names <- rownames(matrix) %>% 
                       as.data.frame() %>%
-                        left_join(vis_magOTUs_df %>%
+                        left_join(mags_info_df %>%
                           ungroup() %>%
                             select(ID, Cluster), by = c(. = "ID")) %>% pull(Cluster)
   Genus_names <- rownames(matrix) %>% 
                     as.data.frame() %>%
-                      left_join(vis_magOTUs_df %>%
+                      left_join(mags_info_df %>%
                         ungroup() %>%
                           select(ID, Genus), by = c(. = "ID")) %>% pull(Genus)
   species_names <- rownames(matrix) %>% 
                     as.data.frame() %>%
-                      left_join(vis_magOTUs_df %>%
+                      left_join(mags_info_df %>%
                         ungroup() %>%
                           select(ID, Species), by = c(. = "ID")) %>% pull(Species)
   anno_host_col = HeatmapAnnotation(Host = host_names,
@@ -1419,12 +1419,12 @@ pretty_ani_heatmaps <- function(matrix, row_split = "magotus", add_values = F, v
   return(heatmap_obj)
   # draw(heatmap_obj, merge_legend = TRUE)
 }
-get_ani_matrix <- function(genera_list = c(), mag_names = c(), magOTUs = c()) {
+get_ani_matrix <- function(genera_list = c(), mag_names = c(), magOTUs = c(), mags_info_df=vis_magOTUs_df) {
   if (length(genera_list) > 0) {
     matrix <- drep_N %>%
                   select(reference, querry, ani) %>%
-                  filter(reference %in% vis_magOTUs_df$ID) %>%
-                    right_join(vis_magOTUs_df %>% ungroup() %>% select(ID, Cluster, Host, Species, Genus), by = c("reference" = "ID")) %>%
+                  filter(reference %in% mags_info_df$ID) %>%
+                    right_join(mags_info_df %>% ungroup() %>% select(ID, Cluster, Host, Species, Genus), by = c("reference" = "ID")) %>%
                       filter(Genus %in% genera_list) %>%
                       # mutate(reference = paste0(Cluster, "_", Genus, "_", reference)) %>%
                       # mutate(querry = paste0(Cluster, "_", Genus, "_", querry)) %>%
@@ -1439,8 +1439,8 @@ get_ani_matrix <- function(genera_list = c(), mag_names = c(), magOTUs = c()) {
   if (length(mag_names) > 0) {
     matrix <- drep_N %>%
                   select(reference, querry, ani) %>%
-                  filter(reference %in% vis_magOTUs_df$ID) %>%
-                    right_join(vis_magOTUs_df %>% ungroup() %>% select(ID, Cluster, Host, Species, Genus), by = c("reference" = "ID")) %>%
+                  filter(reference %in% mags_info_df$ID) %>%
+                    right_join(mags_info_df %>% ungroup() %>% select(ID, Cluster, Host, Species, Genus), by = c("reference" = "ID")) %>%
                       filter(reference %in% mag_names) %>%
                       # filter(reference %in% mag_names | querry %in% mag_names) %>%
                       # mutate(reference = paste0(Cluster, "_", Genus, "_", reference)) %>%
@@ -1456,8 +1456,8 @@ get_ani_matrix <- function(genera_list = c(), mag_names = c(), magOTUs = c()) {
   if (length(magOTUs) > 0) {
     matrix <- drep_N %>%
                   select(reference, querry, ani) %>%
-                  filter(reference %in% vis_magOTUs_df$ID) %>%
-                    right_join(vis_magOTUs_df %>% ungroup() %>% select(ID, Cluster, Host, Genus), by = c("reference" = "ID")) %>%
+                  filter(reference %in% mags_info_df$ID) %>%
+                    right_join(mags_info_df %>% ungroup() %>% select(ID, Cluster, Host, Genus), by = c("reference" = "ID")) %>%
                       filter(Cluster %in% genera_list) %>%
                       # mutate(reference = paste0(Cluster, "_", Genus, "_", reference)) %>%
                       # mutate(querry = paste0(Cluster, "_", Genus, "_", querry)) %>%
@@ -1491,7 +1491,6 @@ drep_N <- read.csv("06_MAG_binning/drep_results/data_tables/Ndb.csv") %>%
               mutate(querry = Vectorize(format_genome_name)(querry))
 ```
 
-### Initialization for 06 plot and summarize mags
 
 ```{r 06-init}
 cluster_info <- drep_Widb %>%
@@ -1499,6 +1498,11 @@ cluster_info <- drep_Widb %>%
                     rename(score_representative = score) %>%
                     mutate(representative_genome = Vectorize(format_genome_name)(genome)) %>%
                       select(!genome)
+cluster_tax_info <- vis_magOTUs_df %>%
+                      ungroup() %>%
+                      select(Genus, Species, Cluster, Num_mags) %>%
+                      unique() %>%
+                        mutate(cluster_name = paste0(Genus, "-", Cluster))
 MAGs_collated_info <- left_join(MAGs_collated, mutate(drep_gInformation, genome = Vectorize(format_genome_name)(genome)), by = c("ID"="genome"))
 vis_magOTUs_df_all <- MAGs_collated_info %>%
                         group_by(Sample) %>%
@@ -1585,13 +1589,318 @@ drep_dist <- drep_N %>%
                   left_join(vis_magOTUs_df %>% ungroup() %>% select(ID, Cluster, Genus), by = c("reference" = "ID"))
 ```
 
-### Definitions and functions
-### Load and parse data
-### Initialization for 07 xxx
+## Initialization for 07 xxx
 
 ### Definitions and functions
+
+```{r 07-func_def}
+get_genecount_matrix <- function(my_genus, upper_count = 10, combined_info = combined_info_df, mags_info = vis_magOTUs_df, only_mags = F, with_isolates = T) {
+  if (with_isolates & !only_mags) {
+    OG_numbers_df <- read.csv(paste0("07_AnnotationAndPhylogenies/02_orthofinder/", my_genus, "/OrthoFinder/Results_", my_genus, "/Orthogroups/Orthogroups.GeneCount.tsv"), sep = "\t")
+  }
+  if (!with_isolates && only_mags) {
+    OG_numbers_df <- read.csv(paste0("database/MAGs_database_Orthofinder/", my_genus,"/OrthoFinder/Results_", my_genus, "/Orthogroups/Orthogroups.GeneCount.tsv"), sep = "\t")
+  }
+  OG_numbers_df_core_isolate <- OG_numbers_df %>%
+  column_to_rownames("Orthogroup") %>%
+    select(!Total) %>%
+    filter(if_all(is.numeric, ~ .x <= upper_count)) %>%
+      t() %>%
+      as.data.frame() %>%
+      rownames_to_column("ID") %>%
+      mutate(Type = ifelse(startsWith(ID, "MAG_"), "MAG", "Isolate")) %>%
+      left_join(combined_info %>%
+                          ungroup() %>%
+                            select(ID, Host, Cluster) %>%
+                            unique(), by = "ID") %>%
+      left_join(vis_magOTUs_df %>%
+                          ungroup() %>%
+                            select(ID, completeness) %>%
+                            unique(), by = "ID") %>%
+        mutate(Host = ifelse(is.na(Host), "Unknown", Host)) %>%
+        mutate(Cluster = ifelse(is.na(Cluster), "Unknown", Cluster)) %>%
+        arrange(Type, Host, Cluster, completeness) %>%
+        select(!c(Type, Host, Cluster, completeness)) %>%
+        column_to_rownames("ID") %>% 
+        as.matrix
+}
+
+get_scp_matrix <- function(my_genus, combined_info = combined_info_df, mags_info = vis_magOTUs_df only_mags = F, with_isolates = T) {
+  if (with_isolates & !only_mags) {
+    OG_numbers_df <- read.csv(paste0("07_AnnotationAndPhylogenies/02_orthofinder/", my_genus, "/OrthoFinder/Results_", my_genus, "/Orthogroups/Orthogroups.GeneCount.tsv"), sep = "\t")
+  }
+  if (!with_isolates && only_mags) {
+    OG_numbers_df <- read.csv(paste0("database/MAGs_database_Orthofinder/", my_genus,"/OrthoFinder/Results_", my_genus, "/Orthogroups/Orthogroups.GeneCount.tsv"), sep = "\t")
+  }
+  OG_numbers_df_core_isolate <- OG_numbers_df %>%
+  column_to_rownames("Orthogroup") %>%
+    select(!Total) %>%
+    filter(if_all(is.numeric, ~ .x <= 1)) %>%
+      t() %>%
+      as.data.frame() %>%
+      rownames_to_column("ID") %>%
+      mutate(Type = ifelse(startsWith(ID, "MAG_"), "MAG", "Isolate")) %>%
+      left_join(combined_info %>%
+                          ungroup() %>%
+                            select(ID, Host, Cluster) %>%
+                            unique(), by = "ID") %>%
+      left_join(vis_magOTUs_df %>%
+                          ungroup() %>%
+                            select(ID, completeness) %>%
+                            unique(), by = "ID") %>%
+        mutate(Host = ifelse(is.na(Host), "Unknown", Host)) %>%
+        mutate(Cluster = ifelse(is.na(Cluster), "Unknown", Cluster)) %>%
+        arrange(Type, Host, Cluster, completeness) %>%
+        select(!c(Type, Host, Cluster, completeness)) %>%
+        column_to_rownames("ID") %>% 
+        as.matrix
+}
+
+get_isolate_core_matrix <- function(my_genus, combined_info = combined_info_df, mags_info = vis_magOTUs_df, only_mags = F, with_isolates = T) {
+  if (with_isolates & !only_mags) {
+    OG_numbers_df <- read.csv(paste0("07_AnnotationAndPhylogenies/02_orthofinder/", my_genus, "/OrthoFinder/Results_", my_genus, "/Orthogroups/Orthogroups.GeneCount.tsv"), sep = "\t")
+  }
+  if (!with_isolates && only_mags) {
+    OG_numbers_df <- read.csv(paste0("database/MAGs_database_Orthofinder/", my_genus,"/OrthoFinder/Results_", my_genus, "/Orthogroups/Orthogroups.GeneCount.tsv"), sep = "\t")
+  }
+  OG_numbers_df_core_isolate <- OG_numbers_df %>%
+  column_to_rownames("Orthogroup") %>%
+    select(!Total) %>%
+    filter(if_all(is.numeric, ~ .x <= 1)) %>%
+    filter(if_all(!starts_with(c("MAG")), ~ .x == 1)) %>%
+      t() %>%
+      as.data.frame() %>%
+      rownames_to_column("ID") %>%
+      mutate(Type = ifelse(startsWith(ID, "MAG_"), "MAG", "Isolate")) %>%
+      left_join(combined_info %>%
+                          ungroup() %>%
+                            select(ID, Host, Cluster) %>%
+                            unique(), by = "ID") %>%
+      left_join(vis_magOTUs_df %>%
+                          ungroup() %>%
+                            select(ID, completeness) %>%
+                            unique(), by = "ID") %>%
+        mutate(Host = ifelse(is.na(Host), "Unknown", Host)) %>%
+        mutate(Cluster = ifelse(is.na(Cluster), "Unknown", Cluster)) %>%
+        arrange(Type, Host, Cluster, completeness) %>%
+        select(!c(Type, Host, Cluster, completeness)) %>%
+        column_to_rownames("ID") %>% 
+        as.matrix
+}
+
+get_half_core_mag_matrix <- function(my_genus, combined_info = combined_info_df, mags_info = vis_magOTUs_df, only_mags = F, with_isolates = T) {
+  if (with_isolates & !only_mags) {
+    OG_numbers_df <- read.csv(paste0("07_AnnotationAndPhylogenies/02_orthofinder/", my_genus, "/OrthoFinder/Results_", my_genus, "/Orthogroups/Orthogroups.GeneCount.tsv"), sep = "\t")
+  }
+  if (!with_isolates && only_mags) {
+    OG_numbers_df <- read.csv(paste0("database/MAGs_database_Orthofinder/", my_genus,"/OrthoFinder/Results_", my_genus, "/Orthogroups/Orthogroups.GeneCount.tsv"), sep = "\t")
+  }
+  dim_mags <- OG_numbers_df %>%
+                select(matches("MAG_")) %>%
+                dim()
+  num_mags <- dim_mags[[2]]
+  OG_numbers_df_half_core_mags <- OG_numbers_df %>%
+              column_to_rownames("Orthogroup") %>%
+                select(!Total) %>%
+                  filter(if_all(is.numeric, ~ .x <= 1)) %>%
+                    select(starts_with(c("MAG"))) %>%
+                      mutate(half_core = ifelse(rowSums(.) > num_mags/2, "Yes", "No")) %>%
+                      select(half_core) %>%
+                      rownames_to_column("OG")
+  OG_numbers_df_core_isolate <- OG_numbers_df %>%
+  column_to_rownames("Orthogroup") %>%
+    select(!Total) %>%
+    filter(if_all(is.numeric, ~ .x <= 1)) %>%
+    filter(if_all(!starts_with(c("MAG")), ~ .x == 1)) %>%
+    rownames_to_column("OG") %>%
+    left_join(OG_numbers_df_half_core_mags) %>%
+      filter(half_core == "Yes") %>%
+      select(!c(half_core)) %>%
+      column_to_rownames("OG") %>%
+      t() %>%
+      as.data.frame() %>%
+      rownames_to_column("ID") %>%
+      mutate(Type = ifelse(startsWith(ID, "MAG_"), "MAG", "Isolate")) %>%
+      left_join(combined_info %>%
+                          ungroup() %>%
+                            select(ID, Host, Cluster) %>%
+                            unique(), by = "ID") %>%
+      left_join(vis_magOTUs_df %>%
+                          ungroup() %>%
+                            select(ID, completeness) %>%
+                            unique(), by = "ID") %>%
+        mutate(Host = ifelse(is.na(Host), "Unknown", Host)) %>%
+        mutate(Cluster = ifelse(is.na(Cluster), "Unknown", Cluster)) %>%
+        arrange(Type, Host, Cluster, completeness) %>%
+        select(!c(Type, Host, Cluster, completeness)) %>%
+        column_to_rownames("ID") %>% 
+        as.matrix
+}
+pretty_orthogene_heatmaps <- function(matrix, combined_info=combined_info_df, ref_info=reference_genomes_info, mags_info = vis_magOTUs_df_all, row_split = "magotus", add_values = F, value_size = 10, limit_l = 0.95, limit_h = 1, col_fun ) {
+  mag_completeness <- rownames(matrix) %>% as.data.frame() %>%
+                        left_join(mags_info %>%
+                          ungroup() %>%
+                            select(ID, completeness) %>%
+                            unique(), by = c(. = "ID")) %>%
+                            mutate(completeness = ifelse(is.na(completeness), 100, completeness)) %>% 
+                            pull(completeness)
+  ref_status <- rownames(matrix) %>% as.data.frame() %>%
+                        left_join(mags_info %>%
+                          ungroup() %>%
+                            select(ID, Ref_status) %>%
+                            unique(), by = c(. = "ID")) %>%
+                            mutate(Ref_status = ifelse(is.na(Ref_status), 1, Ref_status)) %>% 
+                            pull(Ref_status)
+  magOTU_names <- rownames(matrix) %>% as.data.frame() %>%
+                        left_join(combined_info_df %>%
+                          ungroup() %>%
+                            select(ID, Cluster) %>%
+                            unique(), by = c(. = "ID")) %>%
+                            mutate(Cluster = ifelse(is.na(Cluster), "Unknown", Cluster)) %>% 
+                            pull(Cluster)
+  host_names <- rownames(matrix) %>% as.data.frame() %>%
+                        left_join(combined_info_df %>%
+                          ungroup() %>%
+                            select(ID, Host) %>%
+                            unique(), by = c(. = "ID")) %>%
+                            mutate(Host = ifelse(is.na(Host), "Unknown", Host)) %>% 
+                            pull(Host)
+  genome_types <- rownames(matrix) %>% as.data.frame() %>%
+                        mutate(Type = ifelse(startsWith(., "MAG_"), "MAG", "Isolate")) %>% pull(Type)
+  anno_completeness_ref_row = rowAnnotation(Completeness = mag_completeness,
+                                          `Reference status` = ref_status,
+                                            col = list(Completeness = colorRamp2(c(0, 50, 100), c("#d73027", "#ffffbf", "#1a9850")),
+                                                      `Reference status` = make_col_list(ref_status, "Greys")
+                                            ),
+                                            border = TRUE
+                               )
+  anno_host_row = rowAnnotation(Host = host_names,
+                                col = list(Host = make_col_list(host_names, "Pastel1")),
+                                border = TRUE
+                               )
+  anno_type_host_row = rowAnnotation(Host = host_names,
+                                    `Genome type` = genome_types,
+                                      col = list(`Genome type` = make_col_list(genome_types, "Spectral"),
+                                                Host = make_col_list(host_names, "Pastel1")
+                                                ),
+                                      border = TRUE
+                          )
+  row_split  = as.character(as.factor(magOTU_names))
+  heatmap_obj = Heatmap(matrix, 
+            col = col_fun,
+            # col = brewer.pal(3, "Set1")[1:2],
+            # clustering_method_columns = 'ward.D2',
+            # top_annotation = anno_type_col,
+            right_annotation = anno_completeness_ref_row,
+            left_annotation = anno_type_host_row,
+            column_names_gp = grid::gpar(fontsize = 0),
+            row_names_gp = grid::gpar(fontsize = 0),
+            heatmap_legend_param = list(title = "Gene count"),
+            row_split = row_split,
+            row_title_rot = 0,
+            row_title_gp = grid::gpar(fontsize = 10),
+            cluster_columns = T,
+            border = TRUE,
+            cluster_rows = F
+            )
+  return(heatmap_obj)
+  # draw(heatmap_obj, merge_legend = TRUE)
+}
+```
+
 ### Load and parse data
-### Initialization for 08 xxx
+
+```{r 07-Load}
+genera_list <- c()
+for (file_name in list.files("database/MAGs_database_Orthofinder/")) {
+  if (!grepl(".csv", file_name)) {
+    genus_name <- file_name
+  }
+  if (!(genus_name %in% genera_list)) {
+    genera_list <- c(genera_list, genus_name)
+  }
+}
+all_Isolates <- c()
+all_MAGs <- c()
+Number_genomes_df <- data.frame()
+for (group in Groups) {
+  OG_numbers_df <- read.csv(paste0("07_AnnotationAndPhylogenies/02_orthofinder/", group, "/OrthoFinder/Results_", group, "/Orthogroups/Orthogroups.GeneCount.tsv"), sep = "\t")
+  genomes <- head(colnames(OG_numbers_df)[-1], -1)
+  MAGs <- genomes[which(grepl("MAG", genomes, fixed=TRUE))]
+  all_MAGs <- c(all_MAGs, MAGs)
+  Isolates <- genomes[which(!grepl("MAG", genomes, fixed=TRUE))]
+  all_Isolates <- c(all_Isolates, Isolates)
+  Number_genomes_df <- rbind(Number_genomes_df,
+                             cbind(
+                                MAGs = length(MAGs),
+                                Isolates = length(Isolates),
+                                genomes = length(genomes),
+                                Group = group
+                              )
+                            )
+}
+Number_genomes_df <- pivot_longer(Number_genomes_df, !Group, names_to = "Type", values_to = "Number") %>%
+                      mutate(Number = as.numeric(Number))
+ortho_mags_df <- data.frame()
+ortho_mags_filt_df <- data.frame()
+for (genus_name in genera_list) {
+  orthofinder_filtered_summary <- read.csv(paste0("database/MAGs_database_Orthofinder/", genus_name,"_Orthogroups_filtered_summary.csv"))
+  orthofinder_summary <- read.csv(paste0("database/MAGs_database_Orthofinder/", genus_name,"_Orthogroups_summary.csv"))
+  ortho_mags_df <- rbind(ortho_mags_df, orthofinder_summary)
+  ortho_mags_filt_df <- rbind(ortho_mags_filt_df, orthofinder_filtered_summary)
+}
+ortho_w_isolates_df <- data.frame()
+for (group in Groups) {
+  orthofinder_summary_w_isolates <- read.csv(paste0("07_AnnotationAndPhylogenies/02_orthofinder/", group, "_Orthogroups_summary.csv"))
+  ortho_w_isolates_df <- rbind(ortho_w_isolates_df, orthofinder_summary_w_isolates)
+}
+
+Orthogroups_summary_df <- data.frame()
+for (group in Groups) {
+  OG_summary <- read.csv(paste0("07_AnnotationAndPhylogenies/02_orthofinder/", group, "_Orthogroups_summary.csv"), sep = ",")
+  Orthogroups_summary_df <- rbind(Orthogroups_summary_df,
+                                  OG_summary
+                            ) %>%
+                              filter(present_in != "None")
+}
+ortho_w_isolates_df <- ortho_w_isolates_df %>%
+                        left_join(cluster_tax_info, by = c("group" = "Genus")) %>%
+ortho_mags_df <- ortho_mags_df %>%
+                        left_join(cluster_tax_info, by = c("group" = "Genus")) %>%
+ortho_mags_filt_df <- ortho_mags_filt_df %>%
+                        left_join(cluster_tax_info, by = c("group" = "Genus")) %>%
+plot_number_OGs <- ortho_w_isolates_df %>%
+  mutate(Type = ifelse(status %in% c("Isolates:ScpCore ; MAGs:ScpCore0.5"), "Present in at least 50% MAGs", NA)) %>%
+  mutate(Type = ifelse(status %in% c("Isolates:ScpCore ; MAGs:ScpCore"), "Present in all MAGs", Type)) %>%
+  filter(!is.na(Type)) %>%
+    group_by(group, Type) %>%
+     summarise(Number = n())
+plot_number_OGs_mags <- ortho_mags_df %>%
+  mutate(Type = ifelse(status %in% c("; MAGs:ScpCore0.5"), "Present in at least 50% MAGs", NA)) %>%
+  mutate(Type = ifelse(status %in% c("; MAGs:ScpCore"), "Present in all MAGs", Type)) %>%
+  filter(!is.na(Type)) %>%
+    group_by(group, Type) %>%
+    filter(group %in% Groups) %>%
+    group_by(group, Type) %>%
+     summarise(Type, Number = n())
+plot_number_OGs_mags %>%
+                    select(group) %>% unique %>%
+                    left_join(Number_genomes_df %>%
+                                pivot_wider(names_from = Type, values_from = Number), by = c("group" = "Group")) %>%
+                        ungroup() %>%
+                        filter(group %in% Groups) %>%
+                           mutate(SampleID = row_number()) %>% pull(SampleID)     
+```
+
+### Initialization for 08 plot DRAM results
+
+```{r 08-fun_def}
+
+```
+### Load and parse data
+
+```{r 08-load}
+```
 
 ### Definitions and functions
 ### Load and parse data
@@ -1842,12 +2151,6 @@ for (file in list.files(corecov_data_dir)) {
   }
 }
 
-cluster_tax_info <- vis_magOTUs_df %>%
-                      ungroup() %>%
-                      select(Genus, Species, Cluster, Num_mags) %>%
-                      unique() %>%
-                        mutate(cluster_name = paste0(Genus, "-", Cluster))
-
 coverage_df <- coords_df %>%
   rename(Cluster = magOTU) %>%
     left_join(cluster_tax_info) %>%
@@ -1926,6 +2229,32 @@ abundance_df_matrix_Cov <-  abundance_df %>% filter(!is.na(cluster_name)) %>%
 
 ```{r query_dataset}
 vis_magOTUs_df %>%
-  filter(Cluster =="33_1") %>%
-    pull(N50)
+  ungroup() %>%
+  group_by(Genus) %>%
+  summarise(n=n()) %>%
+  arrange(n) %>% pull(Genus)
+
+# g__Lactobacillus
+# g__Bifidobacterium
+# g__Gilliamella
+vis_magOTUs_df %>%
+  filter(Genus == "g__Dysgonomonas") %>%
+  mutate(custom_name = paste0(ID, "-", Cluster)) %>%
+    pull(custom_name)
+# g__Bombilactobacillus
+vis_magOTUs_df %>%
+  filter(Genus == "g__Snodgrassella") %>%
+    pull(ID)
+vis_magOTUs_df %>%
+  filter(Genus == "g__Frischella") %>%
+    pull(ID)
+vis_magOTUs_df %>%
+  filter(Genus == "g__Apibacter") %>%
+    pull(ID)
+vis_magOTUs_df %>%
+  filter(Genus == "g__Pectinatus") %>%
+    pull(ID)
+vis_magOTUs_df %>%
+  filter(Genus == "g__Commensalibacter") %>%
+    pull(ID)
 ```
