@@ -1892,7 +1892,7 @@ plot_number_OGs_mags %>%
                            mutate(SampleID = row_number()) %>% pull(SampleID)     
 ```
 
-### Initialization for 08 plot DRAM results
+## Initialization for 08 plot DRAM results
 
 ```{r 08-fun_def}
 pcoa_plot_dram <- function(df_pcoa, metadata, variable, color_add=F, color_list, colname_in_metadata = "ID", shape_add = F, shape_var) {
@@ -2244,9 +2244,204 @@ df_other <- product_tsv %>%
                       as.matrix
 ```
 
+## Initialization for 09 plot community composition
+
 ### Definitions and functions
+
+```{r 09-def_func}
+shorten_list <- function(covs_list_full, start = 1, end = 2) {
+  covs_list_short = strsplit(covs_list_full, ",")[[1]][start:end]
+  return(paste0(covs_list_short, collapse = ","))
+}
+
+trim_side_mean <- function(x, trim, type="both") {
+    if (type == "both") {
+        mean(x,trim)}
+    else if (type == "right") {
+        x <- sort(x)
+        mean(x[1:floor(length(x)*(1-trim))])}
+    else if (type == "left"){
+        x <- sort(x)
+        mean(x[max(1,floor(length(x)*trim)):length(x)])}
+}
+make_cum_curve <- function(samples_vector, pa_df, iterations, name = NA) {
+  num_clusters_matrix <- matrix(nrow = length(samples_vector), ncol = iterations)
+  for (iter in 1:iterations) {
+    clusters_found_cumulative <- c()
+    for (num_samples in 1:length(samples_vector)) {
+      num_new_clusters = 0
+      selected_samples <- sample(samples_vector, num_samples)
+      clusters_found <- colnames(pa_df[selected_samples, which(colSums(pa_df[selected_samples, ]) > 1)])
+      for (cluster in clusters_found) {
+        if (cluster %in% clusters_found_cumulative) {
+          invisible()
+        } else {
+          num_new_clusters <- num_new_clusters + 1
+          clusters_found_cumulative <- c(clusters_found_cumulative, cluster)
+        }
+      }
+      num_clusters_matrix[num_samples, iter] = length(clusters_found_cumulative)
+    }
+  }
+  num_clusters_df <- as.data.frame(num_clusters_matrix)
+  colnames(num_clusters_df) <- do.call(function(x) paste0("curve_", x), list(c(1:iterations)))
+  num_clusters_df <- cbind(sample_size = c(1:length(samples_vector)), num_clusters_df)
+  plot_cum_curve_df <- pivot_longer(num_clusters_df, !sample_size, values_to = "number_of_clusters", names_to = "curve")
+  plot_cum_curve_df <- cbind("name" = name, plot_cum_curve_df)
+  return(plot_cum_curve_df)
+}
+pretty_pcoa_plot <- function(df_pcoa, metadata, variable, color_add=F, color_list, colname_in_metadata = "ID") {
+          matrix <- as.matrix(df_pcoa)
+          dist <- as.dist(matrix)
+          res_pcoa <- pcoa(dist)
+          ev1 <- res_pcoa$vectors[,1]
+          ev2 <- res_pcoa$vectors[,2]
+          df_pcoa_new <- data.frame(cbind(ev1,ev2))
+          df_pcoa_new$Sample <- rownames(df_pcoa_new)
+          rownames(df_pcoa_new) <- NULL
+          df_pcoa_new <- left_join(df_pcoa_new, metadata, by = c("Sample" = colname_in_metadata))
+          perc_axis <- round(((res_pcoa$values$Relative_eig[c(1,2)])*100), digits=1)
+          axis_x_title <- paste0("PCo1 (",perc_axis[1],"%)")
+          axis_y_title <- paste0("PCo2 (",perc_axis[2],"%)")
+          if(color_add) {
+            p <- ggplot(df_pcoa_new, aes(x = ev1,
+                                       y = ev2,
+                                       colour = get(variable)))+
+                geom_point(stat="identity", size=4, shape=19) +
+                  labs(x=axis_x_title, y = axis_y_title, color = variable) +
+                    make_theme(setFill = F, setCol = F, guide_nrow = 4, leg_size = 10 ) +
+                      scale_color_manual(values=color_list)
+          } else {
+            p <- ggplot(df_pcoa_new, aes(x = ev1,
+                                       y = ev2,
+                                       color = get(variable)))+
+                geom_point(stat="identity", size=4, shape=19) +
+                  labs(x=axis_x_title, y = axis_y_title, color = variable) +
+                    make_theme( max_colors = length(unique(df_pcoa_new[, variable])), guide_nrow = 4, leg_size = 10 ) 
+          }
+          return(p)
+}
+get_ID_from_scaffold <- function(my_name) {
+  split_name <- strsplit(my_name, "|", fixed = T)[[1]]
+  if (length(split_name) == 3) {
+    return(paste0(strsplit(split_name[[3]], "_")[[1]][1:3], collapse="_"))
+  } else {
+    return(my_name)
+  }
+}
+```
+
 ### Load and parse data
-### Initialization for 09 xxx
+
+```{r 09-load_parse}
+corecov_data_dir <- "09_MagDatabaseProfiling/CoverageEstimation/Merged"
+coords_df <- data.frame()
+for (file in list.files(corecov_data_dir)) {
+  if (endsWith(file, "_coord.txt")) {
+    df_temp <- read.csv(paste0(corecov_data_dir, "/", file), sep = "\t", header = TRUE)
+    coords_df <- rbind(coords_df, df_temp)
+  }
+}
+cluster_tax_info <- vis_magOTUs_df %>%
+                      ungroup() %>%
+                      select(Genus, Species, Cluster, Num_mags) %>%
+                      unique() %>%
+                        mutate(cluster_name = paste0(Genus, "-", Cluster))
+
+coverage_df <- coords_df %>%
+  rename(Cluster = magOTU) %>%
+    left_join(cluster_tax_info) %>%
+      mutate(Host = Vectorize(get_host_name)(Sample)) %>%
+      mutate(Location = Vectorize(get_location_from_sample_name)(Sample)) %>%
+        mutate(Detected = ifelse(Cov > 0, 1, 0)) %>%
+          mutate(Detected = ifelse(is.na(Detected), 0, Detected)) %>%
+          mutate(Cov = ifelse(is.na(Cov), 0, Cov)) %>%
+          group_by(Host, Cluster) %>%
+            mutate(Present = sum(Detected)) %>%
+            mutate(Mean = mean(Cov)) %>%
+            mutate(Prevalence_host = ifelse(Host=="Apis mellifera", Present/length(samples_am), NA)) %>%
+            mutate(Prevalence_host = ifelse(Host=="Apis cerana", Present/length(samples_ac), Prevalence_host)) %>%
+            mutate(Prevalence_host = ifelse(Host=="Apis dorsata", Present/length(samples_ad), Prevalence_host)) %>%
+            mutate(Prevalence_host = ifelse(Host=="Apis florea", Present/length(samples_af), Prevalence_host)) %>%
+            mutate(Prevalence_host = ifelse(Host=="Apis andreniformis", Present/length(samples_aa), Prevalence_host))
+
+coverage_df_genus <- coords_df %>%
+                rename(Cluster = magOTU) %>%
+                  left_join(cluster_tax_info) %>%
+                      mutate(Detected = ifelse(Cov > 1, 1, 0)) %>%
+                        mutate(Detected = ifelse(is.na(Detected), 0, Detected)) %>%
+                        mutate(Cov = ifelse(is.na(Cov), 0, Cov)) %>%
+                        ungroup() %>%
+                          group_by(Genus, Sample) %>%
+                              summarise(Genus_Present = ifelse(any(Detected == 1), 1, 0), Num_mags = sum(Num_mags), Genus_cov = mean(Cov)) %>%
+                               mutate(Host = Vectorize(get_host_name)(Sample)) %>%
+                                group_by(Host, Genus) %>%
+                                  mutate(Mean = round(trim_side_mean(Genus_cov, trim = 0.01)), 2) %>%
+                                  mutate(Median = round(mean(Genus_cov)), 2) %>%
+                                  mutate(covs_list = paste0(round(Genus_cov, 0), collapse = ",")) %>%
+                                  mutate(covs_list = Vectorize(shorten_list)(covs_list, 1, 3)) %>%
+                                  mutate(Present = sum(Genus_Present)) %>%
+                                  mutate(Prevalence_host = ifelse(Host=="Apis mellifera", Present/length(samples_am), NA)) %>%
+                                  mutate(Prevalence_host = ifelse(Host=="Apis cerana",Present/length(samples_ac), Prevalence_host)) %>%
+                                  mutate(Prevalence_host = ifelse(Host=="Apis dorsata",Present/length(samples_ad), Prevalence_host)) %>%
+                                  mutate(Prevalence_host = ifelse(Host=="Apis florea",Present/length(samples_af), Prevalence_host)) %>%
+                                  mutate(Prevalence_host = ifelse(Host=="Apis andreniformis",Present/length(samples_aa), Prevalence_host))
+instrain_mapping <- data.frame()
+for (sample in samples_IN) {
+  sample_mapping_scaffold_instrain <- read.csv(paste0("/scratch/aprasad/211018_Medgenome_india_samples/10_instrain/",sample,"_profile.IS/output/",sample,"_profile.IS_scaffold_info.tsv"), sep = "\t") %>%
+    mutate(ID = Vectorize(get_ID_from_scaffold)(scaffold)) %>%
+    select(ID, length, breadth) %>%
+      mutate(sample = sample)
+  sample_mapping_instrain <- read.csv(paste0("/scratch/aprasad/211018_Medgenome_india_samples/10_instrain/",sample,"_profile.IS/output/",sample,"_profile.IS_mapping_info.tsv"), sep = "\t", skip = 1) %>%
+    mutate(ID = Vectorize(get_ID_from_scaffold)(scaffold)) %>%
+      select(ID, filtered_pairs, mean_PID, unfiltered_pairs) %>%
+      mutate(sample = sample) %>%
+      left_join(sample_mapping_scaffold_instrain, by = c("ID", "sample"))
+  instrain_mapping <- rbind(instrain_mapping, sample_mapping_instrain)
+} 
+
+instrain_mapping_magOTU <- instrain_mapping %>%
+                      left_join(vis_magOTUs_df_all %>% 
+                                ungroup() %>%
+                                  select(ID, Genus, Cluster, Ref_status) %>%
+                                    filter(Ref_status == 1) %>%
+                                      mutate(magOTU = paste0(Genus, "-", Cluster)) %>%
+                                        select(ID, magOTU, Genus),
+                                by = "ID"
+                                )
+plot_mapping_df <- instrain_mapping_magOTU %>%
+                    filter(ID != "all_scaffolds") %>%
+                    mutate(magOTU = as.factor(magOTU)) %>%
+                    select(!ID) %>%
+                    group_by(sample, magOTU) %>%
+                      mutate(Mapped = sum(filtered_pairs)) %>%
+                      mutate(mul_factor = length*breadth) %>%
+                      mutate(Mapped_corrected = sum(filtered_pairs)*mul_factor) %>%
+                      ungroup() %>%
+                      group_by(sample) %>%
+                      mutate(instrain_summed = sum(Mapped)) %>%
+                      mutate(percent_mapped = Mapped/sum(Mapped)*100)
+
+plot_mapping_df_total <- instrain_mapping_magOTU %>%
+                          mutate(magOTU = as.factor(magOTU)) %>%
+                          mutate(instrain_mapped = filtered_pairs*2) %>%
+                          filter(ID == "all_scaffolds") %>%
+                          left_join(instrain_mapping_magOTU %>%
+                                    filter(ID != "all_scaffolds") %>%
+                                    group_by(sample, magOTU) %>%
+                                      mutate(Mapped = filtered_pairs) %>%
+                                      ungroup() %>%
+                                      group_by(sample) %>%
+                                      summarise(sample, instrain_summed = sum(Mapped)) %>% unique
+                                      ) %>%
+                          left_join(df_reads %>% select(Sample, Trimmed, Mapped_microbiome), by = c("sample" = "Sample")) %>%
+                          select(sample, instrain_mapped, instrain_summed, Trimmed, Mapped_microbiome) %>%
+                          # select(!c(length, breadth, magOTU, Genus)) %>%
+                          pivot_longer(!sample, names_to = "Type", values_to = "Reads")
+                            # group_by(sample, Genus) %>%
+                            # mutate(Mapped = sum(filtered_pairs)*2)
+```
+
 
 ### Definitions and functions
 ### Load and parse data
