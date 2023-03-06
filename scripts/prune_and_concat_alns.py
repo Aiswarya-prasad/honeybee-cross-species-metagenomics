@@ -91,8 +91,10 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--aligned_dir', action='store', help='name of directory where input alignments are')
 parser.add_argument('--pruned_dir', action='store', help='name of directory to write outputs to')
 parser.add_argument('--pipe_names', action='store', help='True if names have pipes')
-parser.add_argument('--genomes_list', action='store', help='True if names have pipes')
+parser.add_argument('--genomes_file', action='store', help='Metadata file as made for snakemake pipeline')
+parser.add_argument('--genomes_list', nargs='+', action='store', help='Explicit list of genomes')
 parser.add_argument('--group', action='store', help='Group wildcard passed from snakemake')
+parser.add_argument('--parse_genomes_from_file', action='store', default=True, help='Group wildcard passed from snakemake')
 args = parser.parse_args()
 
 PathAlignedOG=args.aligned_dir
@@ -101,9 +103,17 @@ WriteAll=True
 pipeNames=args.pipe_names
 if pipeNames == 'False':
     pipeNames = False
-genomes_file=args.genomes_list
-group=args.group
+Genomes = []
+if args.parse_genomes_from_file is True:
+    print(f"{args.parse_genomes_from_file}")
+    genomes_file=args.genomes_file
+    group=args.group
+    Genomes = get_g_dict_for_groups(genomes_file)[group]
+    Genomes = [">"+genome for genome in Genomes]
+else:
+    Genomes = [">"+genome for genome in args.genomes_list]
 
+    
 # PathAlignedOG=snakemake.input.aligned_dir
 # OutDir=snakemake.output.pruned_dir
 # WriteAll=True
@@ -112,14 +122,13 @@ group=args.group
 #     pipeNames = False
 # genomes_file=snakemake.input.genomes_list
 
-Genomes = get_g_dict_for_groups(genomes_file)[group]
-Genomes = [">"+genome for genome in Genomes]
-print(f"{Genomes}")
+    
+# print(f"{Genomes}")
 
 if not os.path.exists(OutDir):
     os.makedirs(OutDir)
 
-OGList = [item for item in os.listdir(PathAlignedOG) if not item.startswith(".") and item.endswith("_aligned.faa")]
+OGList = [item for item in os.listdir(PathAlignedOG) if not item.startswith(".") and item.endswith("_aligned.faa") or item.endswith("_aligned.fa")]
 AlignedFiles=[OG for OG in OGList if os.path.isfile(PathAlignedOG+'/'+OG)]
 MainDictionary={}
 for OG in AlignedFiles :

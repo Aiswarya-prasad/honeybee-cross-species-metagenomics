@@ -535,6 +535,7 @@ motuColors <- list(
 make_theme <- function(theme_name=theme_classic() ,max_colors=0, palettefill="Pastel1", palettecolor="Dark2", modify_guide = T,
                         setFill=TRUE, setCol=TRUE,
                         guide_nrow=2, guide_nrow_byrow=TRUE, leg_pos="top", leg_size=12,
+                        axis_x_title = 12, axis_y_title = 12,
                         x_angle=0 ,x_vj=0, x_hj=0, x_size=12,
                         y_angle=0 ,y_vj=0, y_hj=0, y_size=12){
   n_11 = c("BrBG", "PiYG", "PRGn", "PuOr", "RdBu", "RdGy", "RdYlBu", "RdYlGn", "Spectral")
@@ -574,8 +575,8 @@ make_theme <- function(theme_name=theme_classic() ,max_colors=0, palettefill="Pa
     axis.text.y = element_text(angle = y_angle,
       vjust = y_vj, hjust=y_hj,
       size = y_size),
-      # axis.title.x = element_text(margin=margin(t=5)),
-      # axis.title.y = element_text(margin=margin(r=10)),
+      axis.title.x = element_text(size=axis_x_title),
+      axis.title.y = element_text(size=axis_y_title),
       legend.position=leg_pos,
       legend.text = element_text(size=leg_size)
     )
@@ -2080,6 +2081,9 @@ pretty_dram_heatmap <- function(my_matrix,
   if (col_split_by == "Species") {
     column_split = as.character(as.factor(species_names))
   }
+  if (col_split_by == "Host") {
+    column_split = as.character(as.factor(host_names))
+  }
   heatmap_obj = Heatmap(t(my_matrix), 
             # col = colorRamp2(c(limit_l, limit_h), c("#9ecae1", "#08306b")),
             col = col_input,
@@ -2167,6 +2171,7 @@ prepare_matrix <- function(my_matrix, subset_genes = T, genes_list = c(),
                                               by = c("rownames" = "ID")
                                   ) %>%
                                   arrange(Genus, Cluster, Host) %>%
+                                  # arrange(Host, Genus, Cluster) %>%
                                   select(!c(Genus, Host, Cluster)) %>%
                                   column_to_rownames("rownames") %>%
                                   filter(rowSums(.) > 0)
@@ -2334,6 +2339,53 @@ get_ID_from_scaffold <- function(my_name) {
 ### Load and parse data
 
 ```{r 09-load_parse}
+read_length <- 150
+instrain_mapping <- data.frame()
+sample = samples_IN[1]
+instrain_mags_ref <- read.csv(paste0("/scratch/aprasad/211018_Medgenome_india_samples/10_instrain/",sample,"_profile.IS/output/",sample,"_profile.IS_mapping_info.tsv"), sep = "\t", skip = 1) %>%
+      mutate(ID = Vectorize(get_ID_from_scaffold)(scaffold)) %>%
+      filter(ID != "all_scaffolds") %>%
+      pull(ID) %>% unique() %>% as.character
+instrain_mag_lengths <- read.csv(paste0("/scratch/aprasad/211018_Medgenome_india_samples/10_instrain/",sample,"_profile.IS/output/",sample,"_profile.IS_scaffold_info.tsv"), sep = "\t") %>%
+      mutate(ID = Vectorize(get_ID_from_scaffold)(scaffold)) %>%
+      select(ID, length) %>%
+      group_by(ID) %>%
+      summarise(ID, length = sum(length)) %>%
+      unique()
+instrain_mapping <- data.frame(ID = instrain_mags_ref)
+for (sample in samples_IN) {
+  sample_reads <- read.csv(paste0("/scratch/aprasad/211018_Medgenome_india_samples/10_instrain/",sample,"_profile.IS/output/",sample,"_profile.IS_mapping_info.tsv"), sep = "\t", skip = 1) %>%
+    mutate(ID = Vectorize(get_ID_from_scaffold)(scaffold)) %>%
+      select(ID, filtered_pairs) %>%
+      filter(ID != "all_scaffolds") %>%
+      group_by(ID) %>%
+      summarise(ID, reads=sum(filtered_pairs)) %>%
+      unique() %>% pull(reads)
+  sample_MAGs <- read.csv(paste0("/scratch/aprasad/211018_Medgenome_india_samples/10_instrain/",sample,"_profile.IS/output/",sample,"_profile.IS_mapping_info.tsv"), sep = "\t", skip = 1) %>%
+      mutate(ID = Vectorize(get_ID_from_scaffold)(scaffold)) %>%
+      filter(ID != "all_scaffolds") %>%
+      pull(ID) %>% unique() %>% as.character
+  print(sample)
+  print(sum(sample_reads))
+  df_to_bind <- data.frame(sample_MAGs, sample_reads)
+  colnames(df_to_bind) <- c("ID", sample)
+  instrain_mapping <- cbind(instrain_mapping, df_to_bind %>% select(!ID))
+} 
+
+plot_mapping_df_by_magotu <- instrain_mapping %>%
+                              pivot_longer(!ID, values_to = "reads", names_to = "sample") %>%
+                              left_join(vis_magOTUs_df_all %>% 
+                                          ungroup() %>%
+                                          # filter(Ref_status == 1) %>%
+                                          mutate(magOTU = paste0(Genus, "_", Cluster)) %>%
+                                          select(ID, magOTU, Genus, length)
+                              ) %>%
+                              left_join(instrain_mag_lengths) %>%
+                              mutate(reads_corrected = reads*150*2/length) %>%
+                              group_by(sample) %>%
+                              mutate(percentage_corrected = reads_corrected/sum(reads_corrected)*100) %>%
+                              mutate(percentage = reads/sum(reads)*100)
+
 corecov_data_dir <- "09_MagDatabaseProfiling/CoverageEstimation/Merged"
 coords_df <- data.frame()
 for (file in list.files(corecov_data_dir)) {
@@ -2386,60 +2438,41 @@ coverage_df_genus <- coords_df %>%
                                   mutate(Prevalence_host = ifelse(Host=="Apis dorsata",Present/length(samples_ad), Prevalence_host)) %>%
                                   mutate(Prevalence_host = ifelse(Host=="Apis florea",Present/length(samples_af), Prevalence_host)) %>%
                                   mutate(Prevalence_host = ifelse(Host=="Apis andreniformis",Present/length(samples_aa), Prevalence_host))
-instrain_mapping <- data.frame()
-for (sample in samples_IN) {
-  sample_mapping_scaffold_instrain <- read.csv(paste0("/scratch/aprasad/211018_Medgenome_india_samples/10_instrain/",sample,"_profile.IS/output/",sample,"_profile.IS_scaffold_info.tsv"), sep = "\t") %>%
-    mutate(ID = Vectorize(get_ID_from_scaffold)(scaffold)) %>%
-    select(ID, length, breadth) %>%
-      mutate(sample = sample)
-  sample_mapping_instrain <- read.csv(paste0("/scratch/aprasad/211018_Medgenome_india_samples/10_instrain/",sample,"_profile.IS/output/",sample,"_profile.IS_mapping_info.tsv"), sep = "\t", skip = 1) %>%
-    mutate(ID = Vectorize(get_ID_from_scaffold)(scaffold)) %>%
-      select(ID, filtered_pairs, mean_PID, unfiltered_pairs) %>%
-      mutate(sample = sample) %>%
-      left_join(sample_mapping_scaffold_instrain, by = c("ID", "sample"))
-  instrain_mapping <- rbind(instrain_mapping, sample_mapping_instrain)
-} 
+abundance_df <- coords_df %>%
+  rename(Cluster = magOTU) %>%
+    left_join(cluster_tax_info %>% filter(!is.na(cluster_name))) %>%
+      mutate(Host = Vectorize(get_host_name)(Sample)) %>%
+        mutate(Cov = ifelse(is.na(Cov), 0, Cov)) %>%
+          mutate(MedianCov = ifelse(is.na(MedianCov), 0, MedianCov)) %>%
+            select(Sample, Cov, cluster_name, Host) %>%
+              left_join(select(df_reads, Trimmed, Sample), by = "Sample") %>%
+                  rename(NumReads = Trimmed) %>%
+                    mutate(CovNorm = Cov/NumReads)
 
-instrain_mapping_magOTU <- instrain_mapping %>%
-                      left_join(vis_magOTUs_df_all %>% 
-                                ungroup() %>%
-                                  select(ID, Genus, Cluster, Ref_status) %>%
-                                    filter(Ref_status == 1) %>%
-                                      mutate(magOTU = paste0(Genus, "-", Cluster)) %>%
-                                        select(ID, magOTU, Genus),
-                                by = "ID"
-                                )
-plot_mapping_df <- instrain_mapping_magOTU %>%
-                    filter(ID != "all_scaffolds") %>%
-                    mutate(magOTU = as.factor(magOTU)) %>%
-                    select(!ID) %>%
-                    group_by(sample, magOTU) %>%
-                      mutate(Mapped = sum(filtered_pairs)) %>%
-                      mutate(mul_factor = length*breadth) %>%
-                      mutate(Mapped_corrected = sum(filtered_pairs)*mul_factor) %>%
-                      ungroup() %>%
-                      group_by(sample) %>%
-                      mutate(instrain_summed = sum(Mapped)) %>%
-                      mutate(percent_mapped = Mapped/sum(Mapped)*100)
+abundance_df_matrix <-  abundance_df %>% filter(!is.na(cluster_name)) %>%
+                          mutate(PresAb = ifelse(CovNorm > 0, 1, 0)) %>%
+                          select(Sample, cluster_name, PresAb) %>%
+                            pivot_wider(names_from=cluster_name, values_from=PresAb, values_fn = as.vector) %>% remove_rownames %>%
+                            column_to_rownames(var="Sample")
 
-plot_mapping_df_total <- instrain_mapping_magOTU %>%
-                          mutate(magOTU = as.factor(magOTU)) %>%
-                          mutate(instrain_mapped = filtered_pairs*2) %>%
-                          filter(ID == "all_scaffolds") %>%
-                          left_join(instrain_mapping_magOTU %>%
-                                    filter(ID != "all_scaffolds") %>%
-                                    group_by(sample, magOTU) %>%
-                                      mutate(Mapped = filtered_pairs) %>%
-                                      ungroup() %>%
-                                      group_by(sample) %>%
-                                      summarise(sample, instrain_summed = sum(Mapped)) %>% unique
-                                      ) %>%
-                          left_join(df_reads %>% select(Sample, Trimmed, Mapped_microbiome), by = c("sample" = "Sample")) %>%
-                          select(sample, instrain_mapped, instrain_summed, Trimmed, Mapped_microbiome) %>%
-                          # select(!c(length, breadth, magOTU, Genus)) %>%
-                          pivot_longer(!sample, names_to = "Type", values_to = "Reads")
-                            # group_by(sample, Genus) %>%
-                            # mutate(Mapped = sum(filtered_pairs)*2)
+abundance_df_matrix_pa <-  abundance_df %>% filter(!is.na(cluster_name)) %>%
+                          mutate(PresAb = ifelse(Cov > 1, 1, 0)) %>%
+                          select(Sample, cluster_name, PresAb) %>%
+                            pivot_wider(names_from=cluster_name, values_from=PresAb, values_fn = as.vector) %>% remove_rownames %>%
+                            column_to_rownames(var="Sample")
+
+abundance_df_matrix_Cov_rel <-  abundance_df %>% filter(!is.na(cluster_name)) %>%
+                          select(Sample, cluster_name, Cov) %>%
+                            pivot_wider(names_from=cluster_name, values_from=Cov, values_fn = as.vector) %>% remove_rownames %>%
+                            column_to_rownames(var="Sample") %>%
+                              mutate(across(-1)*100/rowSums(across(-1)))
+
+abundance_df_matrix_Cov <-  abundance_df %>% filter(!is.na(cluster_name)) %>%
+                          select(Sample, cluster_name, Cov) %>%
+                          filter(Sample %in% samples_IN) %>%
+                            pivot_wider(names_from=cluster_name, values_from=Cov, values_fn = as.vector) %>% remove_rownames %>%
+                            column_to_rownames(var="Sample")
+
 ```
 
 
@@ -2456,25 +2489,6 @@ plot_mapping_df_total <- instrain_mapping_magOTU %>%
 ### Initialization for 12 xxx
 
 ```{r unused_code}
-shorten_list <- function(covs_list_full, start = 1, end = 2) {
-  covs_list_short = strsplit(covs_list_full, ",")[[1]][start:end]
-  return(paste0(covs_list_short, collapse = ","))
-}
-
-trim_side_mean <- function(x, trim, type="both") {
-    if (type == "both") {
-        mean(x,trim)}
-    else if (type == "right") {
-        x <- sort(x)
-        mean(x[1:floor(length(x)*(1-trim))])}
-    else if (type == "left"){
-        x <- sort(x)
-        mean(x[max(1,floor(length(x)*trim)):length(x)])}
-}
-
-
-
-
 paginate_save <- function(plot, variable, plot_name, pass_nrow = 5, pass_ncol = 5, position = "top", pass_scales = "fixed"){
   for(i in 1:n_pages(plot)){
   plot +
@@ -2482,203 +2496,6 @@ paginate_save <- function(plot, variable, plot_name, pass_nrow = 5, pass_ncol = 
     ggsave(filename = paste0(strsplit(plot_name, ".pdf")[[1]][1], "_", i, '.pdf'))
   }
 }
-
-##############
-# define important vectors (manually done)
-##############
-
-  
-colonies <- c("M_1", "M_1", "M_1", "M_1", "M_1",
-             "M_DrY2_F","M_DrY2_F","M_Ai","M_Iu",
-              "C_1", "C_1", "C_1", "C_1", "C_1",
-              "C_2", "C_2", "C_2", "C_2", "C_2",
-              "C_3", "C_3", "C_3", "C_3", "C_3",
-              "C_Ch","C_Kn",
-              "D_1","D_1","D_1","D_1","D_1",
-              "D_2","D_2","D_2","D_2","D_2",
-              "D_3","D_3","D_3","D_3","D_3",
-              "F_1","F_1","F_1","F_1","F_1",
-              "F_2","F_2","F_2","F_2","F_2",
-              "F_3","F_3","F_3","F_3","F_3")
-
-colony_order <- c("M_1", "M_Iu", "M_Ai", "M_DrY2_F", "C_1", "C_2", "C_3", "C_Kn", "C_Ch", "D_1", "D_2", "D_3", "F_1", "F_2", "F_3")
-location_order <- c("AIST_Am", "UT_Am", "Bee park, GKVK_Am","Les Droites_Am",
-                    "NCBS campus_Ac", "Bee park, GKVK_Ac", "Chiba_Ac", "Kanagawa_Ac",
-                    "Biological sciences building, IISc_Ad","House near NCBS_Ad","Naideli hostel_Ad",
-                    "Bangalore outskirts_Af")
-
-#
-
-#
-##############
-# files read (manual)
-##############
-
-qpcr_results <- c(
-  "/nas/FAC/FBM/DMF/pengel/spirit/D2c/aprasad/20211018_aprasad_ApisCrossSpeciesAnalysis/Analysis/SampleProcessing/qPCRs/plate1/plate1-2022-11-17_115607_Results.xls",
-  "/nas/FAC/FBM/DMF/pengel/spirit/D2c/aprasad/20211018_aprasad_ApisCrossSpeciesAnalysis/Analysis/SampleProcessing/qPCRs/plate2/plate2-2022-11-17_142003_Results.xls",
-  "/nas/FAC/FBM/DMF/pengel/spirit/D2c/aprasad/20211018_aprasad_ApisCrossSpeciesAnalysis/Analysis/SampleProcessing/qPCRs/plate3/plate3-2022-11-17_161529_Results.xls",
-  "/nas/FAC/FBM/DMF/pengel/spirit/D2c/aprasad/20211018_aprasad_ApisCrossSpeciesAnalysis/Analysis/SampleProcessing/qPCRs/plate4/plate4-2022-11-17_181034_Results.xls"
-  # "/nas/FAC/FBM/DMF/pengel/spirit/D2c/aprasad/20211018_aprasad_ApisCrossSpeciesAnalysis/Analysis/SampleProcessing/qPCRs/plate5/plate5-2023-01-xx_xxxxxx_Results.xls"
-  # "/nas/FAC/FBM/DMF/pengel/spirit/D2c/aprasad/20211018_aprasad_ApisCrossSpeciesAnalysis/Analysis/SampleProcessing/qPCRs/plate6/plate6-2023-01-xx_xxxxxx_Results.xls"
-  # "/nas/FAC/FBM/DMF/pengel/spirit/D2c/aprasad/20211018_aprasad_ApisCrossSpeciesAnalysis/Analysis/SampleProcessing/qPCRs/plate7/plate7-2023-01-xx_xxxxxx_Results.xls"
-)
-
-
-
-df_reads <- data.frame()
-for (sample in samples) {
-  if (file.exists(paste0("fastqc/raw/", sample, "_R1_fastqc.zip"))) {
-    number_raw_R1 <- read.csv(unz(paste0("fastqc/raw/", sample, "_R1_fastqc.zip"), paste0(sample, "_R1_fastqc/fastqc_data.txt")), sep = "\t") %>%
-                filter(.[[1]] == "Total Sequences") %>%
-                  pull() %>%
-                    as.integer()  
-  } else {
-    number_raw_R1 <- NA
-  }
-  if (file.exists(paste0("fastqc/raw/", sample, "_R2_fastqc.zip"))) {
-    number_raw_R2 <- read.csv(unz(paste0("fastqc/raw/", sample, "_R2_fastqc.zip"), paste0(sample, "_R2_fastqc/fastqc_data.txt")), sep = "\t") %>%
-                filter(.[[1]] == "Total Sequences") %>%
-                  pull() %>%
-                    as.integer()
-  } else {
-    number_raw_R2 <- NA
-  }
-  if (file.exists(paste0("fastqc/trim/", sample, "_R1_trim_fastqc.zip"))) {
-    number_trimmed_R1 <- read.csv(unz(paste0("fastqc/trim/", sample, "_R1_trim_fastqc.zip"), paste0(sample, "_R1_trim_fastqc/fastqc_data.txt")), sep = "\t") %>%
-                  filter(.[[1]] == "Total Sequences") %>%
-                    pull() %>%
-                      as.integer()
-  } else {
-    number_trimmed_R1 <- NA
-  }
-  if (file.exists(paste0("fastqc/trim/", sample, "_R2_trim_fastqc.zip"))) {
-    number_trimmed_R2 <- read.csv(unz(paste0("fastqc/trim/", sample, "_R2_trim_fastqc.zip"), paste0(sample, "_R2_trim_fastqc/fastqc_data.txt")), sep = "\t") %>%
-                  filter(.[[1]] == "Total Sequences") %>%
-                    pull() %>%
-                      as.integer()
-  } else {
-    number_trimmed_R2 <- NA
-  }
-  raw_reads <- number_raw_R1 + number_raw_R2
-  trimmed <- number_trimmed_R1 + number_trimmed_R2
-  if (file.exists(paste0("02_HostMapping/", sample, "_flagstat.tsv"))) {
-    mapped_host_db <- read.csv(paste0("02_HostMapping/", sample, "_flagstat.tsv"), sep = "\t") %>%
-                      filter(.[[3]] == "with itself and mate mapped") %>%
-                        pull(1) %>%
-                          as.integer()
-  } else {
-   mapped_host_db <- NA 
-  }
-  unmapped_host_db <- trimmed - mapped_host_db
-  if (file.exists(paste0("04_MicrobiomeMappingDirect/", sample, "_flagstat.tsv"))) {
-    mapped_mic_db <- read.csv(paste0("04_MicrobiomeMappingDirect/", sample, "_flagstat.tsv"), sep = "\t") %>%
-                      filter(.[[3]] == "with itself and mate mapped") %>%
-                        pull(1) %>%
-                          as.integer()
-  } else {
-   mapped_mic_db <- NA 
-  }
-  unmapped_mic_db <- trimmed - mapped_mic_db
-  if (file.exists(paste0("03_MicrobiomeMapping/", sample, "_flagstat.tsv"))) {
-    mapped_mic_db_host_filtered <- read.csv(paste0("03_MicrobiomeMapping/", sample, "_flagstat.tsv"), sep = "\t") %>%
-                      filter(.[[3]] == "with itself and mate mapped") %>%
-                        pull(1) %>%
-                          as.integer()
-  } else {
-   mapped_mic_db_host_filtered <- NA 
-  }
-  unmapped_sequential <- unmapped_host_db - mapped_mic_db_host_filtered
-  values_to_bind <- c(sample, as.integer(c(raw_reads, trimmed, mapped_host_db, unmapped_host_db, mapped_mic_db, unmapped_mic_db, mapped_mic_db_host_filtered, unmapped_sequential)))
-  df_reads <- rbind(df_reads, values_to_bind)
-}
-# parse this later
-# read.csv(paste0("02_HostMapping/", sample, "_coverage.tsv"), sep = "\t")
-
-##############
-# analyse data and plot
-##############
-
-df_colnames <- c("Sample", "Raw", "Trimmed", "Mapped_host", "Unmapped_host", "Mapped_microbiome", "Unmapped_microbiome", "Mapped_microbiome_filtered", "Unmapped_filtered")
-colnames(df_reads) <- df_colnames
-df_reads <- df_reads %>%
-              mutate(across(!c("Sample"), as.integer))
-df_meta <- read.csv("config/Metadata_211018_Medgenome_india_samples.csv", sep = ',')
-colnames(df_meta)[which(colnames(df_meta) == "ID")] <- "Sample"
-df_meta$SpeciesID <- recode(df_meta$SpeciesID, "Am" = "Apis mellifera", "Ac" = "Apis cerana", "Af" = "Apis florea", "Ad" = "Apis dorsata")
-df_meta <- df_meta %>%
-            filter(Sample %in% samples) %>%
-              arrange(match(Sample, samples))
-df_meta %>% group_by(SpeciesID) %>% tally()
-df_meta %>% group_by(SpeciesID, Country) %>% tally()
-df_meta %>% group_by(SpeciesID, Country, Colony) %>% tally()
-df_plot_reads <- pivot_longer(df_reads, !Sample, values_to = "Number", names_to = "Type") %>%
-                  merge(select(df_meta, Sample, SpeciesID), by="Sample")
-df_plot_reads$Number <- as.integer(df_plot_reads$Number)
-
-df_gtdbk_bac <- read.csv("06_MAG_binning/gtdbtk_out_dir/classify/gtdbtk.bac120.summary.tsv", sep = "\t")
-drep_Bdb <- read.csv("06_MAG_binning/drep_results/data_tables/Bdb.csv", sep = ",")
-drep_gInformation <- read.csv("06_MAG_binning/drep_results/data_tables/genomeInfo.csv", sep = ",")
-drep_Sdb <- read.csv("06_MAG_binning/drep_results/data_tables/Sdb.csv", sep = ",")
-drep_Widb <- read.csv("06_MAG_binning/drep_results/data_tables/Widb.csv", sep = ",")
-MAGs_collated <- read.csv("06_MAG_binning/all_GenomeInfo_auto.tsv", sep = "\t")
-
-##############
-# analyse data and plot
-##############
-
-cluster_info <- drep_Widb %>%
-                  select(genome, score, cluster, cluster_members, furthest_cluster_member) %>%
-                    rename(score_representative = score) %>%
-                    mutate(representative_genome = Vectorize(format_genome_name)(genome)) %>%
-                      select(!genome)
-MAGs_collated_info <- left_join(MAGs_collated, mutate(drep_gInformation, genome = Vectorize(format_genome_name)(genome)), by = c("ID"="genome"))
-# Number of MAGs coming from each host species
-vis_magOTUs_df_all <- MAGs_collated_info %>%
-                        group_by(Sample) %>%
-                            mutate(all_quality = ifelse(completeness > 50 & contamination < 5 & N50 > 10000, "Pass", "Fail")) %>%
-                            mutate(Completeness_quality = cut(completeness ,breaks=c(-1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 95, 100, 110),
-                                                            labels = c("<10", "10-20", "20-30", "30-40", "40-50", "50-60", "60-70", "70-80", "80-90", "90-95", "95-100", "100"))
-                                                          ) %>%
-                              mutate(Contamination_quality = cut(contamination ,breaks=c(-1, 0, 5, 10, 100),
-                                                              labels = c("0", "0-5", "5-10", ">10"))
-                                                          ) %>%
-                              mutate(N50_quality = cut(N50 ,breaks=c(0, 10000, 50000, 100000, 200000, 500000, 1000000, 2000000, Inf), labels = c("<10Kb", "10-50Kb", "50-100Kb", "100-200Kb", "200-500Kb", "0.5-1Mb", "1-2Mb", ">2Mb"))) %>%
-                                mutate(sample = Vectorize(get_sample_name)(ID)) %>%
-                                filter(grepl("MAG_", ID)) %>%
-                                  mutate(Host = Vectorize(get_host_name)(ID)) # %>%
-                                    # mutate(num_contigs = Vectorize(get_num_contigs_per_bin)(ID))
-vis_magOTUs_df_all <- vis_magOTUs_df_all %>%
-                          group_by(Cluster) %>%
-                            mutate(Num_mags = n()) %>%
-                              mutate(Prevalence_overall = Num_mags/length(samples))
-samples_am <- c(vis_magOTUs_df_all %>% filter(Host == "Apis mellifera") %>% pull(Sample) %>% unique %>% as.vector)
-samples_ac <- c(vis_magOTUs_df_all %>% filter(Host == "Apis cerana") %>% pull(Sample) %>% unique %>% as.vector)
-samples_ad <-c(vis_magOTUs_df_all %>% filter(Host == "Apis dorsata") %>% pull(Sample) %>% unique %>% as.vector)
-samples_af <-c(vis_magOTUs_df_all %>% filter(Host == "Apis florea") %>% pull(Sample) %>% unique %>% as.vector)
-vis_magOTUs_df_all <- vis_magOTUs_df_all %>%
-                          group_by(Cluster, Host) %>%
-                            mutate(Present = n()) %>%
-                            mutate(Prevalence = ifelse(Host=="Apis mellifera", Present/length(samples_am), NA)) %>%
-                            mutate(Prevalence = ifelse(Host=="Apis cerana", Present/length(samples_ac), Prevalence)) %>%
-                            mutate(Prevalence = ifelse(Host=="Apis dorsata", Present/length(samples_ad), Prevalence)) %>%
-                            mutate(Prevalence = ifelse(Host=="Apis florea", Present/length(samples_af), Prevalence)) %>%
-                              # left_join(summarise(group_by(contigs_depths_df, bin), mean_coverage = mean(depth), .groups = "drop"), by = c("ID" = "bin")) %>%
-                                arrange(Genus)
-vis_magOTUs_df_all <- left_join(vis_magOTUs_df_all, cluster_info, by = c("Cluster" = "cluster")) %>%
-                        left_join(drep_Sdb %>%
-                                    mutate(ID = Vectorize(format_genome_name)(genome)) %>%
-                                    select(!genome)
-                        )
-vis_magOTUs_df <- vis_magOTUs_df_all %>%
-                    filter(all_quality == "Pass")
-vis_magOTUs_df$Host <- as.factor(recode(vis_magOTUs_df$Host, Am="Apis mellifera", Ac="Apis cerana", Ad="Apis dorsata", Af="Apis florea"))
-vis_magOTUs_df$Cluster <- as.factor(vis_magOTUs_df$Cluster)
-vis_magOTUs_df$sample <- as.factor(vis_magOTUs_df$sample)
-vis_magOTUs_df$Family <- as.factor(vis_magOTUs_df$Family)
-vis_magOTUs_df$Genus <- as.factor(vis_magOTUs_df$Genus)
-vis_magOTUs_df <- vis_magOTUs_df[order(vis_magOTUs_df$Genus), ]
-
 corecov_data_dir <- "09_MagDatabaseProfiling/CoverageEstimation/Merged"
 coords_df <- data.frame()
 for (file in list.files(corecov_data_dir)) {
@@ -2778,6 +2595,9 @@ vis_magOTUs_df %>%
   filter(Genus == "g__Dysgonomonas") %>%
   mutate(custom_name = paste0(ID, "-", Cluster)) %>%
     pull(custom_name)
+vis_magOTUs_df %>%
+  filter(Genus == "g__Dysgonomonas") %>%
+  select(ID,Cluster,Cluster,Host,completeness) %>% print(n=50)
 # g__Bombilactobacillus
 vis_magOTUs_df %>%
   filter(Genus == "g__Snodgrassella") %>%

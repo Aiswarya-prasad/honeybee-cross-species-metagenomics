@@ -69,8 +69,10 @@ ggplot(qpcr_plot_df,
      ) +
   geom_boxplot(outlier.shape = NA) +
   geom_jitter(width=0.1, size = 2, aes(shape = Plate)) +
-  labs(y = "Ct value with UV primers (mean)", x = "Host species") +
-    make_theme(leg_pos = "none", x_angle = 30, setFill = F, x_vj = 1, x_hj = 1, ) +
+  labs(y = "Copy number (UV primers 356/772)", x = "Host species") +
+    make_theme(leg_pos = "none", x_angle = 30, setFill = F, x_vj = 1, x_hj = 1, 
+               x_size = 15, y_size = 15, axis_x_title = 20, axis_y_title = 20
+              ) +
       scale_fill_manual(values=host_order_color) +
       scale_y_continuous(trans = "log10", labels = function(x) parse(text=paste("10^",round(log10(x), 2)))) +
       # geom_signif(comparisons = split(t(combn(levels(qpcr_plot_df$Host), 2)), seq(nrow(t(combn(levels(qpcr_plot_df$Host), 2))))), 
