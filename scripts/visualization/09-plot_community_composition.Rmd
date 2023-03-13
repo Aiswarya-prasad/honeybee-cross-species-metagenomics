@@ -1,5 +1,5 @@
 ---
-title: "Honeybee cross-species analysis - 06"
+title: "Honeybee cross-species analysis - 09"
 author: Aiswarya Prasad
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
@@ -21,51 +21,173 @@ To intialize complete all of or relevant sections of `scripts/visualization/Load
 Due to large differences in total reads, plotting number of filtered pairs directly does not work.
 Plotting percentage after normalizing across magOTUs using the factor `length*breadth` is more meaningful
 
-```{r community_composition_genus}
-ggplot() +
-  geom_bar(data = plot_mapping_df_by_magotu,
-           aes(x = reads,
+```{r instrain_plots_breadth_by_sample}
+plot_breadth_by_sample <- ggplot(instrain_genomes_info_df %>% mutate(breadth = breadth*100, breadth_expected =  breadth_expected*100),
+                             aes(x = breadth,
+                                 y = breadth_expected,
+                                 color = Genus,
+                              )
+                            ) +
+  geom_point() +
+    facet_wrap_paginate(~sample, ncol = 3, nrow = 3, page = 1) +
+      make_theme(theme_name=theme_few(), leg_pos="none",
+                 # guide_nrow = 6,
+                 setFill = F, setCol = F,
+                 x_angle=0 ,x_vj=0, x_hj=0, x_size=10,
+                 y_angle=0 ,y_vj=0, y_hj=0, y_size=10) +
+        geom_abline(slope=1, linetype = "dotted") +
+        theme(strip.text = element_text(size = 6)) +
+        scale_color_manual(values=genusColors)
+
+paginate_save(plot_breadth_by_sample, "sample", "Figures/10-instrain_plots/1-breadth_vs_expected_by_sample.pdf", pass_nrow = 3, pass_ncol = 3)
+```
+
+```{r instrain_plots_breadth_by_magOTU}
+plot_breadth_by_magOTU <- ggplot(instrain_genomes_info_df %>% mutate(breadth = breadth*100, breadth_expected =  breadth_expected*100),
+                             aes(x = breadth,
+                                 y = breadth_expected,
+                                 color = Host,
+                              )
+                            ) +
+  geom_point() +
+    facet_wrap_paginate(~magOTU, ncol = 3, nrow = 3, page = 5) +
+      make_theme(theme_name=theme_few(), leg_pos="none",
+                 # guide_nrow = 6,
+                 setFill = F, setCol = F,
+                 x_angle=0 ,x_vj=0, x_hj=0, x_size=10,
+                 y_angle=0 ,y_vj=0, y_hj=0, y_size=10) +
+        geom_abline(slope=1, linetype = "dotted") +
+        theme(strip.text = element_text(size = 6)) +
+        scale_color_manual(values=host_order_color_dark)
+
+paginate_save(plot_breadth_by_magOTU, "magOTU", "Figures/10-instrain_plots/1-breadth_vs_expected_by_magOTU.pdf", pass_nrow = 3, pass_ncol = 3)
+```
+```{r instrain_plots_breadth_vs_num_reads}
+plot_breadth_num_reads <- ggplot(instrain_breadth_depth %>% mutate(breadth = breadth*100),
+                             aes(x = sample,
+                                 y = filtered_read_pair_count,
+                                 size = breadth,
+                                 color = Host
+                              )
+                            ) +
+  geom_point() +
+  scale_y_continuous(trans = "log10", labels = comma) +
+    facet_wrap_paginate(~magOTU, ncol = 3, nrow = 3, page = 4) +
+      make_theme(theme_name=theme_few(), leg_pos="right",
+                 guide_nrow = 5,
+                 setFill = F, setCol = F,
+                 x_angle=45 ,x_vj=1, x_hj=1, x_size=5,
+                 y_angle=0 ,y_vj=0, y_hj=0, y_size=10) +
+        theme(strip.text = element_text(size = 10)) +
+        geom_hline(yintercept = 0, linetype = "solid") +
+        geom_hline(yintercept = 10, linetype = "dashed") +
+        geom_hline(yintercept = 100, linetype = "dotted") +
+        scale_size(range = c(1,4)) +
+        scale_color_manual(values=host_order_color_dark)
+
+paginate_save(plot_breadth_num_reads, "magOTU", "Figures/10-instrain_plots/2-mapped_reads_by_magOTU.pdf", pass_nrow = 3, pass_ncol = 3)
+```
+```{r plot_genus_composition_num}
+samples_chosen <- samples_IN
+df_to_plot <- df_reads_plot %>%
+                filter(Sample %in% samples_chosen & Type %in% c("Host_mapped", "MAGs_DB", "Unmapped")) %>%
+                mutate(Location = Vectorize(get_location_from_sample_name)(Sample))
+plot_genus_nums <- ggplot() +
+  geom_bar(data = df_to_plot,
+           aes(y=factor(Sample, levels = samples_chosen),
+               x=Number,
+               fill = factor(Type, levels = c("Unmapped", "Host_mapped", "MAGs_DB"))
+              ), alpha = 0.5, color = "white", size=0.2,
+           stat="identity", position = "stack") +
+  labs(x = "Sample",
+       y = "Number of reads (paired end)",
+       fill = "Type") +
+  scale_x_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
+  scale_fill_manual(values=c("Unmapped" = brewer.pal(9, "Pastel1")[1],
+                             "MAGs_DB" = brewer.pal(9, "Pastel1")[3],
+                             "Host_mapped" = brewer.pal(9, "Pastel1")[2]
+                            ),
+                    labels=c("Unmapped",
+                             "Mapped to MAGs",
+                             "Mapped to Host"
+                            )
+                   ) +
+    new_scale_fill() +
+    geom_bar(data = instrain_breadth_depth %>% mutate(filtered_reads = filtered_read_pair_count*2),
+            aes(x = filtered_reads,
+                y = sample,
+                fill = Genus, text=magOTU
+            ),
+            color = "black", size=0.2,
+            stat = "identity", position = "stack"
+    ) +
+    labs(x = "Number of reads", y = "Sample", fill = "Genus") +
+    scale_fill_manual(values = unlist(genusColors)) +
+    make_theme(theme_name=theme_few(), leg_pos="bottom",
+                                          guide_nrow = 10,
+                                          setFill = F, max_colors = length(unique(instrain_breadth_depth$Genus)),
+                                          x_angle=45 ,x_vj=1.2, x_hj=1, x_size=12,
+                                          y_angle=0 ,y_vj=0, y_hj=0, y_size=12) +
+      scale_x_continuous(labels=unit_format(unit = "M", scale = 1e-6))
+    ggsave("Figures/09-Genus_composition_by_instrain_mapping_num_with_total_reads.pdf")
+```
+```{r plot_genus_composition_unfiltered_num}
+samples_chosen <- samples_IN
+df_to_plot <- df_reads_plot %>%
+                filter(Sample %in% samples_chosen & Type %in% c("Host_mapped", "MAGs_DB", "Unmapped")) %>%
+                mutate(Location = Vectorize(get_location_from_sample_name)(Sample))
+plot_genus_nums <- ggplot() +
+  geom_bar(data = df_to_plot,
+           aes(y=factor(Sample, levels = samples_chosen),
+               x=Number,
+               fill = factor(Type, levels = c("Unmapped", "Host_mapped", "MAGs_DB"))
+              ), alpha = 0.5, color = "white", size=0.2,
+           stat="identity", position = "stack") +
+  labs(x = "Sample",
+       y = "Number of reads (paired end)",
+       fill = "Type") +
+  scale_x_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
+  scale_fill_manual(values=c("Unmapped" = brewer.pal(9, "Pastel1")[1],
+                             "MAGs_DB" = brewer.pal(9, "Pastel1")[3],
+                             "Host_mapped" = brewer.pal(9, "Pastel1")[2]
+                            ),
+                    labels=c("Unmapped",
+                             "Mapped to MAGs",
+                             "Mapped to Host"
+                            )
+                   ) +
+    new_scale_fill() +
+    geom_bar(data = instrain_breadth_depth_unfiltered %>% mutate(filtered_reads = filtered_read_pair_count*2),
+            aes(x = reads_unfiltered_reads,
+                y = sample,
+                fill = Genus
+            ),
+            color = "black", size=0.2,
+            stat = "identity", position = "stack"
+    ) +
+    labs(x = "Number of reads", y = "Sample", fill = "Genus") +
+    scale_fill_manual(values = unlist(genusColors)) +
+    make_theme(theme_name=theme_few(), leg_pos="bottom",
+                                          guide_nrow = 10,
+                                          setFill = F, max_colors = length(unique(instrain_breadth_depth$Genus)),
+                                          x_angle=45 ,x_vj=1.2, x_hj=1, x_size=12,
+                                          y_angle=0 ,y_vj=0, y_hj=0, y_size=12) +
+      scale_x_continuous(labels=unit_format(unit = "M", scale = 1e-6))
+    ggsave("Figures/09-Genus_composition_by_instrain_mapping_num_with_total_reads.pdf")
+```
+```{r plot_genus_composition_perc}
+plot_genus_proportions <- ggplot() +
+  geom_bar(data = instrain_breadth_depth,
+           aes(x = percentage_reads,
                y = sample,
-               fill = Genus
+               fill = factor(Genus, genera),
            ),
+           color = "black", size=0.2,
            stat = "identity", position = "stack"
   ) +
-  labs(y = "Number of reads (corrected)", x = "Sample", fill = "Genus") +
-  scale_fill_manual(values = extend_colors(unique(plot_mapping_df_by_magotu$Genus), genusColors)) +
-  make_theme(theme_name=theme_few(), leg_pos="bottom",
-                                         guide_nrow = 10,
-                                         setFill = F, max_colors = length(unique(plot_mapping_df_by_magotu$Genus)),
-                                         x_angle=45 ,x_vj=1.2, x_hj=1, x_size=12,
-                                         y_angle=0 ,y_vj=0, y_hj=0, y_size=12) +
-    scale_x_continuous(labels=unit_format(unit = "M", scale = 1e-6))
-    ggsave("Figures/09-Genus_composition_by_instrain_mapping_num.pdf")
-ggplot() +
-  geom_bar(data = plot_mapping_df_by_magotu,
-           aes(x = reads_corrected,
-               y = sample,
-               fill = Genus
-           ),
-           stat = "identity", position = "stack"
-  ) +
-  labs(y = "Number of reads (corrected)", x = "Sample", fill = "Genus") +
-  scale_fill_manual(values = extend_colors(unique(plot_mapping_df_by_magotu$Genus), genusColors)) +
-  make_theme(theme_name=theme_few(), leg_pos="bottom",
-                                         guide_nrow = 10,
-                                         setFill = F, max_colors = length(unique(plot_mapping_df_by_magotu$Genus)),
-                                         x_angle=45 ,x_vj=1.2, x_hj=1, x_size=12,
-                                         y_angle=0 ,y_vj=0, y_hj=0, y_size=12)
-    ggsave("Figures/09-Genus_composition_by_instrain_mapping_num_corrected.pdf")
-ggplot() +
-  geom_bar(data = plot_mapping_df_by_magotu,
-           aes(x = percentage_corrected,
-               y = sample,
-               fill = factor(Genus, genera)
-           ),
-           stat = "identity", position = "stack"
-  ) +
-  scale_fill_manual(values=genusColors) +
+  scale_fill_manual(values=unlist(genusColors)) +
   labs(y = "Sample", x = "Relative abundance", fill = "Genus") +
-  # scale_fill_manual(values = extend_colors(unique(plot_mapping_df_by_magotu$Genus), genusColors)) +
+  # scale_fill_manual(values = extend_colors(unique(instrain_breadth_depth$Genus), genusColors)) +
   make_theme(theme_name=theme_few(), leg_pos="bottom",
                                          guide_nrow = 10,
                                          setFill = F,
@@ -73,56 +195,114 @@ ggplot() +
                                          y_angle=0 ,y_vj=0, y_hj=0, y_size=12) +
     scale_x_continuous(labels=unit_format(unit = "%"))
     ggsave("Figures/09-Genus_composition_by_instrain_mapping_proportion.pdf")
+
+ggplotly(plot_genus_proportions)
+saveWidget(
+                widget = ggplotly(plot_genus_proportions),
+                file = "Figures/09-Genus_composition_by_instrain_mapping_proportion.html",
+                selfcontained = TRUE #creates a single html file
+          )
+```
+```{r plot_genus_composition_num_corrected}
+plot_genus_num_corrected <- ggplot() +
+  geom_bar(data = instrain_breadth_depth,
+           aes(x = expected_number_of_genomes,
+               y = sample,
+               fill = Genus
+           ),
+           stat = "identity", position = "stack"
+  ) +
+  labs(x = "Expected genome count", y = "Sample", fill = "Genus") +
+  scale_fill_manual(values = extend_colors(unique(instrain_breadth_depth$Genus), genusColors)) +
+  make_theme(theme_name=theme_few(), leg_pos="bottom",
+                                         guide_nrow = 10,
+                                         setFill = F, 
+                                        #  max_colors = length(unique(plot_mapping_df_by_magotu$Genus)),
+                                         x_angle=45 ,x_vj=1.2, x_hj=1, x_size=12,
+                                         y_angle=0 ,y_vj=0, y_hj=0, y_size=12)
+    ggsave("Figures/09-Genus_composition_by_instrain_mapping_num_corrected.pdf")
+ggplotly(plot_genus_num_corrected)
+saveWidget(
+                widget = ggplotly(plot_genus_num_corrected),
+                file = "Figures/09-Genus_composition_by_instrain_mapping_num_corrected.html",
+                selfcontained = TRUE #creates a single html file
+          )
+```
+```{r plot_genus_composition_perc_corrected}
+plot_genus_perc_corrected <- ggplot() +
+  geom_bar(data = instrain_breadth_depth,
+           aes(x = percentage_expected_number_of_genomes,
+               y = sample,
+               fill = factor(Genus, genera),
+           ),
+           color = "black", size=0.2,
+           stat = "identity", position = "stack"
+  ) +
+  scale_fill_manual(values=unlist(genusColors)) +
+  labs(y = "Sample", x = "Relative abundance (expected genome count)", fill = "Genus") +
+  # scale_fill_manual(values = extend_colors(unique(plot_mapping_df_by_magotu$Genus), genusColors)) +
+  make_theme(theme_name=theme_few(), leg_pos="bottom",
+                                         guide_nrow = 10,
+                                         setFill = F,
+                                         x_angle=45 ,x_vj=1.2, x_hj=1, x_size=12,
+                                         y_angle=0 ,y_vj=0, y_hj=0, y_size=12) +
+    scale_x_continuous(labels=unit_format(unit = "%"))
+    ggsave("Figures/09-Genus_composition_by_instrain_mapping_proportion_corrected.pdf")
+ggplotly(plot_genus_perc_corrected)
+saveWidget(
+                widget = ggplotly(plot_genus_perc_corrected),
+                file = "Figures/09-Genus_composition_by_instrain_mapping_proportion_corrected.html",
+                selfcontained = TRUE #creates a single html file
+          )
+```
+
+```{r plot_prevalence_Genus_by_host}
+
+```
+
+# Compare core_cov estimation and mapping estimation
+```{r genus_heatmap}
+# abundance/prevalence
+ggplot(coverage_df_genus %>% filter(Sample %in% samples_IN), aes(y = factor(Genus, genera), x = factor(Host, host_order), fill = Mean)) +
+                            geom_tile() +
+                              labs(x = "Sample", y = "Cluster")+
+                              scale_fill_gradient(na.value = "transparent", low = "#ffffff" , high = "#1a88c9", guide = "colourbar", trans = "log10") +
+                              # scale_fill_gradient(na.value = "transparent", low = "#ffffff" , high = "#ffc20e", guide = "colourbar", trans = "log10") +
+                                make_theme(setFill = F, modify_guide = F, y_size = 8,
+                                  x_size = 10, x_angle = 30, x_hj = 1 , x_vj = 1,
+                                  y_hj =1, leg_pos = "right"
+                                )
+ggplot(instrain_breadth_depth_by_genus_host, aes(y = factor(Genus, genera), 
+                                                 x = factor(Host, host_order),
+                                                 fill = rel_abundance)) +
+                            geom_tile() +
+                              labs(x = "Host", y = "Genus", fill = "Mean relative\nabundance (%)")+
+                              scale_fill_gradient2(midpoint = 15, low = "#ffffd9",  mid = "#41ab5d", high = "#006837", guide = "colourbar", na.value = "#ffffd9") +
+                              # scale_fill_gradient(na.value = "transparent", low = "#ffffff" , high = "#ffc20e", guide = "colourbar", trans = "log10") +
+                                make_theme(setFill = F, modify_guide = F, y_size = 12,
+                                  x_size = 14, x_angle = 0, x_hj = 0.5 , x_vj = 1,
+                                  y_hj =1, leg_pos = "right", leg_size = 11,
+                                  axis_x_title = 16, axis_y_title = 16,
+                                )
+                                ggsave("Figures/09-mean_rel_abundance_from_mapping.pdf")
+
+ggplot(coverage_df_genus, aes(y = factor(Genus, genera), 
+                                                 x = factor(Host, host_order),
+                                                 fill = Prevalence_host)) +
+                            geom_tile() +
+                            # geom_text(aes(label=Genus_cov)) +
+                              labs(x = "Host", y = "Genus", fill = "Prevalence\nin host (%)\n")+
+                              scale_fill_gradient2(midpoint = 0.5, low = "#ffffe5",  mid = "#41b6c4", high = "#081d58", guide = "colourbar") +
+                              # scale_fill_gradient(na.value = "transparent", low = "#ffffff" , high = "#ffc20e", guide = "colourbar", trans = "log10") +
+                                make_theme(setFill = F, modify_guide = F, y_size = 12,
+                                  x_size = 12, x_angle = 0, x_hj = 0.5 , x_vj = 1,
+                                  y_hj =1, leg_pos = "right", leg_size = 10,
+                                  axis_x_title = 16, axis_y_title = 16,
+                                )
+                                ggsave("Figures/09-prevalence_from_core_cov.pdf")
 ```
 
 ```{r plots}
-# ggplot() +
-#   geom_bar(data = plot_mapping_df,
-#            aes(x = Mapped,
-#                y = sample,
-#                fill = Genus
-#            ),
-#            stat = "identity", position = "stack"
-#   ) +
-#   geom_bar(data = plot_mapping_df_total  %>% filter(Type %in% c("Mapped_microbiome")),
-#            aes(x = Reads,
-#                y = sample
-#            ),
-#            stat = "identity", position ="stack", width = 0.5, fill = "black", alpha = 0.1
-#   ) +
-#   scale_fill_manual(values = extend_colors(unique(plot_mapping_df$Genus), genusColors)) +
-#   make_theme(theme_name=theme_few(), leg_pos="bottom",
-#                                          guide_nrow = 10,
-#                                          setFill = F, max_colors = length(unique(plot_mapping_df$Genus)),
-#                                          x_angle=45 ,x_vj=1.2, x_hj=1, x_size=12,
-#                                          y_angle=0 ,y_vj=0, y_hj=0, y_size=12) +
-#     scale_x_continuous(labels=unit_format(unit = "M", scale = 1e-6))
-    
-# ggplot() +
-#   geom_bar(data = plot_mapping_df,
-#            aes(x = Mapped,
-#                y = sample,
-#                fill = Genus
-#            ),
-#            stat = "identity", position = "stack"
-#   ) +
-#   # geom_bar(data = plot_mapping_df_total  %>% filter(Type %in% c("Mapped_microbiome")),
-#   #          aes(x = Reads,
-#   #              y = sample
-#   #          ),
-#   #          stat = "identity", position ="stack", width = 0.5, fill = "black", alpha = 0.25
-#   # ) +
-#   scale_fill_manual(values = extend_colors(unique(plot_mapping_df$Genus), genusColors)) +
-#   make_theme(theme_name=theme_few(), leg_pos="bottom",
-#                                          guide_nrow = 10,
-#                                          setFill = F, max_colors = length(unique(plot_mapping_df$Genus)),
-#                                          x_angle=45 ,x_vj=1.2, x_hj=1, x_size=12,
-#                                          y_angle=0 ,y_vj=0, y_hj=0, y_size=12) +
-#     scale_x_continuous(labels=unit_format(unit = "M", scale = 1e-6))
-
-
-
-
 ggplot(coverage_df, aes(y = factor(cluster_name), x = factor(Sample, samples_IN_MY), fill = Cov)) +
                             geom_tile() +
                               labs(x = "Sample", y = "Cluster")+
@@ -130,7 +310,9 @@ ggplot(coverage_df, aes(y = factor(cluster_name), x = factor(Sample, samples_IN_
                               # scale_fill_gradient(na.value = "transparent", low = "#ffffff" , high = "#ffc20e", guide = "colourbar", trans = "log10") +
                                 make_theme(setFill = F, modify_guide = F, y_size = 8,
                                   x_size = 0, x_angle = 30, x_hj = 1 , x_vj = 1,
-                                  y_hj =1, leg_pos = "right"
+                                  y_hj =1, leg_pos = "right",
+                                  leg_size = 11,
+                                  axis_x_title = 16, axis_y_title = 16,
                                 )
 ggplot(coverage_df, aes(y = factor(cluster_name), x = factor(Host, host_order), fill = Prevalence_host)) +
                             geom_tile() +
@@ -204,125 +386,398 @@ ggplot(coverage_df %>% filter(Genus != "g__") %>% filter(Sample %in% samples_IN_
 df_magOTUs_vegan <- abundance_df_matrix_pa
 
 df_plot_cum_curve_m <- make_cum_curve(samples_AM, df_magOTUs_vegan, 100, "Apis mellifera")
+df_plot_cum_curve_m_my <- make_cum_curve(samples_AM %>% as.data.frame %>% filter(. %in% samples_MY) %>% pull(.), df_magOTUs_vegan, 100, "Apis mellifera (Malaysia)")
+df_plot_cum_curve_m_in <- make_cum_curve(samples_AM %>% as.data.frame %>% filter(. %in% samples_IN) %>% pull(.), df_magOTUs_vegan, 100, "Apis mellifera (India)")
+df_plot_cum_curve_m_jp <- make_cum_curve(samples_AM %>% as.data.frame %>% filter(. %in% samples_JP) %>% pull(.), df_magOTUs_vegan, 100, "Apis mellifera (Japan)")
+df_plot_cum_curve_m_sw <- make_cum_curve(samples_AM %>% as.data.frame %>% filter(. %in% samples_SW) %>% pull(.), df_magOTUs_vegan, 100, "Apis mellifera (Switzerland)")
 df_plot_cum_curve_c <- make_cum_curve(samples_AC, df_magOTUs_vegan, 100, "Apis cerana")
+df_plot_cum_curve_c_my <- make_cum_curve(samples_AC %>% as.data.frame %>% filter(. %in% samples_MY) %>% pull(.), df_magOTUs_vegan, 100, "Apis cerana (Malaysia)")
+df_plot_cum_curve_c_in <- make_cum_curve(samples_AC %>% as.data.frame %>% filter(. %in% samples_IN) %>% pull(.), df_magOTUs_vegan, 100, "Apis cerana (India)")
+df_plot_cum_curve_c_jp <- make_cum_curve(samples_AC %>% as.data.frame %>% filter(. %in% samples_JP) %>% pull(.), df_magOTUs_vegan, 100, "Apis cerana (Japan)")
 df_plot_cum_curve_d <- make_cum_curve(samples_AD, df_magOTUs_vegan, 100, "Apis dorsata")
+df_plot_cum_curve_d_my <- make_cum_curve(samples_AD %>% as.data.frame %>% filter(. %in% samples_MY) %>% pull(.), df_magOTUs_vegan, 100, "Apis dorsata (Malaysia)")
+df_plot_cum_curve_d_in <- make_cum_curve(samples_AD %>% as.data.frame %>% filter(. %in% samples_IN) %>% pull(.), df_magOTUs_vegan, 100, "Apis dorsata (India)")
 df_plot_cum_curve_f <- make_cum_curve(samples_AF, df_magOTUs_vegan, 100, "Apis florea")
+df_plot_cum_curve_f_my <- make_cum_curve(samples_AF %>% as.data.frame %>% filter(. %in% samples_MY) %>% pull(.), df_magOTUs_vegan, 100, "Apis florea (Malaysia)")
+df_plot_cum_curve_f_in <- make_cum_curve(samples_AF %>% as.data.frame %>% filter(. %in% samples_IN) %>% pull(.), df_magOTUs_vegan, 100, "Apis florea (India)")
 df_plot_cum_curve_a <- make_cum_curve(samples_AA, df_magOTUs_vegan, 100, "Apis andreniformis")
+df_plot_cum_curve_a_my <- make_cum_curve(samples_AA %>% as.data.frame %>% filter(. %in% samples_MY) %>% pull(.), df_magOTUs_vegan, 100, "Apis andreniformis (Malaysia)")
 df_plot_cum_curve <- rbind(df_plot_cum_curve_m, df_plot_cum_curve_c, df_plot_cum_curve_d, df_plot_cum_curve_f, df_plot_cum_curve_a)
+df_plot_cum_curve_by_loc <- rbind(df_plot_cum_curve_m_sw, df_plot_cum_curve_m_jp, df_plot_cum_curve_m_in, df_plot_cum_curve_m_my, 
+                                  df_plot_cum_curve_c_jp, df_plot_cum_curve_c_in, df_plot_cum_curve_c_my, 
+                                  df_plot_cum_curve_d_my, df_plot_cum_curve_d_in,
+                                  df_plot_cum_curve_f_my, df_plot_cum_curve_f_in,
+                                  df_plot_cum_curve_a_my)
 ggplot(data = df_plot_cum_curve, aes(x = sample_size, y = number_of_clusters, color = factor(name, host_order))) +
                       geom_jitter(position = position_dodge(width=0.7)) +
-                        geom_smooth(se = FALSE) +
-                          labs(color = "Host species", x = "# Bees", y = "Number of magOTUs") +
+                        geom_smooth(method = "loess", se = FALSE) +
+                          labs(color = "Host species", x = "Number of Bees", y = "Number of magOTUs") +
                           scale_color_manual(values=host_order_color) +
-                            make_theme(leg_pos = "bottom", setCol = F, guide_nrow = 1)
+                            make_theme(leg_pos = "bottom", setCol = F,
+                                       axis_x_title = 16, axis_y_title = 16,
+                                       guide_nrow = 1)
                             ggsave("Figures/09-Cumulative_curve.pdf")
+host_order_color_ext <- c("Apis mellifera (India)" = "#4292c6",
+                          "Apis mellifera (Malaysia)" = "#08519c",
+                          "Apis mellifera (Japan)" = "#a6cee3",
+                          "Apis mellifera (Switzerland)" = "#41b6c4",
+                          "Apis cerana (Japan)" = "#fbb4ae", 
+                          "Apis cerana (India)" = "#f46d43", 
+                          "Apis cerana (Malaysia)" = "#e31a1c", 
+                          "Apis dorsata (Malaysia)" = "#984ea3",
+                          "Apis dorsata (India)" = "#cab2d6",
+                          "Apis florea (Malaysia)" = "#4daf4a",
+                          "Apis florea (India)" = "#b2df8a",
+                          "Apis andreniformis (Malaysia)" = "#ff7f00")
+ggplot(data = df_plot_cum_curve_by_loc, aes(x = sample_size, y = number_of_clusters, color = factor(name))) +
+                      geom_jitter(position = position_dodge(width=0.7)) +
+                        geom_smooth(method = "loess", se = FALSE) +
+                          labs(color = "Host species", x = "Number of Bees", y = "Number of magOTUs") +
+                          scale_color_manual(values=host_order_color_ext) +
+                            make_theme(leg_pos = "bottom", leg_size = 11,
+                                       axis_x_title = 16, axis_y_title = 16,
+                                       setCol = F, guide_nrow = 4) +
+                              theme(legend.spacing.x = unit(1.0, 'cm'))
+                            ggsave("Figures/09-Cumulative_curve_by_location.pdf")
 
-column_ha = HeatmapAnnotation(Host = rownames(abundance_df_matrix_pa[samples_IN,]) %>% as.data.frame() %>% mutate(Host = Vectorize(get_host_from_sample_name)(.)) %>% pull(Host),
-                              col = list(Host = host_order_color)
-                          )
-column_ba = HeatmapAnnotation(Location = rownames(abundance_df_matrix_pa[samples_IN,]) %>% as.data.frame() %>% mutate(Location = Vectorize(get_location_from_sample_name)(.)) %>% pull(Location),
-                              col = list(Location = location_order_color)
-                          )
-row_ha = rowAnnotation(Genus = colnames(abundance_df_matrix_pa[samples_IN,]) %>% as.data.frame() %>% left_join(cluster_tax_info %>% ungroup() %>% select(Genus, cluster_name), by = c(. = "cluster_name")) %>% pull(Genus),
-                       col = list(Genus = unlist(genusColors))
-                    )
-pdf("Figures/09-presence_absence_heatmap_IN.pdf")
-
-Heatmap(t(abundance_df_matrix_pa[samples_IN,]), 
-        col = c("#ffffff", "#1a88c9"),
-        # col = brewer.pal(2, "Pastel1"),
-        clustering_method_columns = 'ward.D2',
-        top_annotation = column_ha, right_annotation = row_ha,
-        bottom_annotation = column_ba,
-        column_names_gp = grid::gpar(fontsize = 0),
-        heatmap_legend_param = list(title = "Present / Absent", color_bar = "discrete"),
-          cluster_rows = F)
-dev.off()
-column_ha = HeatmapAnnotation(Host = rownames(abundance_df_matrix_pa[samples_IN_MY,]) %>% as.data.frame() %>% mutate(Host = Vectorize(get_host_from_sample_name)(.)) %>% pull(Host),
-                              col = list(Host = host_order_color)
-                          )
-column_ba = HeatmapAnnotation(Location = rownames(abundance_df_matrix_pa[samples_IN_MY,]) %>% as.data.frame() %>% mutate(Location = Vectorize(get_location_from_sample_name)(.)) %>% pull(Location),
-                              col = list(Location = location_order_color)
-                          )
-row_ha = rowAnnotation(Genus = colnames(abundance_df_matrix_pa[samples_IN_MY,]) %>% as.data.frame() %>% left_join(cluster_tax_info %>% ungroup() %>% select(Genus, cluster_name), by = c(. = "cluster_name")) %>% pull(Genus),
-                       col = list(Genus = unlist(genusColors))
-                    )
-pdf("Figures/09-presence_absence_heatmap_IN.pdf")
-
-Heatmap(t(abundance_df_matrix_pa[samples_IN_MY,]), 
-        col = c("#ffffff", "#1a88c9"),
-        # col = brewer.pal(2, "Pastel1"),
-        clustering_method_columns = 'ward.D2',
-        top_annotation = column_ha, right_annotation = row_ha,
-        bottom_annotation = column_ba,
-        column_names_gp = grid::gpar(fontsize = 0),
-        heatmap_legend_param = list(title = "Present / Absent", color_bar = "discrete"),
-          cluster_rows = F)
-dev.off()
 
 column_ha = HeatmapAnnotation(Host = rownames(abundance_df_matrix_pa) %>% as.data.frame() %>% mutate(Host = Vectorize(get_host_from_sample_name)(.)) %>% pull(Host),
-                              col = list(Host = host_order_color)
+                              Location = rownames(abundance_df_matrix_pa) %>% as.data.frame() %>% mutate(Location = Vectorize(get_location_from_sample_name)(.)) %>% pull(Location),
+                              col = list(Host = host_order_color,
+                                         Location = location_order_color
+                              ), border = T
                           )
 column_ba = HeatmapAnnotation(Location = rownames(abundance_df_matrix_pa) %>% as.data.frame() %>% mutate(Location = Vectorize(get_location_from_sample_name)(.)) %>% pull(Location),
-                              col = list(Location = location_order_color)
+                              col = list(Location = location_order_color), border = T
                           )
 row_ha = rowAnnotation(Genus = colnames(abundance_df_matrix_pa) %>% as.data.frame() %>% left_join(cluster_tax_info %>% ungroup() %>% select(Genus, cluster_name), by = c(. = "cluster_name")) %>% pull(Genus),
-                       col = list(Genus = unlist(genusColors))
+                       col = list(Genus = unlist(genusColors)), border = T
                     )
 pdf("Figures/09-presence_absence_heatmap.pdf")
 
 column_split <- rownames(abundance_df_matrix_pa) %>% as.data.frame() %>% mutate(Host = Vectorize(get_host_from_sample_name)(.)) %>% pull(Host) %>% as.factor %>% as.numeric
 row_split <- colnames(abundance_df_matrix_pa) %>% as.data.frame() %>% left_join(cluster_tax_info %>% ungroup() %>% select(Genus, cluster_name), by = c(. = "cluster_name")) %>% pull(Genus) %>% as.factor %>% as.numeric
-
 heatmap_obj = Heatmap(t(abundance_df_matrix_pa),
-        col = c("#ffffff", "#1a88c9"),
-        # col = colorRamp2(c(0, 10, 100), colors = c(brewer.pal(9, "BrBG")[9], brewer.pal(9, "BrBG")[5], brewer.pal(9, "BrBG")[1])),
+        col = c("#ffffd9", "#081d58"),
         clustering_method_columns = 'ward.D2',
         column_split = column_split,
         row_split = row_split,
+        column_title_gp = grid::gpar(fontsize = 0),
         row_title_gp = grid::gpar(fontsize = 0),
         border = T,
+        heatmap_legend_param = list(title = "Presence"),
         top_annotation = column_ha, 
         right_annotation = row_ha,
-        bottom_annotation = column_ba,
+        # bottom_annotation = column_ba,
         column_names_gp = grid::gpar(fontsize = 0),
-            row_names_gp = grid::gpar(fontsize = 5),
+        row_names_gp = grid::gpar(fontsize = 0),
           cluster_rows = F)
 draw(heatmap_obj, merge_legend = TRUE)
-
-dev.off()
-
-
-pdf("Figures/09-relative_abundance_heatmap.pdf")
-
-heatmap_obj = Heatmap(t(abundance_df_matrix_Cov_rel),
-        col = colorRamp2(c(0, 10, 100), colors = c("#ffffff", "#1a88c9", "#1a3869")),
-        # col = colorRamp2(c(0, 10, 100), colors = c(brewer.pal(9, "BrBG")[9], brewer.pal(9, "BrBG")[5], brewer.pal(9, "BrBG")[1])),
-        clustering_method_columns = 'ward.D2',
-        # column_split = column_split,
-        row_split = ,
-        border = T,
-        top_annotation = column_ha, right_annotation = row_ha,
-        column_names_gp = grid::gpar(fontsize = 0),
-            row_names_gp = grid::gpar(fontsize = 5),
-          cluster_rows = F)
-draw(heatmap_obj, merge_legend = TRUE)
-# column_title_rot = 90,
-# column_title_gp = grid::gpar(fontsize = col_label_size),
 
 dev.off()
 column_ha = HeatmapAnnotation(Host = rownames(abundance_df_matrix_Cov) %>% as.data.frame() %>% mutate(Host = Vectorize(get_host_from_sample_name)(.)) %>% pull(Host),
-                              col = list(Host = host_order_color)
+                              Location = rownames(abundance_df_matrix_Cov) %>% as.data.frame() %>% mutate(Location = Vectorize(get_location_from_sample_name)(.)) %>% pull(Location),
+                              col = list(Host = host_order_color,
+                                         Location = location_order_color
+                              ), border = T
+                          )
+column_ba = HeatmapAnnotation(Location = rownames(abundance_df_matrix_Cov) %>% as.data.frame() %>% mutate(Location = Vectorize(get_location_from_sample_name)(.)) %>% pull(Location),
+                              col = list(Location = location_order_color), border = T
                           )
 row_ha = rowAnnotation(Genus = colnames(abundance_df_matrix_Cov) %>% as.data.frame() %>% left_join(cluster_tax_info %>% ungroup() %>% select(Genus, cluster_name), by = c(. = "cluster_name")) %>% pull(Genus),
-                       col = list(Genus = unlist(genusColors))
+                       col = list(Genus = unlist(genusColors)), border = T
                     )
-Heatmap(t(abundance_df_matrix_Cov),
-        col = colorRamp2(c(0, 100, 1000), colors = c("#ffffff", "#1a88c9", "#08306b")),
-        # col = colorRamp2(c(0, 10, 100), colors = c(brewer.pal(9, "BrBG")[9], brewer.pal(9, "BrBG")[5], brewer.pal(9, "BrBG")[1])),
+pdf("Figures/09-coverage_heatmap.pdf")
+column_split <- rownames(abundance_df_matrix_Cov) %>% as.data.frame() %>% mutate(Host = Vectorize(get_host_from_sample_name)(.)) %>% pull(Host) %>% as.factor %>% as.numeric
+row_split <- colnames(abundance_df_matrix_Cov) %>% as.data.frame() %>% left_join(cluster_tax_info %>% ungroup() %>% select(Genus, cluster_name), by = c(. = "cluster_name")) %>% pull(Genus) %>% as.factor %>% as.numeric
+heatmap_obj = Heatmap(t(abundance_df_matrix_Cov),
+        col = colorRamp2(c(0, 10, 50, 100, 500, 2000), colors = c(brewer.pal(9, "YlGnBu")[1], brewer.pal(9, "YlGnBu")[2], brewer.pal(9, "YlGnBu")[4], brewer.pal(9, "YlGnBu")[6], brewer.pal(9, "PuBu")[9], "#67000a")),
+        # col = colorRamp2(c(0, 10, 50, 100, 500, 2000), colors = c(brewer.pal(9, "YlGnBu")[1], brewer.pal(9, "YlGnBu")[2], brewer.pal(9, "YlGnBu")[4], brewer.pal(9, "YlGnBu")[6], brewer.pal(9, "PuBu")[9], "#67000a")),
         clustering_method_columns = 'ward.D2',
-        top_annotation = column_ha, right_annotation = row_ha,
+        column_split = column_split,
+        row_split = row_split,
+        column_title_gp = grid::gpar(fontsize = 0),
+        row_title_gp = grid::gpar(fontsize = 0),
+        border = T,
+        heatmap_legend_param = list(title = "Presence"),
+        top_annotation = column_ha, 
+        right_annotation = row_ha,
+        # bottom_annotation = column_ba,
+        column_names_gp = grid::gpar(fontsize = 0),
+        row_names_gp = grid::gpar(fontsize = 0),
           cluster_rows = F)
+draw(heatmap_obj, merge_legend = TRUE)
+dev.off()
+pdf("Figures/09-coverage_heatmap_by_location.pdf")
+column_split <- rownames(abundance_df_matrix_Cov) %>% as.data.frame() %>% mutate(Location = Vectorize(get_location_from_sample_name)(.)) %>% pull(Location) %>% as.factor %>% as.numeric
+row_split <- colnames(abundance_df_matrix_Cov) %>% as.data.frame() %>% left_join(cluster_tax_info %>% ungroup() %>% select(Genus, cluster_name), by = c(. = "cluster_name")) %>% pull(Genus) %>% as.factor %>% as.numeric
+heatmap_obj = Heatmap(t(abundance_df_matrix_Cov),
+        # col = c("#ffffff", "#1a88c9"),
+        col = colorRamp2(c(0, 10, 50, 100, 500, 2000), colors = c(brewer.pal(9, "YlGnBu")[1], brewer.pal(9, "YlGnBu")[2], brewer.pal(9, "YlGnBu")[4], brewer.pal(9, "YlGnBu")[6], brewer.pal(9, "PuBu")[9], "#67000a")),
+        # col = colorRamp2(c(0, 10, 50, 100, 500, 2000), colors = c(brewer.pal(9, "YlGnBu")[1], brewer.pal(9, "YlGnBu")[2], brewer.pal(9, "YlGnBu")[4], brewer.pal(9, "YlGnBu")[6], brewer.pal(9, "PuBu")[9], "#67000a")),
+        clustering_method_columns = 'ward.D2',
+        column_split = column_split,
+        row_split = row_split,
+        column_title_gp = grid::gpar(fontsize = 0),
+        row_title_gp = grid::gpar(fontsize = 0),
+        border = T,
+        heatmap_legend_param = list(title = "Presence"),
+        top_annotation = column_ha, 
+        right_annotation = row_ha,
+        # bottom_annotation = column_ba,
+        column_names_gp = grid::gpar(fontsize = 0),
+        row_names_gp = grid::gpar(fontsize = 0),
+          cluster_rows = F)
+draw(heatmap_obj, merge_legend = TRUE)
+dev.off()
+
+column_ha = HeatmapAnnotation(Host = rownames(abundance_df_matrix_Cov_rel) %>% as.data.frame() %>% mutate(Host = Vectorize(get_host_from_sample_name)(.)) %>% pull(Host),
+                              Location = rownames(abundance_df_matrix_Cov_rel) %>% as.data.frame() %>% mutate(Location = Vectorize(get_location_from_sample_name)(.)) %>% pull(Location),
+                              col = list(Host = host_order_color,
+                                         Location = location_order_color
+                              ), border = T
+                          )
+column_ba = HeatmapAnnotation(Location = rownames(abundance_df_matrix_Cov_rel) %>% as.data.frame() %>% mutate(Location = Vectorize(get_location_from_sample_name)(.)) %>% pull(Location),
+                              col = list(Location = location_order_color), border = T
+                          )
+row_ha = rowAnnotation(Genus = colnames(abundance_df_matrix_Cov_rel) %>% as.data.frame() %>% left_join(cluster_tax_info %>% ungroup() %>% select(Genus, cluster_name), by = c(. = "cluster_name")) %>% pull(Genus),
+                       col = list(Genus = unlist(genusColors)), border = T
+                    )
+pdf("Figures/09-relative_coverage_heatmap.pdf")
+column_split <- rownames(abundance_df_matrix_Cov_rel) %>% as.data.frame() %>% mutate(Host = Vectorize(get_host_from_sample_name)(.)) %>% pull(Host) %>% as.factor %>% as.numeric
+row_split <- colnames(abundance_df_matrix_Cov_rel) %>% as.data.frame() %>% left_join(cluster_tax_info %>% ungroup() %>% select(Genus, cluster_name), by = c(. = "cluster_name")) %>% pull(Genus) %>% as.factor %>% as.numeric
+heatmap_obj = Heatmap(t(abundance_df_matrix_Cov_rel),
+        col = colorRamp2(c(1, 5, 10, 15, 30, 100), colors = c(brewer.pal(9, "YlGnBu")[1], brewer.pal(9, "YlGnBu")[3], brewer.pal(9, "YlGnBu")[5], brewer.pal(9, "YlGnBu")[7], brewer.pal(9, "YlGnBu")[8], brewer.pal(9, "YlGnBu")[9])),
+        clustering_method_columns = 'ward.D2',
+        column_split = column_split,
+        row_split = row_split,
+        column_title_gp = grid::gpar(fontsize = 0),
+        row_title_gp = grid::gpar(fontsize = 0),
+        border = T,
+        heatmap_legend_param = list(title = "Coverage (relative)"),
+        top_annotation = column_ha, 
+        right_annotation = row_ha,
+        # bottom_annotation = column_ba,
+        column_names_gp = grid::gpar(fontsize = 0),
+        row_names_gp = grid::gpar(fontsize = 0),
+          cluster_rows = F)
+draw(heatmap_obj, merge_legend = TRUE)
+dev.off()
+pdf("Figures/09-relative_coverage_heatmap_by_location.pdf")
+column_split <- rownames(abundance_df_matrix_Cov_rel) %>% as.data.frame() %>% mutate(Location = Vectorize(get_location_from_sample_name)(.)) %>% pull(Location) %>% as.factor %>% as.numeric
+row_split <- colnames(abundance_df_matrix_Cov_rel) %>% as.data.frame() %>% left_join(cluster_tax_info %>% ungroup() %>% select(Genus, cluster_name), by = c(. = "cluster_name")) %>% pull(Genus) %>% as.factor %>% as.numeric
+heatmap_obj = Heatmap(t(abundance_df_matrix_Cov_rel),
+        col = colorRamp2(c(1, 5, 10, 15, 30, 100), colors = c(brewer.pal(9, "YlGnBu")[1], brewer.pal(9, "YlGnBu")[3], brewer.pal(9, "YlGnBu")[5], brewer.pal(9, "YlGnBu")[7], brewer.pal(9, "YlGnBu")[8], brewer.pal(9, "YlGnBu")[9])),
+        clustering_method_columns = 'ward.D2',
+        column_split = column_split,
+        row_split = row_split,
+        column_title_gp = grid::gpar(fontsize = 0),
+        row_title_gp = grid::gpar(fontsize = 0),
+        border = T,
+        heatmap_legend_param = list(title = "Coverage (relative)"),
+        top_annotation = column_ha, 
+        right_annotation = row_ha,
+        # bottom_annotation = column_ba,
+        column_names_gp = grid::gpar(fontsize = 0),
+        row_names_gp = grid::gpar(fontsize = 0),
+          cluster_rows = F)
+draw(heatmap_obj, merge_legend = TRUE)
+
+column_ha = HeatmapAnnotation(Host = rownames(abundance_df_matrix_Cov_rel %>% filter(rownames(.) %in% samples_IN_MY)) %>% as.data.frame() %>% mutate(Host = Vectorize(get_host_from_sample_name)(.)) %>% pull(Host),
+                              Location = rownames(abundance_df_matrix_Cov_rel %>% filter(rownames(.) %in% samples_IN_MY)) %>% as.data.frame() %>% mutate(Location = Vectorize(get_location_from_sample_name)(.)) %>% pull(Location),
+                              col = list(Host = host_order_color,
+                                         Location = location_order_color
+                              ), border = T
+                          )
+column_ba = HeatmapAnnotation(Location = rownames(abundance_df_matrix_Cov_rel %>% filter(rownames(.) %in% samples_IN_MY)) %>% as.data.frame() %>% mutate(Location = Vectorize(get_location_from_sample_name)(.)) %>% pull(Location),
+                              col = list(Location = location_order_color), border = T
+                          )
+row_ha = rowAnnotation(Genus = colnames(abundance_df_matrix_Cov_rel %>% filter(rownames(.) %in% samples_IN_MY)) %>% as.data.frame() %>% left_join(cluster_tax_info %>% ungroup() %>% select(Genus, cluster_name), by = c(. = "cluster_name")) %>% pull(Genus),
+                       col = list(Genus = unlist(genusColors)), border = T
+                    )
+pdf("Figures/09-relative_coverage_heatmap_IN_MY.pdf")
+column_split <- rownames(abundance_df_matrix_Cov_rel %>% filter(rownames(.) %in% samples_IN_MY)) %>% as.data.frame() %>% mutate(Host = Vectorize(get_host_from_sample_name)(.)) %>% pull(Host) %>% as.factor %>% as.numeric
+row_split <- colnames(abundance_df_matrix_Cov_rel %>% filter(rownames(.) %in% samples_IN_MY)) %>% as.data.frame() %>% left_join(cluster_tax_info %>% ungroup() %>% select(Genus, cluster_name), by = c(. = "cluster_name")) %>% pull(Genus) %>% as.factor %>% as.numeric
+heatmap_obj = Heatmap(t(abundance_df_matrix_Cov_rel %>% filter(rownames(.) %in% samples_IN_MY)),
+        col = colorRamp2(c(1, 5, 10, 15, 30, 100), colors = c(brewer.pal(9, "YlGnBu")[1], brewer.pal(9, "YlGnBu")[3], brewer.pal(9, "YlGnBu")[5], brewer.pal(9, "YlGnBu")[7], brewer.pal(9, "YlGnBu")[8], brewer.pal(9, "YlGnBu")[9])),
+        clustering_method_columns = 'ward.D2',
+        column_split = column_split,
+        row_split = row_split,
+        column_title_gp = grid::gpar(fontsize = 0),
+        row_title_gp = grid::gpar(fontsize = 0),
+        border = T,
+        heatmap_legend_param = list(title = "Coverage (relative)"),
+        top_annotation = column_ha, 
+        right_annotation = row_ha,
+        # bottom_annotation = column_ba,
+        column_names_gp = grid::gpar(fontsize = 0),
+        row_names_gp = grid::gpar(fontsize = 0),
+          cluster_rows = F)
+draw(heatmap_obj, merge_legend = TRUE)
+dev.off()
+pdf("Figures/09-relative_coverage_heatmap_by_location_IN_MY.pdf")
+column_split <- rownames(abundance_df_matrix_Cov_rel %>% filter(rownames(.) %in% samples_IN_MY)) %>% as.data.frame() %>% mutate(Location = Vectorize(get_location_from_sample_name)(.)) %>% pull(Location) %>% as.factor %>% as.numeric
+row_split <- colnames(abundance_df_matrix_Cov_rel %>% filter(rownames(.) %in% samples_IN_MY)) %>% as.data.frame() %>% left_join(cluster_tax_info %>% ungroup() %>% select(Genus, cluster_name), by = c(. = "cluster_name")) %>% pull(Genus) %>% as.factor %>% as.numeric
+heatmap_obj = Heatmap(t(abundance_df_matrix_Cov_rel %>% filter(rownames(.) %in% samples_IN_MY)),
+        col = colorRamp2(c(1, 5, 10, 15, 30, 100), colors = c(brewer.pal(9, "YlGnBu")[1], brewer.pal(9, "YlGnBu")[3], brewer.pal(9, "YlGnBu")[5], brewer.pal(9, "YlGnBu")[7], brewer.pal(9, "YlGnBu")[8], brewer.pal(9, "YlGnBu")[9])),
+        clustering_method_columns = 'ward.D2',
+        column_split = column_split,
+        row_split = row_split,
+        column_title_gp = grid::gpar(fontsize = 0),
+        row_title_gp = grid::gpar(fontsize = 0),
+        border = T,
+        heatmap_legend_param = list(title = "Coverage (relative)"),
+        top_annotation = column_ha, 
+        right_annotation = row_ha,
+        # bottom_annotation = column_ba,
+        column_names_gp = grid::gpar(fontsize = 0),
+        row_names_gp = grid::gpar(fontsize = 0),
+          cluster_rows = F)
+draw(heatmap_obj, merge_legend = TRUE)
+
+dev.off()
+
+column_ha = HeatmapAnnotation(Host = rownames(abundance_df_matrix_Cov_rel_copy) %>% as.data.frame() %>% mutate(Host = Vectorize(get_host_from_sample_name)(.)) %>% pull(Host),
+                              Location = rownames(abundance_df_matrix_Cov_rel_copy) %>% as.data.frame() %>% mutate(Location = Vectorize(get_location_from_sample_name)(.)) %>% pull(Location),
+                              col = list(Host = host_order_color,
+                                         Location = location_order_color
+                              ), border = T
+                          )
+column_ba = HeatmapAnnotation(Location = rownames(abundance_df_matrix_Cov_rel_copy) %>% as.data.frame() %>% mutate(Location = Vectorize(get_location_from_sample_name)(.)) %>% pull(Location),
+                              col = list(Location = location_order_color), border = T
+                          )
+row_ha = rowAnnotation(Genus = colnames(abundance_df_matrix_Cov_rel_copy) %>% as.data.frame() %>% left_join(cluster_tax_info %>% ungroup() %>% select(Genus, cluster_name), by = c(. = "cluster_name")) %>% pull(Genus),
+                       col = list(Genus = unlist(genusColors)), border = T
+                    )
+pdf("Figures/09-relative_coverage_heatmap_MY.pdf")
+column_split <- rownames(abundance_df_matrix_Cov_rel_copy %>% filter(rownames(.) %in% samples_IN_MY)) %>% as.data.frame() %>% mutate(Host = Vectorize(get_host_from_sample_name)(.)) %>% pull(Host) %>% as.factor %>% as.numeric
+row_split <- colnames(abundance_df_matrix_Cov_rel_copy) %>% as.data.frame() %>% left_join(cluster_tax_info %>% ungroup() %>% select(Genus, cluster_name), by = c(. = "cluster_name")) %>% pull(Genus) %>% as.factor %>% as.numeric
+heatmap_obj = Heatmap(t(abundance_df_matrix_Cov_rel_copy),
+        col = colorRamp2(c(0, 0.5, 1, 2, 10, 50), colors = c(brewer.pal(9, "YlGnBu")[1], brewer.pal(9, "YlGnBu")[3], brewer.pal(9, "YlGnBu")[5], brewer.pal(9, "YlGnBu")[7], brewer.pal(9, "YlGnBu")[8], brewer.pal(9, "YlGnBu")[9])),
+        clustering_method_columns = 'ward.D2',
+        column_split = column_split,
+        row_split = row_split,
+        column_title_gp = grid::gpar(fontsize = 0),
+        row_title_gp = grid::gpar(fontsize = 0),
+        border = T,
+        heatmap_legend_param = list(title = "Coverage (relative) times copy_num"),
+        top_annotation = column_ha, 
+        right_annotation = row_ha,
+        # bottom_annotation = column_ba,
+        column_names_gp = grid::gpar(fontsize = 0),
+        row_names_gp = grid::gpar(fontsize = 0),
+          cluster_rows = F)
+draw(heatmap_obj, merge_legend = TRUE)
+dev.off()
+
+# pdf("Figures/09-instrain_mapping_heatmap.pdf")
+# instrain_mapping_mat <- instrain_mapping %>% 
+#                           left_join(vis_magOTUs_df %>%
+#                                       ungroup() %>%
+#                                       mutate(magOTU = paste0(Genus, "_", Cluster, "-", ID)) %>%
+#                                       select(ID, magOTU)
+#                           ) %>%
+#                           filter(!is.na(magOTU)) %>%
+#                           select(!ID) %>%
+#                           column_to_rownames("magOTU") %>% as.matrix
+
+# column_ha = HeatmapAnnotation(Host = rownames(instrain_mapping_mat) %>% as.data.frame() %>% mutate(Host = Vectorize(get_host_from_sample_name)(.)) %>% pull(Host) %>% as.character,
+#                               col = list(Host = host_order_color)
+#                           )
+# column_ba = HeatmapAnnotation(Location = rownames(instrain_mapping_mat) %>% as.data.frame() %>% mutate(Location = Vectorize(get_location_from_sample_name)(.)) %>% pull(Location),
+#                               col = list(Location = location_order_color)
+#                           )
+# row_ha = rowAnnotation(Genus = colnames(instrain_mapping_mat) %>% as.data.frame() %>% left_join(cluster_tax_info %>% ungroup() %>% select(Genus, cluster_name), by = c(. = "cluster_name")) %>% pull(Genus),
+#                        col = list(Genus = unlist(genusColors)))
+
+# column_split <- rownames(instrain_mapping_mat) %>% as.data.frame() %>% mutate(Host = Vectorize(get_host_from_sample_name)(.)) %>% pull(Host) %>% as.factor %>% as.numeric
+# row_split <- colnames(instrain_mapping_mat) %>% as.data.frame() %>% left_join(cluster_tax_info %>% ungroup() %>% select(Genus, cluster_name), by = c(. = "cluster_name")) %>% pull(Genus) %>% as.factor %>% as.numeric
+# heatmap_obj = Heatmap(instrain_mapping_mat,
+#         # col = c("#ffffff", "#1a88c9"),
+#         col = colorRamp2(c(0, 10, 100, 1000, 10000), colors = c(brewer.pal(9, "Blues")[1], brewer.pal(9, "Blues")[3], brewer.pal(9, "Blues")[5], brewer.pal(9, "Blues")[7], brewer.pal(9, "Blues")[9])),
+#         clustering_method_columns = 'ward.D2',
+#         # column_split = column_split,
+#         # row_split = row_split,
+#         row_title_gp = grid::gpar(fontsize = 0),
+#         border = T,
+#         # top_annotation = column_ha, 
+#         # right_annotation = row_ha,
+#         # bottom_annotation = column_ba,
+#         column_names_gp = grid::gpar(fontsize = 5),
+#             row_names_gp = grid::gpar(fontsize = 5),
+#             cluster_columns = F,
+#           cluster_rows = F)
+# draw(heatmap_obj, merge_legend = TRUE)
+# dev.off()
+
+ggplot() +
+  geom_bar(data = df_Cov_copy_num_adj,
+           aes(x = Cov,
+               y = factor(Sample, samples_MY),
+               fill = Genus
+           ), 
+          #  color = "white",
+           stat = "identity", position = "stack"
+  ) +
+  labs(x = "Cov", y = "Sample", fill = "Genus") +
+  make_theme(theme_name=theme_few(), leg_pos="bottom",
+                     guide_nrow = 5,
+                     setFill = F, setCol = F,
+                     x_angle=45 ,x_vj=1, x_hj=1, x_size=4,
+                     y_angle=0 ,y_vj=0, y_hj=0, y_size=10) +
+            scale_fill_manual(values=genusColors)
+ggplot() +
+  geom_bar(data = df_Cov_copy_num_adj,
+           aes(x = Cov_adj,
+               y = factor(Sample, samples_MY),
+               fill = Genus
+           ), 
+          #  color = "white",
+           stat = "identity", position = "stack"
+  ) +
+  labs(x = "Cov Adjusted (# Microbial Reads)", y = "Sample", fill = "Genus") +
+  make_theme(theme_name=theme_few(), leg_pos="bottom",
+                     guide_nrow = 5,
+                     setFill = F, setCol = F,
+                     x_angle=45 ,x_vj=1, x_hj=1, x_size=4,
+                     y_angle=0 ,y_vj=0, y_hj=0, y_size=10) +
+            scale_fill_manual(values=genusColors)
+ggplot() +
+  geom_bar(data = df_Cov_copy_num_adj,
+           aes(x = Cov_rel,
+               y = factor(Sample, samples_MY),
+               fill = Genus
+           ), 
+           color = "white",
+           stat = "identity", position = "stack"
+  ) +
+  labs(x = "Cov Relative", y = "Sample", fill = "Genus") +
+  make_theme(theme_name=theme_few(), leg_pos="bottom",
+                     guide_nrow = 5,
+                     setFill = F, setCol = F,
+                     x_angle=45 ,x_vj=1, x_hj=1, x_size=4,
+                     y_angle=0 ,y_vj=0, y_hj=0, y_size=10) +
+            scale_fill_manual(values=genusColors)
+ggplot() +
+  geom_bar(data = df_Cov_copy_num_adj,
+           aes(x = Cov_adj_copy,
+               y = factor(Sample, samples_MY),
+               fill = Genus
+           ), 
+          #  color = "black",
+           stat = "identity", position = "stack"
+  ) +
+  labs(x = "Cov Relative * copy_num", y = "Sample", fill = "Genus") +
+  facet_wrap(~ Host, scales = "free") +
+  # scale_x_continuous(trans = "log") +
+  make_theme(theme_name=theme_few(), leg_pos="bottom",
+                     guide_nrow = 5,
+                     setFill = F, setCol = F,
+                     x_angle=45 ,x_vj=1, x_hj=1, x_size=4,
+                     y_angle=0 ,y_vj=0, y_hj=0, y_size=10) +
+            scale_fill_manual(values=genusColors)
+
+
 
 ggplot(df_reads %>%
         select(Sample, MAGs_DB, Trimmed) %>%
@@ -894,7 +1349,7 @@ ggplot(df_reads %>%
           ggsave("Figures/09-Coverage_vs_mapped_reads_g__WRHT01.pdf")
 
 # vis_magOTUs_df %>% 
-#   select(ID, Host, Genus, Cluster, length, score, furthest_cluster_member, score_representative, Num_mags) %>%
+#   select(ID, Host, Genus, Cluster, length, score, furthest_magOTU_member, score_representative, Num_mags) %>%
 #     filter(Genus != "g__") %>%
 #     ungroup() %>%
 #       group_by(Cluster) %>%
@@ -903,7 +1358,7 @@ ggplot(df_reads %>%
 #             filter(Num_mags >= 3) %>%
 #               summarise(Cluster, Genus, Num_mags, Num_host) %>% unique()
 # vis_magOTUs_df %>% 
-#   select(ID, Host, Genus, Cluster, length, score, furthest_cluster_member, score_representative, Num_mags) %>%
+#   select(ID, Host, Genus, Cluster, length, score, furthest_magOTU_member, score_representative, Num_mags) %>%
 #     filter(Cluster == "33_1")
 
 # code for betapart functions from
@@ -1040,18 +1495,30 @@ df_to_test <- abundance_df_matrix_pa %>%
                           # filter(rownames(.) %in% c(samples_am, samples_ac, samples_af, samples_ad))
 adonis2(df_to_test ~ Species + Country, data = df_meta_complete %>% filter(ID %in% rownames(df_to_test)))
 
-# distances from tree in this paper. Measured by eye for now as the number of nodes separating them.
+# Distances from
+# https://link.springer.com/article/10.1007/s11756-022-01123-6/tables/4
+# 		7	5	3	1	2
+# mellifera	7		0.112	0.128	0.132	0.146
+# cerana	5	0.112		0.133	0.13	0.119
+# dorsata	3	0.128	0.133		0.095	0.108
+# florea	1	0.132	0.13	0.095		0.047
+# andreniformis	2	0.146	0.119	0.108	0.047	
 
 get_host_divergence <- function(sample_1, sample_2) {
   host_1 <- get_host_from_sample_name(sample_1)
   host_1 <- strsplit(host_1, " ")[[1]][[2]]
   host_2 <- get_host_from_sample_name(sample_2)
   host_2 <- strsplit(host_2, " ")[[1]][[2]]
-  mellifera <- c(0, 1, 2, 4, 4)
-  cerana <- c(1, 0, 2, 4, 4)
-  dorsata <- c(2, 2, 0, 3, 3)
-  florea <- c(4, 4, 3, 0, 1)
-  andreniformis <- c(4, 4, 3, 1, 0)
+  mellifera <- c(0, 0.112, 0.128, 0.132, 0.146)
+  cerana <- c(0.112, 0, 0.133, 0.13, 0.119)
+  dorsata <- c(0.128, 0.133, 0, 0.095, 0.108)
+  florea <- c(0.132, 0.13, 0.095, 0, 0.047)
+  andreniformis <- c(0.146, 0.119, 0.108, 0.047, 0)
+  # mellifera <- c(0, 1, 2, 4, 4)
+  # cerana <- c(1, 0, 2, 4, 4)
+  # dorsata <- c(2, 2, 0, 3, 3)
+  # florea <- c(4, 4, 3, 0, 1)
+  # andreniformis <- c(4, 4, 3, 1, 0)
   host_divergence_mat <- rbind(mellifera, cerana, dorsata, florea, andreniformis)
   colnames(host_divergence_mat) <- c("mellifera", "cerana", "dorsata", "florea", "andreniformis")
   index_list <- list("mellifera" = 1, "cerana" = 2, "dorsata" = 3, "florea" = 4, "andreniformis" = 5)
@@ -1108,28 +1575,62 @@ dissimilarities_df_median <- left_join(sample_bac_div_df, sample_host_div_df) %>
                         group_by(Hosts_compared) %>%
                         summarise(dist_h, median_b = median(dist_b)) %>%
                         unique
+dissimilarities_df <- left_join(sample_bac_div_df, sample_host_div_df) %>%
+                        group_by(Hosts_compared) %>%
+                        filter(Sample %in% c("M1.2", "C1.2", "D1.2", "F1.2", "A1.2"))
 
-# dissimilarities_df <- left_join(sample_bac_div_df, sample_host_div_df) %>%
-#                         filter(Sample %in% c("M1.2", "C1.2", "D1.2", "F1.2", "A1.2"))
+mantel(sample_host_div, sample_bac_div, method="pearson", permutations=1000)
 
-# mantel(sample_host_div, sample_bac_div, method="pearson", permutations=1000)
+ggplot() +
+  geom_violin(data=dissimilarities_df,
+             aes(x = dist_h,
+                 y = dist_b,
+                 group = Hosts_compared,
+                 fill = Host_c,
+                #  color = Host_s,
+                #  shape = Type_b
+             ), width=0.015, 
+             position = "identity",
+             alpha = 0.5
+            ) +
+  geom_violin(data=dissimilarities_df,
+             aes(x = dist_h,
+                 y = dist_b,
+                 group = Hosts_compared,
+                 fill = Host_s,
+                #  color = Host_s,
+                #  shape = Type_b
+             ), width=0.015, 
+             position = "identity",
+             alpha = 0.5
+            ) +
+    labs(x = "Host divergence (# nodes between)", y = "Microbiome dissimilarity (jaccard)") +
+    scale_fill_manual(values = host_order_color) +
+    scale_color_manual(values = host_order_color_dark) +
+    make_theme(setCol = F, setFill = F, guide_nrow = 1)
 
 ggplot() +
   geom_point(data=dissimilarities_df,
-             aes(x = factor(dist_h),
-                 y = dist_b
-                #  color = Host_s,
+             aes(x = dist_h,
+                 y = dist_b,
+                 group = Hosts_compared,
+                #  fill = Host_c,
+                 color = Host_c,
                 #  shape = Type_b
-             )
+             ), width=0.01
             ) +
-  geom_point(data=dissimilarities_df_median,
-             aes(x = factor(dist_h),
+  geom_jitter(data=dissimilarities_df_median,
+             aes(x = dist_h,
                  y = median_b
-             ), size = 5, color = "red"
+             ), size = 3, width = 0
             ) +
-    labs(x = "Host divergence (# nodes between)", y = "Microbiome dissimilarity (jaccard)") +
-    # scale_color_manual(values = host_order_color_dark) +
-    make_theme(setCol = F, setFill = F, guide_nrow = 5)
+    labs(x = "Host divergence (based on 16S and 12S)", y = "Microbiome dissimilarity (jaccard)", color = "Host species") +
+    scale_fill_manual(values = host_order_color) +
+    scale_color_manual(values = host_order_color_dark) +
+    make_theme(setCol = F, setFill = F, guide_nrow = 2,
+               leg_size = 12,
+               axis_x_title = 15, axis_y_title = 15
+    )
 
 cor.test(dissimilarities_df_median$dist_h, dissimilarities_df_median$median_b, method = "pearson")
 
@@ -1153,9 +1654,111 @@ host_median_mat <- dissimilarities_df_median %>%
 
 bac_median_mat[1,]
 host_median_mat[1,]
-mantel(as.dist(bac_median_mat), as.dist(host_median_mat), method = "pearson", permutations = 9999)
-mantel.test(bac_median_mat, host_median_mat, method = "pearson", permutations = 9999)
-cor.test(dissimilarities_df_median$dist_h, dissimilarities_df_median$median_b, method = "pearson")$estimate
 
-pcoa_plot(as.dist(sample_host_div), df_meta_complete, "Species", color_add=T, color_list=host_order_color_dark)
+mantel(as.dist(bac_median_mat), as.dist(host_median_mat), method = "pearson", permutations = 9999)
+cor.test(dissimilarities_df_median$dist_h, dissimilarities_df_median$median_b, method = "pearson")
+
+pcoa_plot_jitter(as.dist(sample_host_div), df_meta_complete, "Species", color_add=T, color_list=host_order_color_dark)
+pcoa_plot(as.dist(sample_bac_div), df_meta_complete, "Species", color_add=T, color_list=host_order_color_dark)
+```
+
+
+
+```{r plot_instrain_iRep}
+# plot_iRep <- ggplot(instrain_genomes_info_df,
+#                              aes(x = sample,
+#                                  y = iRep,
+#                                  color = Genus,
+#                               )
+#                             ) +
+#   geom_point() +
+#     facet_wrap_paginate(~magOTU, ncol = 3, nrow = 3, page = 5) +
+#     # scale_y_continuous(trans="log10") +
+#       make_theme(theme_name=theme_few(), leg_pos="none",
+#                  # guide_nrow = 6,
+#                  setFill = F, setCol = F,
+#                  x_angle=45 ,x_vj=1, x_hj=1, x_size=5,
+#                  y_angle=0 ,y_vj=0, y_hj=0, y_size=10) +
+#         geom_vline(xintercept = 5.5) +
+#         geom_vline(xintercept = 20.5) +
+#         geom_vline(xintercept = 30.5) +
+#         theme(strip.text = element_text(size = 7)) +
+#         scale_color_manual(values=genusColors)
+
+# paginate_save(plot_iRep, "magOTU", "Figures/10-instrain_plots/3-iRep_by_magOTU.pdf", pass_nrow = 3, pass_ncol = 3)
+```
+```{r other_plots}
+snv_perc_plot <- ggplot(instrain_genomes_info_df %>%
+        group_by(genome) %>%
+          mutate(breadth_pass = ifelse(breadth >= 0.7, "Y", "N")) %>%
+          mutate(perc_var = SNV_count/length*breadth*100) %>%
+          filter(breadth_pass %in% c("Y")),
+                             aes(x = magOTU,
+                                 y = perc_var,
+                                 color = factor(Host, host_order),
+                                 shape = breadth_pass
+                              )
+                            ) +
+      geom_jitter() +
+      labs(x = "magOTU", y = "% variant sites", color = "Host species") +
+        facet_wrap(~factor(Genus, shared_genera), scales = "free_x") +
+          make_theme(theme_name=theme_few(), leg_pos="bottom",
+                     guide_nrow = 3,
+                     setFill = F, setCol = F,
+                     x_angle=45 ,x_vj=1, x_hj=1, x_size=5,
+                     y_angle=0 ,y_vj=0, y_hj=0, y_size=10) +
+            scale_color_manual(values=host_order_color)
+            # ggsave("Figures/15b-percentage_variable_sites.pdf")
+
+# snv_perc_plot_rare <- ggplot(instrain_genomes_info_df %>%
+ggplot(instrain_genomes_info_df %>%
+        group_by(genome) %>%
+          mutate(breadth_pass = ifelse(breadth >= 0.7, "Y", "N")) %>%
+          mutate(perc_var = consensus_divergent_sites/length*breadth*100) %>%
+          filter(breadth_pass %in% c("Y")),
+                             aes(x = magOTU,
+                                 y = reads_mean_PID,
+                                 color = factor(Host, host_order)
+                                 # shape = breadth_pass
+                              )
+                            ) +
+      geom_jitter() +
+      scale_y_continuous(labels=unit_format(unit = "%", scale = 1e+2)) +
+      labs(x = "magOTU", y = "mean ANI (reads and reference)", color = "Host species") +
+        facet_wrap(~factor(Genus, shared_genera), scales = "free_x") +
+          make_theme(theme_name=theme_few(), leg_pos="bottom",
+                     guide_nrow = 3,
+                     setFill = F, setCol = F,
+                     x_angle=45 ,x_vj=1, x_hj=1, x_size=5,
+                     y_angle=0 ,y_vj=0, y_hj=0, y_size=10) +
+            scale_color_manual(values=host_order_color)
+
+ggplot(instrain_genomes_info_df %>%
+        group_by(genome) %>%
+          mutate(breadth_pass = ifelse(breadth >= 0.7, "Y", "N")) %>%
+          mutate(perc_var = consensus_divergent_sites/length*breadth*100) %>%
+          filter(breadth_pass %in% c("Y")),
+                             aes(x = magOTU,
+                                 y = reads_unfiltered_reads,
+                                 color = factor(Host, host_order)
+                                 # shape = breadth_pass
+                              )
+                            ) +
+      geom_jitter() +
+      scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6), trans = "log") +
+      labs(x = "magOTU", y = "Number of reads mapped", color = "Host species") +
+        facet_wrap(~factor(Genus, shared_genera), scales = "free_x") +
+        # geom_hline(yintercept = 10, color = "grey") +
+        # geom_hline(yintercept = 100, color = "grey") +
+        # geom_hline(yintercept = 1000, color = "grey") +
+        geom_hline(yintercept = 10000, color = "grey") +
+        # geom_hline(yintercept = 100000, color = "grey") +
+        geom_hline(yintercept = 1000000, color = "grey") +
+        # geom_hline(yintercept = 10000000, color = "grey") +
+          make_theme(theme_name=theme_few(), leg_pos="bottom",
+                     guide_nrow = 3,
+                     setFill = F, setCol = F,
+                     x_angle=45 ,x_vj=1, x_hj=1, x_size=5,
+                     y_angle=0 ,y_vj=0, y_hj=0, y_size=10) +
+            scale_color_manual(values=host_order_color)
 ```

@@ -19,22 +19,6 @@ output:
 To intialize complete all of or relevant sections of `scripts/visualization/Load_data.R`.
 Using values from NAS std curve `smb://nas.unil.ch/DMF/GROUPS/gr_Engel/lab_resources/Protocols/qPCR/qPCR_analysis_workflow/StdCurves/StdCurves.xlsx` done for Berta on 12-11-2022
 
-```{r additional_init}
-UV_eff <- 1.971
-UV_int <- 36.94109669
-# Actin_eff <- 2.001
-# Actin_int <- 36.71918987
-elution_vol <- 30
-dilution_factor <- 10
-LOD <- 100
-qpcr_plot_df <- qpcr_df_info %>%
-                  mutate(copy_num = UV_eff^(UV_int - Ct_mean)*elution_vol*dilution_factor) %>%
-                  mutate(Location = Vectorize(get_location_from_sample_name)(Sample.Name)) %>%
-                  filter(!is.na(Host)) %>%
-                  filter(Host %in% host_order) %>%
-                    unique()
-
-```
 
 ## Plotting C_t values
 

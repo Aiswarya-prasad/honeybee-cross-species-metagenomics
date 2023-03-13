@@ -76,6 +76,49 @@ ggplot(vis_magOTUs_df_all, aes(y = Cluster, x = sample, fill = factor(Genus, gen
 # MAG and reference sizes
 
 ```{r plot_genome_sizes}
+ggplot(vis_magOTUs_df_all, aes(y = contamination, x = completeness, shape = Host, 
+       color = factor(Genus, genera), size = length)) +
+      #  color = factor(Genus, genera))) +
+        geom_point(position = position_jitter(w = 0, h = 0.05), alpha = 0.85) +
+        # labs(y = "Contamination", x = "Completeness", color = "Genus") +
+        labs(y = "Contamination", x = "Completeness", color = "Genus", size = "MAG size") +
+        scale_color_manual(values=genusColors) +
+        geom_hline(yintercept = 5, linetype = "dashed") +
+        geom_vline(xintercept = 50, linetype = "dashed") +
+        make_theme(setFill = F, setCol = F,
+                   palettecolor = "RdYlGn",
+                   # y_size = 3, y_hj = 1, y_vj = 0.5,
+                   axis_x_title = 18,
+                   axis_y_title = 18,
+                   x_angle = 30, x_hj = 1, x_vj = 1,
+                   leg_size = 12, leg_pos = "right",
+                   guide_nrow = 21
+                 ) +
+            scale_size(trans = "identity", labels=unit_format(unit = "M", scale = 1e-6)) +
+            guides(alpha = "none")
+            ggsave("Figures/06-mags_all_contam_vs_completeness_w_shape.pdf")
+
+ggplot(vis_magOTUs_df_all %>% filter(length < 5e+6) %>% filter(contamination < 11), aes(y = contamination, x = completeness, shape = Host, 
+       color = factor(Genus, genera))) +
+      #  color = factor(Genus, genera))) +
+        geom_point(position = position_jitter(w = 0, h = 0.5), alpha = 0.85, size = 3) +
+        # labs(y = "Contamination", x = "Completeness", color = "Genus") +
+        labs(y = "Contamination", x = "Completeness", color = "Genus") +
+        scale_color_manual(values=genusColors) +
+        geom_hline(yintercept = 5, linetype = "dashed") +
+        geom_vline(xintercept = 50, linetype = "dashed") +
+        make_theme(setFill = F, setCol = F,
+                   palettecolor = "RdYlGn",
+                   # y_size = 3, y_hj = 1, y_vj = 0.5,
+                   axis_x_title = 18,
+                   axis_y_title = 18,
+                   x_angle = 30, x_hj = 1, x_vj = 1,
+                   leg_size = 12, leg_pos = "right",
+                   guide_nrow = 21
+                 ) +
+            scale_size(trans = "identity", labels=unit_format(unit = "M", scale = 1e-6)) +
+            guides(alpha = "none")
+            ggsave("Figures/06-mags_all_pretty_contam_vs_completeness.pdf")
 ggplot(vis_magOTUs_df, aes(y = contamination, x = completeness, shape = Host, 
        color = factor(Genus, genera), size = length)) +
         geom_point(position = position_jitter(w = 0, h = 0.05), alpha = 0.85) +
@@ -92,7 +135,7 @@ ggplot(vis_magOTUs_df, aes(y = contamination, x = completeness, shape = Host,
                  ) +
             scale_size(trans = "identity", labels=unit_format(unit = "M", scale = 1e-6)) +
             guides(alpha = "none")
-            ggsave("Figures/06-mags_contam_vs_completeness_w_shape.pdf")
+            ggsave("Figures/06-mags_filt_contam_vs_completeness_w_shape.pdf")
 ggplot(vis_magOTUs_df, aes(y = contamination, x = completeness, 
        color = factor(Genus, genera), size = length)) +
         geom_point(position = position_jitter(w = 0, h = 0.05), alpha = 0.85) +
@@ -146,6 +189,80 @@ ggplot() +
     guides(fill = FALSE) +
     geom_text(aes(x = 3.5e6, y = 1, label = "+ "), color = "red") +
     geom_text(aes(x = 4.5e6, y = 1, label = "represents reference isolate genomes"))
+    ggsave("Figures/06-Genome_sizes_by_genus_all.pdf")
+
+ggplot() +
+  geom_boxplot(data = vis_magOTUs_df %>% filter(!is.na(Genus)),
+               aes(y = Genus,
+                   x = length
+                  #  fill = factor(Genus, genera)
+               ), fill = "lightblue",
+               outlier.shape = NA
+               ) +
+    scale_fill_manual(values=genusColors) +
+    geom_jitter(data = vis_magOTUs_df %>% filter(!is.na(Genus)),
+                aes(y = Genus,
+                    x = length
+                    # color = factor(Ref_status)
+                )
+               ) +
+    scale_x_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
+    make_theme(palettefill = "Spectral", setCol = F, setFill = F,
+               guide_nrow = 1,
+               x_size = 14,
+               y_size = 14, axis_x_title = 16, axis_y_title = 16
+              ) +
+    labs(x = "MAG size / Genome size", y = "Genus", color = "MAG type") +
+    geom_point(data = reference_genomes,
+                aes(y = Genus,
+                    x = length
+                ), size = 2,
+                # width = 0.01,
+                shape = 3, color = "red"
+               ) +
+      scale_color_manual(values = c("1" = "blue", "0" = "black"),
+                         label = c("1" = "Best scoring MAG", "0" = "Other MAGs")
+      ) +
+    labs(x = "MAG size / Genome size", y = "Genus", color = "MAG type") +
+    guides(fill = FALSE)
+    ggsave("Figures/06-Pretty_genome_sizes_by_genus.pdf")
+
+ggplot() +
+  geom_boxplot(data = vis_magOTUs_df %>% filter(!is.na(Genus)),
+               aes(y = factor(Genus, genera),
+                   x = length,
+                  #  fill = Genus
+               ),
+               outlier.shape = NA
+               ) +
+    scale_fill_manual(values=genusColors) +
+    geom_jitter(data = vis_magOTUs_df %>% filter(!is.na(Genus)),
+                aes(y = factor(Genus, genera),
+                    x = length,
+                    color = factor(Ref_status)
+                )
+               ) +
+    scale_x_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
+    make_theme(palettefill = "Spectral", setCol = F, setFill = F,
+               guide_nrow = 1,
+               x_size = 14,
+               y_size = 14
+              ) +
+    labs(x = "MAG size / Genome size", y = "Genus", color = "MAG type") +
+    geom_point(data = reference_genomes,
+                aes(y = factor(Genus, genera),
+                    x = length
+                ), size = 2,
+                # width = 0.01,
+                shape = 3, color = "red"
+               ) +
+      scale_color_manual(values = c("1" = "blue", "0" = "black"),
+                         label = c("1" = "Best scoring MAG", "0" = "Other MAGs")
+      ) +
+    labs(x = "MAG size / Genome size", y = "Genus", color = "MAG type") +
+    guides(fill = FALSE) +
+    geom_text(aes(x = 3.5e6, y = 1, label = "+ "), color = "red") +
+    geom_text(aes(x = 4.5e6, y = 1, label = "represents reference isolate genomes"))
     ggsave("Figures/06-Genome_sizes_by_genus.pdf")
 ```
 # Plot heatmaps
@@ -173,9 +290,9 @@ draw(pretty_ani_heatmaps(get_ani_matrix(mag_names = c("MAG_C3.3_9", "MAG_C1.1_13
                                               merge_legend = TRUE)
 
 draw(pretty_ani_heatmaps(get_ani_matrix(genera_list = c("g__Bifidobacterium")), col_fun = my_col_fun),
-                                              merge_legend = TRUE)
+                                              merge_legend = T)
 draw(pretty_ani_heatmaps(get_ani_matrix(genera_list = c("g__Lactobacillus")), col_fun = my_col_fun),
-                                              merge_legend = TRUE)
+                                              merge_legend = T)
 ```
 
 # Old code
@@ -333,6 +450,81 @@ ggplot(filter(vis_magOTUs_df_all, all_quality=="Pass"), aes(y = Genus, fill = Ho
       ggsave("Figures/06-QC_per_Genus_per_host_passed.pdf")
 ```
 
+# Fate of contigs passed, binned
+
+```{r contig_faths}
+ggplot(contig_fates_df_pf, aes(y = factor(sample, samples), x = pass_fail_length, fill = passed_filter)) +
+  geom_bar(stat = "identity") +
+  labs(y= "Sample", x = "Amount of data passed or failed") +
+  # scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6), limits = c(0, 6e+8)) +
+  scale_x_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
+  make_theme(palettefill = "Set1", leg_pos = "bottom", guide_nrow = 1)
+
+ggplot(contig_fates_df_bin, aes(y = sample, x = binned_length, fill = binned)) +
+  geom_bar(stat = "identity") +
+    labs(x = "Sample", y = "Amount of data binned or unbinned") +
+    scale_x_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
+      make_theme(palettefill = "Set1", guide_nrow = 1)
+
+# write a function and subset as required and save plots
+ggplot(filter(length_bin_sum_df, sample %in% samples_IN), aes(x = length_bin, y = length_bin_sum, fill = binned)) +
+                      geom_bar(stat = "identity") +
+                        geom_text(aes(label = num_contigs), angle = 0, size = 1, vjust = 1) +
+                        # geom_text(aes(label = num_contigs), angle = 90, size = 2) +
+                          labs(x = "length of contig", y = "Total bases from contigs in bin", fill = "binned") +
+                            scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
+                              facet_wrap(~ sample, scales = "free") +
+                                make_theme(x_angle = 40, x_size = 7, x_hj = 1, x_vj = 1, leg_pos = "none")
+```
+
+# Contig fates by genus
+
+```{r contig_fate_by_genus}
+ggplot(data = rbind(contig_fates_df_am_mag,
+                    contig_fates_df_ac_mag,
+                    contig_fates_df_ad_mag,
+                    contig_fates_df_af_mag,
+                   ),
+       aes(x = sample, y = len_contigs, fill = factor(Genus, genera))) +
+                                  geom_bar(stat = "identity") +
+                                    labs(x = "Sample", y = "Sum of length of scaffolds in bin", fill = "Genus") +
+                                    # scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6), limits = c(0, 6e+8)) +
+                                    scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
+                                      make_theme(setFill = F,
+                                          leg_pos = "right", guide_nrow = 22,
+                                          x_angle = 30, x_hj = 1, x_vj = 1
+                                        ) +
+                                      scale_fill_manual(values=genusColors)
+ggplot(data = rbind(contig_fates_df_am_mag %>% filter(!is.na(bin_name)),
+                    contig_fates_df_ac_mag %>% filter(!is.na(bin_name)),
+                    contig_fates_df_ad_mag %>% filter(!is.na(bin_name)),
+                    contig_fates_df_af_mag %>% filter(!is.na(bin_name)),
+                   ),
+       aes(x = sample, y = len_contigs, fill = factor(Genus, genera))) +
+                                  geom_bar(stat = "identity") +
+                                    labs(x = "Sample", y = "Sum of length of scaffolds in bin", fill = "Genus") +
+                                    # scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6), limits = c(0, 6e+8)) +
+                                    scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
+                                      make_theme(setFill = F,
+                                          leg_pos = "right", guide_nrow = 22,
+                                          x_angle = 30, x_hj = 1, x_vj = 1
+                                        ) +
+                                      scale_fill_manual(values=genusColors)
+```
+```{r plot_depth_across_samples}
+# read all depth files for a given sample and plot per MAG the depths
+ggplot(data = contigs_depths_df,
+       aes(x = sample, y = depth, fill = factor(binned))) +
+                                  geom_point(stat = "identity") +
+                                    labs(x = "Sample", y = "Sum of length of scaffolds in bin", fill = "Genus") +
+                                    # scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6), limits = c(0, 6e+8)) +
+                                    scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
+                                      make_theme(setFill = F,
+                                          leg_pos = "right", guide_nrow = 22,
+                                          x_angle = 30, x_hj = 1, x_vj = 1
+                                        ) +
+                                      scale_fill_manual(values=genusColors)
+```
 
 ```{r}
 # legend_hist_host <- get_only_legend(Completeness_hist)
