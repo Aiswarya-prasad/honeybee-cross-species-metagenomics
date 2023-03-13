@@ -5,6 +5,7 @@
 *.ffa
 *.fa
 *.fasta
+*.fastq
 
 *.tmp
 *.sam
@@ -26,7 +27,7 @@
 logs/*
 fastqc/*
 database/*
-Figures/*
+# Figures/*
 00_RawData*/*
 01_Trimmed*/*
 02_HostMapping*/*
