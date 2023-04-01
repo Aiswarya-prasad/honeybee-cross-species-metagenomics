@@ -1609,40 +1609,40 @@ samples_af <-c(vis_magOTUs_df_all %>% filter(Host == "Apis florea") %>% pull(Sam
 # }
 # contigs_depths_df <- left_join(filter(contigs_length_df, passed == "P"), all_depths, by = c("contig" = "contigName"))
 # rm(all_depths)
-contig_fates_df_pf <- rbind(contig_fates_df_am_pf,
-                            contig_fates_df_ac_pf,
-                            contig_fates_df_ad_pf,
-                            contig_fates_df_af_pf
-                      )
-contig_fates_df_bin <- rbind(contig_fates_df_am_bin,
-                            contig_fates_df_ac_bin,
-                            contig_fates_df_ad_bin,
-                            contig_fates_df_af_bin
-                      )
-contig_fates_df_am_mag <- contig_fates_df_am %>%
-                            # filter(binned == "Y") %>%
-                            group_by(sample, bin_name) %>%
-                              summarise(num_contigs = n(), len_contigs = sum(length), .groups = "keep") %>%
-                                left_join(select(vis_magOTUs_df_all, ID, Host, Sample, Cluster, Family, Genus, N50, Prevalence), by = c("bin_name" = "ID"))
-contig_fates_df_ac_mag <- contig_fates_df_ac %>%
-                            # filter(binned == "Y") %>%
-                            group_by(sample, bin_name) %>%
-                              summarise(num_contigs = n(), len_contigs = sum(length), .groups = "keep") %>%
-                                left_join(select(vis_magOTUs_df_all, ID, Host, Sample, Cluster, Family, Genus, N50, Prevalence), by = c("bin_name" = "ID"))
-contig_fates_df_ad_mag <- contig_fates_df_ad %>%
-                            # filter(binned == "Y") %>%
-                            group_by(sample, bin_name) %>%
-                              summarise(num_contigs = n(), len_contigs = sum(length), .groups = "keep") %>%
-                                left_join(select(vis_magOTUs_df_all, ID, Host, Sample, Cluster, Family, Genus, N50, Prevalence), by = c("bin_name" = "ID"))
-contig_fates_df_af_mag <- contig_fates_df_af %>%
-                            # filter(binned == "Y") %>%
-                            group_by(sample, bin_name) %>%
-                              summarise(num_contigs = n(), len_contigs = sum(length), .groups = "keep") %>%
-                                left_join(select(vis_magOTUs_df_all, ID, Host, Sample, Cluster, Family, Genus, N50, Prevalence), by = c("bin_name" = "ID"))
-contigs_depths_df_genus <- left_join(contigs_depths_df, select(vis_magOTUs_df_all, ID, Genus, Cluster), by = c("bin" = "ID")) %>%
-  ungroup() %>%
-  select(!Host) %>%
-  left_join(rename(select(df_meta_complete, sample, Species), Host = Species), by = c("sample" = "Sample"))
+# contig_fates_df_pf <- rbind(contig_fates_df_am_pf,
+#                             contig_fates_df_ac_pf,
+#                             contig_fates_df_ad_pf,
+#                             contig_fates_df_af_pf
+#                       )
+# contig_fates_df_bin <- rbind(contig_fates_df_am_bin,
+#                             contig_fates_df_ac_bin,
+#                             contig_fates_df_ad_bin,
+#                             contig_fates_df_af_bin
+#                       )
+# contig_fates_df_am_mag <- contig_fates_df_am %>%
+#                             # filter(binned == "Y") %>%
+#                             group_by(sample, bin_name) %>%
+#                               summarise(num_contigs = n(), len_contigs = sum(length), .groups = "keep") %>%
+#                                 left_join(select(vis_magOTUs_df_all, ID, Host, Sample, Cluster, Family, Genus, N50, Prevalence), by = c("bin_name" = "ID"))
+# contig_fates_df_ac_mag <- contig_fates_df_ac %>%
+#                             # filter(binned == "Y") %>%
+#                             group_by(sample, bin_name) %>%
+#                               summarise(num_contigs = n(), len_contigs = sum(length), .groups = "keep") %>%
+#                                 left_join(select(vis_magOTUs_df_all, ID, Host, Sample, Cluster, Family, Genus, N50, Prevalence), by = c("bin_name" = "ID"))
+# contig_fates_df_ad_mag <- contig_fates_df_ad %>%
+#                             # filter(binned == "Y") %>%
+#                             group_by(sample, bin_name) %>%
+#                               summarise(num_contigs = n(), len_contigs = sum(length), .groups = "keep") %>%
+#                                 left_join(select(vis_magOTUs_df_all, ID, Host, Sample, Cluster, Family, Genus, N50, Prevalence), by = c("bin_name" = "ID"))
+# contig_fates_df_af_mag <- contig_fates_df_af %>%
+#                             # filter(binned == "Y") %>%
+#                             group_by(sample, bin_name) %>%
+#                               summarise(num_contigs = n(), len_contigs = sum(length), .groups = "keep") %>%
+#                                 left_join(select(vis_magOTUs_df_all, ID, Host, Sample, Cluster, Family, Genus, N50, Prevalence), by = c("bin_name" = "ID"))
+# contigs_depths_df_genus <- left_join(contigs_depths_df, select(vis_magOTUs_df_all, ID, Genus, Cluster), by = c("bin" = "ID")) %>%
+#   ungroup() %>%
+#   select(!Host) %>%
+#   left_join(rename(select(df_meta_complete, sample, Species), Host = Species), by = c("sample" = "Sample"))
 ```
 
 
@@ -2769,7 +2769,8 @@ abundance_df_matrix_pa <-  abundance_df %>% filter(!is.na(cluster_name)) %>%
                           # mutate(PresAb = ifelse(Host != "Apis dorsata" & Cov > 10, 1, 0)) %>%
                           # mutate(PresAb = ifelse(Host == "Apis dorsata"& Cov > 1, 1, PresAb)) %>%
                           select(Sample, cluster_name, PresAb) %>%
-                            pivot_wider(names_from=cluster_name, values_from=PresAb, values_fn = as.vector) %>% remove_rownames %>%
+                          unique() %>%
+                            pivot_wider(names_from=cluster_name, values_from=PresAb, values_fn = function(x) as.numeric(x)) %>% remove_rownames %>%
                             column_to_rownames(var="Sample")
 min_reads = min(df_reads$MAGs_DB)
 abundance_df_matrix_Cov_rel <-  abundance_df %>% filter(!is.na(cluster_name)) %>%
@@ -2777,7 +2778,8 @@ abundance_df_matrix_Cov_rel <-  abundance_df %>% filter(!is.na(cluster_name)) %>
                           left_join(df_reads %>% select(Sample, MAGs_DB)) %>%
                             mutate(Cov = Cov/MAGs_DB*min_reads) %>%
                             select(!MAGs_DB) %>%
-                            pivot_wider(names_from=cluster_name, values_from=Cov, values_fn = as.vector) %>% remove_rownames %>%
+                            unique() %>%
+                            pivot_wider(names_from=cluster_name, values_from=Cov, values_fn = as.numeric) %>% remove_rownames %>%
                             column_to_rownames(var="Sample") %>%
                               mutate(across(-1)*100/rowSums(across(-1)))
 abundance_df_matrix_Cov_rel_copy <-  abundance_df %>% filter(!is.na(cluster_name)) %>%
@@ -2790,7 +2792,8 @@ abundance_df_matrix_Cov_rel_copy <-  abundance_df %>% filter(!is.na(cluster_name
                             mutate(Cov = Cov*copy_num) %>%
                             # mutate(Cov = ifelse(is.na(Cov), 0, Cov)) %>%
                             select(!copy_num) %>%
-                            pivot_wider(names_from=cluster_name, values_from=Cov, values_fn = as.vector) %>% remove_rownames %>%
+                            unique() %>%
+                            pivot_wider(names_from=cluster_name, values_from=Cov, values_fn = as.numeric) %>% remove_rownames %>%
                             column_to_rownames(var="Sample") %>%
                               mutate(across(-1)*100/rowSums(across(-1)))
 df_Cov_copy_num_adj <-  abundance_df %>% filter(!is.na(cluster_name)) %>%
@@ -2809,7 +2812,8 @@ df_Cov_copy_num_adj <-  abundance_df %>% filter(!is.na(cluster_name)) %>%
 abundance_df_matrix_Cov <-  abundance_df %>% filter(!is.na(cluster_name)) %>%
                           select(Sample, cluster_name, Cov) %>%
                           # filter(Sample %in% samples_IN) %>%
-                            pivot_wider(names_from=cluster_name, values_from=Cov, values_fn = as.vector) %>% remove_rownames %>%
+                          unique() %>%
+                            pivot_wider(names_from=cluster_name, values_from=Cov, values_fn = as.numeric) %>% remove_rownames %>%
                             column_to_rownames(var="Sample")
 
 ```
@@ -2910,7 +2914,7 @@ abundance_df <- coords_df %>%
 abundance_df_matrix <-  abundance_df %>% filter(!is.na(cluster_name)) %>%
                           mutate(PresAb = ifelse(CovNorm > 0, 1, 0)) %>%
                           select(Sample, cluster_name, PresAb) %>%
-                            pivot_wider(names_from=cluster_name, values_from=PresAb, values_fn = as.vector) %>% remove_rownames %>%
+                            pivot_wider(names_from=cluster_name, values_from=PresAb) %>% remove_rownames %>%
                             column_to_rownames(var="Sample")
 
 abundance_df_matrix_pa <-  abundance_df %>% filter(!is.na(cluster_name)) %>%

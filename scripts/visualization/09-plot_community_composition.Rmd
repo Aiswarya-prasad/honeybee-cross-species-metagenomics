@@ -726,6 +726,7 @@ ggplot() +
                      x_angle=45 ,x_vj=1, x_hj=1, x_size=4,
                      y_angle=0 ,y_vj=0, y_hj=0, y_size=10) +
             scale_fill_manual(values=genusColors)
+
 ggplot() +
   geom_bar(data = df_Cov_copy_num_adj,
            aes(x = Cov_adj,
@@ -777,24 +778,22 @@ ggplot() +
                      y_angle=0 ,y_vj=0, y_hj=0, y_size=10) +
             scale_fill_manual(values=genusColors)
 
-
-
-ggplot(df_reads %>%
-        select(Sample, MAGs_DB, Trimmed) %>%
-        mutate(Host = Vectorize(get_host_from_sample_name)(Sample)) %>%
-        mutate(Location = Vectorize(get_location_from_sample_name)(Sample)) %>%
-        filter(Location %in% c("Malaysia", "India")) %>%
-          left_join(as.data.frame(rowSums(data_otu)) %>% setNames("cov_sums") %>% rownames_to_column("Sample"), by = "Sample"),
-       aes(x = MAGs_DB, y = cov_sums, 
-           color = Location)
-        #    color = factor(Host, host_order), shape = Location)
-    ) +
-    facet_wrap(~factor(Host, host_order)) +
-    labs(x = "Numer of MAGs DB mapped reads", y = "Sum of all coverages", color = "Host") +
-    geom_point(size = 3) +
-      make_theme(setCol = F) +
-        # scale_color_manual(values=host_order_color_dark) +
-          scale_x_continuous(labels=unit_format(unit = "M", scale = 1e-6))
+# ggplot(df_reads %>%
+#         select(Sample, MAGs_DB, Trimmed) %>%
+#         mutate(Host = Vectorize(get_host_from_sample_name)(Sample)) %>%
+#         mutate(Location = Vectorize(get_location_from_sample_name)(Sample)) %>%
+#         filter(Location %in% c("Malaysia", "India")) %>%
+#           left_join(as.data.frame(rowSums(data_otu)) %>% setNames("cov_sums") %>% rownames_to_column("Sample"), by = "Sample"),
+#        aes(x = MAGs_DB, y = cov_sums, 
+#            color = Location)
+#         #    color = factor(Host, host_order), shape = Location)
+#     ) +
+#     facet_wrap(~factor(Host, host_order)) +
+#     labs(x = "Numer of MAGs DB mapped reads", y = "Sum of all coverages", color = "Host") +
+#     geom_point(size = 3) +
+#       make_theme(setCol = F) +
+#         # scale_color_manual(values=host_order_color_dark) +
+#           scale_x_continuous(labels=unit_format(unit = "M", scale = 1e-6))
 
 ggplot(df_reads %>% filter((Sample %in% samples)) %>% 
         mutate(Host = Vectorize(get_host_from_sample_name)(Sample)) %>%
@@ -1550,7 +1549,8 @@ for (sample_1 in samples) {
 # samples_subset_af <- df_meta_complete %>% filter(Species == "Apis florea") %>% pull(ID)
 # samples_subset_aa <- df_meta_complete %>% filter(Species == "Apis andreniformis") %>% pull(ID)
 
-
+heatmap(sample_bac_div %>% as.matrix)
+s
 sample_host_div <- sample_host_div %>% 
   filter(row.names(.) %in% as.vector(as.matrix(sample_bac_div) %>% row.names))
 
@@ -1610,14 +1610,14 @@ ggplot() +
     make_theme(setCol = F, setFill = F, guide_nrow = 1)
 
 ggplot() +
-  geom_point(data=dissimilarities_df,
+  geom_jitter(data=dissimilarities_df,
              aes(x = dist_h,
                  y = dist_b,
                  group = Hosts_compared,
                 #  fill = Host_c,
                  color = Host_c,
                 #  shape = Type_b
-             ), width=0.01
+             ), width=0, size = 4
             ) +
   geom_jitter(data=dissimilarities_df_median,
              aes(x = dist_h,
