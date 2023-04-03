@@ -18,5 +18,6 @@ cat ../06_MAG_binning/evaluate_bins/checkm_drep_summary.txt | tr "," "\t" | sed 
 input_faa_dir="../database/MAGs_database_Orthofinder/g__Lactobacillus/"
 out_dir="motupan_test/g__Lactobacillus"
 mkdir -p ${out_dir}
-mOTUpan.py --faas ${input_faa_dir}/*.faa --boots 100 -o ${out_dir}/mOTUpan.tsv --checkm ${checkm_out} | tee ${out_dir}/mOTUpan.log
+OG_file="motupan_test/g__Lactobacillus/motupan_cog.tsv" # using scripts/preapare_motupan_OG_file.py
+mOTUpan.py --gene_clusters_file ${OG_file} --boots 100 -o ${out_dir}/mOTUpan.tsv --checkm ${checkm_out} | tee ${out_dir}/mOTUpan.log
 
