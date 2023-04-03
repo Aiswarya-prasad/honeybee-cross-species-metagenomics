@@ -29,7 +29,7 @@ plot_breadth_by_sample <- ggplot(instrain_genomes_info_df %>% mutate(breadth = b
                               )
                             ) +
   geom_point() +
-    facet_wrap_paginate(~sample, ncol = 3, nrow = 3, page = 1) +
+    facet_wrap_paginate(~sample, ncol = 3, nrow = 3, page = 6) +
       make_theme(theme_name=theme_few(), leg_pos="none",
                  # guide_nrow = 6,
                  setFill = F, setCol = F,
@@ -256,22 +256,20 @@ saveWidget(
           )
 ```
 
-```{r plot_prevalence_Genus_by_host}
-
-```
 
 # Compare core_cov estimation and mapping estimation
 ```{r genus_heatmap}
 # abundance/prevalence
-ggplot(coverage_df_genus %>% filter(Sample %in% samples_IN), aes(y = factor(Genus, genera), x = factor(Host, host_order), fill = Mean)) +
+ggplot(coverage_df_genus %>% filter(Sample %in% samples), aes(y = factor(Genus, genera), x = factor(Host, host_order), fill = Mean)) +
                             geom_tile() +
                               labs(x = "Sample", y = "Cluster")+
-                              scale_fill_gradient(na.value = "transparent", low = "#ffffff" , high = "#1a88c9", guide = "colourbar", trans = "log10") +
-                              # scale_fill_gradient(na.value = "transparent", low = "#ffffff" , high = "#ffc20e", guide = "colourbar", trans = "log10") +
+                              # scale_fill_gradient(na.value = "transparent", low = "#ffffff" , high = "#1a88c9", guide = "colourbar", trans = "log10") +
+                              scale_fill_gradient2(midpoint = 40, low = "#ffffd9",  mid = "#41ab5d", high = "#006837", guide = "colourbar", na.value = "#ffffd9") +
                                 make_theme(setFill = F, modify_guide = F, y_size = 8,
                                   x_size = 10, x_angle = 30, x_hj = 1 , x_vj = 1,
                                   y_hj =1, leg_pos = "right"
                                 )
+                                ggsave("Figures/09-mean_rel_abundance_from_corecov.pdf")
 ggplot(instrain_breadth_depth_by_genus_host, aes(y = factor(Genus, genera), 
                                                  x = factor(Host, host_order),
                                                  fill = rel_abundance)) +
@@ -366,6 +364,7 @@ ggplot(coverage_df %>% filter(Genus != "g__") %>% mutate(Cov = round(Cov, 4)),
                                   x_hj= 0.5, x_size = 10,
                                   y_hj =1, leg_pos = "right", leg_size = 10
                                 )
+                                ggsave(paste0("Figures/", "09-Coverage_scatter_genus_across_host.pdf"))
 ggplot(coverage_df %>% filter(Genus != "g__") %>% filter(Sample %in% samples_IN_MY) %>% mutate(Cov = round(Cov, 4)) %>% filter(Cov != 0),
         aes(y = factor(Genus, genera), x = Cov, shape = Location, color =  Location)) +
         # aes(y = factor(Genus, genera), x = Cov, shape = Location, color =  factor(Genus, genera))) +
@@ -670,46 +669,6 @@ heatmap_obj = Heatmap(t(abundance_df_matrix_Cov_rel_copy),
 draw(heatmap_obj, merge_legend = TRUE)
 dev.off()
 
-# pdf("Figures/09-instrain_mapping_heatmap.pdf")
-# instrain_mapping_mat <- instrain_mapping %>% 
-#                           left_join(vis_magOTUs_df %>%
-#                                       ungroup() %>%
-#                                       mutate(magOTU = paste0(Genus, "_", Cluster, "-", ID)) %>%
-#                                       select(ID, magOTU)
-#                           ) %>%
-#                           filter(!is.na(magOTU)) %>%
-#                           select(!ID) %>%
-#                           column_to_rownames("magOTU") %>% as.matrix
-
-# column_ha = HeatmapAnnotation(Host = rownames(instrain_mapping_mat) %>% as.data.frame() %>% mutate(Host = Vectorize(get_host_from_sample_name)(.)) %>% pull(Host) %>% as.character,
-#                               col = list(Host = host_order_color)
-#                           )
-# column_ba = HeatmapAnnotation(Location = rownames(instrain_mapping_mat) %>% as.data.frame() %>% mutate(Location = Vectorize(get_location_from_sample_name)(.)) %>% pull(Location),
-#                               col = list(Location = location_order_color)
-#                           )
-# row_ha = rowAnnotation(Genus = colnames(instrain_mapping_mat) %>% as.data.frame() %>% left_join(cluster_tax_info %>% ungroup() %>% select(Genus, cluster_name), by = c(. = "cluster_name")) %>% pull(Genus),
-#                        col = list(Genus = unlist(genusColors)))
-
-# column_split <- rownames(instrain_mapping_mat) %>% as.data.frame() %>% mutate(Host = Vectorize(get_host_from_sample_name)(.)) %>% pull(Host) %>% as.factor %>% as.numeric
-# row_split <- colnames(instrain_mapping_mat) %>% as.data.frame() %>% left_join(cluster_tax_info %>% ungroup() %>% select(Genus, cluster_name), by = c(. = "cluster_name")) %>% pull(Genus) %>% as.factor %>% as.numeric
-# heatmap_obj = Heatmap(instrain_mapping_mat,
-#         # col = c("#ffffff", "#1a88c9"),
-#         col = colorRamp2(c(0, 10, 100, 1000, 10000), colors = c(brewer.pal(9, "Blues")[1], brewer.pal(9, "Blues")[3], brewer.pal(9, "Blues")[5], brewer.pal(9, "Blues")[7], brewer.pal(9, "Blues")[9])),
-#         clustering_method_columns = 'ward.D2',
-#         # column_split = column_split,
-#         # row_split = row_split,
-#         row_title_gp = grid::gpar(fontsize = 0),
-#         border = T,
-#         # top_annotation = column_ha, 
-#         # right_annotation = row_ha,
-#         # bottom_annotation = column_ba,
-#         column_names_gp = grid::gpar(fontsize = 5),
-#             row_names_gp = grid::gpar(fontsize = 5),
-#             cluster_columns = F,
-#           cluster_rows = F)
-# draw(heatmap_obj, merge_legend = TRUE)
-# dev.off()
-
 ggplot() +
   geom_bar(data = df_Cov_copy_num_adj,
            aes(x = Cov,
@@ -717,7 +676,7 @@ ggplot() +
                fill = Genus
            ), 
           #  color = "white",
-           stat = "identity", position = "stack"
+           stat = "identity', position = 'stack"
   ) +
   labs(x = "Cov", y = "Sample", fill = "Genus") +
   make_theme(theme_name=theme_few(), leg_pos="bottom",
@@ -726,6 +685,7 @@ ggplot() +
                      x_angle=45 ,x_vj=1, x_hj=1, x_size=4,
                      y_angle=0 ,y_vj=0, y_hj=0, y_size=10) +
             scale_fill_manual(values=genusColors)
+  ggsave("Figures/09-Abundance_by_sample_qPCR_adj.pdf")
 
 ggplot() +
   geom_bar(data = df_Cov_copy_num_adj,
@@ -1458,19 +1418,22 @@ beta.multi <- function(x, index.family="sorensen"){
 }
 deep_samples <- df_reads %>% filter(Trimmed > 10e+6) %>% pull(Sample)
 length(deep_samples)
-df_magOTUs_vegan <- abundance_df_matrix_pa %>%
+df_magOTUs_vegan_pa <- abundance_df_matrix_pa %>%
                       filter(rowSums(.) > 0) %>%
                         filter(row.names(.) %in% deep_samples)
 dist_matrix_betapart <- beta.pair(df_magOTUs_vegan, "sorensen")
-str(dist_matrix_betapart)
+pdf("Figures/09-PCoA_sorensen_microbiome.pdf")
 pcoa_plot(dist_matrix_betapart$beta.sor, df_meta_complete, "Species", color_add=T, color_list=host_order_color_dark)
-pcoa_plot(dist_matrix_betapart$beta.sne, df_meta_complete, "Species", color_add=T, color_list=host_order_color_dark)
-pcoa_plot(dist_matrix_betapart$beta.sim, df_meta_complete, "Species", color_add=T, color_list=host_order_color_dark)
+dev.off()
+# pcoa_plot(dist_matrix_betapart$beta.sne, df_meta_complete, "Species", color_add=T, color_list=host_order_color_dark)
+# pcoa_plot(dist_matrix_betapart$beta.sim, df_meta_complete, "Species", color_add=T, color_list=host_order_color_dark)
 
-dist_matrix_betapart <- beta.pair(df_magOTUs_vegan, "jaccard")
-pcoa_plot(dist_matrix_betapart$beta.jac, df_meta_complete, "Species", color_add=T, color_list=host_order_color_dark)
-pcoa_plot(dist_matrix_betapart$beta.jne, df_meta_complete, "Species", color_add=T, color_list=host_order_color_dark)
-pcoa_plot(dist_matrix_betapart$beta.jtu, df_meta_complete, "Species", color_add=T, color_list=host_order_color_dark)
+# dist_matrix_betapart <- beta.pair(df_magOTUs_vegan, "jaccard")
+# pdf("Figures/09-PCoA_jaccard_microbiome.pdf")
+# pcoa_plot(dist_matrix_betapart$beta.jac, df_meta_complete, "Species", color_add=T, color_list=host_order_color_dark)
+# dev.off()
+# pcoa_plot(dist_matrix_betapart$beta.jne, df_meta_complete, "Species", color_add=T, color_list=host_order_color_dark)
+# pcoa_plot(dist_matrix_betapart$beta.jtu, df_meta_complete, "Species", color_add=T, color_list=host_order_color_dark)
 
 dist_matrix_betapart_multi <- beta.multi(df_magOTUs_vegan, "sorensen")
 str(dist_matrix_betapart_multi)
@@ -1486,14 +1449,13 @@ str(dist_matrix_betapart_multi)
 # beta.jac dist object, dissimilarity matrix accounting for beta diversity, measured as Jaccard pair-wise dissimilarity (a monotonic transformation of beta diversity)
 
 grouping_vec <- df_meta_complete %>% filter(ID %in% rownames(df_magOTUs_vegan)) %>% pull(Species)
-anosim(dist_matrix_betapart$beta.jtu, grouping_vec, distance = "jaccard", permutations = 9999)
+anosim(dist_matrix_betapart$beta.sor, grouping_vec, distance = "sorenson", permutations = 9999)
 
 df_to_test <- abundance_df_matrix_pa %>%
                       filter(rowSums(.) > 0)
                         # filter(rownames(.) %in% c(samples_IN, samples_MY))
                           # filter(rownames(.) %in% c(samples_am, samples_ac, samples_af, samples_ad))
 adonis2(df_to_test ~ Species + Country, data = df_meta_complete %>% filter(ID %in% rownames(df_to_test)))
-
 # Distances from
 # https://link.springer.com/article/10.1007/s11756-022-01123-6/tables/4
 # 		7	5	3	1	2
@@ -1527,8 +1489,8 @@ get_host_divergence <- function(sample_1, sample_2) {
 df_magOTUs_vegan_IN_MY <- abundance_df_matrix_pa %>%
                       filter(rowSums(.) > 0) %>%
                       filter()
-dist_matrix_betapart <- beta.pair(df_magOTUs_vegan_IN_MY, "jaccard")
-sample_bac_div <- dist_matrix_betapart$beta.jac
+dist_matrix_betapart <- beta.pair(df_magOTUs_vegan_IN_MY, "sorenson")
+sample_bac_div <- dist_matrix_betapart$beta.sor
 sample_host_div <- data.frame()
 for (sample in samples) {
   sample_host_div <- rbind(sample_host_div, rep(0, length((samples))))
@@ -1550,10 +1512,9 @@ for (sample_1 in samples) {
 # samples_subset_aa <- df_meta_complete %>% filter(Species == "Apis andreniformis") %>% pull(ID)
 
 heatmap(sample_bac_div %>% as.matrix)
-s
+
 sample_host_div <- sample_host_div %>% 
   filter(row.names(.) %in% as.vector(as.matrix(sample_bac_div) %>% row.names))
-
 
 sample_host_div_df <- sample_host_div %>%
                         as.matrix %>%
@@ -1608,6 +1569,7 @@ ggplot() +
     scale_fill_manual(values = host_order_color) +
     scale_color_manual(values = host_order_color_dark) +
     make_theme(setCol = F, setFill = F, guide_nrow = 1)
+    ggplot("Figures/09-Microbe_host_dissimilarities_violin.pdf")
 
 ggplot() +
   geom_jitter(data=dissimilarities_df,
@@ -1631,7 +1593,7 @@ ggplot() +
                leg_size = 12,
                axis_x_title = 15, axis_y_title = 15
     )
-
+  ggplot("Figures/09-Microbe_host_dissimilarities.pdf")
 cor.test(dissimilarities_df_median$dist_h, dissimilarities_df_median$median_b, method = "pearson")
 
 split_by_pattern <- function(my_name, pattern, index) {
@@ -1658,8 +1620,44 @@ host_median_mat[1,]
 mantel(as.dist(bac_median_mat), as.dist(host_median_mat), method = "pearson", permutations = 9999)
 cor.test(dissimilarities_df_median$dist_h, dissimilarities_df_median$median_b, method = "pearson")
 
-pcoa_plot_jitter(as.dist(sample_host_div), df_meta_complete, "Species", color_add=T, color_list=host_order_color_dark)
-pcoa_plot(as.dist(sample_bac_div), df_meta_complete, "Species", color_add=T, color_list=host_order_color_dark)
+plot_tree(ps, nodelabf=nodeplotblank, color="Host", label.tips = "Name", ladderize="left", plot.margin=0.3) + 
+  scale_color_manual(values = host_order_color)
+  ggsave("Figures/09-Plot_bac120_tree_with_host.pdf")
+
+
+dist_mat_unifrac <- UniFrac(prune_samples(sample_sums(ps) > 0, ps), weighted=F, normalized=T, parallel=FALSE, fast=TRUE)
+pcoa_plot(dist_mat_unifrac, df_meta_complete, "Species", color_add=T, color_list=host_order_color_dark)
+
+dist_mat_unifrac_wt <- UniFrac(prune_samples(sample_sums(ps) > 0, ps), weighted=T, normalized=F, parallel=FALSE, fast=TRUE)
+pcoa_plot(dist_mat_unifrac_wt, df_meta_complete, "Species", color_add=T, color_list=host_order_color_dark)
+
+reformat_host_name <- function(x) {
+  paste0(strsplit(x, " ")[[1]], collapse = "_")
+}
+rename_mag_labels <- function(x) {
+  return(paste0(tax_table_mat %>% as.data.frame %>% filter(rownames(.) == x) %>% pull(Name), "---", x))
+}
+mag_tree_sub <- phy_tree(subset_taxa(ps, Genus %in% c("g__Dysgonomonas")))
+# mag_tree_sub <- phy_tree(subset_taxa(ps, Genus %in% genera))
+mag_tree_sub$tip.label <- lapply(mag_tree_sub$tip.label, rename_mag_labels)
+associations_df <- abundance_df %>%
+                left_join(cluster_tax_info %>% select(cluster_name, Cluster) %>% filter(!is.na(cluster_name))) %>%
+                  left_join(vis_magOTUs_df_all %>% ungroup() %>% select(representative_genome, Cluster)) %>%
+                  select(Cov, representative_genome, Sample) %>% 
+                  mutate(Host = Vectorize(get_host_from_sample_name)(Sample)) %>%
+                    filter(Cov > 20) %>%
+                    select(!c(Cov, Sample)) %>%
+                    unique() %>%
+                    mutate(Host = Vectorize(reformat_host_name)(Host)) %>%
+                    mutate(representative_genome = Vectorize(rename_mag_labels)(representative_genome)) %>%
+                    filter(representative_genome %in% mag_tree_sub$tip.label)
+associations <- cbind(associations_df$representative_genome, associations_df$Host)
+cols <- unlist(lapply(as.character(associations_df$Host), function(x) host_order_color_dark[[paste0(strsplit(x, "_")[[1]], collapse = " ")]]))
+# cols <- unlist(lapply(as.character(associations_df$representative_genome), function(x) genusColors_char[strsplit(x, "---")[[1]]][[1]]))
+cophyloplot(mag_tree_sub, collapse.singles(host_tree), assoc = associations, space = 100, gap = 15, col = cols, lwd = 4, show.tip.label = F)
+# nodelabels.cophylo(..., which=c("left","right"))
+# edgelabels.cophylo(..., which=c("left","right"))
+# tiplabels.cophylo(..., which=c("left","right"))
 ```
 
 

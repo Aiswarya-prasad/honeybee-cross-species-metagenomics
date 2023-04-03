@@ -35,7 +35,7 @@ ortho_w_isolates_df %>%
       summarise(genes_used = n())
 # ortho_w_isolates_df %>% pull(status) %>% unique()
 ```
-# Number of genes used for core cov
+# Number of genes used for core cov (MAGs only - no reference genomes)
 ```{r summary2}
 # ortho_mags_df %>% pull(status) %>% unique()
 ortho_mags_df %>%
@@ -52,7 +52,6 @@ Code is below it saves heatmaps at `Figures/07-Orthogroup_heatmaps/*.pdf`.
 combined_info_df <- vis_magOTUs_df_all %>%
                       select(colnames(reference_genomes_info)) %>%
                         rbind(reference_genomes_info)
-genus_iter = "g__Bifidobacterium"
 
 for (genus_iter in genera) {
   pdf(paste0("Figures/07-Orthogroup_heatmaps/", genus_iter, "_OG_counts.pdf"))
@@ -82,6 +81,12 @@ for (genus_iter in genera) {
   draw(my_heatmap, merge_legend = TRUE, column_title=paste0("Genes present in at least 50% of the MAGs", "Number of OG genes: ", ncol(my_heatmap)), column_title_gp=grid::gpar(fontsize=12))
   dev.off()
 }
+```
+
+```{r}
+my_heatmap <- pretty_orthogene_heatmaps(get_genecount_matrix(my_genus=genus_iter, upper_count = my_upper_count), 
+     col_fun = colorRamp2(c(0, 1, 2, 5, my_upper_count), c("#e6f5d0", "#7fbc41", brewer.pal(9, "RdPu")[1], brewer.pal(9, "RdPu")[8], brewer.pal(9, "RdPu")[9])))
+  draw(my_heatmap, merge_legend = TRUE, column_title=paste0("Number of OG genes: ", ncol(my_heatmap)), column_title_gp=grid::gpar(fontsize=12))
 ```
 
 ```{r extra_plots}

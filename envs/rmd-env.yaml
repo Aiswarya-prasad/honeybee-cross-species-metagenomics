@@ -33,6 +33,7 @@ dependencies:
   - r-pheatmap
   - r-heatmaply
   - r-readxl
+  - r-picante
   - bioconductor-phyloseq
   - bioconductor-biostrings
   - bioconductor-complexheatmap

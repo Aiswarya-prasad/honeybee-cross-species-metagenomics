@@ -1,0 +1,1 @@
+{'mean_recall': 1.0, 'sd_recall': 0.0, 'mean_fpr': 0.00918732772116413, 'sd_fpr': 0.002955973590741552, 'mean_lowest_false': 0.6821505376344085, 'sd_lowest_false': 0.02277540179763225, 'nb_bootstraps': 100}

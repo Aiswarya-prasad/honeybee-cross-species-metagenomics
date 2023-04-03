@@ -57,7 +57,7 @@ database*/*
 12_*/*
 13_*/*
 14_*/*
-15_MIDAS*/*
+15_*/*
 *_files/*
 *_cache/*
 *backup_*.log

@@ -114,6 +114,7 @@ library(ggnewscale)
 library(ggsignif)
 library(plotly)
 library(htmlwidgets)
+library(picante)
 # library(ggpubr) - version confilct
 ```
 
@@ -1652,11 +1653,6 @@ cluster_info <- drep_Widb %>%
                     rename(score_representative = score) %>%
                     mutate(representative_genome = Vectorize(format_genome_name)(genome)) %>%
                       select(!genome)
-cluster_tax_info <- vis_magOTUs_df %>%
-                      ungroup() %>%
-                      select(Genus, Species, Cluster, Num_mags) %>%
-                      unique() %>%
-                        mutate(cluster_name = paste0(Genus, "-", Cluster))
 MAGs_collated_info <- left_join(MAGs_collated, mutate(drep_gInformation, genome = Vectorize(format_genome_name)(genome)), by = c("ID"="genome"))
 vis_magOTUs_df_all <- MAGs_collated_info %>%
                         group_by(Sample) %>%
@@ -1706,6 +1702,11 @@ vis_magOTUs_df_all_means <- vis_magOTUs_df_all %>%
                             mutate(Completeness_mean = mean(completeness)) %>%
                               mutate(Contamination_mean = mean(contamination)) %>%
                               mutate(N50_mean = mean(N50))
+cluster_tax_info <- vis_magOTUs_df %>%
+                      ungroup() %>%
+                      select(Genus, Species, Cluster, Num_mags) %>%
+                      unique() %>%
+                        mutate(cluster_name = paste0(Genus, "-", Cluster))
 # vis_magOTUs_df_all_shared_cluster <- vis_magOTUs_df_all %>%
 #                               group_by(Cluster) %>%
 #                                 mutate(Num_hosts = n_distinct(Host)) %>%
@@ -1890,6 +1891,23 @@ get_half_core_mag_matrix <- function(my_genus, combined_info = combined_info_df,
         column_to_rownames("ID") %>% 
         as.matrix
 }
+# only an example - update later
+# motu_pan_out <- "/scratch/aprasad/211018_Medgenome_india_samples/15_FurtherProcessing/motupan_test/g__Lactobacillus_with_refs/mOTUpan.tsv"
+# get_motu_pan_matrix <- function(motu_pan_out, scp = F) {
+#   df_motu <- read.csv(motu_pan_out, skip = 16, sep = "\t")
+#   # genome_occurences is the number of genomes it occurs in
+#   # mean_copy_per_genome is the number of times it occurs in each of them
+#   # single copy genomes should have mean_copy_per_genome value of exactly 1
+#   if (scp) {
+#     names(df_motu)
+#     df_motu_mat <- df_motu %>%
+#                     mutate(mean_copy_per_genome = as.numeric(mean_copy_per_genome)) %>%
+#                     filter(mean_copy_per_genome == 1) %>%
+#                       select(trait_name, genes) %>% head
+#   } else {
+#     df_motu_mat <- df_motu
+#   }
+# }
 pretty_orthogene_heatmaps <- function(matrix, combined_info=combined_info_df, ref_info=reference_genomes_info, mags_info = vis_magOTUs_df_all, row_split = "magotus", add_values = F, value_size = 10, limit_l = 0.95, limit_h = 1, col_fun ) {
   mag_completeness <- rownames(matrix) %>% as.data.frame() %>%
                         left_join(mags_info %>%
@@ -2816,8 +2834,62 @@ abundance_df_matrix_Cov <-  abundance_df %>% filter(!is.na(cluster_name)) %>%
                             pivot_wider(names_from=cluster_name, values_from=Cov, values_fn = as.numeric) %>% remove_rownames %>%
                             column_to_rownames(var="Sample")
 
+sample_data_mat <- df_meta_complete %>%
+                   filter(ID %in% samples_MY) %>%
+                    mutate(Host = Vectorize(get_host_from_sample_name)(ID)) %>%
+                    column_to_rownames("ID")
+otu_data_mat <- coords_df %>%
+                rename(Cluster = magOTU) %>%
+                  left_join(cluster_tax_info %>% filter(!is.na(cluster_name))) %>%
+                  left_join(vis_magOTUs_df_all %>% select(representative_genome, Cluster)) %>%
+                    mutate(Host = Vectorize(get_host_name)(Sample)) %>%
+                      mutate(Cov = ifelse(is.na(Cov), 0, Cov)) %>%
+                        mutate(MedianCov = ifelse(is.na(MedianCov), 0, MedianCov)) %>%
+                          select(Sample, Cov, representative_genome, Host) %>%
+                          # filter(!is.na(cluster_name)) %>%
+                          filter(!is.na(representative_genome)) %>%
+                          filter(Sample %in% samples_MY) %>%
+                          left_join(df_reads %>% select(Sample, MAGs_DB)) %>%
+                            mutate(Cov_adj = Cov/MAGs_DB*min_reads) %>%
+                            select(!MAGs_DB) %>%
+                          group_by(Sample) %>%
+                          mutate(Cov_rel = 100*Cov_adj/sum(Cov_adj)) %>%
+                          ungroup() %>%
+                            left_join(qpcr_plot_df %>% ungroup() %>% select(Sample.Name, copy_num), by = c("Sample" = "Sample.Name")) %>%
+                            mutate(Cov_adj_copy = Cov_rel*copy_num) %>%
+                            group_by(Sample, representative_genome) %>%
+                            select(Sample, Cov_adj_copy, representative_genome) %>%
+                            unique %>%
+                            rownames_to_column() %>%
+                            pivot_wider(!c(rowname), names_from=representative_genome, values_from=Cov_adj_copy, values_fn = as.numeric) %>%
+                            filter(Sample %in% samples_MY) %>%
+                            column_to_rownames(var="Sample") %>%
+                            as.matrix                  
+tax_table_mat <- df_gtdbk_bac %>% select(user_genome, classification) %>%
+                    separate(into = c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species"), col = classification, sep = ";") %>%
+                    filter(user_genome %in% colnames(otu_data_mat)) %>%
+                    mutate("Name" = ifelse(Species == "s__", Genus, Species)) %>%
+                    mutate("Name" = ifelse(Name == "g__", Family, Name)) %>%
+                    column_to_rownames("user_genome") %>% as.matrix
+dim(otu_data_mat)
+dim(tax_table_mat)
+mags_tree_path <- "/scratch/aprasad/211018_Medgenome_india_samples/15_FurtherProcessing/gtdb_inferred_tree/gtdbtk.unrooted.tree"
+mag_tree <- read.tree(mags_tree_path)
+ps <- phyloseq(sample_data(sample_data_mat),
+               otu_table(otu_data_mat, taxa_are_rows = F),
+               tax_table(tax_table_mat), mag_tree
+)
+# host tree made from NCBI mito sequences
+# from this paper:
+# https://link.springer.com/article/10.1007/s11756-022-01123-6
+# Apis anreniformis	Thailand	KF736157
+# Apis florea	Thailand	AP018491
+# Apis dorsata	Thailand	AP018369
+# Apis mellifera	carnica N/A	MN250878
+# Apis cerana	Borneo Island	AP018149
+host_tree_path <- "/scratch/aprasad/211018_Medgenome_india_samples/15_FurtherProcessing/host_tree_published.tree"
+host_tree <- read.tree(host_tree_path)
 ```
-
 
 ## Initialization for 10 plot_instrain_results
 
@@ -2831,6 +2903,15 @@ shared_genera <- vis_magOTUs_df %>%
       filter(num_genus > 1) %>%
         pull(Genus) %>%
           unique
+```
+
+# Load above data without changes
+
+If there are any specific changes to functions be sure to re-write the RData object before closing.
+
+```{r}
+# save.image("/scratch/aprasad/211018_Medgenome_india_samples/Figures/workspace_data_1-9.RData")
+load("/scratch/aprasad/211018_Medgenome_india_samples/Figures/workspace_data_1-9.RData")
 ```
 
 ### Definitions and functions
