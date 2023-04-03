@@ -85,6 +85,8 @@ Collection of files, definitions and functions for visualization scripts. The ch
 
 Check that the working directory is specified correctly.
 
+If there are any specific changes to functions be sure to re-write the RData object before closing!
+
 ```{r load_libraries}
 working_dir <- "/scratch/aprasad/211018_Medgenome_india_samples"
 setwd(working_dir)
@@ -116,6 +118,8 @@ library(plotly)
 library(htmlwidgets)
 library(picante)
 # library(ggpubr) - version confilct
+# save.image("/scratch/aprasad/211018_Medgenome_india_samples/Figures/workspace_data_1-9.RData")
+load("/scratch/aprasad/211018_Medgenome_india_samples/Figures/workspace_data_1-9.RData")
 ```
 
 ### General definitions
@@ -1891,24 +1895,63 @@ get_half_core_mag_matrix <- function(my_genus, combined_info = combined_info_df,
         column_to_rownames("ID") %>% 
         as.matrix
 }
-# only an example - update later
-# motu_pan_out <- "/scratch/aprasad/211018_Medgenome_india_samples/15_FurtherProcessing/motupan_test/g__Lactobacillus_with_refs/mOTUpan.tsv"
-# get_motu_pan_matrix <- function(motu_pan_out, scp = F) {
-#   df_motu <- read.csv(motu_pan_out, skip = 16, sep = "\t")
-#   # genome_occurences is the number of genomes it occurs in
-#   # mean_copy_per_genome is the number of times it occurs in each of them
-#   # single copy genomes should have mean_copy_per_genome value of exactly 1
-#   if (scp) {
-#     names(df_motu)
-#     df_motu_mat <- df_motu %>%
-#                     mutate(mean_copy_per_genome = as.numeric(mean_copy_per_genome)) %>%
-#                     filter(mean_copy_per_genome == 1) %>%
-#                       select(trait_name, genes) %>% head
-#   } else {
-#     df_motu_mat <- df_motu
-#   }
-# }
-pretty_orthogene_heatmaps <- function(matrix, combined_info=combined_info_df, ref_info=reference_genomes_info, mags_info = vis_magOTUs_df_all, row_split = "magotus", add_values = F, value_size = 10, limit_l = 0.95, limit_h = 1, col_fun ) {
+# only an example - update paths later
+# make matrix getter to return matrix and the annotation info as list onject 1 & 2
+get_motupan_matrix <- function(my_genus = "g__Lactobacillus", combined_info = combined_info_df) {
+  motupan_counts <- paste0("/scratch/aprasad/211018_Medgenome_india_samples/15_FurtherProcessing/motupan_test/",my_genus,"/mOTUpan_gene_counts.tsv")
+  motupan_out <- paste0("/scratch/aprasad/211018_Medgenome_india_samples/15_FurtherProcessing/motupan_test/",my_genus,"/mOTUpan.tsv")
+  motupan_df <- read.csv(motupan_out, skip = 16, sep = "\t") %>%
+                  column_to_rownames("trait_name") %>%
+                  select(type) %>%
+                  rownames_to_column("OG")
+  OG_numbers_df <- read.csv(motupan_counts, sep = "\t") %>%
+                    column_to_rownames("X")
+  dim_mags <- OG_numbers_df %>%
+                select(matches("MAG_")) %>%
+                dim()
+  num_mags <- dim_mags[[2]]
+  single_copy_OGs <- OG_numbers_df %>%
+                  filter(if_all(is.numeric, ~ .x <= 1)) %>%
+                  rownames()
+  OG_status_summary <- OG_numbers_df %>%
+                    mutate(across(is.numeric, ~+as.logical(.x))) %>%
+                    select(starts_with(c("MAG"))) %>%
+                      mutate(core = ifelse(rowSums(.) == num_mags, 1, ifelse(rowSums(.) > num_mags/2, 0.5, 0))) %>%
+                      rownames_to_column("OG") %>%
+                      mutate(scp = ifelse(OG %in% single_copy_OGs, 1, 0)) %>%
+                      left_join(motupan_df) %>%
+                      mutate(type_motupan = type) %>%
+                      select(!type) %>%
+                      select(!matches("MAG_"))
+  types_df <- OG_status_summary %>%
+                mutate(type = ifelse(core == 0.5, "half_core", "accessory")) %>%
+                mutate(type = ifelse(core == 1, "core", type)) %>%
+                select(!core)
+  matrix_arranged <- OG_numbers_df %>%
+                      t() %>%
+                          as.data.frame() %>%
+                          rownames_to_column("ID") %>%
+                          mutate(Type = ifelse(startsWith(ID, "MAG_"), "MAG", "Isolate")) %>%
+                          left_join(combined_info %>%
+                                              ungroup() %>%
+                                                select(ID, Host, Cluster) %>%
+                                                unique(), by = "ID") %>%
+                          left_join(vis_magOTUs_df %>%
+                                              ungroup() %>%
+                                                select(ID, completeness) %>%
+                                                unique(), by = "ID") %>%
+                            mutate(Host = ifelse(is.na(Host), "Unknown", Host)) %>%
+                            mutate(Cluster = ifelse(is.na(Cluster), "Unknown", Cluster)) %>%
+                            arrange(Type, Host, Cluster, completeness) %>%
+                            select(!c(Type, Host, Cluster, completeness)) %>%
+                            column_to_rownames("ID") %>% 
+                            as.matrix
+  return(list("matrix" = matrix_arranged, "info" = types_df))
+}
+# matrix = get_motupan_matrix("g__Lactobacillus", combined_info_df)$matrix
+# motupan_info <- get_motupan_matrix("g__Lactobacillus", combined_info_df)$info
+# names(motupan_info)
+pretty_orthogene_heatmaps <- function(matrix, do_motupan_anno = F, motupan_info = NA, combined_info=combined_info_df, ref_info=reference_genomes_info, mags_info = vis_magOTUs_df_all, row_split = "magotus", add_values = F, value_size = 10, limit_l = 0.95, limit_h = 1, col_fun ) {
   mag_completeness <- rownames(matrix) %>% as.data.frame() %>%
                         left_join(mags_info %>%
                           ungroup() %>%
@@ -1958,7 +2001,52 @@ pretty_orthogene_heatmaps <- function(matrix, combined_info=combined_info_df, re
                                       border = TRUE
                           )
   row_split  = as.character(as.factor(magOTU_names))
-  heatmap_obj = Heatmap(matrix, 
+  if (do_motupan_anno) {
+    scp_names <- colnames(matrix) %>% as.data.frame() %>%
+                        left_join(motupan_info %>% select(OG, scp), by = c("." = "OG")) %>%
+                          pull(scp)
+    type_names <- colnames(matrix) %>% as.data.frame() %>%
+                        left_join(motupan_info %>% select(OG, type), by = c("." = "OG")) %>%
+                          pull(type)
+    motupan_names <- colnames(matrix) %>% as.data.frame() %>%
+                        left_join(motupan_info %>% select(OG, type_motupan), by = c("." = "OG")) %>%
+                          pull(type_motupan)
+    anno_col = HeatmapAnnotation(`Single Copy` = scp_names,
+                                     `Inferred` = type_names,
+                                     `mOTUpan Inferred` = motupan_names,
+                                    col = list(`Single Copy` = make_col_list(scp_names, "Paired"),
+                                               `Inferred` = make_col_list(type_names, "Spectral"),
+                                               `mOTUpan Inferred` = make_col_list(motupan_names, "Spectral")
+                                    ),
+                                    border = T
+                                  )
+    col_split = colnames(matrix) %>% as.data.frame() %>%
+                        left_join(motupan_info %>% select(OG, scp), by = c("." = "OG")) %>%
+                        pull(scp) %>%
+                        as.factor() %>%
+                        as.character()
+    heatmap_obj = Heatmap(matrix, 
+              col = col_fun,
+              # col = brewer.pal(3, "Set1")[1:2],
+              # clustering_method_columns = 'ward.D2',
+              top_annotation = anno_col,
+              right_annotation = anno_completeness_ref_row,
+              left_annotation = anno_type_host_row,
+              column_names_gp = grid::gpar(fontsize = 0),
+              row_names_gp = grid::gpar(fontsize = 0),
+              heatmap_legend_param = list(title = "Gene count"),
+              # col_split = col_split,
+              # col_title_rot = 0,
+              row_split = row_split,
+              row_title_rot = 0,
+              row_title_gp = grid::gpar(fontsize = 10),
+              cluster_columns = T,
+              border = TRUE,
+              cluster_rows = F
+              )
+    return(heatmap_obj)
+  } else {
+    heatmap_obj = Heatmap(matrix, 
             col = col_fun,
             # col = brewer.pal(3, "Set1")[1:2],
             # clustering_method_columns = 'ward.D2',
@@ -1976,6 +2064,7 @@ pretty_orthogene_heatmaps <- function(matrix, combined_info=combined_info_df, re
             cluster_rows = F
             )
   return(heatmap_obj)
+  }
   # draw(heatmap_obj, merge_legend = TRUE)
 }
 ```
@@ -2903,15 +2992,6 @@ shared_genera <- vis_magOTUs_df %>%
       filter(num_genus > 1) %>%
         pull(Genus) %>%
           unique
-```
-
-# Load above data without changes
-
-If there are any specific changes to functions be sure to re-write the RData object before closing.
-
-```{r}
-# save.image("/scratch/aprasad/211018_Medgenome_india_samples/Figures/workspace_data_1-9.RData")
-load("/scratch/aprasad/211018_Medgenome_india_samples/Figures/workspace_data_1-9.RData")
 ```
 
 ### Definitions and functions

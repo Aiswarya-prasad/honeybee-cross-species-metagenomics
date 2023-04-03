@@ -84,9 +84,12 @@ for (genus_iter in genera) {
 ```
 
 ```{r}
-my_heatmap <- pretty_orthogene_heatmaps(get_genecount_matrix(my_genus=genus_iter, upper_count = my_upper_count), 
+genus_iter = "g__Lactobacillus"
+my_heatmap <- pretty_orthogene_heatmaps(get_motupan_matrix(my_genus=genus_iter)$matrix,
+     do_motupan_anno = T, motupan_info = get_motupan_matrix(my_genus=genus_iter)$info,
      col_fun = colorRamp2(c(0, 1, 2, 5, my_upper_count), c("#e6f5d0", "#7fbc41", brewer.pal(9, "RdPu")[1], brewer.pal(9, "RdPu")[8], brewer.pal(9, "RdPu")[9])))
   draw(my_heatmap, merge_legend = TRUE, column_title=paste0("Number of OG genes: ", ncol(my_heatmap)), column_title_gp=grid::gpar(fontsize=12))
+
 ```
 
 ```{r extra_plots}

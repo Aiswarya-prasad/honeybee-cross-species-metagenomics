@@ -15,11 +15,9 @@ of motupan matches with the occurance (and prevalence) of the gene
 How often does the earlier cut-off of half-core in MAGs falsely
 choses a gene as "core" and what does motupan make of it
 format required:
-First column, OG (name of orthogroup)
+First column, OG (name of orthogroup) - this column can be unnamed
 each subsequent column has genome name and the number of 
     genes of that OG in that genome
-Final column is called Total - sum of all the number of genes
-    in that OG
 Usage:
 python3 genecounts_from_motupan.py --input /scratch/aprasad/211018_Medgenome_india_samples/15_FurtherProcessing/motupan_test/g__Lactobacillus/mOTUpan.tsv --output_genecounts /scratch/aprasad/211018_Medgenome_india_samples/15_FurtherProcessing/motupan_test/g__Lactobacillus/mOTUpan_gene_counts.tsv --output_cores "/scratch/aprasad/211018_Medgenome_india_samples/15_FurtherProcessing/motupan_test/g__Lactobacillus/g__g__Lactobacillus_single_ortho.txt"
 """
