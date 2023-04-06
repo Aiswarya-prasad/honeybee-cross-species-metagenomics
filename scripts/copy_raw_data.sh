@@ -1,7 +1,24 @@
 #!/bin/bash
 
-prefix_source="aiswarya@130.223.110.124:/home/aiswarya/mnt/nas/ToBeTransferred_nas_recherche/datasets"
 prefix_destination="/scratch/aprasad/20230313_apis_species_comparison/results"
+
+prefix_source="/work/FAC/FBM/DMF/pengel/spirit/aprasad/2023_Malaysia_samples_sequencing_runs_1-2-3/"
+
+mkdir -p ${prefix_destination}/NGS_data/20230120_Malaysia_samples_run1
+
+rsync -avi --progress ${prefix_source}/20230120_Malaysia_samples_run1/RawData/*.fastq.gz ${prefix_destination}/NGS_data/20230120_Malaysia_samples_run1/
+
+
+mkdir -p ${prefix_destination}/NGS_data/20230227_Malaysia_samples_run2
+
+rsync -avi --progress ${prefix_source}/20230227_Malaysia_samples_run2/RawData/*.fastq.gz ${prefix_destination}/NGS_data/20230227_Malaysia_samples_run2/
+
+
+mkdir -p ${prefix_destination}/NGS_data/20230308_Malaysia_samples_run3
+
+rsync -avi --progress ${prefix_source}/20230308_Malaysia_samples_run3/RawData/*.fastq.gz ${prefix_destination}/NGS_data/20230308_Malaysia_samples_run3/
+
+prefix_source="aiswarya@130.223.110.124:/home/aiswarya/mnt/nas/ToBeTransferred_nas_recherche/datasets"
 
 declare -A names=(
 [Ig13612]=AmAi02
@@ -46,15 +63,18 @@ declare -A names=(
 [Ig13650]=AcKn10
 );
 
+mkdir -p ${prefix_destination}/NGS_data/20180612_KE_japan_metagenomes
+
 for name in "${!names[@]}"
 do
   codename="$name"
   finalname="${names[$name]}"
   echo  "copying $codename and calling it $finalname"
-  rsync -avi --progress ${prefix_source}/NGS_data/20180612_KE_japan_metagenomes/data/"$codename"_R1.fastq.gz ${prefix_destination}/NGS_data/20180612_KE_japan_metagenomes/
-  rsync -avi --progress ${prefix_source}/NGS_data/20180612_KE_japan_metagenomes/data/"$codename"_R2.fastq.gz ${prefix_destination}/NGS_data/20180612_KE_japan_metagenomes/
+  rsync -avi --progress ${prefix_source}/NGS_data/20180612_KE_japan_metagenomes/data/"$codename"_R1.fastq.gz ${prefix_destination}/NGS_data/20180612_KE_japan_metagenomes/"$finalname"_R1.fastq.gz
+  rsync -avi --progress ${prefix_source}/NGS_data/20180612_KE_japan_metagenomes/data/"$codename"_R2.fastq.gz ${prefix_destination}/NGS_data/20180612_KE_japan_metagenomes/"$finalname"_R2.fastq.gz
 done
 
+mkdir -p ${prefix_destination}/NGS_data/20170310_WINDU179/
 
 rsync -avi --progress ${prefix_source}/NGS_data/20170310_WINDU179/data/DrY2_F1_R1.fastq.gz ${prefix_destination}/NGS_data/20170310_WINDU179/
 rsync -avi --progress ${prefix_source}/NGS_data/20170310_WINDU179/data/DrY2_F1_R2.fastq.gz ${prefix_destination}/NGS_data/20170310_WINDU179/
@@ -67,6 +87,7 @@ rsync -avi --progress ${prefix_source}/NGS_data/20170310_WINDU179/data/DrY2_F4_R
 rsync -avi --progress ${prefix_source}/NGS_data/20170310_WINDU179/data/DrY2_F5_R1.fastq.gz ${prefix_destination}/NGS_data/20170310_WINDU179/
 rsync -avi --progress ${prefix_source}/NGS_data/20170310_WINDU179/data/DrY2_F5_R2.fastq.gz ${prefix_destination}/NGS_data/20170310_WINDU179/
 
+mkdir -p ${prefix_destination}/NGS_data/20151119_WINDU89/
 
 rsync -avi --progress ${prefix_source}/NGS_data/20151119_WINDU89/data/DrY1_N1_R1.fastq.gz ${prefix_destination}/NGS_data/20151119_WINDU89/
 rsync -avi --progress ${prefix_source}/NGS_data/20151119_WINDU89/data/DrY1_N1_R2.fastq.gz ${prefix_destination}/NGS_data/20151119_WINDU89/
@@ -81,6 +102,7 @@ rsync -avi --progress ${prefix_source}/NGS_data/20151119_WINDU89/data/DrY1_N5_R2
 rsync -avi --progress ${prefix_source}/NGS_data/20151119_WINDU89/data/DrY1_N6_R1.fastq.gz ${prefix_destination}/NGS_data/20151119_WINDU89/
 rsync -avi --progress ${prefix_source}/NGS_data/20151119_WINDU89/data/DrY1_N6_R2.fastq.gz ${prefix_destination}/NGS_data/20151119_WINDU89/
 
+mkdir -p ${prefix_destination}/NGS_data/20160415_OBIWAN225/
 
 rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/DrY1_F1_R1.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
 rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/DrY1_F1_R2.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
@@ -107,6 +129,7 @@ rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/DrY1_W5_R2.fa
 rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/DrY1_W6_R1.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
 rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/DrY1_W6_R2.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
 
+mkdir -p ${prefix_destination}/NGS_data/20161216_OBIWAN275/
 
 rsync -avi --progress ${prefix_source}/NGS_data/20161216_OBIWAN275/DrY2_N1_R1.fastq.gz ${prefix_destination}/NGS_data/20161216_OBIWAN275/
 rsync -avi --progress ${prefix_source}/NGS_data/20161216_OBIWAN275/DrY2_N1_R2.fastq.gz ${prefix_destination}/NGS_data/20161216_OBIWAN275/
@@ -121,6 +144,7 @@ rsync -avi --progress ${prefix_source}/NGS_data/20161216_OBIWAN275/DrY2_N5_R2.fa
 rsync -avi --progress ${prefix_source}/NGS_data/20161216_OBIWAN275/DrY2_N6_R1.fastq.gz ${prefix_destination}/NGS_data/20161216_OBIWAN275/
 rsync -avi --progress ${prefix_source}/NGS_data/20161216_OBIWAN275/DrY2_N6_R2.fastq.gz ${prefix_destination}/NGS_data/20161216_OBIWAN275/
 
+mkdir -p ${prefix_destination}/NGS_data/20170426_OBIWAN300/
 
 rsync -avi --progress ${prefix_source}/NGS_data/20170426_OBIWAN300/GrY2_N1_R1.fastq.gz ${prefix_destination}/NGS_data/20170426_OBIWAN300/
 rsync -avi --progress ${prefix_source}/NGS_data/20170426_OBIWAN300/GrY2_N1_R2.fastq.gz ${prefix_destination}/NGS_data/20170426_OBIWAN300/
@@ -135,6 +159,7 @@ rsync -avi --progress ${prefix_source}/NGS_data/20170426_OBIWAN300/GrY2_N5_R2.fa
 rsync -avi --progress ${prefix_source}/NGS_data/20170426_OBIWAN300/GrY2_N6_R1.fastq.gz ${prefix_destination}/NGS_data/20170426_OBIWAN300/
 rsync -avi --progress ${prefix_source}/NGS_data/20170426_OBIWAN300/GrY2_N6_R2.fastq.gz ${prefix_destination}/NGS_data/20170426_OBIWAN300/
 
+mkdir -p ${prefix_destination}/NGS_data/20170428_WINDU191/
 
 rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/GrY2_F1_R1.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/
 rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/GrY2_F1_R2.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/
@@ -159,4 +184,152 @@ rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/GrY2_W4_R2.fas
 rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/GrY2_W5_R1.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/ 
 rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/GrY2_W5_R2.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/ 
 rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/GrY2_W6_R1.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/ 
-rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/GrY2_W6_R2.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/ 
+rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/GrY2_W6_R2.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/
+
+mkdir -p ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/
+
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C1.1_R1.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C1-1_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C1.1_R2.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C1-1_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C1.2_R1.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C1-2_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C1.2_R2.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C1-2_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C1.3_R1.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C1-3_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C1.3_R2.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C1-3_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C1.4_R1.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C1-4_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C1.4_R2.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C1-4_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C1.5_R1.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C1-5_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C1.5_R2.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C1-5_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C2.1_R1.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C2-1_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C2.1_R2.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C2-1_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C2.2_R1.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C2-2_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C2.2_R2.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C2-2_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C2.3_R1.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C2-3_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C2.3_R2.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C2-3_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C2.4_R1.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C2-4_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C2.4_R2.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C2-4_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C2.5_R1.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C2-5_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C2.5_R2.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C2-5_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C3.1_R1.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C3-1_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C3.1_R2.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C3-1_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C3.2_R1.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C3-2_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C3.2_R2.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C3-2_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C3.3_R1.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C3-3_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C3.3_R2.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C3-3_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C3.4_R1.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C3-4_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C3.4_R2.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C3-4_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C3.5_R1.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C3-5_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C3.5_R2.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/C3-5_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D1.1_R1.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D1-1_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D1.1_R2.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D1-1_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D1.2_R1.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D1-2_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D1.2_R2.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D1-2_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D1.3_R1.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D1-3_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D1.3_R2.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D1-3_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D1.4_R1.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D1-4_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D1.4_R2.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D1-4_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D1.5_R1.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D1-5_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D1.5_R2.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D1-5_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D2.1_R1.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D2-1_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D2.1_R2.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D2-1_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D2.2_R1.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D2-2_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D2.2_R2.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D2-2_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D2.3_R1.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D2-3_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D2.3_R2.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D2-3_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D2.4_R1.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D2-4_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D2.4_R2.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D2-4_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D2.5_R1.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D2-5_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D2.5_R2.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D2-5_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D3.1_R1.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D3-1_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D3.1_R2.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D3-1_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D3.2_R1.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D3-2_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D3.2_R2.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D3-2_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D3.3_R1.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D3-3_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D3.3_R2.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D3-3_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D3.4_R1.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D3-4_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D3.4_R2.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D3-4_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D3.5_R1.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D3-5_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D3.5_R2.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/D3-5_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F1.1_R1.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F1-1_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F1.1_R2.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F1-1_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F1.2_R1.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F1-2_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F1.2_R2.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F1-2_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F1.3_R1.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F1-3_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F1.3_R2.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F1-3_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F1.4_R1.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F1-4_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F1.4_R2.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F1-4_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F1.5_R1.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F1-5_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F1.5_R2.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F1-5_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F2.1_R1.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F2-1_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F2.1_R2.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F2-1_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F2.2_R1.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F2-2_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F2.2_R2.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F2-2_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F2.3_R1.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F2-3_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F2.3_R2.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F2-3_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F2.4_R1.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F2-4_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F2.4_R2.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F2-4_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F2.5_R1.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F2-5_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F2.5_R2.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F2-5_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F3.1_R1.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F3-1_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F3.1_R2.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F3-1_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F3.2_R1.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F3-2_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F3.2_R2.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F3-2_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F3.3_R1.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F3-3_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F3.3_R2.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F3-3_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F3.4_R1.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F3-4_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F3.4_R2.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F3-4_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F3.5_R1.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F3-5_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F3.5_R2.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/F3-5_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/M1.1_R1.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/M1-1_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/M1.1_R2.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/M1-1_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/M1.2_R1.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/M1-2_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/M1.2_R2.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/M1-2_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/M1.3_R1.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/M1-3_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/M1.3_R2.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/M1-3_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/M1.4_R1.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/M1-4_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/M1.4_R2.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/M1-4_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/M1.5_R1.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/M1-5_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/M1.5_R2.fastq.gz ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/M1-5_R2.fastq.gz
+
+mkdir -p ${prefix_destination}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/
+
+rsync -avi --progress ${prefix_source}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/C1.3_R1.fastq.gz ${prefix_destination}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/C1-3_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/C1.3_R2.fastq.gz ${prefix_destination}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/C1-3_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/C1.4_R1.fastq.gz ${prefix_destination}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/C1-4_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/C1.4_R2.fastq.gz ${prefix_destination}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/C1-4_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/C2.3_R1.fastq.gz ${prefix_destination}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/C2-3_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/C2.3_R2.fastq.gz ${prefix_destination}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/C2-3_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/C3.2_R1.fastq.gz ${prefix_destination}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/C3-2_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/C3.2_R2.fastq.gz ${prefix_destination}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/C3-2_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/C3.5_R1.fastq.gz ${prefix_destination}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/C3-5_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/C3.5_R2.fastq.gz ${prefix_destination}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/C3-5_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/D1.1_R1.fastq.gz ${prefix_destination}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/D1-1_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/D1.1_R2.fastq.gz ${prefix_destination}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/D1-1_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/D1.2_R1.fastq.gz ${prefix_destination}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/D1-2_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/D1.2_R2.fastq.gz ${prefix_destination}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/D1-2_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/D1.3_R1.fastq.gz ${prefix_destination}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/D1-3_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/D1.3_R2.fastq.gz ${prefix_destination}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/D1-3_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/D1.4_R1.fastq.gz ${prefix_destination}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/D1-4_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/D1.4_R2.fastq.gz ${prefix_destination}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/D1-4_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/D1.5_R1.fastq.gz ${prefix_destination}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/D1-5_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/D1.5_R2.fastq.gz ${prefix_destination}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/D1-5_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/D2.1_R1.fastq.gz ${prefix_destination}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/D2-1_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/D2.1_R2.fastq.gz ${prefix_destination}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/D2-1_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/D2.2_R1.fastq.gz ${prefix_destination}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/D2-2_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/D2.2_R2.fastq.gz ${prefix_destination}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/D2-2_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/D2.4_R1.fastq.gz ${prefix_destination}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/D2-4_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/D2.4_R2.fastq.gz ${prefix_destination}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/D2-4_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/D3.1_R1.fastq.gz ${prefix_destination}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/D3-1_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/D3.1_R2.fastq.gz ${prefix_destination}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/D3-1_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/D3.2_R1.fastq.gz ${prefix_destination}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/D3-2_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/D3.2_R2.fastq.gz ${prefix_destination}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/D3-2_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/D3.4_R1.fastq.gz ${prefix_destination}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/D3-4_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/D3.4_R2.fastq.gz ${prefix_destination}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/D3-4_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/F1.4_R1.fastq.gz ${prefix_destination}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/F1-4_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/F1.4_R2.fastq.gz ${prefix_destination}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/F1-4_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/F2.5_R1.fastq.gz ${prefix_destination}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/F2-5_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/F2.5_R2.fastq.gz ${prefix_destination}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/F2-5_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/F3.3_R1.fastq.gz ${prefix_destination}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/F3-3_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/F3.3_R2.fastq.gz ${prefix_destination}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/F3-3_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/F3.4_R1.fastq.gz ${prefix_destination}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/F3-4_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/F3.4_R2.fastq.gz ${prefix_destination}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/F3-4_R2.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/F3.5_R1.fastq.gz ${prefix_destination}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/F3-5_R1.fastq.gz
+rsync -avi --progress ${prefix_source}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/F3.5_R2.fastq.gz ${prefix_destination}/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2/F3-5_R2.fastq.gz
