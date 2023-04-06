@@ -21,7 +21,7 @@ scripts:
     - assembly_summary.py
         + summarizes assmebly length, number of contigs before and after filtering and number of reads mapped for each sample
 targets:
-    - summary_assembly = "05_Assembly/scaffolds_mapping/Assembly_mapping_summary.csv"
+    - summary_assembly = "results/05_Assembly/scaffolds_mapping/Assembly_mapping_summary.csv"
     - dram_annotation_orfs = expand("06_MetagenomicORFs/dram_annotations/{sample}/annotations.tsv", sample=SAMPLES)
 """
 
@@ -30,12 +30,12 @@ rule assemble_metagenomes:
         reads1 = rules.trim.output.reads1,
         reads2 = rules.trim.output.reads2,
     output:
-        scaffolds_unparsed = temp("05_Assembly/trimmed_reads/{sample}_scaffolds_unparsed.fasta"),
-        scaffolds = "05_Assembly/trimmed_reads/{sample}_scaffolds.fasta",
-        graph = "05_Assembly/trimmed_reads/{sample}_assembly_graph.fastg",
-        spades_log = "05_Assembly/trimmed_reads/{sample}_spades.log",
+        scaffolds_unparsed = temp("results/05_Assembly/trimmed_reads/{sample}_scaffolds_unparsed.fasta"),
+        scaffolds = "results/05_Assembly/trimmed_reads/{sample}_scaffolds.fasta",
+        graph = "results/05_Assembly/trimmed_reads/{sample}_assembly_graph.fastg",
+        spades_log = "results/05_Assembly/trimmed_reads/{sample}_spades.log",
     params:
-        outdir = lambda wildcards: "05_Assembly/trimmed_reads/"+wildcards.sample,
+        outdir = lambda wildcards: "results/05_Assembly/trimmed_reads/"+wildcards.sample,
         length_t = 1000,
         cov_t = 1,
         memory_limit = lambda wildcards, attempt: "650" if attempt > 1 else "250",
@@ -47,9 +47,9 @@ rule assemble_metagenomes:
         mem_mb = lambda wildcards: convertToMb("600G") if attempt > 1 else convertToMb("200G")
     retries: 2
     threads: 4
-    log: "05_Assembly/trimmed_reads/{sample}_assemble_metagenomes.log"
-    benchmark: "05_Assembly/trimmed_reads/{sample}_assemble_metagenomes.benchmark"
-    conda: "envs/spades-env.yaml"
+    log: "results/05_Assembly/trimmed_reads/{sample}_assemble_metagenomes.log"
+    benchmark: "results/05_Assembly/trimmed_reads/{sample}_assemble_metagenomes.benchmark"
+    conda: "config/envs/spades-env.yaml"
     shell:
         """
         if [ -f \"{params.outdir}/scaffolds.fasta\" ]; then
@@ -82,9 +82,9 @@ rule map_to_assembly:
         reads2 = rules.trim.output.reads2,
         scaffolds = rules.assemble_metagenomes.output.scaffolds
     output:
-        flagstat = "05_Assembly/scaffolds_mapping/{sample}_assembly_mapping_flagstat.tsv",
-        sam = temp("05_Assembly/scaffolds_mapping/{sample}_assembly.sam"),
-        bam = "05_Assembly/scaffolds_mapping/{sample}_assembly.bam",
+        flagstat = "results/05_Assembly/scaffolds_mapping/{sample}_assembly_mapping_flagstat.tsv",
+        sam = temp("results/05_Assembly/scaffolds_mapping/{sample}_assembly.sam"),
+        bam = "results/05_Assembly/scaffolds_mapping/{sample}_assembly.bam",
     params:
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
@@ -94,30 +94,30 @@ rule map_to_assembly:
     resources:
         mem_mb = 8000
     threads: 5
-    log: "05_Assembly/scaffolds_mapping/{sample}_map_to_assembly.log"
-    benchmark: "05_Assembly/scaffolds_mapping/{sample}_map_to_assembly.benchmark"
-    conda: "envs/mapping-env.yaml"
+    log: "results/05_Assembly/scaffolds_mapping/{sample}_map_to_assembly.log"
+    benchmark: "results/05_Assembly/scaffolds_mapping/{sample}_map_to_assembly.benchmark"
+    conda: "config/envs/mapping-env.yaml"
     shell:
         """
-        mkdir -p 05_Assembly/scaffolds_mapping &> {log}
+        mkdir -p results/05_Assembly/scaffolds_mapping &> {log}
         bwa index {input.scaffolds} &>> {log}
         bwa mem -t {threads} {input.scaffolds} {input.reads1} {input.reads2} 1> {output.sam} 2>> {log}
         samtools view -bh {output.sam} | samtools sort - 1> {output.bam} 2>> {log}
-        rm 05_Assembly/trimmed_reads/{wildcards.sample}_scaffolds.fasta.amb &>> {log}
-        rm 05_Assembly/trimmed_reads/{wildcards.sample}_scaffolds.fasta.ann &>> {log}
-        rm 05_Assembly/trimmed_reads/{wildcards.sample}_scaffolds.fasta.bwt &>> {log}
-        rm 05_Assembly/trimmed_reads/{wildcards.sample}_scaffolds.fasta.pac &>> {log}
-        rm 05_Assembly/trimmed_reads/{wildcards.sample}_scaffolds.fasta.sa &>> {log}
+        rm results/05_Assembly/trimmed_reads/{wildcards.sample}_scaffolds.fasta.amb &>> {log}
+        rm results/05_Assembly/trimmed_reads/{wildcards.sample}_scaffolds.fasta.ann &>> {log}
+        rm results/05_Assembly/trimmed_reads/{wildcards.sample}_scaffolds.fasta.bwt &>> {log}
+        rm results/05_Assembly/trimmed_reads/{wildcards.sample}_scaffolds.fasta.pac &>> {log}
+        rm results/05_Assembly/trimmed_reads/{wildcards.sample}_scaffolds.fasta.sa &>> {log}
         samtools flagstat -O tsv {output.bam} > {output.flagstat} 2>> {log}
         """
 
 rule summarize_mapping_assembly:
     input:
-        scaffolds = expand("05_Assembly/trimmed_reads/{sample}_scaffolds.fasta", sample=SAMPLES),
-        scaffolds_unparsed = expand("05_Assembly/trimmed_reads/{sample}_scaffolds_unparsed.fasta", sample=SAMPLES),
-        flagstat = expand("05_Assembly/scaffolds_mapping/{sample}_assembly_mapping_flagstat.tsv", sample=SAMPLES)
+        scaffolds = expand("results/05_Assembly/trimmed_reads/{sample}_scaffolds.fasta", sample=SAMPLES),
+        scaffolds_unparsed = expand("results/05_Assembly/trimmed_reads/{sample}_scaffolds_unparsed.fasta", sample=SAMPLES),
+        flagstat = expand("results/05_Assembly/scaffolds_mapping/{sample}_assembly_mapping_flagstat.tsv", sample=SAMPLES)
     output:
-        summary_assembly = "05_Assembly/scaffolds_mapping/Assembly_mapping_summary.csv",
+        summary_assembly = "results/05_Assembly/scaffolds_mapping/Assembly_mapping_summary.csv",
     params:
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
@@ -127,8 +127,8 @@ rule summarize_mapping_assembly:
     resources:
         mem_mb = 8000
     threads: 5
-    log: "05_Assembly/scaffolds_mapping/summarize_mapping_assembly.log"
-    benchmark: "05_Assembly/scaffolds_mapping/summarize_mapping_assembly.benchmark"
+    log: "results/05_Assembly/scaffolds_mapping/summarize_mapping_assembly.log"
+    benchmark: "results/05_Assembly/scaffolds_mapping/summarize_mapping_assembly.benchmark"
     shell:
         """
         python3 scripts/assembly_summary.py --scaffolds {input.scaffolds} --scaffolds_unparsed {input.scaffolds_unparsed} --flagstat {input.flagstat} --outfile {output.summary_assembly} &> {log}
@@ -136,7 +136,7 @@ rule summarize_mapping_assembly:
 
 rule prodigal_get_orfs:
     input:
-        scaffolds = "05_Assembly/trimmed_reads/{sample}_scaffolds.fasta"
+        scaffolds = "results/05_Assembly/trimmed_reads/{sample}_scaffolds.fasta"
     output:
         orfs = "06_MetagenomicORFs/{sample}_orfs.ffn",
         filt_log = "06_MetagenomicORFs/{sample}_orfs_filt_sumary.log",
@@ -154,7 +154,7 @@ rule prodigal_get_orfs:
     threads: 8
     log: "06_MetagenomicORFs/{sample}_prodigal_get_orfs.log"
     benchmark: "06_MetagenomicORFs/{sample}_prodigal_get_orfs.benchmark"
-    conda: "envs/snv-env.yaml"
+    conda: "config/envs/snv-env.yaml"
     shell:
         """
         if [ ! -f {output.scaffolds_ffn} ]; then
@@ -181,7 +181,7 @@ rule dram_annotate_orfs:
     threads: 2
     log: "06_MetagenomicORFs/dram_annotations/{sample}/dram_annotate_orfs_{sample}.log"
     benchmark: "06_MetagenomicORFs/dram_annotations/{sample}/dram_annotate_orfs_{sample}.benchmark"
-    conda: "envs/mags-env.yaml"
+    conda: "config/envs/mags-env.yaml"
     shell:
         """
         source /etc/profile.d/lmodstacks.sh &>> {log}

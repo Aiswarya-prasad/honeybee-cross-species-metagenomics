@@ -635,10 +635,10 @@ These samples were from earlier runs:
   + **20151119_WINDU89**	20151119	Kirsten_Ellegaard	6	GTF	Illumina	100	PE	HiSeq 2500	Genomic diversity landscape of the honey bee gut microbiota (2019, NatCom)	Nurses, Year 1, Les Droites
   + **20160415_OBIWAN225**	20160415	Kirsten_Ellegaard	12	GTF	Illumina	100	PE	HiSeq 2500	Genomic diversity landscape of the honey bee gut microbiota (2019, NatCom)	Foragers/Winterbees, Year 1, Les Droites \
   + **20161216_OBIWAN275**	20161216	Kirsten_Ellegaard	6	GTF	Illumina	100	PE	HiSeq 2500	Genomic diversity landscape of the honey bee gut microbiota (2019, NatCom)	Nurses, Year 2, Les Droites \
-  + **20170310_WINDU179**	20170310	Kirsten_Ellegaard	12	GTF	Illumina	100	PE	HiSeq 2500	Genomic diversity landscape of the honey bee gut microbiota (2019, NatCom)	Foragers/Winterbees, Year 2, Les Droites (**INCLUDED FOR NOW**) \
+  + **20170310_WINDU179**	20170310	Kirsten_Ellegaard	12	GTF	Illumina	100	PE	HiSeq 2500	Genomic diversity landscape of the honey bee gut microbiota (2019, NatCom)	Foragers/Winterbees, Year 2, Les Droites \
   + **20170426_OBIWAN300**	20170426	Kirsten_Ellegaard	6	GTF	Illumina	100	PE	HiSeq 2500	Genomic diversity landscape of the honey bee gut microbiota (2019, NatCom)	Nurses, Year 2, Grammont \
   + **20170428_WINDU191**	20170428	Kirsten_Ellegaard	12	GTF	Illumina	100	PE	HiSeq 2500	Genomic diversity landscape of the honey bee gut microbiota (2019, NatCom)	Foragers/Winterbees, Year 2, Grammont \
-  + **20180118_OBIWAN338-339**	20180118	Kirsten_Ellegaard	30	GTF	Illumina	100	PE	HiSeq 2500	Metagenomes of individual honey bees, subjected to dietary manipulation and kept in the lab \
+  + **20180118_OBIWAN338-339**	20180118	Kirsten_Ellegaard	30	GTF	Illumina	100	PE	HiSeq 2500	Metagenomes of individual honey bees, subjected to dietary manipulation and kept in the lab (**NOT INCLUDED**) \
   + **20180612_KE_japan_metagenomes**	20180612	Ryo_Miyasaki	40	Japan	Illumina	100	PE	HiSeq 2500	Vast differences in strain-level diversity in two closely related species of honey bees (2020, CurBiol)	Sampling and sequencing done in Japan (**INCLUDED FOR NOW**)
 
 ## Databases

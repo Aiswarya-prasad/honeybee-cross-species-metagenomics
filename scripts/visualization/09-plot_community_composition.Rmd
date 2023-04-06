@@ -1620,6 +1620,7 @@ host_median_mat[1,]
 mantel(as.dist(bac_median_mat), as.dist(host_median_mat), method = "pearson", permutations = 9999)
 cor.test(dissimilarities_df_median$dist_h, dissimilarities_df_median$median_b, method = "pearson")
 
+# edit tree to look prettier later
 plot_tree(ps, nodelabf=nodeplotblank, color="Host", label.tips = "Name", ladderize="left", plot.margin=0.3) + 
   scale_color_manual(values = host_order_color)
   ggsave("Figures/09-Plot_bac120_tree_with_host.pdf")

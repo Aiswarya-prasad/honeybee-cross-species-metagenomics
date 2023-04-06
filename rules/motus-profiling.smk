@@ -10,7 +10,7 @@ rules:
     - merge_motus
         + merge all motus output into one file for downstream processing
 targets:
-    - motus_merged = "02_motus_profile/samples_merged.motus", # got to its respective rule and add desired list of samples in its expansion eg. SAMPLES+SAMPLES_KE
+    - motus_merged = "results/02_motus_profile/samples_merged.motus", # got to its respective rule and add desired list of samples in its expansion eg. SAMPLES+SAMPLES_KE
 """
 
 rule run_motus:
@@ -18,7 +18,7 @@ rule run_motus:
         reads1 = rules.trim.output.reads1,
         reads2 = rules.trim.output.reads2,
     output:
-        motus_temp = "02_motus_profile/{sample}.motus"
+        motus_temp = "results/02_motus_profile/{sample}.motus"
     params:
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
@@ -28,9 +28,9 @@ rule run_motus:
     resources:
         mem_mb = convertToMb("50G")
     threads: 8
-    log: "02_motus_profile/{sample}_run_motus.log"
-    benchmark: "02_motus_profile/{sample}_run_motus.benchmark"
-    conda: "envs/motus-env.yaml"
+    log: "results/02_motus_profile/{sample}_run_motus.log"
+    benchmark: "results/02_motus_profile/{sample}_run_motus.benchmark"
+    conda: "config/envs/motus-env.yaml"
     shell:
         """
         motus downloadDB &> {log}
@@ -39,9 +39,9 @@ rule run_motus:
 
 rule merge_motus:
     input:
-        motus_temp = expand("02_motus_profile/{sample}.motus", sample=SAMPLES+SAMPLES_KE)
+        motus_temp = expand("results/02_motus_profile/{sample}.motus", sample=SAMPLES+SAMPLES_KE)
     output:
-        motus_merged = "02_motus_profile/samples_merged.motus"
+        motus_merged = "results/02_motus_profile/samples_merged.motus"
     params:
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
@@ -51,9 +51,9 @@ rule merge_motus:
     resources:
         mem_mb = convertToMb("50G")
     threads: 8
-    log: "02_motus_profile/merge_motus.log"
-    benchmark: "02_motus_profile/merge_motus.benchmark"
-    conda: "envs/motus-env.yaml"
+    log: "results/02_motus_profile/merge_motus.log"
+    benchmark: "results/02_motus_profile/merge_motus.benchmark"
+    conda: "config/envs/motus-env.yaml"
     shell:
         """
         motus merge -i $(echo \"{input.motus_temp}\" | sed -e 's/ /,/g' ) > {output.motus_merged} 2> {log}

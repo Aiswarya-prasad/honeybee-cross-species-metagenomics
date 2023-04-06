@@ -17,7 +17,7 @@ scripts:
     - write_adapters.py (currently not in use)
 targets:
     - trimmed_files
-    - qc_raw = expand("fastqc/raw/{sample}_{read}_fastqc.html", sample=SAMPLES+SAMPLES_KE, read=config["READS"]),
+    - qc_raw = expand("results/fastqc/raw/{sample}_{read}_fastqc.html", sample=SAMPLES+SAMPLES_KE, read=config["READS"]),
     - qc_trimmed = expand("fastqc/trim/{sample}_{read}_trim_fastqc.html", sample=SAMPLES+SAMPLES_KE, read=config["READS"]),
 """
 
@@ -25,10 +25,10 @@ rule raw_qc:
     input:
         reads=ancient(os.path.join("00_RawData", "{sample}_{read}.fastq.gz")),
     output:
-        html="fastqc/raw/{sample}_{read}_fastqc.html",
-        zip="fastqc/raw/{sample}_{read}_fastqc.zip"
+        html="results/fastqc/raw/{sample}_{read}_fastqc.html",
+        zip="results/fastqc/raw/{sample}_{read}_fastqc.zip"
     params:
-        outdir="fastqc/raw/",
+        outdir="results/fastqc/raw/",
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         jobname=lambda wildcards: wildcards.sample+"_"+wildcards.read+"_qc",
@@ -36,10 +36,10 @@ rule raw_qc:
         runtime_s=convertToSec("0-2:10:00"),
     resources:
         mem_mb = 8000
-    log: "fastqc/raw/{sample}_{read}_qc.log"
-    benchmark: "fastqc/raw/{sample}_{read}_qc.benchmark"
+    log: "results/fastqc/raw/{sample}_{read}_qc.log"
+    benchmark: "results/fastqc/raw/{sample}_{read}_qc.benchmark"
     threads: 2
-    conda: "envs/trim-qc-env.yaml"
+    conda: "config/envs/trim-qc-env.yaml"
     shell:
         """
         fastqc -t {threads} {input.reads} -o {params.outdir} &> {log}
@@ -79,7 +79,7 @@ rule trim:
     threads: 4
     log: "01_Trimmed/{sample}_trim.log"
     benchmark: "01_Trimmed/{sample}_trim.benchmark"
-    conda: "envs/trim-qc-env.yaml"
+    conda: "config/envs/trim-qc-env.yaml"
     shell:
         """
         trimmomatic PE -threads {threads} {input.reads1} {input.reads2} {output.reads1} {output.reads1_unpaired} {output.reads2} {output.reads2_unpaired} ILLUMINACLIP:{params.adapters}:2:30:10 LEADING:28 TRAILING:28  MINLEN:60 &> {log}
@@ -92,7 +92,7 @@ rule trim_qc:
         html="fastqc/trim/{sample}_{read}_trim_fastqc.html",
         zip="fastqc/trim/{sample}_{read}_trim_fastqc.zip"
     threads: 2
-    conda: "envs/trim-qc-env.yaml"
+    conda: "config/envs/trim-qc-env.yaml"
     params:
         outdir="fastqc/trim/",
         mailto="aiswarya.prasad@unil.ch",
