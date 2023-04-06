@@ -104,87 +104,87 @@ rsync -avi --progress ${prefix_source}/NGS_data/20151119_WINDU89/data/DrY1_N6_R2
 
 mkdir -p ${prefix_destination}/NGS_data/20160415_OBIWAN225/
 
-rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/DrY1_F1_R1.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
-rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/DrY1_F1_R2.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
-rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/DrY1_F2_R1.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
-rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/DrY1_F2_R2.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
-rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/DrY1_F3_R1.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
-rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/DrY1_F3_R2.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
-rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/DrY1_F4_R1.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
-rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/DrY1_F4_R2.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
-rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/DrY1_F5_R1.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
-rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/DrY1_F5_R2.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
-rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/DrY1_F6_R1.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
-rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/DrY1_F6_R2.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
-rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/DrY1_W1_R1.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
-rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/DrY1_W1_R2.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
-rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/DrY1_W2_R1.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
-rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/DrY1_W2_R2.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
-rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/DrY1_W3_R1.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
-rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/DrY1_W3_R2.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
-rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/DrY1_W4_R1.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
-rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/DrY1_W4_R2.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
-rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/DrY1_W5_R1.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
-rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/DrY1_W5_R2.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
-rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/DrY1_W6_R1.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
-rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/DrY1_W6_R2.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
+rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/data/DrY1_F1_R1.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
+rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/data/DrY1_F1_R2.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
+rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/data/DrY1_F2_R1.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
+rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/data/DrY1_F2_R2.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
+rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/data/DrY1_F3_R1.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
+rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/data/DrY1_F3_R2.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
+rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/data/DrY1_F4_R1.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
+rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/data/DrY1_F4_R2.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
+rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/data/DrY1_F5_R1.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
+rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/data/DrY1_F5_R2.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
+rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/data/DrY1_F6_R1.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
+rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/data/DrY1_F6_R2.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
+rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/data/DrY1_W1_R1.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
+rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/data/DrY1_W1_R2.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
+rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/data/DrY1_W2_R1.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
+rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/data/DrY1_W2_R2.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
+rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/data/DrY1_W3_R1.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
+rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/data/DrY1_W3_R2.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
+rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/data/DrY1_W4_R1.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
+rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/data/DrY1_W4_R2.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
+rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/data/DrY1_W5_R1.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
+rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/data/DrY1_W5_R2.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
+rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/data/DrY1_W6_R1.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
+rsync -avi --progress ${prefix_source}/NGS_data/20160415_OBIWAN225/data/DrY1_W6_R2.fastq.gz ${prefix_destination}/NGS_data/20160415_OBIWAN225/
 
 mkdir -p ${prefix_destination}/NGS_data/20161216_OBIWAN275/
 
-rsync -avi --progress ${prefix_source}/NGS_data/20161216_OBIWAN275/DrY2_N1_R1.fastq.gz ${prefix_destination}/NGS_data/20161216_OBIWAN275/
-rsync -avi --progress ${prefix_source}/NGS_data/20161216_OBIWAN275/DrY2_N1_R2.fastq.gz ${prefix_destination}/NGS_data/20161216_OBIWAN275/
-rsync -avi --progress ${prefix_source}/NGS_data/20161216_OBIWAN275/DrY2_N2_R1.fastq.gz ${prefix_destination}/NGS_data/20161216_OBIWAN275/
-rsync -avi --progress ${prefix_source}/NGS_data/20161216_OBIWAN275/DrY2_N2_R2.fastq.gz ${prefix_destination}/NGS_data/20161216_OBIWAN275/
-rsync -avi --progress ${prefix_source}/NGS_data/20161216_OBIWAN275/DrY2_N3_R1.fastq.gz ${prefix_destination}/NGS_data/20161216_OBIWAN275/
-rsync -avi --progress ${prefix_source}/NGS_data/20161216_OBIWAN275/DrY2_N3_R2.fastq.gz ${prefix_destination}/NGS_data/20161216_OBIWAN275/
-rsync -avi --progress ${prefix_source}/NGS_data/20161216_OBIWAN275/DrY2_N4_R1.fastq.gz ${prefix_destination}/NGS_data/20161216_OBIWAN275/
-rsync -avi --progress ${prefix_source}/NGS_data/20161216_OBIWAN275/DrY2_N4_R2.fastq.gz ${prefix_destination}/NGS_data/20161216_OBIWAN275/
-rsync -avi --progress ${prefix_source}/NGS_data/20161216_OBIWAN275/DrY2_N5_R1.fastq.gz ${prefix_destination}/NGS_data/20161216_OBIWAN275/
-rsync -avi --progress ${prefix_source}/NGS_data/20161216_OBIWAN275/DrY2_N5_R2.fastq.gz ${prefix_destination}/NGS_data/20161216_OBIWAN275/
-rsync -avi --progress ${prefix_source}/NGS_data/20161216_OBIWAN275/DrY2_N6_R1.fastq.gz ${prefix_destination}/NGS_data/20161216_OBIWAN275/
-rsync -avi --progress ${prefix_source}/NGS_data/20161216_OBIWAN275/DrY2_N6_R2.fastq.gz ${prefix_destination}/NGS_data/20161216_OBIWAN275/
+rsync -avi --progress ${prefix_source}/NGS_data/20161216_OBIWAN275/data/DrY2_N1_R1.fastq.gz ${prefix_destination}/NGS_data/20161216_OBIWAN275/
+rsync -avi --progress ${prefix_source}/NGS_data/20161216_OBIWAN275/data/DrY2_N1_R2.fastq.gz ${prefix_destination}/NGS_data/20161216_OBIWAN275/
+rsync -avi --progress ${prefix_source}/NGS_data/20161216_OBIWAN275/data/DrY2_N2_R1.fastq.gz ${prefix_destination}/NGS_data/20161216_OBIWAN275/
+rsync -avi --progress ${prefix_source}/NGS_data/20161216_OBIWAN275/data/DrY2_N2_R2.fastq.gz ${prefix_destination}/NGS_data/20161216_OBIWAN275/
+rsync -avi --progress ${prefix_source}/NGS_data/20161216_OBIWAN275/data/DrY2_N3_R1.fastq.gz ${prefix_destination}/NGS_data/20161216_OBIWAN275/
+rsync -avi --progress ${prefix_source}/NGS_data/20161216_OBIWAN275/data/DrY2_N3_R2.fastq.gz ${prefix_destination}/NGS_data/20161216_OBIWAN275/
+rsync -avi --progress ${prefix_source}/NGS_data/20161216_OBIWAN275/data/DrY2_N4_R1.fastq.gz ${prefix_destination}/NGS_data/20161216_OBIWAN275/
+rsync -avi --progress ${prefix_source}/NGS_data/20161216_OBIWAN275/data/DrY2_N4_R2.fastq.gz ${prefix_destination}/NGS_data/20161216_OBIWAN275/
+rsync -avi --progress ${prefix_source}/NGS_data/20161216_OBIWAN275/data/DrY2_N5_R1.fastq.gz ${prefix_destination}/NGS_data/20161216_OBIWAN275/
+rsync -avi --progress ${prefix_source}/NGS_data/20161216_OBIWAN275/data/DrY2_N5_R2.fastq.gz ${prefix_destination}/NGS_data/20161216_OBIWAN275/
+rsync -avi --progress ${prefix_source}/NGS_data/20161216_OBIWAN275/data/DrY2_N6_R1.fastq.gz ${prefix_destination}/NGS_data/20161216_OBIWAN275/
+rsync -avi --progress ${prefix_source}/NGS_data/20161216_OBIWAN275/data/DrY2_N6_R2.fastq.gz ${prefix_destination}/NGS_data/20161216_OBIWAN275/
 
 mkdir -p ${prefix_destination}/NGS_data/20170426_OBIWAN300/
 
-rsync -avi --progress ${prefix_source}/NGS_data/20170426_OBIWAN300/GrY2_N1_R1.fastq.gz ${prefix_destination}/NGS_data/20170426_OBIWAN300/
-rsync -avi --progress ${prefix_source}/NGS_data/20170426_OBIWAN300/GrY2_N1_R2.fastq.gz ${prefix_destination}/NGS_data/20170426_OBIWAN300/
-rsync -avi --progress ${prefix_source}/NGS_data/20170426_OBIWAN300/GrY2_N2_R1.fastq.gz ${prefix_destination}/NGS_data/20170426_OBIWAN300/
-rsync -avi --progress ${prefix_source}/NGS_data/20170426_OBIWAN300/GrY2_N2_R2.fastq.gz ${prefix_destination}/NGS_data/20170426_OBIWAN300/
-rsync -avi --progress ${prefix_source}/NGS_data/20170426_OBIWAN300/GrY2_N3_R1.fastq.gz ${prefix_destination}/NGS_data/20170426_OBIWAN300/
-rsync -avi --progress ${prefix_source}/NGS_data/20170426_OBIWAN300/GrY2_N3_R2.fastq.gz ${prefix_destination}/NGS_data/20170426_OBIWAN300/
-rsync -avi --progress ${prefix_source}/NGS_data/20170426_OBIWAN300/GrY2_N4_R1.fastq.gz ${prefix_destination}/NGS_data/20170426_OBIWAN300/
-rsync -avi --progress ${prefix_source}/NGS_data/20170426_OBIWAN300/GrY2_N4_R2.fastq.gz ${prefix_destination}/NGS_data/20170426_OBIWAN300/
-rsync -avi --progress ${prefix_source}/NGS_data/20170426_OBIWAN300/GrY2_N5_R1.fastq.gz ${prefix_destination}/NGS_data/20170426_OBIWAN300/
-rsync -avi --progress ${prefix_source}/NGS_data/20170426_OBIWAN300/GrY2_N5_R2.fastq.gz ${prefix_destination}/NGS_data/20170426_OBIWAN300/
-rsync -avi --progress ${prefix_source}/NGS_data/20170426_OBIWAN300/GrY2_N6_R1.fastq.gz ${prefix_destination}/NGS_data/20170426_OBIWAN300/
-rsync -avi --progress ${prefix_source}/NGS_data/20170426_OBIWAN300/GrY2_N6_R2.fastq.gz ${prefix_destination}/NGS_data/20170426_OBIWAN300/
+rsync -avi --progress ${prefix_source}/NGS_data/20170426_OBIWAN300/data/GrY2_N1_R1.fastq.gz ${prefix_destination}/NGS_data/20170426_OBIWAN300/
+rsync -avi --progress ${prefix_source}/NGS_data/20170426_OBIWAN300/data/GrY2_N1_R2.fastq.gz ${prefix_destination}/NGS_data/20170426_OBIWAN300/
+rsync -avi --progress ${prefix_source}/NGS_data/20170426_OBIWAN300/data/GrY2_N2_R1.fastq.gz ${prefix_destination}/NGS_data/20170426_OBIWAN300/
+rsync -avi --progress ${prefix_source}/NGS_data/20170426_OBIWAN300/data/GrY2_N2_R2.fastq.gz ${prefix_destination}/NGS_data/20170426_OBIWAN300/
+rsync -avi --progress ${prefix_source}/NGS_data/20170426_OBIWAN300/data/GrY2_N3_R1.fastq.gz ${prefix_destination}/NGS_data/20170426_OBIWAN300/
+rsync -avi --progress ${prefix_source}/NGS_data/20170426_OBIWAN300/data/GrY2_N3_R2.fastq.gz ${prefix_destination}/NGS_data/20170426_OBIWAN300/
+rsync -avi --progress ${prefix_source}/NGS_data/20170426_OBIWAN300/data/GrY2_N4_R1.fastq.gz ${prefix_destination}/NGS_data/20170426_OBIWAN300/
+rsync -avi --progress ${prefix_source}/NGS_data/20170426_OBIWAN300/data/GrY2_N4_R2.fastq.gz ${prefix_destination}/NGS_data/20170426_OBIWAN300/
+rsync -avi --progress ${prefix_source}/NGS_data/20170426_OBIWAN300/data/GrY2_N5_R1.fastq.gz ${prefix_destination}/NGS_data/20170426_OBIWAN300/
+rsync -avi --progress ${prefix_source}/NGS_data/20170426_OBIWAN300/data/GrY2_N5_R2.fastq.gz ${prefix_destination}/NGS_data/20170426_OBIWAN300/
+rsync -avi --progress ${prefix_source}/NGS_data/20170426_OBIWAN300/data/GrY2_N6_R1.fastq.gz ${prefix_destination}/NGS_data/20170426_OBIWAN300/
+rsync -avi --progress ${prefix_source}/NGS_data/20170426_OBIWAN300/data/GrY2_N6_R2.fastq.gz ${prefix_destination}/NGS_data/20170426_OBIWAN300/
 
 mkdir -p ${prefix_destination}/NGS_data/20170428_WINDU191/
 
-rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/GrY2_F1_R1.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/
-rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/GrY2_F1_R2.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/
-rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/GrY2_F2_R1.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/ 
-rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/GrY2_F2_R2.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/ 
-rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/GrY2_F3_R1.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/ 
-rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/GrY2_F3_R2.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/ 
-rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/GrY2_F4_R1.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/ 
-rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/GrY2_F4_R2.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/ 
-rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/GrY2_F5_R1.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/ 
-rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/GrY2_F5_R2.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/ 
-rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/GrY2_F6_R1.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/ 
-rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/GrY2_F6_R2.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/ 
-rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/GrY2_W1_R1.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/ 
-rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/GrY2_W1_R2.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/ 
-rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/GrY2_W2_R1.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/ 
-rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/GrY2_W2_R2.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/ 
-rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/GrY2_W3_R1.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/ 
-rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/GrY2_W3_R2.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/ 
-rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/GrY2_W4_R1.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/ 
-rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/GrY2_W4_R2.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/ 
-rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/GrY2_W5_R1.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/ 
-rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/GrY2_W5_R2.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/ 
-rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/GrY2_W6_R1.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/ 
-rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/GrY2_W6_R2.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/
+rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/data/GrY2_F1_R1.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/
+rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/data/GrY2_F1_R2.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/
+rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/data/GrY2_F2_R1.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/ 
+rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/data/GrY2_F2_R2.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/ 
+rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/data/GrY2_F3_R1.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/ 
+rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/data/GrY2_F3_R2.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/ 
+rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/data/GrY2_F4_R1.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/ 
+rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/data/GrY2_F4_R2.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/ 
+rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/data/GrY2_F5_R1.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/ 
+rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/data/GrY2_F5_R2.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/ 
+rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/data/GrY2_F6_R1.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/ 
+rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/data/GrY2_F6_R2.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/ 
+rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/data/GrY2_W1_R1.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/ 
+rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/data/GrY2_W1_R2.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/ 
+rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/data/GrY2_W2_R1.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/ 
+rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/data/GrY2_W2_R2.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/ 
+rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/data/GrY2_W3_R1.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/ 
+rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/data/GrY2_W3_R2.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/ 
+rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/data/GrY2_W4_R1.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/ 
+rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/data/GrY2_W4_R2.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/ 
+rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/data/GrY2_W5_R1.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/ 
+rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/data/GrY2_W5_R2.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/ 
+rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/data/GrY2_W6_R1.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/ 
+rsync -avi --progress ${prefix_source}/NGS_data/20170428_WINDU191/data/GrY2_W6_R2.fastq.gz ${prefix_destination}/NGS_data/20170428_WINDU191/
 
 mkdir -p ${prefix_destination}/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1/
 

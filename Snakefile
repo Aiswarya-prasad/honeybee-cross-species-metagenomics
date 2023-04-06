@@ -9,6 +9,7 @@ dependencies:
 """
 
 import os
+import glob
 import itertools
 
 configfile: "config/config.yaml"
@@ -48,7 +49,22 @@ def convertToSec(string):
     total = total + 24*60*60*int(days)
     return(total)
 
-def get_read_files(sample, type):
+def get_all_read_raw_files():
+    """
+    returns all read files R1, R2 and all lanes
+    unmerged for running through fastqc raw
+    figure out how to do this with wildcards or
+    how to name the fastqc output accordingly.
+    Just merge it maybe...
+    """
+    RawdataPath = config["RawdataPaths"]
+    file_paths = []
+    for path in RawdataPath:
+        file_paths = list(itertools.chain(file_paths, [file for file in glob.glob(os.path.join(path, "*.fastq.gz"))]))
+    return(file_paths)
+
+
+def get_read_raw_files(sample, read):
     """
     raw data comes from multiple lanes and from across multiple runs
     so after fastqc is run on raw reads seperately, the files of the
@@ -57,9 +73,16 @@ def get_read_files(sample, type):
     be for now, that on the scratch directory (copied in) but next week
     it will be be changed to the path as per their location in the 
     NGS_data directory in nas dcsr
+    returns the list of files for each sample across runs and lanes
+    sample is name of the sample and read should be either R1 or R2
     """
-    RawdataPath = config["RawdataPath"]
-    # resume
+    RawdataPath = config["RawdataPaths"]
+    read_pattern = "_" + read
+    if read != "R1" or read != "R2":
+        return(None)
+    for path in RawdataPath:
+        file_paths = [file for file in glob.glob(os.path.join(path, "*.fastq.gz")) if sample in file and read_pattern in file]
+    return(file_paths)
 
 targets:
     html_qc_raw=expand("results/fastqc/raw/{sample}_{read}_fastqc.html"),

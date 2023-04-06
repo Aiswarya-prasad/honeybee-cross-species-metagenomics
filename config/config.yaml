@@ -1,5 +1,17 @@
 # resume
-RawdataPath: "/scratch/aprasad/20230313_apis_species_comparison/results/NGS_data/"
+RawdataPaths:
+  - "/scratch/aprasad/20230313_apis_species_comparison/results/NGS_data/20230120_Malaysia_samples_run1"
+  - "/scratch/aprasad/20230313_apis_species_comparison/results/NGS_data/20230227_Malaysia_samples_run2"
+  - "/scratch/aprasad/20230313_apis_species_comparison/results/NGS_data/20230308_Malaysia_samples_run3"
+  - "/scratch/aprasad/20230313_apis_species_comparison/results/NGS_data/20180612_KE_japan_metagenomes"
+  - "/scratch/aprasad/20230313_apis_species_comparison/results/NGS_data/20170310_WINDU179"
+  - "/scratch/aprasad/20230313_apis_species_comparison/results/NGS_data/20151119_WINDU89"
+  - "/scratch/aprasad/20230313_apis_species_comparison/results/NGS_data/20160415_OBIWAN225"
+  - "/scratch/aprasad/20230313_apis_species_comparison/results/NGS_data/20161216_OBIWAN275"
+  - "/scratch/aprasad/20230313_apis_species_comparison/results/NGS_data/20170426_OBIWAN300"
+  - "/scratch/aprasad/20230313_apis_species_comparison/results/NGS_data/20170428_WINDU191"
+  - "/scratch/aprasad/20230313_apis_species_comparison/results/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1"
+  - "/scratch/aprasad/20230313_apis_species_comparison/results/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2"
 # RawdataPath: "/work/FAC/FBM/DMF/pengel/spirit/aprasad/20230313_apis_species_comparison/NGS_data/"
 # RawdataPath: "/...path-to-NGS_data"
 SAMPLES_KE:
