@@ -27,7 +27,7 @@
 logs/*
 fastqc/*
 database/*
-# Figures/*
+Figures/*
 00_RawData*/*
 01_Trimmed*/*
 02_HostMapping*/*
@@ -68,3 +68,5 @@ temp*
 bench*
 snakemake_bak
 BACKUP
+
+Results/*
