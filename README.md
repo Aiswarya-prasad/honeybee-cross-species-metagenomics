@@ -705,7 +705,7 @@ and if resuming a failed or stopped run, use:
 
 conda environments are all specified in `envs/` and built by snakemake under various names in `/work/FAC/FBM/DMF/pengel/spirit/aprasad/Miniconda3/spirit_envs`
 
-Run the pipeline in the conda environment called `snakmake_with_samtools` in the cluster. It is a clone of the snakemake environment made as recommended by Snakemake [docs](https://snakemake.readthedocs.io/en/stable/getting_started/installation.html#installation-via-conda-mamba) followed by `conda install biopython` and later `conda install samtools` in it. This is so that Kirsten's core_cov script works (specific conda environments can only be specified for rules using bash).
+Run the pipeline in the conda environment called `snakmake_with_samtools` in the cluster (`import yaml` needs to work for the pipeline to start). It is a clone of the snakemake environment made as recommended by Snakemake [docs](https://snakemake.readthedocs.io/en/stable/getting_started/installation.html#installation-via-conda-mamba) followed by `conda install biopython` and later `conda install samtools` in it. This is so that Kirsten's core_cov script works (specific conda environments can only be specified for rules using bash).
 
 ## Description of directory structure
 
@@ -804,3 +804,9 @@ If the tool is writing the desired output to stdout, only the stderr shout be re
 If the tool is writing the desired output to a file and stdout is only going to include messages for logging, stderr and stdout can both be redirected to the same log file using `&>` for example, `command &> log.txt`
 
 Look [here](https://www.gnu.org/software/bash/manual/html_node/Redirections.html#:~:text=Redirection%20allows%20commands'%20file%20handles,the%20current%20shell%20execution%20environment.) for more information.
+
+For backing up:
+`/nas/FAC/FBM/DMF/pengel/spirit/D2c/aprasad/20211018_aprasad_ApisCrossSpeciesAnalysis/Analysis/20230313_apis_species_comparison`
+RawData in:
+`/nas/FAC/FBM/DMF/pengel/general_data/D2c/datasets/` - The lab's NGS_data is here
+

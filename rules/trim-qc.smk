@@ -2,7 +2,7 @@
 
 """
 name: trim-qc
-description: trimming and qc before and after
+description: trimming and qc before and after trimming and trimmed reads concatenated (only concat reads kept)
 author: Aiswarya Prasad (aiswarya.prasad@unil.ch)
 rules:
     - raw_qc
@@ -16,19 +16,17 @@ rules:
 scripts:
     - write_adapters.py (currently not in use)
 targets:
-    - trimmed_files
-    - qc_raw = expand("results/fastqc/raw/{sample}_{read}_fastqc.html", sample=SAMPLES+SAMPLES_KE, read=config["READS"]),
-    - qc_trimmed = expand("fastqc/trim/{sample}_{read}_trim_fastqc.html", sample=SAMPLES+SAMPLES_KE, read=config["READS"]),
+    
 """
 
 rule raw_qc:
     input:
-        reads=ancient(os.path.join("00_RawData", "{sample}_{read}.fastq.gz")),
+        reads = get---read("raw reads from function {sample}_{lane}_{read}_{run}"),
     output:
-        html="results/fastqc/raw/{sample}_{read}_fastqc.html",
-        zip="results/fastqc/raw/{sample}_{read}_fastqc.zip"
+        html="results/00_rawreads/fastqc/{sample}_{lane}_{read}_{run}_fastqc.html",
+        zip="results/00_rawreads/fastqc/{sample}_{lane}_{read}_{run}_fastqc.zip"
     params:
-        outdir="results/fastqc/raw/",
+        outdir="results/00_rawreads/fastqc/",
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         jobname=lambda wildcards: wildcards.sample+"_"+wildcards.read+"_qc",
@@ -36,8 +34,8 @@ rule raw_qc:
         runtime_s=convertToSec("0-2:10:00"),
     resources:
         mem_mb = 8000
-    log: "results/fastqc/raw/{sample}_{read}_qc.log"
-    benchmark: "results/fastqc/raw/{sample}_{read}_qc.benchmark"
+    log: "results/00_rawreads/fastqc/{sample}_{lane}_{read}_{run}_qc.log"
+    benchmark: "results/00_rawreads/fastqc/{sample}_{lane}_{read}_{run}_qc.benchmark"
     threads: 2
     conda: "config/envs/trim-qc-env.yaml"
     shell:
@@ -45,29 +43,29 @@ rule raw_qc:
         fastqc -t {threads} {input.reads} -o {params.outdir} &> {log}
         """
 
-# """
-# rule make_adapters:
-#     input:
-#         "config/index_table.csv"
-#     output:
-#         "config/Adapters-PE.fa"
-#     script:
-#         "scripts/write_adapters.py"
-# """
+"""
+rule make_adapters:
+    input:
+        "config/index_table.csv"
+    output:
+        "config/Adapters-PE.fa"
+    script:
+        "scripts/write_adapters.py"
+"""
 
 rule trim:
     input:
-        reads1=os.path.join("00_RawData", "{sample}_R1.fastq.gz"),
-        reads2=os.path.join("00_RawData", "{sample}_R2.fastq.gz"),
-        adapter="config/Adapters-PE.fa"
+        
+        reads1 = get---R1("raw reads from function {sample}_{lane}_{read}_{run}")",
+        reads2 = get---R2("raw reads from function {sample}_{lane}_{read}_{run}"),
+        adapter = "config/Adapters-PE.fa"
         # adapter=rules.make_adapters.output
     output:
-        reads1 = "01_Trimmed/{sample}_R1_trim.fastq.gz",
-        reads2 = "01_Trimmed/{sample}_R2_trim.fastq.gz",
-        reads1_unpaired = temp("01_Trimmed/{sample}_R1.unpaired.fastq.gz"),
-        reads2_unpaired = temp("01_Trimmed/{sample}_R2.unpaired.fastq.gz")
+        reads1 = "01_Trimmed/{sample}_{lane}_R1_{run}_trim.fastq.gz",
+        reads2 = "01_Trimmed/{sample}_{lane}_R2_{run}_trim.fastq.gz",
+        reads1_unpaired = temp("01_Trimmed/{sample}_{lane}_R1_{run}_unpaired.fastq.gz"),
+        reads2_unpaired = temp("01_Trimmed/{sample}_{lane}_R2_{run}_unpaired.fastq.gz")
     params:
-        # add adapter definition to config later
         adapters = lambda wildcards: ADAPTERS["SAMPLES_INDIA"] if wildcards.sample in SAMPLES_INDIA else (ADAPTERS["SAMPLES_KE"] if wildcards.sample in SAMPLES_KE else ADAPTERS["default"]),
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
@@ -87,24 +85,40 @@ rule trim:
 
 rule trim_qc:
     input:
-        reads="01_Trimmed/{sample}_{read}_trim.fastq.gz",
+        reads = "results/00_trimmedreads/{sample}_{lane}_{read}_{run}.fastq.gz",
     output:
-        html="fastqc/trim/{sample}_{read}_trim_fastqc.html",
-        zip="fastqc/trim/{sample}_{read}_trim_fastqc.zip"
+        html="results/00_trimmedreads/fastqc/{sample}_{lane}_{read}_{run}_fastqc.html",
+        zip="results/00_trimmedreads/fastqc/{sample}_{lane}_{read}_{run}_fastqc.zip"
     threads: 2
     conda: "config/envs/trim-qc-env.yaml"
     params:
-        outdir="fastqc/trim/",
+        outdir="results/00_trimmedreads/fastqc/",
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        jobname="{sample}_{read}_trim_qc",
+        jobname="{sample}_{lane}_{read}_{run}_trim_qc",
         account="pengel_spirit",
         runtime_s=convertToSec("0-2:10:00"),
-    log: "fastqc/trim/{sample}_{read}_trim_qc.log"
-    benchmark: "fastqc/trim/{sample}_{read}_trim_qc.benchmark"
+    log: "results/00_trimmedreads/fastqc/{sample}_{lane}_{read}_{run}_trim_qc.log"
+    benchmark: "results/00_trimmedreads/fastqc/{sample}_{lane}_{read}_{run}_trim_qc.benchmark"
     resources:
         mem_mb = 8000
     shell:
         """
         fastqc -t {threads} {input.reads} -o {params.outdir} &> {log}
         """
+
+rule concatenate_reads:
+    input:
+        reads = list_of_("results/00_trimmedreads/{sample}_{lane}_{read}_{run}.fastq.gz")
+    output:
+        concat_reads = "results/01_trimmedconcatreads/{sample}_{read}.fastq.gz"
+    threads: 2
+    conda: "config/envs/trim-qc-env.yaml"
+    params:
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        jobname="{sample}_{read}_concat",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-2:10:00"),
+    log: "results/01_trimmedconcatreads/{sample}_{read}_concat.log"
+    benchmark: "results/01_trimmedconcatreads/{sample}_{read}_concat.benchmark"

@@ -1,19 +1,53 @@
-# resume
 RawdataPaths:
-  - "/scratch/aprasad/20230313_apis_species_comparison/results/NGS_data/20230120_Malaysia_samples_run1"
-  - "/scratch/aprasad/20230313_apis_species_comparison/results/NGS_data/20230227_Malaysia_samples_run2"
-  - "/scratch/aprasad/20230313_apis_species_comparison/results/NGS_data/20230308_Malaysia_samples_run3"
-  - "/scratch/aprasad/20230313_apis_species_comparison/results/NGS_data/20180612_KE_japan_metagenomes"
-  - "/scratch/aprasad/20230313_apis_species_comparison/results/NGS_data/20170310_WINDU179"
-  - "/scratch/aprasad/20230313_apis_species_comparison/results/NGS_data/20151119_WINDU89"
-  - "/scratch/aprasad/20230313_apis_species_comparison/results/NGS_data/20160415_OBIWAN225"
-  - "/scratch/aprasad/20230313_apis_species_comparison/results/NGS_data/20161216_OBIWAN275"
-  - "/scratch/aprasad/20230313_apis_species_comparison/results/NGS_data/20170426_OBIWAN300"
-  - "/scratch/aprasad/20230313_apis_species_comparison/results/NGS_data/20170428_WINDU191"
-  - "/scratch/aprasad/20230313_apis_species_comparison/results/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1"
-  - "/scratch/aprasad/20230313_apis_species_comparison/results/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2"
-# RawdataPath: "/work/FAC/FBM/DMF/pengel/spirit/aprasad/20230313_apis_species_comparison/NGS_data/"
-# RawdataPath: "/...path-to-NGS_data"
+  - "/work/FAC/FBM/DMF/pengel/spirit/aprasad/NGS_data/20230120_HMK2GDSX3_Malaysia_samples_run1/RawData"
+  - "/work/FAC/FBM/DMF/pengel/spirit/aprasad/NGS_data/20230227_HGMH3DMXY_Malaysia_samples_run2/RawData"
+  - "/work/FAC/FBM/DMF/pengel/spirit/aprasad/NGS_data/20230308_Malaysia_samples_run3/RawData"
+  - "/work/FAC/FBM/DMF/pengel/spirit/aprasad/NGS_data/20180612_KE_japan_metagenomes/data"
+  - "/work/FAC/FBM/DMF/pengel/spirit/aprasad/NGS_data/20170310_WINDU179/data"
+  - "/work/FAC/FBM/DMF/pengel/spirit/aprasad/NGS_data/20151119_WINDU89/data"
+  - "/work/FAC/FBM/DMF/pengel/spirit/aprasad/NGS_data/20160415_OBIWAN225/data"
+  - "/work/FAC/FBM/DMF/pengel/spirit/aprasad/NGS_data/20161216_OBIWAN275/data"
+  - "/work/FAC/FBM/DMF/pengel/spirit/aprasad/NGS_data/20170426_OBIWAN300/data"
+  - "/work/FAC/FBM/DMF/pengel/spirit/aprasad/NGS_data/20170428_WINDU191/data"
+  - "/work/FAC/FBM/DMF/pengel/spirit/aprasad/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1"
+  - "/work/FAC/FBM/DMF/pengel/spirit/aprasad/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2"
+# RawdataPaths:
+#   - "/nas/FAC/FBM/DMF/pengel/general_data/D2c/datasets/NGS_data/20230120_HMK2GDSX3_Malaysia_samples_run1/RawData"
+#   - "/nas/FAC/FBM/DMF/pengel/general_data/D2c/datasets/NGS_data/20230227_HGMH3DMXY_Malaysia_samples_run2/RawData"
+#   - "/nas/FAC/FBM/DMF/pengel/general_data/D2c/datasets/NGS_data/20230308_Malaysia_samples_run3/RawData"
+#   - "/nas/FAC/FBM/DMF/pengel/general_data/D2c/datasets/NGS_data/20180612_KE_japan_metagenomes/data"
+#   - "/nas/FAC/FBM/DMF/pengel/general_data/D2c/datasets/NGS_data/20170310_WINDU179/data"
+#   - "/nas/FAC/FBM/DMF/pengel/general_data/D2c/datasets/NGS_data/20151119_WINDU89/data"
+#   - "/nas/FAC/FBM/DMF/pengel/general_data/D2c/datasets/NGS_data/20160415_OBIWAN225/data"
+#   - "/nas/FAC/FBM/DMF/pengel/general_data/D2c/datasets/NGS_data/20161216_OBIWAN275/data"
+#   - "/nas/FAC/FBM/DMF/pengel/general_data/D2c/datasets/NGS_data/20170426_OBIWAN300/data"
+#   - "/nas/FAC/FBM/DMF/pengel/general_data/D2c/datasets/NGS_data/20170428_WINDU191/data"
+#   - "/nas/FAC/FBM/DMF/pengel/general_data/D2c/datasets/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1"
+#   - "/nas/FAC/FBM/DMF/pengel/general_data/D2c/datasets/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2"
+READS:
+  - "R1"
+  - "R2"
+Adapters:
+  SAMPLES_KE: "config/NexteraPE-PE.fa"
+  SAMPLES_KE_CHOSEN: "config/NexteraPE-PE.fa"
+  # consider putting this in as a checkpoint if this needs to be made from index_table later
+  SAMPLES_INDIA: "config/Adpaters-PE.fa"
+  default: "config/NexteraPE-PE.fa"
+TYPES:
+  - "paired"
+  - "unpaired"
+ProjectIdentifier: "211018_Medgenome_india_samples"
+GENOME_DBs:
+  host: "4_host_db"
+  microbiome_red: "honeybee_gut_microbiota_db_red"
+  microbiome: "genome_db_220315_AP"
+ProjectPath: "/scratch/aprasad/211018_Medgenome_india_samples"
+BackupPath: "/work/FAC/FBM/DMF/pengel/spirit/aprasad/20230313_apis_species_comparison/"
+ResultsCopyPath: "/nas/FAC/FBM/DMF/pengel/spirit/D2c/aprasad/20211018_aprasad_ApisCrossSpeciesAnalysis/Analysis/20230313_apis_species_comparison/"
+# BackupPath: "aiswarya@130.223.110.124:/home/aiswarya/mnt/aprasad/Backups/working_dir_backup/Cluster"
+LocalBackup: False
+# created used scripts/make_reads_list_file.py
+PATHS_LIST_FILE: "/scratch/aprasad/20230313_apis_species_comparison/config/raw_file_paths.yaml"
 SAMPLES_KE:
   - "AcCh01"
   - "AcCh02"
@@ -109,17 +143,6 @@ SAMPLES_KE:
   - "GrY2_W4"
   - "GrY2_W5"
   - "GrY2_W6"
-SAMPLES_KE_CHOSEN:
-  - "AmAi01"
-  - "AmAi02"
-  - "AmAi03"
-  - "AmAi04"
-  - "AmAi05"
-  - "DrY2_F1"
-  - "DrY2_F2"
-  - "DrY2_F3"
-  - "DrY2_F4"
-  - "DrY2_F5"
 SAMPLES_INDIA:
   - "C1-1"
   - "C1-2"
@@ -322,24 +345,3 @@ SAMPLES_MY:
   - "A6-3"
   - "A6-4"
   - "A6-5"
-READS:
-  - "R1"
-  - "R2"
-Adapters:
-  SAMPLES_KE: "config/NexteraPE-PE.fa"
-  SAMPLES_KE_CHOSEN: "config/NexteraPE-PE.fa"
-  # consider putting this in as a checkpoint if this needs to be made from index_table later
-  SAMPLES_INDIA: "config/Adpaters-PE.fa"
-  default: "config/NexteraPE-PE.fa"
-TYPES:
-  - "paired"
-  - "unpaired"
-ProjectIdentifier: "211018_Medgenome_india_samples"
-GENOME_DBs:
-  host: "4_host_db"
-  microbiome_red: "honeybee_gut_microbiota_db_red"
-  microbiome: "genome_db_220315_AP"
-ProjectPath: "/scratch/aprasad/211018_Medgenome_india_samples"
-BackupPath: "/work/FAC/FBM/DMF/pengel/spirit/aprasad/"
-# BackupPath: "aiswarya@130.223.110.124:/home/aiswarya/mnt/aprasad/Backups/working_dir_backup/Cluster"
-LocalBackup: False
