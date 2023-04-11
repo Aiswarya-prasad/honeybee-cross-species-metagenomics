@@ -695,13 +695,11 @@ Next, filter and continue to re run core cov and then proceed to snv calling and
 
 Run entire snakemake pipeline using:
 
-`snakemake -p --use-conda --conda-prefix /work/FAC/FBM/DMF/pengel/spirit/aprasad/snakemake-conda-envs --conda-frontend conda --profile slurm --restart-times 0 --keep-going`
+`snakemake -p -r --use-conda --conda-prefix /work/FAC/FBM/DMF/pengel/spirit/aprasad/snakemake-conda-envs --conda-frontend mamba --profile slurm --restart-times 0 --rerun-triggers mtime --cluster-cancel scancel --keep-going -n`
 
 and if resuming a failed or stopped run, use:
 
-`snakemake -p --use-conda --conda-prefix /work/FAC/FBM/DMF/pengel/spirit/aprasad/snakemake-conda-envs --conda-frontend conda --profile slurm --restart-times 0 --keep-going --rerun-incomplete -n`
-
-`snakemake -p --use-conda --conda-prefix /scratch/aprasad/built-envs/ --conda-frontend mamba --profile slurm --restart-times 0 -r --cluster-cancel scancel --keep-going --rerun-incomplete --rerun-triggers mtime`
+`snakemake -p -r --use-conda --conda-prefix /work/FAC/FBM/DMF/pengel/spirit/aprasad/snakemake-conda-envs --conda-frontend mamba --profile slurm --restart-times 0 --keep-going --rerun-incomplete --rerun-triggers mtime --cluster-cancel scancel -n`
 
 conda environments are all specified in `envs/` and built by snakemake under various names in `/work/FAC/FBM/DMF/pengel/spirit/aprasad/snakemake-conda-envs`
 
