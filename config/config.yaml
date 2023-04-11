@@ -96,7 +96,7 @@ SAMPLES_KE:
   - "DrY2_F3"
   - "DrY2_F4"
   - "DrY2_F5"
-  - "DrY2_F6"
+  # - "DrY2_F6"
   - "DrY2_N1"
   - "DrY2_N2"
   - "DrY2_N3"

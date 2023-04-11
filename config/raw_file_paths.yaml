@@ -1289,9 +1289,6 @@ DrY2_F5:
   - /work/FAC/FBM/DMF/pengel/spirit/aprasad/NGS_data/20170310_WINDU179/data/DrY2_F5_R1.fastq.gz
   R2:
   - /work/FAC/FBM/DMF/pengel/spirit/aprasad/NGS_data/20170310_WINDU179/data/DrY2_F5_R2.fastq.gz
-DrY2_F6:
-  R1: []
-  R2: []
 DrY2_N1:
   R1:
   - /work/FAC/FBM/DMF/pengel/spirit/aprasad/NGS_data/20161216_OBIWAN275/data/DrY2_N1_R1.fastq.gz

@@ -16,7 +16,9 @@ rules:
 scripts:
     - write_adapters.py (currently not in use)
 targets:
-    
+    - trimmed files
+    - concatenated files after trimming
+    - raw and trimmmed file fastqc results
 """
 
 rule raw_qc:

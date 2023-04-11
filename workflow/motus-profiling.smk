@@ -30,7 +30,7 @@ rule run_motus:
     threads: 8
     log: "results/02_motus_profile/{sample}_run_motus.log"
     benchmark: "results/02_motus_profile/{sample}_run_motus.benchmark"
-    conda: "config/envs/motus-env.yaml"
+    conda: "../config/envs/motus-env.yaml"
     shell:
         """
         motus downloadDB &> {log}
@@ -53,7 +53,7 @@ rule merge_motus:
     threads: 8
     log: "results/02_motus_profile/merge_motus.log"
     benchmark: "results/02_motus_profile/merge_motus.benchmark"
-    conda: "config/envs/motus-env.yaml"
+    conda: "../config/envs/motus-env.yaml"
     shell:
         """
         motus merge -i $(echo \"{input.motus_temp}\" | sed -e 's/ /,/g' ) > {output.motus_merged} 2> {log}
