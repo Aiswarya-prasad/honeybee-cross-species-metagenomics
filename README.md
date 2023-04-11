@@ -695,15 +695,15 @@ Next, filter and continue to re run core cov and then proceed to snv calling and
 
 Run entire snakemake pipeline using:
 
-`snakemake -p --use-conda --conda-prefix /work/FAC/FBM/DMF/pengel/spirit/aprasad/Miniconda3/spirit_envs --conda-frontend conda --profile slurm --restart-times 0 --keep-going`
+`snakemake -p --use-conda --conda-prefix /work/FAC/FBM/DMF/pengel/spirit/aprasad/snakemake-conda-envs --conda-frontend conda --profile slurm --restart-times 0 --keep-going`
 
 and if resuming a failed or stopped run, use:
 
-`snakemake -p --use-conda --conda-prefix /work/FAC/FBM/DMF/pengel/spirit/aprasad/Miniconda3/spirit_envs --conda-frontend conda --profile slurm --restart-times 0 --keep-going --rerun-incomplete`
+`snakemake -p --use-conda --conda-prefix /work/FAC/FBM/DMF/pengel/spirit/aprasad/snakemake-conda-envs --conda-frontend conda --profile slurm --restart-times 0 --keep-going --rerun-incomplete -n`
 
-`snakemake -p --use-conda --conda-prefix /scratch/aprasad/built-envs/ --conda-frontend mamba --profile slurm --restart-times 0 -r --cluster-cancel scancel --keep-going --rerun-incomplete --rerun-triggers mtime` (as of 22/01/23)
+`snakemake -p --use-conda --conda-prefix /scratch/aprasad/built-envs/ --conda-frontend mamba --profile slurm --restart-times 0 -r --cluster-cancel scancel --keep-going --rerun-incomplete --rerun-triggers mtime`
 
-conda environments are all specified in `envs/` and built by snakemake under various names in `/work/FAC/FBM/DMF/pengel/spirit/aprasad/Miniconda3/spirit_envs`
+conda environments are all specified in `envs/` and built by snakemake under various names in `/work/FAC/FBM/DMF/pengel/spirit/aprasad/snakemake-conda-envs`
 
 Run the pipeline in the conda environment called `snakmake_with_samtools` in the cluster (`import yaml` needs to work for the pipeline to start). It is a clone of the snakemake environment made as recommended by Snakemake [docs](https://snakemake.readthedocs.io/en/stable/getting_started/installation.html#installation-via-conda-mamba) followed by `conda install biopython` and later `conda install samtools` in it. This is so that Kirsten's core_cov script works (specific conda environments can only be specified for rules using bash).
 

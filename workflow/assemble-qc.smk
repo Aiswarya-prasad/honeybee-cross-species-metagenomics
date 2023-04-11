@@ -27,8 +27,8 @@ targets:
 
 rule assemble_metagenomes:
     input:
-        reads1 = rules.trim.output.reads1,
-        reads2 = rules.trim.output.reads2,
+        reads1 = "results/01_trimmedconcatreads/{sample}_R1.fastq.gz",
+        reads2 = "results/01_trimmedconcatreads/{sample}_R2.fastq.gz",
     output:
         scaffolds_unparsed = temp("results/05_Assembly/trimmed_reads/{sample}_scaffolds_unparsed.fasta"),
         scaffolds = "results/05_Assembly/trimmed_reads/{sample}_scaffolds.fasta",
@@ -78,8 +78,8 @@ rule assemble_metagenomes:
 
 rule map_to_assembly:
     input:
-        reads1 = rules.trim.output.reads1,
-        reads2 = rules.trim.output.reads2,
+        reads1 = "results/01_trimmedconcatreads/{sample}_R1.fastq.gz",
+        reads2 = "results/01_trimmedconcatreads/{sample}_R2.fastq.gz",
         scaffolds = rules.assemble_metagenomes.output.scaffolds
     output:
         flagstat = "results/05_Assembly/scaffolds_mapping/{sample}_assembly_mapping_flagstat.tsv",

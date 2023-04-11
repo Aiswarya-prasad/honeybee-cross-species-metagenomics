@@ -34,3 +34,5 @@ for dir in rawpaths:
     
 with open(file_path, "w") as out_fh:
     out_fh.write(yaml.dump(paths_dict))
+# raw_paths_dict_all = yaml.safe_load(open("config/raw_file_paths.yaml", "r"))
+# len(get_list_of_values(get_renamed_input_files(raw_paths_dict_all)))

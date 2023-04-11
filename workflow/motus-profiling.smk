@@ -10,13 +10,13 @@ rules:
     - merge_motus
         + merge all motus output into one file for downstream processing
 targets:
-    - motus_merged = "results/02_motus_profile/samples_merged.motus", # got to its respective rule and add desired list of samples in its expansion eg. SAMPLES+SAMPLES_KE
+    - motus_merged = "results/02_motus_profile/samples_merged.motus", # got to its respective rule and add desired list of samples in its expansion eg. SAMPLES
 """
 
 rule run_motus:
     input:
-        reads1 = rules.trim.output.reads1,
-        reads2 = rules.trim.output.reads2,
+        reads1 = "results/01_trimmedconcatreads/{sample}_R1.fastq.gz",
+        reads2 = "results/01_trimmedconcatreads/{sample}_R2.fastq.gz",
     output:
         motus_temp = "results/02_motus_profile/{sample}.motus"
     params:
@@ -39,7 +39,7 @@ rule run_motus:
 
 rule merge_motus:
     input:
-        motus_temp = expand("results/02_motus_profile/{sample}.motus", sample=SAMPLES+SAMPLES_KE)
+        motus_temp = expand("results/02_motus_profile/{sample}.motus", sample=SAMPLES)
     output:
         motus_merged = "results/02_motus_profile/samples_merged.motus"
     params:
