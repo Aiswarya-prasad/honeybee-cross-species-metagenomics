@@ -139,13 +139,13 @@ rule prodigal_get_orfs:
     input:
         scaffolds = "results/05_assembly/trimmed_reads/{sample}_scaffolds.fasta"
     output:
-        orfs = "06_metagenomicORFs/{sample}_orfs.ffn",
-        filt_log = "06_metagenomicORFs/{sample}_orfs_filt_sumary.log",
-        scaffolds_ffn = "06_metagenomicORFs/{sample}/{sample}.ffn",
-        scaffolds_faa = "06_metagenomicORFs/{sample}/{sample}.faa",
-        scaffolds_gff = "06_metagenomicORFs/{sample}/{sample}.gff"
+        orfs = "results/06_metagenomicORFs/{sample}_orfs.ffn",
+        filt_log = "results/06_metagenomicORFs/{sample}_orfs_filt_sumary.log",
+        scaffolds_ffn = "results/06_metagenomicORFs/{sample}/{sample}.ffn",
+        scaffolds_faa = "results/06_metagenomicORFs/{sample}/{sample}.faa",
+        scaffolds_gff = "results/06_metagenomicORFs/{sample}/{sample}.gff"
     params:
-        outdir = "06_metagenomicORFs/{sample}/",
+        outdir = "results/06_metagenomicORFs/{sample}/",
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         account="pengel_spirit",
@@ -153,8 +153,8 @@ rule prodigal_get_orfs:
     resources:
         mem_mb = 16000
     threads: 8
-    log: "06_metagenomicORFs/{sample}_prodigal_get_orfs.log"
-    benchmark: "06_metagenomicORFs/{sample}_prodigal_get_orfs.benchmark"
+    log: "results/06_metagenomicORFs/{sample}_prodigal_get_orfs.log"
+    benchmark: "results/06_metagenomicORFs/{sample}_prodigal_get_orfs.benchmark"
     conda: "../config/envs/snv-env.yaml"
     shell:
         """
@@ -166,13 +166,13 @@ rule prodigal_get_orfs:
 
 # rule dram_annotate_orfs:
 #     input:
-#         scaffolds = "06_metagenomicORFs/{sample}/{sample}.faa",
+#         scaffolds = "results/06_metagenomicORFs/{sample}/{sample}.faa",
 #         dram_config = "config/dram_config.json"
 #     output:
-#         dram_annotations = "06_metagenomicORFs/dram_annotations/{sample}/annotations.tsv",
+#         dram_annotations = "results/06_metagenomicORFs/dram_annotations/{sample}/annotations.tsv",
 #     params:
 #         db_location = "/reference/dram",
-#         dram_outdir = lambda wildcards: os.path.join("06_metagenomicORFs/dram_annotations/", wildcards.sample),
+#         dram_outdir = lambda wildcards: os.path.join("results/06_metagenomicORFs/dram_annotations/", wildcards.sample),
 #         mailto="aiswarya.prasad@unil.ch",
 #         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
 #         account="pengel_spirit",
@@ -180,8 +180,8 @@ rule prodigal_get_orfs:
 #     resources:
 #         mem_mb = convertToMb("512G")
 #     threads: 2
-#     log: "06_metagenomicORFs/dram_annotations/{sample}/dram_annotate_orfs_{sample}.log"
-#     benchmark: "06_metagenomicORFs/dram_annotations/{sample}/dram_annotate_orfs_{sample}.benchmark"
+#     log: "results/06_metagenomicORFs/dram_annotations/{sample}/dram_annotate_orfs_{sample}.log"
+#     benchmark: "results/06_metagenomicORFs/dram_annotations/{sample}/dram_annotate_orfs_{sample}.benchmark"
 #     conda: "../config/envs/mags-env.yaml"
 #     shell:
 #         """

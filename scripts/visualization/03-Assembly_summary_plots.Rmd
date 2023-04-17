@@ -122,3 +122,23 @@ g <- grid.arrange(
  ggsave("Figures/03-Assembly_summary.pdf", g)
 Number_contig_plot
 ```
+
+# Time and maximum RAM
+
+```{r}
+df_ram_time <- data.frame()
+for (sample_name in samples) {
+  file_path <- paste0("results/05_assembly/trimmed_reads/", sample_name, "_assemble_metagenomes.benchmark")
+  if (file.exists(file_path)) {
+    df_ram_time_iter <- read.csv(file_path, sep = "\t") %>%
+      select(`h.m.s`, max_rss) %>%
+        rename(max_ram = max_rss) %>%
+        rename(time = `h.m.s`) %>%
+        separate(into = c("Hours", "Minutes", "Seconds"), col = time, sep = ":") %>%
+        mutate(Total = as.numeric(Hours) + as.numeric(Minutes)/60 + as.numeric(Seconds)/(60*60)) %>%
+        mutate(Sample = sample_name)
+    df_ram_time <- rbind(df_ram_time, df_ram_time_iter)
+  }
+}
+df_ram_time
+```

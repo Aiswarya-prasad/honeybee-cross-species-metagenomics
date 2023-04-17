@@ -3,6 +3,8 @@
 *.faa
 *.fna
 *.ffa
+*.ffn
+*.gff
 *.fa
 *.fasta
 *.fastq
@@ -20,6 +22,10 @@
 
 *.zip
 *.gz
+*.log
+*.benchmark
+*.e
+*.o
 
 results/*
 */.snakemake/*

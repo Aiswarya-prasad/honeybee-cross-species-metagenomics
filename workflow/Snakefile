@@ -52,8 +52,8 @@ rule targets:
         motus_merged = "results/02_motus_profile/samples_merged.motus",
         scaffolds = expand("results/05_assembly/trimmed_reads/{sample}_scaffolds.fasta", sample = SAMPLES_INDIA+SAMPLES_MY),
         assembly_mapping = "results/05_assembly/scaffolds_mapping/Assembly_mapping_summary.csv",
-        orfs = expand("06_metagenomicORFs/{sample}_orfs.ffn", sample = SAMPLES_INDIA+SAMPLES_MY)
-
+        orfs = expand("results/06_metagenomicORFs/{sample}_orfs.ffn", sample = SAMPLES_INDIA+SAMPLES_MY)
+# but 06 inside results and rename 05_assembly/trimmed_reads
 include: "trim-qc.smk"
 include: "motus-profiling.smk"
 include: "assemble-qc.smk"
