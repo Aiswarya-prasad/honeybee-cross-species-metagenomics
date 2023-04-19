@@ -141,4 +141,6 @@ for (sample_name in samples) {
   }
 }
 df_ram_time
+df_reads
+plot_raw_df <- df_ram_time
 ```

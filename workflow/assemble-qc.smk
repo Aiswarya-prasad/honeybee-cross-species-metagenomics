@@ -25,6 +25,9 @@ targets:
     - prodigal_orfs
 """
 
+# samples that failed in the first run:
+LARGE_SAMPLES = ["A2-2", "A2-3", "A3-4", "A4-4", "A6-4", "D1-2", "D2-1", "D2-2", "D2-4", "D2-5", "D3-2", "D9-5", "F2-5", "F3-4", "F3-5", "F4-1", "F7-5", "F8-2", "F8-4"]
+
 rule assemble_metagenomes:
     input:
         reads1 = "results/01_trimmedconcatreads/{sample}_R1.fastq.gz",
@@ -38,14 +41,14 @@ rule assemble_metagenomes:
         outdir = lambda wildcards: "results/05_assembly/trimmed_reads/"+wildcards.sample,
         length_t = 1000,
         cov_t = 1,
-        memory_limit = lambda wildcards, resources: "650" if resources.attempt > 1 else "250",
+        memory_limit = lambda wildcards, resources: "850" if resources.attempt > 1 else "250",
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         account="pengel_spirit",
         runtime_s=lambda wildcards, resources: convertToSec("1-20:00:00") if resources.attempt > 1 else convertToSec("0-20:00:00"),
     resources:
         attempt = lambda wildcards, attempt: attempt,
-        mem_mb = lambda wildcards, attempt: convertToMb("600G") if attempt > 1 else convertToMb("200G")
+        mem_mb = lambda wildcards, attempt: convertToMb("800G") if attempt > 1 else convertToMb("200G")
     retries: 3
     threads: 4
     log: "results/05_assembly/trimmed_reads/{sample}_assemble_metagenomes.log"

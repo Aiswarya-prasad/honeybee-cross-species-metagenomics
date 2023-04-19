@@ -1113,35 +1113,27 @@ To do a sanity check use `qpcr_df_info %>% summarise(n())`.
 ```{r load_and_parse_data}
 df_reads <- data.frame()
 for (sample in samples) {
-  if (file.exists(paste0("fastqc/raw/", sample, "_R1_fastqc.zip"))) {
-    number_raw_R1 <- read.csv(unz(paste0("fastqc/raw/", sample, "_R1_fastqc.zip"), paste0(sample, "_R1_fastqc/fastqc_data.txt")), sep = "\t") %>%
-                filter(.[[1]] == "Total Sequences") %>%
-                  pull() %>%
-                    as.integer()
+  if (file.exists(paste0("results/01_trimmedconcatreads/", sample, "_R1.fastq.gz"))) {
+    raw_R1_reads <- paste0("results/01_trimmedconcatreads/", sample, "_R1.fastq.gz")
+    number_raw_R1 <- system(paste("zcat ", raw_R1_reads, " | grep -e '^+$' | wc -l"), intern = T)
   } else {
     number_raw_R1 <- NA
   }
-  if (file.exists(paste0("fastqc/raw/", sample, "_R2_fastqc.zip"))) {
-    number_raw_R2 <- read.csv(unz(paste0("fastqc/raw/", sample, "_R2_fastqc.zip"), paste0(sample, "_R2_fastqc/fastqc_data.txt")), sep = "\t") %>%
-                filter(.[[1]] == "Total Sequences") %>%
-                  pull() %>%
-                    as.integer()
+  if (file.exists(paste0("results/01_trimmedconcatreads/", sample, "_R2.fastq.gz"))) {
+    raw_R2_reads <- paste0("results/01_trimmedconcatreads/", sample, "_R2.fastq.gz")
+    number_raw_R2 <- system(paste("zcat ", raw_R2_reads, " | grep -e '^+$' | wc -l"), intern = T)
   } else {
     number_raw_R2 <- NA
   }
-  if (file.exists(paste0("fastqc/trim/", sample, "_R1_trim_fastqc.zip"))) {
-    number_trimmed_R1 <- read.csv(unz(paste0("fastqc/trim/", sample, "_R1_trim_fastqc.zip"), paste0(sample, "_R1_trim_fastqc/fastqc_data.txt")), sep = "\t") %>%
-                  filter(.[[1]] == "Total Sequences") %>%
-                    pull() %>%
-                      as.integer()
+  if (file.exists(paste0("results/00_trimmedreads/fastqc/", sample, "_R1_trim_fastqc.zip"))) {
+    trimmedconcat_R1_reads <- paste0("results/01_trimmedconcatreads/", sample, "_R1.fastq.gz")
+    number_trimmedconcat_R1 <- system(paste("zcat ", trimmedconcat_R1_reads, " | grep -e '^+$' | wc -l"), intern = T)
   } else {
     number_trimmed_R1 <- NA
   }
-  if (file.exists(paste0("fastqc/trim/", sample, "_R2_trim_fastqc.zip"))) {
-    number_trimmed_R2 <- read.csv(unz(paste0("fastqc/trim/", sample, "_R2_trim_fastqc.zip"), paste0(sample, "_R2_trim_fastqc/fastqc_data.txt")), sep = "\t") %>%
-                  filter(.[[1]] == "Total Sequences") %>%
-                    pull() %>%
-                      as.integer()
+  if (file.exists(paste0("results/00_trimmedreads/fastqc/", sample, "_R2_trim_fastqc.zip"))) {
+    trimmedconcat_R2_reads <- paste0("results/01_trimmedconcatreads/", sample, "_R2.fastq.gz")
+    number_trimmedconcat_R2 <- system(paste("zcat ", trimmedconcat_R2_reads, " | grep -e '^+$' | wc -l"), intern = T)
   } else {
     number_trimmed_R2 <- NA
   }
