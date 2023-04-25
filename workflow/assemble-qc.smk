@@ -33,26 +33,29 @@ rule assemble_metagenomes:
         reads1 = "results/01_trimmedconcatreads/{sample}_R1.fastq.gz",
         reads2 = "results/01_trimmedconcatreads/{sample}_R2.fastq.gz",
     output:
-        scaffolds_unparsed = temp("results/05_assembly/trimmed_reads/{sample}_scaffolds_unparsed.fasta"),
-        scaffolds = "results/05_assembly/trimmed_reads/{sample}_scaffolds.fasta",
-        graph = "results/05_assembly/trimmed_reads/{sample}_assembly_graph.fastg",
-        spades_log = "results/05_assembly/trimmed_reads/{sample}_spades.log",
+        scaffolds_unparsed = temp("results/05_assembly/all_reads_assemblies/{sample}_scaffolds_unparsed.fasta"),
+        scaffolds = "results/05_assembly/all_reads_assemblies/{sample}_scaffolds.fasta",
+        graph = "results/05_assembly/all_reads_assemblies/{sample}_assembly_graph.fastg",
+        spades_log = "results/05_assembly/all_reads_assemblies/{sample}_spades.log",
     params:
-        outdir = lambda wildcards: "results/05_assembly/trimmed_reads/"+wildcards.sample,
+        outdir = lambda wildcards: "results/05_assembly/all_reads_assemblies/"+wildcards.sample,
         length_t = 1000,
         cov_t = 1,
-        memory_limit = lambda wildcards, resources: "850" if resources.attempt > 1 else "250",
+        memory_limit = lambda wildcards, resources: "450",
+        # memory_limit = lambda wildcards, resources: "850" if resources.attempt > 1 else "250",
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         account="pengel_spirit",
-        runtime_s=lambda wildcards, resources: convertToSec("1-20:00:00") if resources.attempt > 1 else convertToSec("0-20:00:00"),
+        runtime_s=lambda wildcards, resources: convertToSec("1-20:00:00"),
+        # runtime_s=lambda wildcards, resources: convertToSec("1-20:00:00") if resources.attempt > 1 else convertToSec("0-20:00:00"),
     resources:
         attempt = lambda wildcards, attempt: attempt,
-        mem_mb = lambda wildcards, attempt: convertToMb("800G") if attempt > 1 else convertToMb("200G")
+        mem_mb = lambda wildcards, attempt: convertToMb("400")
+        # mem_mb = lambda wildcards, attempt: convertToMb("800G") if attempt > 1 else convertToMb("200G")
     retries: 3
     threads: 4
-    log: "results/05_assembly/trimmed_reads/{sample}_assemble_metagenomes.log"
-    benchmark: "results/05_assembly/trimmed_reads/{sample}_assemble_metagenomes.benchmark"
+    log: "results/05_assembly/all_reads_assemblies/{sample}_assemble_metagenomes.log"
+    benchmark: "results/05_assembly/all_reads_assemblies/{sample}_assemble_metagenomes.benchmark"
     conda: "../config/envs/spades-env.yaml"
     shell:
         """
@@ -107,18 +110,18 @@ rule map_to_assembly:
         bwa index {input.scaffolds} &>> {log}
         bwa mem -t {threads} {input.scaffolds} {input.reads1} {input.reads2} 1> {output.sam} 2>> {log}
         samtools view -bh {output.sam} | samtools sort - 1> {output.bam} 2>> {log}
-        rm results/05_assembly/trimmed_reads/{wildcards.sample}_scaffolds.fasta.amb &>> {log}
-        rm results/05_assembly/trimmed_reads/{wildcards.sample}_scaffolds.fasta.ann &>> {log}
-        rm results/05_assembly/trimmed_reads/{wildcards.sample}_scaffolds.fasta.bwt &>> {log}
-        rm results/05_assembly/trimmed_reads/{wildcards.sample}_scaffolds.fasta.pac &>> {log}
-        rm results/05_assembly/trimmed_reads/{wildcards.sample}_scaffolds.fasta.sa &>> {log}
+        rm results/05_assembly/all_reads_assemblies/{wildcards.sample}_scaffolds.fasta.amb &>> {log}
+        rm results/05_assembly/all_reads_assemblies/{wildcards.sample}_scaffolds.fasta.ann &>> {log}
+        rm results/05_assembly/all_reads_assemblies/{wildcards.sample}_scaffolds.fasta.bwt &>> {log}
+        rm results/05_assembly/all_reads_assemblies/{wildcards.sample}_scaffolds.fasta.pac &>> {log}
+        rm results/05_assembly/all_reads_assemblies/{wildcards.sample}_scaffolds.fasta.sa &>> {log}
         samtools flagstat -O tsv {output.bam} > {output.flagstat} 2>> {log}
         """
 
 rule summarize_mapping_assembly:
     input:
-        scaffolds = expand("results/05_assembly/trimmed_reads/{sample}_scaffolds.fasta", sample=SAMPLES_MY+SAMPLES_INDIA),
-        scaffolds_unparsed = expand("results/05_assembly/trimmed_reads/{sample}_scaffolds_unparsed.fasta", sample=SAMPLES_MY+SAMPLES_INDIA),
+        scaffolds = expand("results/05_assembly/all_reads_assemblies/{sample}_scaffolds.fasta", sample=SAMPLES_MY+SAMPLES_INDIA),
+        # scaffolds_unparsed = expand("results/05_assembly/all_reads_assemblies/{sample}_scaffolds_unparsed.fasta", sample=SAMPLES_MY+SAMPLES_INDIA),
         flagstat = expand("results/05_assembly/scaffolds_mapping/{sample}_assembly_mapping_flagstat.tsv", sample=SAMPLES_MY+SAMPLES_INDIA)
     output:
         summary_assembly = "results/05_assembly/scaffolds_mapping/Assembly_mapping_summary.csv",
@@ -140,7 +143,7 @@ rule summarize_mapping_assembly:
 
 rule prodigal_get_orfs:
     input:
-        scaffolds = "results/05_assembly/trimmed_reads/{sample}_scaffolds.fasta"
+        scaffolds = "results/05_assembly/all_reads_assemblies/{sample}_scaffolds.fasta"
     output:
         orfs = "results/06_metagenomicORFs/{sample}_orfs.ffn",
         filt_log = "results/06_metagenomicORFs/{sample}_orfs_filt_sumary.log",

@@ -1,17 +1,18 @@
 import os
 import sys
+import argparse
 
 parser = argparse.ArgumentParser()
 requiredNamed = parser.add_argument_group('required arguments')
 requiredNamed.add_argument('--flagstat', nargs="+", metavar="flagstat",required=True, help="space-separated list of paths to flagstat files", action="store")
 requiredNamed.add_argument('--scaffolds', nargs="+", metavar="scaffolds",required=True, help="space-separated list of paths to scaffolds files", action="store")
-requiredNamed.add_argument('--scaffolds_unparsed', nargs="+", metavar="scaffolds_unparsed",required=True, help="space-separated list of paths to scaffolds_unparsed files", action="store")
+# requiredNamed.add_argument('--scaffolds_unparsed', nargs="+", metavar="scaffolds_unparsed",required=True, help="space-separated list of paths to scaffolds_unparsed files", action="store")
 requiredNamed.add_argument('--outfile', metavar="out_file", required=True, help="Output file containing assembly size and number of mapped and unmapped reads", action="store")
 args = parser.parse_args()
 
 flagstat = args.flagstat
 scaffolds = args.scaffolds
-scaffolds_unparsed = args.scaffolds_unparsed
+# # scaffolds_unparsed = args.scaffolds_unparsed
 flagstat = args.flagstat
 outfile = args.outfile
 
@@ -44,6 +45,7 @@ ContigsN50_list = list()
 
 for i in range(len(flagstat)):
     print(i)
+    file = flagstat[i]
     Sample = file.split("/")[-1].split("_assembly_mapping_flagstat.tsv")[0]
     print(Sample)
     Sample_list.append(Sample)
@@ -67,8 +69,8 @@ for i in range(len(flagstat)):
     NumberOfContigs = int(os.popen("echo $(cat "+scaffolds[i]+" | grep -c \'>\')").read())
     NumberOfContigs_list.append(NumberOfContigs)
 
-    NumberOfContigsUn = int(os.popen("echo $(cat "+scaffolds_unparsed[i]+" | grep -c \'>\')").read())
-    NumberOfContigsUn_list.append(NumberOfContigsUn)
+    # NumberOfContigsUn = int(os.popen("echo $(cat "+scaffolds_unparsed[i]+" | grep -c \'>\')").read())
+    # NumberOfContigsUn_list.append(NumberOfContigsUn)
 
     AssemblySize = int(os.popen("echo $(cat "+scaffolds[i]+" | grep -v \'>\' | tr -d \'\n\' | wc -m)").read())
     AssemblySize_list.append(AssemblySize)
@@ -85,8 +87,9 @@ Summary_path = os.path.join(os.getcwd(), outfile)
 
 with open(Summary_path, "w") as file:
     file.write("Sample, Assembly size, Number of reads, " +
-    "Total nummber of scaffolds, Number of filtered scaffolds," +
+    "Number of filtered scaffolds, " +
     "N50 filtered, Min contig length, Max contig length, " +
     "Number mapped, Percent mapped\n")
     for i in range(len(input.reads1)):
-        file.write(f"{Sample_list[i]}, {AssemblySize_list[i]}, {NumReads_list[i]}, {NumberOfContigsUn_list[i]}, {NumberOfContigs_list[i]}, {ContigsN50_list[i]}, {MinContigLen_list[i]}, {MaxContigLen_list[i]}, {AssemblyMapped_list[i]}, {ProportionMapped_list[i]}\n")
+        # file.write(f"{Sample_list[i]}, {AssemblySize_list[i]}, {NumReads_list[i]}, {NumberOfContigsUn_list[i]}, {NumberOfContigs_list[i]}, {ContigsN50_list[i]}, {MinContigLen_list[i]}, {MaxContigLen_list[i]}, {AssemblyMapped_list[i]}, {ProportionMapped_list[i]}\n")
+        file.write(f"{Sample_list[i]}, {AssemblySize_list[i]}, {NumReads_list[i]}, {NumberOfContigs_list[i]}, {ContigsN50_list[i]}, {MinContigLen_list[i]}, {MaxContigLen_list[i]}, {AssemblyMapped_list[i]}, {ProportionMapped_list[i]}\n")

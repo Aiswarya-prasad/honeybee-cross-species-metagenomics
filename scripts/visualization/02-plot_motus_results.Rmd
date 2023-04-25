@@ -40,7 +40,7 @@ assigned_plot <- ggplot(df_assigned_plot, aes(y = factor(Sample, samples), x = p
                     make_theme(leg_pos = "right", guide_nrow = 20, leg_size = 7,
                                y_size = 8, y_hj = 1, y_vj = 0.5
                     )
-                    # ggsave("Figures/02-motus_unassigned.pdf")
+                    # ggsave("figures/02-motus_unassigned.pdf")
 
 plot_motus_high_prev <- ggplot(df_motus_combined, aes(x = factor(Sample, samples), y = rel_ab, fill = factor(motu_condensed, motus))) +
                 geom_bar(position = "stack", stat = "identity") +
@@ -54,7 +54,7 @@ plot_motus_high_prev <- ggplot(df_motus_combined, aes(x = factor(Sample, samples
                              y_angle=0 ,y_vj=0, y_hj=0, y_size=12
                   ) +
                   scale_fill_manual(values=motuColors)
-                    ggsave("Figures/02-motus.pdf")
+                    ggsave("figures/02-motus.pdf")
 
 df_motus_filt <- filter(df_motus_combined, Prevalence_num >= 1 & rel_ab > 0.01)
 plot_motus_filt <- ggplot(df_motus_filt, aes(y = factor(Sample, samples), x = rel_ab, fill = factor(motu_condensed))) +
@@ -67,7 +67,7 @@ plot_motus_filt <- ggplot(df_motus_filt, aes(y = factor(Sample, samples), x = re
                              leg_size = 7,
                              y_size = 8, y_hj = 1,
                   )
-                  ggsave("Figures/02-motus_filt.pdf")
+                  ggsave("figures/02-motus_filt.pdf")
 
 ggplot(df_motus_combined %>% filter(rel_ab > 0.01), aes(y = factor(Sample, samples), x = rel_ab, fill = factor(motu))) +
                 geom_bar(position = "stack", stat = "identity") +
@@ -77,7 +77,7 @@ ggplot(df_motus_combined %>% filter(rel_ab > 0.01), aes(y = factor(Sample, sampl
                              leg_size = 7,
                              y_size = 8, y_hj = 1
                   )
-ggsave("Figures/02c-motus_all.pdf")
+ggsave("figures/02c-motus_all.pdf")
 grid.arrange(get_only_legend(ggplot(df_motus_combined  %>% filter(rel_ab > 0.01), aes(y = factor(Sample, samples), x = rel_ab, fill = factor(motu))) +
                 geom_bar(position = "stack", stat = "identity") +
                 labs(fill = "mOTU", x = "mOTUs2 Relative abundance", y = "Sample") +
@@ -89,7 +89,7 @@ grid.arrange(get_only_legend(ggplot(df_motus_combined  %>% filter(rel_ab > 0.01)
                   theme(legend.key=element_blank(), legend.key.size=unit(5,"point"))
                 )
               )
-ggsave("Figures/02-motus_all_legend.pdf")
+ggsave("figures/02-motus_all_legend.pdf")
 
 plot_motus_filt
 plot_motus_high_prev

@@ -34,7 +34,7 @@ assembly_sizes <- ggplot(df_assembly, aes(y = factor(Sample, levels=samples),
                                      y_angle=0 ,y_vj=0, y_hj=1, y_size=7,
                                      guide_nrow = 1) +
                             scale_fill_manual(values=host_order_color)
-                          # ggsave("Figures/03-AssemblySizes.pdf")
+                          # ggsave("figures/03-AssemblySizes.pdf")
 
 
 
@@ -47,7 +47,7 @@ number_mapped_assembly <- ggplot(df_assembly, aes(y = factor(Sample, levels=samp
                                          y_angle=0 ,y_vj=0, y_hj=1, y_size=7,
                                          guide_nrow = 1) +
                                 scale_fill_manual(values=host_order_color)
-                              # ggsave("Figures/03-NumberAssembled.pdf")
+                              # ggsave("figures/03-NumberAssembled.pdf")
 
 
 
@@ -58,7 +58,7 @@ number_mapped_assembly <- ggplot(df_assembly_plot_number, aes(y = factor(Sample,
                             labs(x = "Number of reads (paired end)", y = "Sample", fill = "Type") +
                             scale_x_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
                               make_theme(x_angle = 60, x_hj = 1, x_vj = 1, max_colors = length(unique(df_assembly_plot$Type)), x_size = 7, guide_nrow = 1)
-                              # ggsave("Figures/03-NumberMappedtoAssembly.pdf")
+                              # ggsave("figures/03-NumberMappedtoAssembly.pdf")
 
 Number_contig_plot <- ggplot(df_assembly, aes(y = factor(Sample, levels=samples), x = Number.of.filtered.scaffolds, fill = factor(Species, levels = rev(host_order)))) +
                             geom_bar(stat = "identity") +
@@ -70,13 +70,13 @@ Number_contig_plot <- ggplot(df_assembly, aes(y = factor(Sample, levels=samples)
                                          x_angle=0 ,x_vj=0, x_hj=0, x_size=12,
                                          y_angle=0 ,y_vj=0, y_hj=1, y_size=7,
                                          guide_nrow = 1)
-                              ggsave("Figures/03-NumberOfFilteredcontigs.pdf")
+                              ggsave("figures/03-NumberOfFilteredcontigs.pdf")
 
 percent_mapped_assembly <- ggplot(df_assembly_plot, aes(y = factor(Sample, levels=samples), x = Percent, fill = factor(Type, levels = c("Unmapped", "Mapped")))) +
                             geom_bar(stat = "identity") +
                             labs(y = "Percentage of reads", x = "Sample", fill = "Type") +
                               make_theme(x_angle = 60, x_hj = 1, x_vj = 1, max_colors = length(unique(df_assembly_plot$Type)), x_size = 7, guide_nrow = 1)
-                              # ggsave("Figures/03-ProportionMappedtoAssembly.pdf")
+                              # ggsave("figures/03-ProportionMappedtoAssembly.pdf")
 
 Total_data_species <- ggplot(mutate(filter(df_reads_plot, Type == "Raw" ), amount_data = Number*2*150), aes(y=factor(Sample, levels = samples),
                                       x=amount_data,
@@ -119,7 +119,7 @@ g <- grid.arrange(
       nrow = 3, heights = c(8,1,8)
  )
  g
- ggsave("Figures/03-Assembly_summary.pdf", g)
+ ggsave("figures/03-Assembly_summary.pdf", g)
 Number_contig_plot
 ```
 

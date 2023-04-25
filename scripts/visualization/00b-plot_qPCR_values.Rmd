@@ -38,7 +38,7 @@ ggplot(qpcr_plot_df,
     make_theme(leg_pos = "none", x_angle = 30, setFill = F, x_vj = 1, x_hj = 1, ) +
       scale_fill_manual(values=host_order_color) +
       scale_y_continuous(trans = "reverse")
-      ggsave("Figures/00b-qPCR_CT_values.pdf")
+      ggsave("figures/00b-qPCR_CT_values.pdf")
 ```
 ## Plotting copy numbers
 
@@ -68,7 +68,7 @@ ggplot(qpcr_plot_df,
                                     #  c("Apis mellifera", "Apis florea")
                                     ), 
               map_signif_level=TRUE, step_increase=0.05)
-      ggsave("Figures/00b-qPCR_copy_numbers.pdf")
+      ggsave("figures/00b-qPCR_copy_numbers.pdf")
 ```
 
 ## Run significance tests
