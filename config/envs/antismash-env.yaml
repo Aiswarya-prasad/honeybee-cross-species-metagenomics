@@ -1,0 +1,10 @@
+name: antismash-env
+
+channels:
+  - bioconda
+  - conda-forge
+
+dependencies:
+  - boost-cpp=1.67
+  - diamond=0.9.24
+  - antismash=6.1*

@@ -13,6 +13,9 @@ transferred - remove or add patterns to --exculde if needed)
 Make sure that the destination path exists!
 
 usage: ./backup.sh /scratch/<> /nas/<> <path to log file>
+
+Example: 
+bash scripts/backup.sh /scratch/aprasad/20230313_apis_species_comparison/ ~/nas_recherche/20211018_aprasad_ApisCrossSpeciesAnalysis/Analysis/20230313_apis_species_comparison/ /scratch/aprasad/backup_20230313_apis_species_comparison.log
 '
 
 date_str=$(date +'%y%m%d')
@@ -39,7 +42,10 @@ echo "#############################################################" | tee -a ${
 
 # do not add the --update option (files that are touched in the remote server will be considered newer and not be updated
 #                                 also, files that are copied fresh will be considered "newer" rather than "uptodate")
-rsync -i --delete --backup --backup-dir="BACKUP/" --exclude "*.git*" --exclude "*_ortho_sequences*" --exclude "BACKUP/" --exclude "Report_cache/" --exclude "00_rawdata/" --exclude "00_Rawdata/" --exclude "00_RawData/" --exclude ".snakemake/" -avP ${source}/ ${destination}/ | tee -a ${logfile}
+# rsync -i --delete --backup --backup-dir="BACKUP/" --exclude "*.git*" --exclude "*_ortho_sequences*" --exclude "BACKUP/" --exclude "Report_cache/" --exclude "00_rawdata/" --exclude "00_Rawdata/" --exclude "00_RawData/" --exclude ".snakemake/" -avP ${source}/ ${destination}/ | tee -a ${logfile}
+
+# rsync -avPni --delete --backup --backup-dir="BACKUP/" --exclude "BACKUP/" --exclude ".snakemake/" ${source}/ ${destination}/ | tee -a ${logfile}
+rsync -avPi --delete --backup --backup-dir="BACKUP/" --exclude "BACKUP/" --exclude ".snakemake/" ${source}/ ${destination}/ | tee -a ${logfile}
 
 echo "#############################################################" | tee -a ${logfile}
 echo "backup done" | tee -a ${logfile}

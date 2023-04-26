@@ -4,6 +4,7 @@ channels:
   - bioconda
   - conda-forge
   - hcc
+  - agbiome
 
 dependencies:
   - python=3.9.7
@@ -15,5 +16,6 @@ dependencies:
   - metabat2
   - blast
   - bbmap
+  - bbtools
   - muscle=3.8.1551
   - biopython

@@ -50,7 +50,7 @@ rule assemble_metagenomes:
         # runtime_s=lambda wildcards, resources: convertToSec("1-20:00:00") if resources.attempt > 1 else convertToSec("0-20:00:00"),
     resources:
         attempt = lambda wildcards, attempt: attempt,
-        mem_mb = lambda wildcards, attempt: convertToMb("400")
+        mem_mb = lambda wildcards, attempt: convertToMb("500")
         # mem_mb = lambda wildcards, attempt: convertToMb("800G") if attempt > 1 else convertToMb("200G")
     retries: 3
     threads: 4
@@ -64,7 +64,7 @@ rule assemble_metagenomes:
         else
           if [ -d \"{params.outdir}/\" ]; then
             echo {params.outdir}\" exists resuming spades\" | tee -a {log}
-            spades.py --continue -o {params.outdir} || true &>> {log}
+            spades.py -m {params.memory_limit} -o {params.outdir} --restart-from last || true &>> {log}
           else
             echo \"{params.outdir} not found. Starting new spades run.\" | tee -a {log}
             spades.py -m {params.memory_limit} --meta -1 {input.reads1} -2 {input.reads2} -t {threads} -o {params.outdir} || true &>> {log}
@@ -83,10 +83,33 @@ rule assemble_metagenomes:
         rm -rf {params.outdir} &>> {log}
         """
 
-rule map_to_assembly:
+rule re_pair_reads:
     input:
         reads1 = "results/01_trimmedconcatreads/{sample}_R1.fastq.gz",
-        reads2 = "results/01_trimmedconcatreads/{sample}_R2.fastq.gz",
+        reads2 = "results/01_trimmedconcatreads/{sample}_R2.fastq.gz"
+    output:
+        reads1 = "results/01_cleanreads/{sample}_R1_repaired.fastq.gz",
+        reads2 = "results/01_cleanreads/{sample}_R2_repaired.fastq.gz",
+        singletons = "results/01_cleanreads/{sample}_singletons.fastq.gz"
+    params:
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        jobname="{sample}_re-paired",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-12:00:00"),
+    threads: 4
+    log: "results/01_cleanreads/{sample}_repaired.log"
+    benchmark: "results/01_cleanreads/{sample}_repaired.benchmark"
+    conda: "../config/envs/mapping-env.yaml"
+    shell:
+        """
+        repair.sh in1={input.reads1} in2={input.reads2} out1={output.reads1} out2={output.reads2} outs={output.singletons} repair
+        """
+
+rule map_to_assembly:
+    input:
+        reads1 = "results/01_cleanreads/{sample}_R1_repaired.fastq.gz",
+        reads2 = "results/01_cleanreads/{sample}_R2_repaired.fastq.gz",
         scaffolds = rules.assemble_metagenomes.output.scaffolds
     output:
         flagstat = "results/05_assembly/scaffolds_mapping/{sample}_assembly_mapping_flagstat.tsv",
@@ -97,7 +120,7 @@ rule map_to_assembly:
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         jobname="{sample}_map_to_assembly",
         account="pengel_spirit",
-        runtime_s=convertToSec("1-00:00:00"),
+        runtime_s=convertToSec("0-10:00:00"),
     resources:
         mem_mb = 8000
     threads: 5
@@ -138,7 +161,7 @@ rule summarize_mapping_assembly:
     benchmark: "results/05_assembly/scaffolds_mapping/summarize_mapping_assembly.benchmark"
     shell:
         """
-        python3 scripts/assembly_summary.py --scaffolds {input.scaffolds} --scaffolds_unparsed {input.scaffolds_unparsed} --flagstat {input.flagstat} --outfile {output.summary_assembly} &> {log}
+        python3 scripts/assembly_summary.py --scaffolds {input.scaffolds} --flagstat {input.flagstat} --outfile {output.summary_assembly} &> {log}
         """
 
 rule prodigal_get_orfs:
