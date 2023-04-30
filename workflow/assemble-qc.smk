@@ -25,13 +25,43 @@ targets:
     - prodigal_orfs
 """
 
-# samples that failed in the first run:
+# samples that failed in the first run (250):
 LARGE_SAMPLES = ["A2-2", "A2-3", "A3-4", "A4-4", "A6-4", "D1-2", "D2-1", "D2-2", "D2-4", "D2-5", "D3-2", "D9-5", "F2-5", "F3-4", "F3-5", "F4-1", "F7-5", "F8-2", "F8-4"]
+# samples that failed in the first run (450 - 800) ("A6-4", "D1-2", "D3-2" were completed with the higher RAM):
+LARGE_SAMPLES = ["A2-2", "A2-3", "A3-4", "A4-4", "D2-1", "D2-2", "D2-4", "D2-5", "D9-5", "F2-5", "F3-4", "F3-5", "F4-1", "F7-5", "F8-2", "F8-4"]
 
-rule assemble_metagenomes:
+rule run_bbnorm:
     input:
         reads1 = "results/01_trimmedconcatreads/{sample}_R1.fastq.gz",
         reads2 = "results/01_trimmedconcatreads/{sample}_R2.fastq.gz",
+    output:
+        reads1 = "results/05_assembly/bbnormed_reads/{sample}_R1.fastq.gz",
+        reads2 = "results/05_assembly/bbnormed_reads/{sample}_R2.fastq.gz",
+        hist = "results/05_assembly/bbnormed_reads/{sample}.hist",
+        peaks = "results/05_assembly/bbnormed_reads/{sample}.peaks",
+    params:
+        java_mem="3",
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        jobname="{sample}_run_bbnorm",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-12:00:00"),
+    resources:
+        mem_mb = convertToMb("50G")
+    threads: 4
+    log: "results/05_assembly/bbnormed_reads/{sample}_bbnorm.log"
+    benchmark: "results/05_assembly/bbnormed_reads/{sample}_bbnorm.benchmark"
+    conda: "../config/envs/mapping-env.yaml"
+    shell:
+        """
+        bbnorm.sh -Xmx{params.java_mem}g threads={threads} in1={input.reads1} in2={input.reads2} out1={output.reads1} out2={output.reads2} target=40 mindepth=0 hist={output.hist} peaks={output.peaks} &> {log}
+        """
+        
+
+rule assemble_metagenomes:
+    input:
+        reads1 = lambda wildcards: f"results/01_trimmedconcatreads/{wildcards.sample}_R1.fastq.gz" if wildcards.sample not in LARGE_SAMPLES else f"results/05_assembly/bbnormed_reads/{wildcards.sample}_R1.fastq.gz",
+        reads2 = lambda wildcards: f"results/01_trimmedconcatreads/{wildcards.sample}_R2.fastq.gz" if wildcards.sample not in LARGE_SAMPLES else f"results/05_assembly/bbnormed_reads/{wildcards.sample}_R2.fastq.gz",
     output:
         scaffolds_unparsed = temp("results/05_assembly/all_reads_assemblies/{sample}_scaffolds_unparsed.fasta"),
         scaffolds = "results/05_assembly/all_reads_assemblies/{sample}_scaffolds.fasta",
@@ -41,7 +71,7 @@ rule assemble_metagenomes:
         outdir = lambda wildcards: "results/05_assembly/all_reads_assemblies/"+wildcards.sample,
         length_t = 1000,
         cov_t = 1,
-        memory_limit = lambda wildcards, resources: "450",
+        memory_limit = lambda wildcards, resources: "400",
         # memory_limit = lambda wildcards, resources: "850" if resources.attempt > 1 else "250",
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
@@ -50,9 +80,9 @@ rule assemble_metagenomes:
         # runtime_s=lambda wildcards, resources: convertToSec("1-20:00:00") if resources.attempt > 1 else convertToSec("0-20:00:00"),
     resources:
         attempt = lambda wildcards, attempt: attempt,
-        mem_mb = lambda wildcards, attempt: convertToMb("500")
+        mem_mb = lambda wildcards, attempt: convertToMb("400G")
         # mem_mb = lambda wildcards, attempt: convertToMb("800G") if attempt > 1 else convertToMb("200G")
-    retries: 3
+    retries: 2
     threads: 4
     log: "results/05_assembly/all_reads_assemblies/{sample}_assemble_metagenomes.log"
     benchmark: "results/05_assembly/all_reads_assemblies/{sample}_assemble_metagenomes.benchmark"
@@ -92,18 +122,21 @@ rule re_pair_reads:
         reads2 = "results/01_cleanreads/{sample}_R2_repaired.fastq.gz",
         singletons = "results/01_cleanreads/{sample}_singletons.fastq.gz"
     params:
+        java_mem="32",
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         jobname="{sample}_re-paired",
         account="pengel_spirit",
         runtime_s=convertToSec("0-12:00:00"),
+    resources:
+        mem_mb = convertToMb("150G")
     threads: 4
     log: "results/01_cleanreads/{sample}_repaired.log"
     benchmark: "results/01_cleanreads/{sample}_repaired.benchmark"
     conda: "../config/envs/mapping-env.yaml"
     shell:
         """
-        repair.sh in1={input.reads1} in2={input.reads2} out1={output.reads1} out2={output.reads2} outs={output.singletons} repair
+        repair.sh -Xmx{params.java_mem}g threads={threads} in1={input.reads1} in2={input.reads2} out1={output.reads1} out2={output.reads2} outs={output.singletons} repair &> {log}
         """
 
 rule map_to_assembly:
