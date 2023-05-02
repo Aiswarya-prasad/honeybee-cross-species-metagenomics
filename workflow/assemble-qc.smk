@@ -122,14 +122,14 @@ rule re_pair_reads:
         reads2 = "results/01_cleanreads/{sample}_R2_repaired.fastq.gz",
         singletons = "results/01_cleanreads/{sample}_singletons.fastq.gz"
     params:
-        java_mem="32",
+        java_mem="70",
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         jobname="{sample}_re-paired",
         account="pengel_spirit",
         runtime_s=convertToSec("0-12:00:00"),
     resources:
-        mem_mb = convertToMb("150G")
+        mem_mb = convertToMb("300")
     threads: 4
     log: "results/01_cleanreads/{sample}_repaired.log"
     benchmark: "results/01_cleanreads/{sample}_repaired.benchmark"
