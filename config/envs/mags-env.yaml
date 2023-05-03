@@ -12,3 +12,4 @@ dependencies:
   - drep
   - motulizer
   - mmseqs2
+  - whokaryote

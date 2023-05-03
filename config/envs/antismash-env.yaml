@@ -1,3 +1,5 @@
+
+# not being used
 name: antismash-env
 
 channels:
@@ -5,4 +7,4 @@ channels:
   - conda-forge
 
 dependencies:
-  - antismash=6*
+  - antismash

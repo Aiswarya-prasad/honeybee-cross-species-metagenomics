@@ -71,16 +71,16 @@ rule assemble_metagenomes:
         outdir = lambda wildcards: "results/05_assembly/all_reads_assemblies/"+wildcards.sample,
         length_t = 1000,
         cov_t = 1,
-        memory_limit = lambda wildcards, resources: "400",
+        memory_limit = lambda wildcards, resources: "500",
         # memory_limit = lambda wildcards, resources: "850" if resources.attempt > 1 else "250",
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         account="pengel_spirit",
-        runtime_s=lambda wildcards, resources: convertToSec("1-20:00:00"),
+        runtime_s=lambda wildcards, resources: convertToSec("1-23:00:00"),
         # runtime_s=lambda wildcards, resources: convertToSec("1-20:00:00") if resources.attempt > 1 else convertToSec("0-20:00:00"),
     resources:
         attempt = lambda wildcards, attempt: attempt,
-        mem_mb = lambda wildcards, attempt: convertToMb("400G")
+        mem_mb = lambda wildcards, attempt: convertToMb("500G")
         # mem_mb = lambda wildcards, attempt: convertToMb("800G") if attempt > 1 else convertToMb("200G")
     retries: 2
     threads: 4
@@ -122,15 +122,15 @@ rule re_pair_reads:
         reads2 = "results/01_cleanreads/{sample}_R2_repaired.fastq.gz",
         singletons = "results/01_cleanreads/{sample}_singletons.fastq.gz"
     params:
-        java_mem="70",
+        java_mem="128", # 70 worked for most but 11/150 samples needed more
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         jobname="{sample}_re-paired",
         account="pengel_spirit",
         runtime_s=convertToSec("0-12:00:00"),
     resources:
-        mem_mb = convertToMb("300")
-    threads: 4
+        mem_mb = convertToMb("400")
+    threads: 2 # 4 worked for most but 11/150 samples needed more
     log: "results/01_cleanreads/{sample}_repaired.log"
     benchmark: "results/01_cleanreads/{sample}_repaired.benchmark"
     conda: "../config/envs/mapping-env.yaml"

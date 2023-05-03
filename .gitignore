@@ -27,5 +27,6 @@
 *.e
 *.o
 
-results/*
+results/0*
+results/1*
 */.snakemake/*

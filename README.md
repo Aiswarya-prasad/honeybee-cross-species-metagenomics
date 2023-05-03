@@ -1,3 +1,4 @@
+This section is yet to be updated. 
 Note that this pipeline is a work in progress so some parts of the documentation may not be up-to-date yet. If you would like to have questions or require clarification, contact Aiswarya Prasad. (aiswarya.prasad@unil.ch)
 
 # honeybee-MAGs
