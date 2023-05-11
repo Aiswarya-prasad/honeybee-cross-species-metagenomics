@@ -55,7 +55,6 @@ rule targets:
         html_qc_trim = [f"results/00_trimmedreads/fastqc/{x.split('.fastq.gz')[0]}_trim_fastqc.html" for x in get_list_of_values(get_renamed_input_files(raw_paths_dict))],
         concat_reads = expand("results/01_trimmedconcatreads/{sample}_{read}.fastq.gz", sample = SAMPLES, read = ["R1", "R2"]),
         motus_merged = "results/02_motus_profile/samples_merged.motus",
-        assembly_mapping = "results/05_assembly/scaffolds_mapping/Assembly_mapping_summary.csv",
         orfs = expand("results/06_metagenomicORFs/{sample}_orfs.ffn", sample = SAMPLES_INDIA+SAMPLES_MY),
         # just here for now to make sure cleaning reads is done for all of the samples
         singletons = expand("results/01_cleanreads/{sample}_singletons.fastq.gz", sample = SAMPLES)
