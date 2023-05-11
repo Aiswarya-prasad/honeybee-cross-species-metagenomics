@@ -57,11 +57,18 @@ rule targets:
         motus_merged = "results/02_motus_profile/samples_merged.motus",
         orfs = expand("results/06_metagenomicORFs/{sample}_orfs.ffn", sample = SAMPLES_INDIA+SAMPLES_MY),
         # just here for now to make sure cleaning reads is done for all of the samples
-        singletons = expand("results/01_cleanreads/{sample}_singletons.fastq.gz", sample = SAMPLES)
+        singletons = expand("results/01_cleanreads/{sample}_singletons.fastq.gz", sample = SAMPLES),
+        # 
+        assembly_summary = "results/05_assembly/all_reads_assemblies/assembly_summary.txt",
+        ### ! If running backmapping make sure to include a cap on number of --jobs in the snakemake command do <50 is safe don not do >100 ! (40,000 jobs for 200 samples) ###
+        qualimap_results = expand("results/07_MAG_binng_QC/01_backmapping/qualimap_results/{sample_assembly}/", sample_assembly = SAMPLES_INDIA+SAMPLES_MY),
+        # bins = expand("results/07_MAG_binng_QC/02_bins/{sample}/", sample=SAMPLES_INDIA+SAMPLES_MY),
 # but 06 inside results and rename 05_assembly/all_reads_assemblies
 include: "trim-qc.smk"
 include: "motus-profiling.smk"
 include: "assemble-qc.smk"
+include: "annotate_orfs.smk"
+include: "backmapping-binning.smk"
 
 # to do next, 
 # binning
@@ -72,3 +79,5 @@ include: "assemble-qc.smk"
 # core coverage
 # sdp validation
 # popcogent
+
+# create rule to run assembly and binning for all samples

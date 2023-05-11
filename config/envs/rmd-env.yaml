@@ -9,7 +9,6 @@ dependencies:
   - r-base
   - r-rmarkdown
   - r-ggplot2
-  - r-kableExtra
   - r-codetools
   - r-tidyverse
   - r-prettydoc
@@ -37,5 +36,3 @@ dependencies:
   - bioconductor-phyloseq
   - bioconductor-biostrings
   - bioconductor-complexheatmap
-  # - r-ggpubr
-  # - r-ggnewscale

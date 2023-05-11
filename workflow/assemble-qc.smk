@@ -2,7 +2,7 @@
 
 """
 name: assemble-qc
-description: assembly of metagenomes, mapping and other steps for qc followed by ORF annotation and extraction of coverage
+description: assembly of metagenomes, mapping and other steps for qc
 author: Aiswarya Prasad (aiswarya.prasad@unil.ch)
 rules:
     - assemble_metagenomes
@@ -19,10 +19,9 @@ scripts:
     - parse_spades_metagenome.py
         + filters scaffolds based on provided length and coverage
     - assembly_summary.py
-        + summarizes assmebly length, number of contigs before and after filtering and number of reads mapped for each sample
+        + summarizes assemebly length, number of contigs before and after filtering and number of reads mapped for each sample
 targets:
     - summary_assembly
-    - prodigal_orfs
 """
 
 # samples that failed in the first run (250):
@@ -71,18 +70,19 @@ rule assemble_metagenomes:
         outdir = lambda wildcards: "results/05_assembly/all_reads_assemblies/"+wildcards.sample,
         length_t = 1000,
         cov_t = 1,
-        memory_limit = lambda wildcards, resources: "500",
+        memory_limit = lambda wildcards, resources: "800",
         # memory_limit = lambda wildcards, resources: "850" if resources.attempt > 1 else "250",
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         account="pengel_spirit",
-        runtime_s=lambda wildcards, resources: convertToSec("1-23:00:00"),
+        runtime_s=lambda wildcards, resources: convertToSec("3-00:00:00"),
         # runtime_s=lambda wildcards, resources: convertToSec("1-20:00:00") if resources.attempt > 1 else convertToSec("0-20:00:00"),
     resources:
         attempt = lambda wildcards, attempt: attempt,
-        mem_mb = lambda wildcards, attempt: convertToMb("500G")
+        mem_mb = lambda wildcards, attempt: convertToMb("800")
         # mem_mb = lambda wildcards, attempt: convertToMb("800G") if attempt > 1 else convertToMb("200G")
-    retries: 2
+    retries: 0
+    # retries: 2
     threads: 4
     log: "results/05_assembly/all_reads_assemblies/{sample}_assemble_metagenomes.log"
     benchmark: "results/05_assembly/all_reads_assemblies/{sample}_assemble_metagenomes.benchmark"
@@ -113,154 +113,48 @@ rule assemble_metagenomes:
         rm -rf {params.outdir} &>> {log}
         """
 
-rule re_pair_reads:
+rule bamQC:
     input:
-        reads1 = "results/01_trimmedconcatreads/{sample}_R1.fastq.gz",
-        reads2 = "results/01_trimmedconcatreads/{sample}_R2.fastq.gz"
+        bam = "results/07_MAG_binng_QC/01_backmapping/{sample_assembly}/{sample_assembly}.bam", # only unmapped reads excluded
     output:
-        reads1 = "results/01_cleanreads/{sample}_R1_repaired.fastq.gz",
-        reads2 = "results/01_cleanreads/{sample}_R2_repaired.fastq.gz",
-        singletons = "results/01_cleanreads/{sample}_singletons.fastq.gz"
+        outdir = directory("results/07_MAG_binng_QC/01_backmapping/qualimap_results/{sample_assembly}/")
     params:
-        java_mem="128", # 70 worked for most but 11/150 samples needed more
+        java_mem="300G",
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        jobname="{sample}_re-paired",
+        jobname="bamQC",
         account="pengel_spirit",
-        runtime_s=convertToSec("0-12:00:00"),
-    resources:
-        mem_mb = convertToMb("400")
-    threads: 2 # 4 worked for most but 11/150 samples needed more
-    log: "results/01_cleanreads/{sample}_repaired.log"
-    benchmark: "results/01_cleanreads/{sample}_repaired.benchmark"
-    conda: "../config/envs/mapping-env.yaml"
-    shell:
-        """
-        repair.sh -Xmx{params.java_mem}g threads={threads} in1={input.reads1} in2={input.reads2} out1={output.reads1} out2={output.reads2} outs={output.singletons} repair &> {log}
-        """
-
-rule map_to_assembly:
-    input:
-        reads1 = "results/01_cleanreads/{sample}_R1_repaired.fastq.gz",
-        reads2 = "results/01_cleanreads/{sample}_R2_repaired.fastq.gz",
-        scaffolds = rules.assemble_metagenomes.output.scaffolds
-    output:
-        flagstat = "results/05_assembly/scaffolds_mapping/{sample}_assembly_mapping_flagstat.tsv",
-        sam = temp("results/05_assembly/scaffolds_mapping/{sample}_assembly.sam"),
-        bam = "results/05_assembly/scaffolds_mapping/{sample}_assembly.bam",
-    params:
-        mailto="aiswarya.prasad@unil.ch",
-        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        jobname="{sample}_map_to_assembly",
-        account="pengel_spirit",
-        runtime_s=convertToSec("0-10:00:00"),
-    resources:
-        mem_mb = 8000
-    threads: 5
-    log: "results/05_assembly/scaffolds_mapping/{sample}_map_to_assembly.log"
-    benchmark: "results/05_assembly/scaffolds_mapping/{sample}_map_to_assembly.benchmark"
-    conda: "../config/envs/mapping-env.yaml"
-    shell:
-        """
-        mkdir -p results/05_assembly/scaffolds_mapping &> {log}
-        bwa index {input.scaffolds} &>> {log}
-        bwa mem -t {threads} {input.scaffolds} {input.reads1} {input.reads2} 1> {output.sam} 2>> {log}
-        samtools view -bh {output.sam} | samtools sort - 1> {output.bam} 2>> {log}
-        rm results/05_assembly/all_reads_assemblies/{wildcards.sample}_scaffolds.fasta.amb &>> {log}
-        rm results/05_assembly/all_reads_assemblies/{wildcards.sample}_scaffolds.fasta.ann &>> {log}
-        rm results/05_assembly/all_reads_assemblies/{wildcards.sample}_scaffolds.fasta.bwt &>> {log}
-        rm results/05_assembly/all_reads_assemblies/{wildcards.sample}_scaffolds.fasta.pac &>> {log}
-        rm results/05_assembly/all_reads_assemblies/{wildcards.sample}_scaffolds.fasta.sa &>> {log}
-        samtools flagstat -O tsv {output.bam} > {output.flagstat} 2>> {log}
-        """
-
-rule summarize_mapping_assembly:
-    input:
-        scaffolds = expand("results/05_assembly/all_reads_assemblies/{sample}_scaffolds.fasta", sample=SAMPLES_MY+SAMPLES_INDIA),
-        # scaffolds_unparsed = expand("results/05_assembly/all_reads_assemblies/{sample}_scaffolds_unparsed.fasta", sample=SAMPLES_MY+SAMPLES_INDIA),
-        flagstat = expand("results/05_assembly/scaffolds_mapping/{sample}_assembly_mapping_flagstat.tsv", sample=SAMPLES_MY+SAMPLES_INDIA)
-    output:
-        summary_assembly = "results/05_assembly/scaffolds_mapping/Assembly_mapping_summary.csv",
-    params:
-        mailto="aiswarya.prasad@unil.ch",
-        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        jobname="summarize_mapping_assembly",
-        account="pengel_spirit",
-        runtime_s=convertToSec("0-2:10:00"),
-    resources:
-        mem_mb = 8000
-    threads: 5
-    log: "results/05_assembly/scaffolds_mapping/summarize_mapping_assembly.log"
-    benchmark: "results/05_assembly/scaffolds_mapping/summarize_mapping_assembly.benchmark"
-    shell:
-        """
-        python3 scripts/assembly_summary.py --scaffolds {input.scaffolds} --flagstat {input.flagstat} --outfile {output.summary_assembly} &> {log}
-        """
-
-rule prodigal_get_orfs:
-    input:
-        scaffolds = "results/05_assembly/all_reads_assemblies/{sample}_scaffolds.fasta"
-    output:
-        orfs = "results/06_metagenomicORFs/{sample}_orfs.ffn",
-        filt_log = "results/06_metagenomicORFs/{sample}_orfs_filt_sumary.log",
-        scaffolds_ffn = "results/06_metagenomicORFs/{sample}/{sample}.ffn",
-        scaffolds_faa = "results/06_metagenomicORFs/{sample}/{sample}.faa",
-        scaffolds_gff = "results/06_metagenomicORFs/{sample}/{sample}.gff"
-    params:
-        outdir = "results/06_metagenomicORFs/{sample}/",
-        mailto="aiswarya.prasad@unil.ch",
-        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        account="pengel_spirit",
-        runtime_s=convertToSec("0-2:10:00"),
-    resources:
-        mem_mb = 16000
+        runtime_s=convertToSec("0-5:30:00"),
+    log: "results/07_MAG_binng_QC/01_backmapping/qualimap_results/{sample_assembly}_bamQC.log"
+    benchmark: "results/07_MAG_binng_QC/01_backmapping/qualimap_results/{sample_assembly}_bamQC.benchmark"
     threads: 8
-    log: "results/06_metagenomicORFs/{sample}_prodigal_get_orfs.log"
-    benchmark: "results/06_metagenomicORFs/{sample}_prodigal_get_orfs.benchmark"
-    conda: "../config/envs/snv-env.yaml"
+    resources:
+        mem_mb = 300000,
+    conda: "../config/envs/qualimap-env.yaml"
     shell:
         """
-        if [ ! -f {output.scaffolds_ffn} ]; then
-            prodigal -i {input.scaffolds} -o {output.scaffolds_gff} -f gff -a {output.scaffolds_faa} -d {output.scaffolds_ffn} -p meta &> {log}
-        fi
-        python scripts/filt_orfs.py --ffn_in {output.scaffolds_ffn} --ffn_out {output.orfs} --sample {wildcards.sample} --log {output.filt_log}
+        qualimap bamqc -bam {input.bam} -outdir {output.outdir} -outformat html --java-mem-size={params.java_mem}
         """
 
-# rule dram_annotate_orfs:
-#     input:
-#         scaffolds = "results/06_metagenomicORFs/{sample}/{sample}.faa",
-#         dram_config = "config/dram_config.json"
-#     output:
-#         dram_annotations = "results/06_metagenomicORFs/dram_annotations/{sample}/annotations.tsv",
-#     params:
-#         db_location = "/reference/dram",
-#         dram_outdir = lambda wildcards: os.path.join("results/06_metagenomicORFs/dram_annotations/", wildcards.sample),
-#         mailto="aiswarya.prasad@unil.ch",
-#         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-#         account="pengel_spirit",
-#         runtime_s=convertToSec("1-20:00:00")
-#     resources:
-#         mem_mb = convertToMb("512G")
-#     threads: 2
-#     log: "results/06_metagenomicORFs/dram_annotations/{sample}/dram_annotate_orfs_{sample}.log"
-#     benchmark: "results/06_metagenomicORFs/dram_annotations/{sample}/dram_annotate_orfs_{sample}.benchmark"
-#     conda: "../config/envs/mags-env.yaml"
-#     shell:
-#         """
-#         source /etc/profile.d/lmodstacks.sh &>> {log}
-#         dcsrsoft use old &>> {log}
-#         export PATH=/dcsrsoft/spack/external/dram/v1.2.4/bin:$PATH &>> {log}
-#         module load gcc/9.3.0 python &>> {log}
-#         module load hmmer mmseqs2 prodigal infernal trnascan-se barrnap &>> {log}
-#         which DRAM.py &>> {log}
-#         dram_annotations={output.dram_annotations} &>> {log}
-#         dram_outdir=${{dram_annotations/annotations.tsv}} &>> {log}
-#         DRAM-setup.py version &>> {log}
-#         ###
-#         rm -rf ${{dram_outdir}} &>> {log} # snakemake creates it but DRAM will complain
-#         DRAM.py annotate_genes -i {input.scaffolds} -o ${{dram_outdir}} --threads {threads} --verbose &>> {log}
-#         """
-
-# to do next
-# cluster genes...?
-# rule to get coverage matrix of genes in all orfs
+rule assembly_summary:
+    input:
+        flagstat = expand("results/07_MAG_binng_QC/01_backmapping/{sample}/{sample}_flagstat.txt", sample = SAMPLES_INDIA+SAMPLES_MY),
+        scaffolds = expand("results/05_assembly/all_reads_assemblies/{sample}_scaffolds.fasta" , sample = SAMPLES_INDIA+SAMPLES_MY),
+    output:
+        outfile = "results/05_assembly/all_reads_assemblies/assembly_summary.txt",
+    params:
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        jobname="assembly_summary",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-2:00:00"),
+    resources:
+        mem_mb = 8000,
+    threads: 4
+    log: "results/05_assembly/all_reads_assemblies/assembly_summary.log"
+    benchmark: "results/05_assembly/all_reads_assemblies/assembly_summary.benchmark"
+    conda: "../config/envs/scripts-env.yaml"
+    shell:
+        """
+        python3 scripts/assembly_summary.py --flagstat {input.flagstat} --scaffolds {input.scaffolds} --outfile {output.outfile} &> {log}
+        """

@@ -7,13 +7,23 @@ from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 
+"""
+This script reads the ffn file made by prodigal and makes a new one where the name of the contig
+starts with sample name prefixed with '_' as a separator and only keeps orfs that are marked have 
+a flag of 00 and are more than 300 bp long.
+The corresponding faa records can be parsed out of the file in 06_metagenomicORFs/{sample}/{sample}.faa
+The corresponding gff records can be parsed out of the file in 06_metagenomicORFs/{sample}/{sample}.faa
+or can be written by parsing the ffn file using biopython (https://biopython.org/wiki/GFF_Parsing).
+"""
+
+# Usage: python3 scripts/filt_orfs.py --ffn_in data/ffn/contigs.ffn --ffn_out data/ffn/contigs_filt.ffn --sample sample --log data/ffn/contigs_filt.log
+
 parser = argparse.ArgumentParser()
 requiredNamed = parser.add_argument_group('required arguments')
 requiredNamed.add_argument('--ffn_in', metavar="ffn_in", required=True, help="provided ffn input", action="store")
 requiredNamed.add_argument('--ffn_out',metavar="ffn_out",required=True, help="filtered ffn output", action="store")
 requiredNamed.add_argument('--sample',metavar="ffn_out",required=True, help="filtered ffn output", action="store")
 requiredNamed.add_argument('--log',metavar="ffn_out",required=True, help="filtered ffn output", action="store")
-
 
 args = parser.parse_args()
 ffn_in = args.ffn_in
