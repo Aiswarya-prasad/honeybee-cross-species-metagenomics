@@ -7,6 +7,16 @@ import argparse
 #samtools view -h Ig13619_sub.bam | python3 filter_bam.py -e 5 -m 50 | samtools sort - -o test.bam
 
 #Usage: samtools view -h Ig13619_sub.bam | python3 filter_bam.py -e 5 -m 50 |
+
+"""
+This is a Python script that filters SAM-formatted sequence alignment data by read match length and maximum edit distance. 
+It reads in SAM data from standard input, filters the data based on 
+filtering parameters (minimum read match length and maximum edit distance), 
+and writes the filtered SAM data to standard output. 
+The script uses the argparse module to parse command-line arguments and the re module 
+to extract matches from the CIGAR string of the SAM data.
+"""
+
 parser = argparse.ArgumentParser()
 parser.add_argument('-m',required=False, help="Minimum read match length")
 parser.add_argument('-e', required=False, help="Maximum edit-distance")

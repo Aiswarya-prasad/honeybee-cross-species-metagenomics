@@ -67,7 +67,7 @@ rule backmapping:
         reads2 = lambda wildcards: f"results/01_cleanreads/{wildcards.sample}_R2_repaired.fastq.gz",
         singletons = lambda wildcards: f"results/01_cleanreads/{wildcards.sample}_singletons.fastq.gz"
     output:
-        flagstat = "results/07_MAG_binng_QC/01_backmapping/{sample_assembly}/{sample}_flagstat.txt",
+        flagstat = "results/07_MAG_binng_QC/01_backmapping/{sample_assembly}/{sample}_mapped_flagstat.txt",
         bam = temp("results/07_MAG_binng_QC/01_backmapping/{sample_assembly}/{sample}.bam") # only unmapped reads excluded
     params:
         match_length = 50,
@@ -89,7 +89,8 @@ rule backmapping:
     shell:
         """
         bwa mem -a -t {threads} {input.scaffolds} {input.reads1} {input.reads2} \
-        | samtools view -F 4 -bh - |  python3 {params.filter_script} -e 5 -m 50 | samtools sort -O bam -@ {threads} > {output.bam}
+        | samtools view -F 4 -h - |  python3 {params.filter_script} -e 5 -m 50 | samtools sort -O bam -@ {threads} > {output.bam}
+        samtools flagstat -@ {threads} {output.bam} > {output.flagstat}
         """
 
 rule make_depthfile:

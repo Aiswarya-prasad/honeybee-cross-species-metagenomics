@@ -70,7 +70,7 @@ rule assemble_metagenomes:
         outdir = lambda wildcards: "results/05_assembly/all_reads_assemblies/"+wildcards.sample,
         length_t = 1000,
         cov_t = 1,
-        memory_limit = lambda wildcards, resources: "800",
+        memory_limit = lambda wildcards, resources: "500",
         # memory_limit = lambda wildcards, resources: "850" if resources.attempt > 1 else "250",
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
@@ -79,11 +79,12 @@ rule assemble_metagenomes:
         # runtime_s=lambda wildcards, resources: convertToSec("1-20:00:00") if resources.attempt > 1 else convertToSec("0-20:00:00"),
     resources:
         attempt = lambda wildcards, attempt: attempt,
-        mem_mb = lambda wildcards, attempt: convertToMb("800")
+        mem_mb = lambda wildcards, attempt: convertToMb("500G")
         # mem_mb = lambda wildcards, attempt: convertToMb("800G") if attempt > 1 else convertToMb("200G")
     retries: 0
     # retries: 2
-    threads: 4
+    threads: 5
+    # threads: 4
     log: "results/05_assembly/all_reads_assemblies/{sample}_assemble_metagenomes.log"
     benchmark: "results/05_assembly/all_reads_assemblies/{sample}_assemble_metagenomes.benchmark"
     conda: "../config/envs/spades-env.yaml"
@@ -113,9 +114,42 @@ rule assemble_metagenomes:
         rm -rf {params.outdir} &>> {log}
         """
 
+# headers and IDs in the gff file are renamed to include sample name
+# corresponding ffn file will have the header ID can be obtailed as 
+# example: header=">C4-3_NODE_1_length_1160554_cov_128.405656_131"
+# def get_ID_from_header(header):    
+#     header_text = header.split(">")[1]
+#     ID_1 = header_text.split("_NODE_")[0]
+#     ID_2 = header_text.split("_NODE_")[1].split("_")[0]
+#     ID_3 = header_text.split("_NODE_")[1].split("_")[-1]
+#     ID = "_".join([ID_1,ID_2,ID_3])
+#     return ID
+
+rule rename_gff_headers:
+    input:
+        gff = "results/06_metagenomicORFs/{sample_assembly}/{sample_assembly}.gff"
+    output:
+        gff = "results/06_metagenomicORFs/{sample_assembly}.gff"
+    params:
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        jobname="rename_gff",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-5:30:00"),
+    log: "results/06_metagenomicORFs/{sample_assembly}_rename_gff_headers.log"
+    benchmark: "results/06_metagenomicORFs/{sample_assembly}_rename_gff_headers.benchmark"
+    threads: 4
+    resources:
+        mem_mb = 3000,
+    shell:
+        """
+        cat {input.gff} | sed 's/ID=.*;Name=/ID=/{wildcards.sample_assembly}_/g' | sed 's/NODE/{wildcards.sample_assembly}_NODE/g' > {output.gff}
+        """
+
 rule bamQC:
     input:
         bam = "results/07_MAG_binng_QC/01_backmapping/{sample_assembly}/{sample_assembly}.bam", # only unmapped reads excluded
+        gff = "results/06_metagenomicORFs/{sample_assembly}.gff"
     output:
         outdir = directory("results/07_MAG_binng_QC/01_backmapping/qualimap_results/{sample_assembly}/")
     params:
@@ -129,16 +163,19 @@ rule bamQC:
     benchmark: "results/07_MAG_binng_QC/01_backmapping/qualimap_results/{sample_assembly}_bamQC.benchmark"
     threads: 8
     resources:
-        mem_mb = 300000,
+        mem_mb = 30000,
     conda: "../config/envs/qualimap-env.yaml"
     shell:
         """
-        qualimap bamqc -bam {input.bam} -outdir {output.outdir} -outformat html --java-mem-size={params.java_mem}
+
+        qualimap bamqc -bam {input} -outdir {output.outdir} -outformat html \
+        --java-mem-size={params.java_mem} --paint-chromosome-limits \
+        --feature-file {input.gff} --outside-stats
         """
 
 rule assembly_summary:
     input:
-        flagstat = expand("results/07_MAG_binng_QC/01_backmapping/{sample}/{sample}_flagstat.txt", sample = SAMPLES_INDIA+SAMPLES_MY),
+        flagstat = expand("results/07_MAG_binng_QC/01_backmapping/{sample}/{sample}_mapped_flagstat.txt", sample = SAMPLES_INDIA+SAMPLES_MY),
         scaffolds = expand("results/05_assembly/all_reads_assemblies/{sample}_scaffolds.fasta" , sample = SAMPLES_INDIA+SAMPLES_MY),
     output:
         outfile = "results/05_assembly/all_reads_assemblies/assembly_summary.txt",
