@@ -1,16 +1,18 @@
 name: scripts-env
 
 channels:
-  - conda-forge
   - bioconda
+  - conda-forge
   - hcc
 
 dependencies:
-  - python>=3.6
+  - python=3.*
   - biopython
+  - pyfastx
   - numpy
   - pandas
+  - argparse
   - time
   - tabulate
   - panel
-  - pyfastx>=0.4.8
+  - bokeh

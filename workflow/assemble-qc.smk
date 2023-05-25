@@ -27,7 +27,8 @@ targets:
 # samples that failed in the first run (250):
 LARGE_SAMPLES = ["A2-2", "A2-3", "A3-4", "A4-4", "A6-4", "D1-2", "D2-1", "D2-2", "D2-4", "D2-5", "D3-2", "D9-5", "F2-5", "F3-4", "F3-5", "F4-1", "F7-5", "F8-2", "F8-4"]
 # samples that failed in the first run (450 - 800) ("A6-4", "D1-2", "D3-2" were completed with the higher RAM):
-LARGE_SAMPLES = ["A2-2", "A2-3", "A3-4", "A4-4", "D2-1", "D2-2", "D2-4", "D2-5", "D9-5", "F2-5", "F3-4", "F3-5", "F4-1", "F7-5", "F8-2", "F8-4"]
+# LARGE_SAMPLES = ["A2-2", "A2-3", "A3-4", "A4-4", "D2-1", "D2-2", "D2-4", "D2-5", "D9-5", "F2-5", "F3-4", "F3-5", "F4-1", "F7-5", "F8-2", "F8-4"]
+SAMPLES_TO_HOST_FILTER = ["D2-2", "A2-2", "F2-5"]
 
 rule run_bbnorm:
     input:
@@ -55,12 +56,108 @@ rule run_bbnorm:
         """
         bbnorm.sh -Xmx{params.java_mem}g threads={threads} in1={input.reads1} in2={input.reads2} out1={output.reads1} out2={output.reads2} target=40 mindepth=0 hist={output.hist} peaks={output.peaks} &> {log}
         """
+
+rule bwa_index_db:
+    input:
+        host_db = "data/{db_name}/{db}.fasta",
+    output:
+        host_db_index = multiext("data/{db_name}/{db}.fasta", ".amb", ".ann", ".bwt", ".pac", ".sa"),
+    params:
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        jobname="{db_name}_{db}_bwa_index_db",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-01:00:00"),
+    resources:
+        mem_mb = convertToMb("50G")
+    threads: 4
+    log: "results/03_host_mapping/{db_name}_{db}_bwa_index_db.log"
+    benchmark: "results/03_host_mapping/{db_name}_{db}_bwa_index_db.benchmark"
+    conda: "../config/envs/mapping-env.yaml"
+    shell:
+        """
+        bwa index {input.host_db} &> {log}
+        """
+
+
+rule map_reads_to_host:
+    input:
+        reads1 = "results/01_cleanreads/{sample}_R1_repaired.fastq.gz",
+        reads2 = "results/01_cleanreads/{sample}_R2_repaired.fastq.gz",
+        host_db = "data/host_database/apis_bees_db.fasta",
+        host_db_index = multiext("data/host_database/apis_bees_db.fasta", ".amb", ".ann", ".bwt", ".pac", ".sa")
+    output:
+        bam = temp("results/03_host_mapping/{sample}.bam"),
+        bam_hostfiltered = temp("results/03_host_mapping/{sample}_hostfiltered.bam"),
+        flagstat = "results/03_host_mapping/{sample}_flagstat.txt",
+        coverage = "results/03_host_mapping/{sample}_coverage.tsv",
+        hist = "results/03_host_mapping/{sample}_coverage_histogram.txt",
+    params:
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        jobname="{sample}_map_reads_to_host",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-10:00:00"),
+    resources:
+        mem_mb = convertToMb("50G")
+    threads: 4
+    log: "results/03_host_mapping/{sample}_map_reads_to_host.log"
+    benchmark: "results/03_host_mapping/{sample}_map_reads_to_host.benchmark"
+    conda: "../config/envs/mapping-env.yaml"
+    shell:
+        """
+        bwa mem -M -t {threads} {input.host_db} {input.reads1} {input.reads2} \
+        | samtools view -bh | samtools sort - > {output.bam}
+        samtools coverage {output.bam} > {output.coverage}
+        samtools flagstat -O tsv {output.bam} > {output.flagstat}
+        samtools coverage {output.bam} -m > {output.hist}
+        samtools view -bh -f4 {output.bam} | samtools sort - > {output.bam_hostfiltered}
+        """
+
+rule get_non_host_reads:
+    input:
+        bam_hostfiltered = "results/03_host_mapping/{sample}_hostfiltered.bam"
+    output:
+        reads1 = "results/05_assembly/hostfiltered_reads/{sample}_R1.fastq.gz",
+        reads2 = "results/05_assembly/hostfiltered_reads/{sample}_R2.fastq.gz",
+    params:
+        java_mem="16",
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        jobname="{sample}_get_non_host_reads",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-12:00:00"),
+    resources:
+        mem_mb = convertToMb("50G")
+    threads: 4
+    log: "results/05_assembly/hostfiltered_reads/{sample}_get_non_host_reads.log"
+    benchmark: "results/05_assembly/hostfiltered_reads/{sample}_get_non_host_reads.benchmark"
+    conda: "../config/envs/mapping-env.yaml"
+    shell:
+        """
+        samtools index {input.bam_hostfiltered}
+        # used the below command for A2-2 alone
+        # picard -Xmx{params.java_mem}g SamToFastq I={input.bam_hostfiltered} F={output.reads1} F2={output.reads2} VALIDATION_STRINGENCY=SILENT &> {log}
+        outreads1={output.reads1}
+        outreads2={output.reads2}
+        bedtools bamtofastq -i {input.bam_hostfiltered} -fq ${{outreads1/.gz/}} -fq2 ${{outreads2/.gz/}} &> {log}
+        gzip ${{outreads1/.gz/}}
+        gzip ${{outreads2/.gz/}}
+        """
         
+def reads_for_assembly(sample, R_n):
+    if sample in LARGE_SAMPLES:
+        if sample in SAMPLES_TO_HOST_FILTER:
+            return f"results/05_assembly/hostfiltered_reads/{sample}_R{R_n}.fastq.gz"
+        else:
+            return f"results/05_assembly/bbnormed_reads/{sample}_R{R_n}.fastq.gz"
+    else:
+        return f"results/01_trimmedconcatreads/{sample}_R{R_n}.fastq.gz"
 
 rule assemble_metagenomes:
     input:
-        reads1 = lambda wildcards: f"results/01_trimmedconcatreads/{wildcards.sample}_R1.fastq.gz" if wildcards.sample not in LARGE_SAMPLES else f"results/05_assembly/bbnormed_reads/{wildcards.sample}_R1.fastq.gz",
-        reads2 = lambda wildcards: f"results/01_trimmedconcatreads/{wildcards.sample}_R2.fastq.gz" if wildcards.sample not in LARGE_SAMPLES else f"results/05_assembly/bbnormed_reads/{wildcards.sample}_R2.fastq.gz",
+        reads1 = lambda wildcards: reads_for_assembly(wildcards.sample, 1),
+        reads2 = lambda wildcards: reads_for_assembly(wildcards.sample, 2),
     output:
         scaffolds_unparsed = temp("results/05_assembly/all_reads_assemblies/{sample}_scaffolds_unparsed.fasta"),
         scaffolds = "results/05_assembly/all_reads_assemblies/{sample}_scaffolds.fasta",
@@ -143,7 +240,7 @@ rule rename_gff_headers:
         mem_mb = 3000,
     shell:
         """
-        cat {input.gff} | sed 's/ID=.*;Name=/ID=/{wildcards.sample_assembly}_/g' | sed 's/NODE/{wildcards.sample_assembly}_NODE/g' > {output.gff}
+        cat {input.gff} | sed -e 's/ID=/ID={wildcards.sample_assembly}_/g' | sed -e 's/NODE/{wildcards.sample_assembly}_NODE/g' > {output.gff}
         """
 
 rule bamQC:
@@ -163,7 +260,7 @@ rule bamQC:
     benchmark: "results/07_MAG_binng_QC/01_backmapping/qualimap_results/{sample_assembly}_bamQC.benchmark"
     threads: 8
     resources:
-        mem_mb = 30000,
+        mem_mb = convertToMb("300G"),
     conda: "../config/envs/qualimap-env.yaml"
     shell:
         """

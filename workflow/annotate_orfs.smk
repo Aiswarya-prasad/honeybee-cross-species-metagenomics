@@ -33,7 +33,7 @@ rule prodigal_get_orfs:
     threads: 8
     log: "results/06_metagenomicORFs/{sample}/{sample}_prodigal_get_orfs.log"
     benchmark: "results/06_metagenomicORFs/{sample}/{sample}_prodigal_get_orfs.benchmark"
-    conda: "../config/envs/snv-env.yaml"
+    conda: "../config/envs/phylogenies-env.yaml"
     shell:
         """
         if [ ! -f {output.scaffolds_ffn} ]; then
@@ -41,6 +41,23 @@ rule prodigal_get_orfs:
         fi
         python scripts/filt_orfs.py --ffn_in {output.scaffolds_ffn} --ffn_out {output.orfs} --sample {wildcards.sample} --log {output.filt_log}
         """
+
+# rule cd_hit_clustering:
+#     input:
+#         a 
+#     output:
+
+# cat metag_assembly/metag*/metag*fna > gene_catalog/gene_catalog_all.fna
+# cat metag_assembly/metag*/metag*faa > gene_catalog/gene_catalog_all.faa
+# cd gene_catalog
+# mkdir cdhit9590
+# cd-hit-est -i gene_catalog_all.fna -o cdhit9590/gene_catalog_cdhit9590.fasta \
+# -c 0.95 -T 64 -M 0 -G 0 -aS 0.9 -g 1 -r 1 -d 0
+# grep "^>" cdhit9590/gene_catalog_cdhit9590.fasta | \
+# cut -f 2 -d ">" | \
+# cut -f 1 -d " " > cdhit9590/cdhit9590.headers
+# seqtk subseq gene_catalog_all.faa cdhit9590/cdhit9590.headers \
+# > cdhit9590/gene_catalog_cdhit9590.faa
 
 # rule dram_annotate_orfs:
 #     input:

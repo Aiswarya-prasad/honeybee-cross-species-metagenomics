@@ -117,8 +117,8 @@ rule make_depthfile:
 
 rule run_metabat2:
     input:
-        bam = "results/07_MAG_binng_QC/01_backmapping/{sample}/{sample}.bam", # only unmapped reads excluded
-        depthfile = "results/07_MAG_binng_QC/01_backmapping/{sample}_depths/{sample}_depthfile.txt"
+        scaffolds = lambda wildcards: f"results/07_MAG_binng_QC/00_assembled_scaffolds/{sample}/{sample}_scaffolds.fasta",
+        depthfile = "results/07_MAG_binng_QC/01_backmapping/{sample}_depths/{sample}_depthfile.txt",
     output:
         bins = directory("results/07_MAG_binng_QC/02_bins/{sample}/")
     params:
@@ -139,8 +139,8 @@ rule run_metabat2:
     conda: "../config/envs/mags-env.yaml"
     shell:
         """
-        metabat2 -i {input} -a alignments/metag$i.depth \
-        -o mags/metag$i --minContig {params.mincontiglen} \
+        metabat2 -i {input.scaffolds} -a {input.depthfile} \
+        -o {output.bins}/{wildcards.sample}_ --minContig {params.mincontiglen} \
         --maxEdges {params.maxEdges} -x {params.minCV} --minClsSize {params.clustersize} --saveCls -v
         --unbinned
         """

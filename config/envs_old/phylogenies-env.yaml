@@ -1,18 +1,18 @@
 name: phylogenies-env
 
 channels:
- - conda-forge
  - bioconda
+ - conda-forge
 
 dependencies:
- - python>=3.6
- - biopython
+ - python=3.*
  - iqtree
  - mafft
  - openjdk<=17.0.2
  # prokka needs openjdk version to be limited
  # (see:https://github.com/tseemann/prokka/issues/557)
- - prokka
+ - prokka>=1.14
  - orthofinder
+ - biopython
  - bioconductor-biostrings
  - prodigal
