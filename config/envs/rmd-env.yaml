@@ -1,0 +1,45 @@
+name: rmd-env
+
+channels:
+  - conda-forge
+  - bioconda
+  - pwwang
+
+dependencies:
+  - r-base
+  - r-rmarkdown
+  - r-ggplot2
+  - r-codetools
+  - r-tidyverse
+  - r-prettydoc
+  - r-viridis
+  - r-hrbrthemes
+  - r-ggthemes
+  - r-RColorBrewer
+  - r-scales
+  - r-segmented
+  - r-dplyr
+  - r-xlsx
+  - r-rmdformats
+  - r-plotly
+  - r-gridExtra
+  - r-ape
+  - r-vegan
+  - r-ggvenndiagram
+  - r-venndiagram
+  - r-ggforce
+  - r-ggdendro
+  - r-pheatmap
+  - r-heatmaply
+  - r-readxl
+  - r-picante
+  - r-ggalluvial
+  - r-ggraph
+  - r-ggrepel
+  - r-ggbeeswarm
+  - r-gggenes
+  - r-ggcorrplot
+  - r-ggnetwork
+  - bioconductor-phyloseq
+  - bioconductor-biostrings
+  - bioconductor-complexheatmap

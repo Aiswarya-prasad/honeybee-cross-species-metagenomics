@@ -117,7 +117,7 @@ rule make_depthfile:
 
 rule run_metabat2:
     input:
-        scaffolds = lambda wildcards: f"results/07_MAG_binng_QC/00_assembled_scaffolds/{sample}/{sample}_scaffolds.fasta",
+        scaffolds = lambda wildcards: f"results/07_MAG_binng_QC/00_assembled_scaffolds/{wildcards.sample}/{wildcards.sample}_scaffolds.fasta",
         depthfile = "results/07_MAG_binng_QC/01_backmapping/{sample}_depths/{sample}_depthfile.txt",
     output:
         bins = directory("results/07_MAG_binng_QC/02_bins/{sample}/")
@@ -144,26 +144,3 @@ rule run_metabat2:
         --maxEdges {params.maxEdges} -x {params.minCV} --minClsSize {params.clustersize} --saveCls -v
         --unbinned
         """
-
-# write rule to summarize contig fates and stats for each bin and assembly (check if this is the right way to do it) 
-# rule summarize_contig_fates:
-#     input:
-#         bins = directory("results/07_MAG_binng_QC/02_bins/{sample}/") 
-#     output:
-#         contig_fates = "results/07_MAG_binng_QC/02_bins/{sample}_contig_fates/{sample}_contig_fates.txt",
-#         contig_stats = "results/07_MAG_binng_QC/02_bins/{sample}_contig_stats/{sample}_contig_stats.txt"
-#     params:
-#         mailto="
-
-# rules for checkm, gtdbtk, and drep
-
-# summarize magOTUs and rename headers as needed
-
-# annotate mags
-
-# orthofinder and motupan
-
-# make non-redundant mag database for instrain
-# ! compare corecov and instrain results from the previous analysis !
-# make redundant magdatabase for core coverage estimation
-

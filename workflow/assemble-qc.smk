@@ -275,7 +275,7 @@ rule assembly_summary:
         flagstat = expand("results/07_MAG_binng_QC/01_backmapping/{sample}/{sample}_mapped_flagstat.txt", sample = SAMPLES_INDIA+SAMPLES_MY),
         scaffolds = expand("results/05_assembly/all_reads_assemblies/{sample}_scaffolds.fasta" , sample = SAMPLES_INDIA+SAMPLES_MY),
     output:
-        outfile = "results/05_assembly/all_reads_assemblies/assembly_summary.txt",
+        outfile = "results/05_assembly/assembly_summary.txt",
     params:
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
@@ -292,3 +292,4 @@ rule assembly_summary:
         """
         python3 scripts/assembly_summary.py --flagstat {input.flagstat} --scaffolds {input.scaffolds} --outfile {output.outfile} &> {log}
         """
+

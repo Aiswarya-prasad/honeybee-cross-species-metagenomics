@@ -17,10 +17,10 @@ outfile = args.outfile
 counts_dict = {}
 mapped_dict = {}
 for file in flagstat:
-    if "_assembly_mapping_flagstat.tsv" in file:
-        sample = file.split("/")[-1].split("_assembly_mapping_flagstat.tsv")[0]
+    if "_mapped_flagstat.tsv" in file:
+        sample = file.split("/")[-1].split("_mapped_flagstat.tsv")[0]
     else:
-        sys.exit(f"Trying to parse sample name out of {file} but it is not in the format expected <sample>_assembly_mapping_flagstat.tsv.")
+        sys.exit(f"Trying to parse sample name out of {file} but it is not in the format expected <sample>_mapped_flagstat.tsv.")
     with open(file, "r") as fh:
         for line in fh:
             line_split = line.strip().split("\t")
@@ -44,7 +44,7 @@ ContigsN50_list = list()
 for i in range(len(flagstat)):
     print(i)
     file = flagstat[i]
-    Sample = file.split("/")[-1].split("_assembly_mapping_flagstat.tsv")[0]
+    Sample = file.split("/")[-1].split("_mapped_flagstat.tsv")[0]
     print(Sample)
     Sample_list.append(Sample)
     
