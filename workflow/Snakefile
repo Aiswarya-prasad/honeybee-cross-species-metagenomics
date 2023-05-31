@@ -20,6 +20,7 @@ configfile: "config/config.yaml"
 if config["LocalBackup"]:
     localrules: backup
 
+SAMPLES_sub = config["SAMPLES_subset"]
 SAMPLES_KE = config["SAMPLES_KE"]
 SAMPLES_INDIA = config["SAMPLES_INDIA"]
 SAMPLES_MY = config["SAMPLES_MY"]
@@ -63,18 +64,16 @@ rule targets:
         assembly_summary = "results/05_assembly/assembly_summary.txt",
         ### ! If running backmapping make sure to include a cap on number of --jobs in the snakemake command do <50 is safe don not do >100 ! (40,000 jobs for 200 samples) ###
         qualimap_results = expand("results/07_MAG_binng_QC/01_backmapping/qualimap_results/{sample_assembly}/", sample_assembly = SAMPLES_INDIA+SAMPLES_MY),
-        bins = expand("results/07_MAG_binng_QC/02_bins/{sample}/", sample=SAMPLES_INDIA+SAMPLES_MY),
-# but 06 inside results and rename 05_assembly/all_reads_assemblies
+        checkm_plots = expand("results/07_MAG_binng_QC/03_checkm_results/{sample}/plots.done", sample=SAMPLES_sub),
+        # mag_metadata_summary = "results/09_MAGs_collection/All_mags_sub/All_mags_sub_metadata_summary.tsv",
+
 include: "trim-qc.smk"
 include: "motus-profiling.smk"
 include: "assemble-qc.smk"
-include: "annotate_orfs.smk"
 include: "backmapping-binning.smk"
+include: "binning_summary_annotation.smk"
 
 # to do next, 
-# binning
-# drep and gtdb ..
-# rename MAGs (with completeness and genus in the name?) and checkpoint table
 # annotation
 # phylogenies
 # core coverage
@@ -82,3 +81,4 @@ include: "backmapping-binning.smk"
 # popcogent
 
 # create rule to run assembly and binning for all samples
+

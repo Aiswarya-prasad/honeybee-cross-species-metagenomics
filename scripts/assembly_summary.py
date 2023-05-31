@@ -1,6 +1,8 @@
 import os
 import sys
 import argparse
+import gzip
+from Bio import SeqIO
 
 parser = argparse.ArgumentParser()
 requiredNamed = parser.add_argument_group('required arguments')
@@ -13,23 +15,39 @@ flagstat = args.flagstat
 scaffolds = args.scaffolds
 flagstat = args.flagstat
 outfile = args.outfile
+is_tsv = True if flagstat[0].endswith(".tsv") else False
+
+def get_read_count(sample, file_info):
+    num_reads = 0
+    file_path = os.path.join(os.getcwd(), "results", file_info[0], sample + file_info[1])
+    with gzip.open(file_path, "rt") as fq_fh:
+        for record in SeqIO.parse(fq_fh, "fastq"):
+            num_reads += 1
+    return num_reads
+
 
 counts_dict = {}
 mapped_dict = {}
 for file in flagstat:
-    if "_mapped_flagstat.tsv" in file:
-        sample = file.split("/")[-1].split("_mapped_flagstat.tsv")[0]
+    if "_mapped_flagstat.txt" in file:
+        sample = file.split("/")[-1].split("_mapped_flagstat.txt")[0]
     else:
-        sys.exit(f"Trying to parse sample name out of {file} but it is not in the format expected <sample>_mapped_flagstat.tsv.")
+        sys.exit(f"Trying to parse sample name out of {file} but it is not in the format expected <sample>_mapped_flagstat.txt.")
     with open(file, "r") as fh:
-        for line in fh:
-            line_split = line.strip().split("\t")
-            if line_split[2] == "mapped":
-                count = line_split[0]
-                mapped_dict[sample] = int(count)
-            if "primary" in line_split[2]:
-                count = line_split[0]
-                counts_dict[sample] = int(count)
+        if is_tsv:
+            for line in fh:
+                line_split = line.strip().split("\t")
+                if "primary" in line_split[2]:
+                    count = line_split[0]
+                    mapped_dict[sample] = int(count)
+        else:
+            for line in fh:
+                line_split = line.strip().split(" ")
+                if line_split[3] == "primary":
+                    count = line_split[0]
+                    mapped_dict[sample] = int(count)  
+        counts_dict[sample] = 2*int(get_read_count(sample, ["01_cleanreads","_R1_repaired.fastq.gz"]))
+
 Sample_list = list()
 MinContigLen_list = list()
 MaxContigLen_list = list()
@@ -44,7 +62,7 @@ ContigsN50_list = list()
 for i in range(len(flagstat)):
     print(i)
     file = flagstat[i]
-    Sample = file.split("/")[-1].split("_mapped_flagstat.tsv")[0]
+    Sample = file.split("/")[-1].split("_mapped_flagstat.txt")[0]
     print(Sample)
     Sample_list.append(Sample)
     

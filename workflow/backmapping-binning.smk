@@ -8,7 +8,6 @@ rules:
     - rename_scaffolds
     - build_bwa_index
     - backmapping
-    - bamQC
 scripts:
     - rename_scaffolds.py
 targets:
@@ -68,7 +67,7 @@ rule backmapping:
         singletons = lambda wildcards: f"results/01_cleanreads/{wildcards.sample}_singletons.fastq.gz"
     output:
         flagstat = "results/07_MAG_binng_QC/01_backmapping/{sample_assembly}/{sample}_mapped_flagstat.txt",
-        bam = temp("results/07_MAG_binng_QC/01_backmapping/{sample_assembly}/{sample}.bam") # only unmapped reads excluded
+        bam = "results/07_MAG_binng_QC/01_backmapping/{sample_assembly}/{sample}.bam" # only unmapped reads excluded
     params:
         match_length = 50,
         edit_distance = 5, # methods in microbiomics recommends 95 perc identity
@@ -81,7 +80,7 @@ rule backmapping:
         account="pengel_spirit",
         runtime_s=convertToSec("0-5:10:00"),
     resources:
-        mem_mb = 8000
+        mem_mb = convertToMb("20G")
     threads: 4
     log: "results/07_MAG_binng_QC/01_backmapping/{sample_assembly}/{sample}_backmapping.log"
     benchmark: "results/07_MAG_binng_QC/01_backmapping/{sample_assembly}/{sample}_backmapping.benchmark"
@@ -93,9 +92,13 @@ rule backmapping:
         samtools flagstat -@ {threads} {output.bam} > {output.flagstat}
         """
 
+# for now, use for depth file just the information from the subset
+# of 50 samples from which we make the MAGs
+
 rule make_depthfile:
     input:
-        bams = expand("results/07_MAG_binng_QC/01_backmapping/{{sample_assembly}}/{sample}.bam", sample=SAMPLES_INDIA+SAMPLES_MY)
+        bams = expand("results/07_MAG_binng_QC/01_backmapping/{{sample_assembly}}/{sample}.bam", sample=SAMPLES_sub)
+        # bams = expand("results/07_MAG_binng_QC/01_backmapping/{{sample_assembly}}/{sample}.bam", sample=SAMPLES_INDIA+SAMPLES_MY)
     output:
         depthfile = "results/07_MAG_binng_QC/01_backmapping/{sample_assembly}_depths/{sample_assembly}_depthfile.txt"
     params:
@@ -110,9 +113,10 @@ rule make_depthfile:
     log: "results/07_MAG_binng_QC/01_backmapping/{sample_assembly}_depths/{sample_assembly}_make_depthfile.log"
     benchmark: "results/07_MAG_binng_QC/01_backmapping/{sample_assembly}_depths/{sample_assembly}_make_depthfile.benchmark"
     conda: "../config/envs/mags-env.yaml"
+    priority: 10
     shell:
         """
-        jgi_summarize_bam_contig_depths –outputDepth {output.depthfile} {input.bams}
+        jgi_summarize_bam_contig_depths --outputDepth {output.depthfile} {input.bams}
         """
 
 rule run_metabat2:
@@ -134,13 +138,14 @@ rule run_metabat2:
     resources:
         mem_mb = 8000
     threads: 4
-    log: "results/07_MAG_binng_QC/02_bins/{sample}/{sample}_run_metabat2.log"
-    benchmark: "results/07_MAG_binng_QC/02_bins/{sample}/{sample}_run_metabat2.benchmark"
+    log: "results/07_MAG_binng_QC/02_bins/{sample}_run_metabat2.log"
+    benchmark: "results/07_MAG_binng_QC/02_bins/{sample}_run_metabat2.benchmark"
     conda: "../config/envs/mags-env.yaml"
+    priority: 10
     shell:
         """
         metabat2 -i {input.scaffolds} -a {input.depthfile} \
-        -o {output.bins}/{wildcards.sample}_ --minContig {params.mincontiglen} \
-        --maxEdges {params.maxEdges} -x {params.minCV} --minClsSize {params.clustersize} --saveCls -v
+        -o {output.bins}/{wildcards.sample} --minContig {params.mincontiglen} \
+        --maxEdges {params.maxEdges} -x {params.minCV} --minClsSize {params.clustersize} --saveCls -v \
         --unbinned
         """

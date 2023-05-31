@@ -1,17 +1,56 @@
 """
-name: annotate-orfd
-description: ORF annotation and extraction of coverage
+name: gene_content.smk
+description: xxx
 author: Aiswarya Prasad (aiswarya.prasad@unil.ch)
 rules:
-    - prodigal_get_orfs
-        + identify ORFs in all filtered contigs and remove partial and short ORFs
-    - dram_annotate_orfs
-        + annotate ORFs with dram
+    - xxx
 scripts:
     - 
 targets:
     - 
 """
+
+##################################################################
+# these lines are all here to make this smkm  self-contained for the moment
+# will be changed later
+import os
+import glob
+import yaml
+import itertools
+from itertools import chain
+
+configfile: "config/config.yaml"
+# read config information into local variables to improve readability of rules
+if config["LocalBackup"]:
+    localrules: backup
+
+SAMPLES_KE = config["SAMPLES_KE"]
+SAMPLES_INDIA = config["SAMPLES_INDIA"]
+SAMPLES_MY = config["SAMPLES_MY"]
+SAMPLES = SAMPLES_KE + SAMPLES_INDIA + SAMPLES_MY
+# SAMPLES = config["SAMPLES_KE"]
+ADAPTERS = config["Adapters"]
+
+wildcard_constraints:
+  sample = '|'.join(SAMPLES),
+#   read = '|'.join(["R1", "R2"]),
+#   lane = "L*",
+  run = "20[0-9]{6,6}"
+
+onstart:
+    # this is just for updates - needs to be run before starting the pipeline
+    shell("python3 scripts/make_reads_list_file.py")
+
+raw_paths_dict_all = yaml.safe_load(open("config/raw_file_paths.yaml", "r"))
+raw_paths_dict = {key: raw_paths_dict_all[key] for key in SAMPLES}
+
+include: "common.smk"
+
+rule all:
+    input:
+        cdhit_genes = "results/08_gene_content/gene_catalog_cdhit9590.fasta"
+##################################################################
+
 
 rule prodigal_get_orfs:
     input:
@@ -42,17 +81,43 @@ rule prodigal_get_orfs:
         python scripts/filt_orfs.py --ffn_in {output.scaffolds_ffn} --ffn_out {output.orfs} --sample {wildcards.sample} --log {output.filt_log}
         """
 
-# rule cd_hit_clustering:
-#     input:
-#         a 
-#     output:
+rule cd_hit_clustering:
+    input:
+        scaffolds_ffn = expand("results/06_metagenomicORFs/{sample}/{sample}.ffn", sample = SAMPLES_INDIA+SAMPLES_MY),
+        scaffolds_faa = expand("results/06_metagenomicORFs/{sample}/{sample}.faa", sample = SAMPLES_INDIA+SAMPLES_MY),
+    output:
+        gene_catalog_ffn = "results/08_gene_content/gene_catalog_all.ffn",
+        gene_catalog_faa = "results/08_gene_content/gene_catalog_all.faa",
+        cdhit_genes = "results/08_gene_content/gene_catalog_cdhit9590.fasta",
+    params:
+        identity_threshold = 0.95,
+        memory_limit = 0, # no limit
+        seq_id = 0, # if set to 0, then use local sequence identity
+        aln_cov = 0.9,
+        alg = 1, # 1: most similar cluster, 0: first matching cluster
+        strands = 1, # do both +/+ & +/- alignments
+        description = 0, # if set to 0, it takes the fasta defline and stops at first space
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-70:00:00"),
+    resources:
+        mem_mb = convertToMB("512G"),
+    threads: 16
+    log: "results/08_gene_content/cdhit_clustering.log"
+    benchmark: "results/08_gene_content/cdhit_clustering.benchmark"
+    conda: "../config/envs/genes-env.yaml"
+    shell:
+        """
+        # used scripts/batch-scripts/cdhit_clustering.sh to run this rule earlier
+        cat {input.scaffolds_ffn} > {output.gene_catalog_ffn}
+        cat {input.scaffolds_faa} > {output.gene_catalog_faa}
+        cd-hit-est -i {output.gene_catalog_ffn} -o {output.cdhit_genes} \
+            -c {params.identity_threshold} -T {threads} -M {params.memory_limit} \
+            -G {params.seq_id} -aS {params.aln_cov} -g {params.alg} \
+            -r {params.strands} -d {params.description}
+        """
 
-# cat metag_assembly/metag*/metag*fna > gene_catalog/gene_catalog_all.fna
-# cat metag_assembly/metag*/metag*faa > gene_catalog/gene_catalog_all.faa
-# cd gene_catalog
-# mkdir cdhit9590
-# cd-hit-est -i gene_catalog_all.fna -o cdhit9590/gene_catalog_cdhit9590.fasta \
-# -c 0.95 -T 64 -M 0 -G 0 -aS 0.9 -g 1 -r 1 -d 0
 # grep "^>" cdhit9590/gene_catalog_cdhit9590.fasta | \
 # cut -f 2 -d ">" | \
 # cut -f 1 -d " " > cdhit9590/cdhit9590.headers

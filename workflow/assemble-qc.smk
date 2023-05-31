@@ -262,6 +262,7 @@ rule bamQC:
     resources:
         mem_mb = convertToMb("300G"),
     conda: "../config/envs/qualimap-env.yaml"
+    priority: 10
     shell:
         """
 
