@@ -222,31 +222,10 @@ rule assemble_metagenomes:
 #     ID = "_".join([ID_1,ID_2,ID_3])
 #     return ID
 
-rule rename_gff_headers:
-    input:
-        gff = "results/06_metagenomicORFs/{sample_assembly}/{sample_assembly}.gff"
-    output:
-        gff = "results/06_metagenomicORFs/{sample_assembly}.gff"
-    params:
-        mailto="aiswarya.prasad@unil.ch",
-        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        jobname="rename_gff",
-        account="pengel_spirit",
-        runtime_s=convertToSec("0-5:30:00"),
-    log: "results/06_metagenomicORFs/{sample_assembly}_rename_gff_headers.log"
-    benchmark: "results/06_metagenomicORFs/{sample_assembly}_rename_gff_headers.benchmark"
-    threads: 4
-    resources:
-        mem_mb = 3000,
-    shell:
-        """
-        cat {input.gff} | sed -e 's/ID=/ID={wildcards.sample_assembly}_/g' | sed -e 's/NODE/{wildcards.sample_assembly}_NODE/g' > {output.gff}
-        """
-
 rule bamQC:
     input:
         bam = "results/07_MAG_binng_QC/01_backmapping/{sample_assembly}/{sample_assembly}.bam", # only unmapped reads excluded
-        gff = "results/06_metagenomicORFs/{sample_assembly}.gff"
+        gff = "results/06_metagenomicORFs/{sample_assembly}/{sample_assembly}_renamed.gff"
     output:
         outdir = directory("results/07_MAG_binng_QC/01_backmapping/qualimap_results/{sample_assembly}/")
     params:

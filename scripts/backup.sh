@@ -46,7 +46,7 @@ echo "#############################################################" | tee -a ${
 
 # rsync -avPni --delete --backup --backup-dir="BACKUP/" --exclude "BACKUP/" --exclude ".snakemake/" ${source}/ ${destination}/ | tee -a ${logfile}
 # rsync -avPi --delete --backup --backup-dir="BACKUP/" --exclude "BACKUP/" --exclude ".snakemake/" ${source}/ ${destination}/ | tee -a ${logfile}
-rsync -avPi --delete --backup --backup-dir="BACKUP/" --exclude "BACKUP/" --exclude ".snakemake/" --exclude ".snakemake/" ${source}/ ${destination}/ | tee -a ${logfile}
+rsync -avPi --delete --backup --backup-dir="BACKUP/" --exclude "BACKUP/" --exclude ".snakemake/" --exclude "*.bam" --exclude 00_*/ --exclude 01_c*/ --exclude 01_trimmedconcatreads --exclude 01_trimmedconcatreads ${source}/ ${destination}/ | tee -a ${logfile}
 
 echo "#############################################################" | tee -a ${logfile}
 echo "backup done" | tee -a ${logfile}

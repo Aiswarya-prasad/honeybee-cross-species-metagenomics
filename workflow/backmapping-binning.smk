@@ -78,7 +78,8 @@ rule backmapping:
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         jobname="{sample_assembly}_{sample}_backmapping",
         account="pengel_spirit",
-        runtime_s=convertToSec("0-5:10:00"),
+        runtime_s=convertToSec("0-15:10:00"),
+        # runtime_s=convertToSec("0-4:10:00"), # one sample takes >4 hours
     resources:
         mem_mb = convertToMb("20G")
     threads: 4

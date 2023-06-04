@@ -3,14 +3,14 @@
 ######### SLURM OPTIONS
 #SBATCH --partition cpu
 #SBATCH --account pengel_spirit
-#SBATCH --job-name cdhit-clustering
+#SBATCH --job-name dram_annotate
 #SBATCH --nodes 1
 #SBATCH --ntasks 1
-#SBATCH --cpus-per-task 16
+#SBATCH --cpus-per-task 20
 #SBATCH --mem 512G
 #SBATCH --time 70:00:00 
-#SBATCH --error /scratch/aprasad/20230313_apis_species_comparison/results/08_gene_content/cdhit_clustering.err
-#SBATCH --output /scratch/aprasad/20230313_apis_species_comparison/results/08_gene_content/cdhit_clustering.out
+#SBATCH --error /scratch/aprasad/20230313_apis_species_comparison/results/08_gene_content/dram_annotation.err
+#SBATCH --output /scratch/aprasad/20230313_apis_species_comparison/results/08_gene_content/dram_annotation.out
 
 source ~/.bashrc
 # conda activate 20230313_dram_env
@@ -23,17 +23,15 @@ which DRAM.py
 
 cd /scratch/aprasad/20230313_apis_species_comparison
 
-gene_catalog_ffn="results/08_gene_content/gene_catalog_all.ffn"
 gene_catalog_faa="results/08_gene_content/gene_catalog_all.faa"
 cdhit_genes="results/08_gene_content/gene_catalog_cdhit9590.fasta"
+outdir="results/08_gene_content/DRAM_annotation"
+outdir_distill="results/08_gene_content/DRAM_distill"
 
-DRAM.py annotate-genes \
-        -i <input path to the genes faa, NO REGEX> \
-        -o <output path> \
+DRAM.py annotate_genes \
+        -i ${gene_catalog_faa} \
+        -o ${outdir} \
         --threads 20 \
-        --custom_fasta_loc ./fasta_1.fa \
-        --custom_db_name A_seqs \
-        --custom_fasta_loc ./fasta_2.fa \
-        --custom_db_name  B_seqs \
+        --verbose
 
-DRAM.py distill -i annotation/annotations.tsv -o genome_summaries
+DRAM.py distill -i ${outdir}/annotations.tsv -o ${outdir_distill}

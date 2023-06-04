@@ -18,13 +18,21 @@ outfile = args.outfile
 is_tsv = True if flagstat[0].endswith(".tsv") else False
 
 def get_read_count(sample, file_info):
-    num_reads = 0
-    file_path = os.path.join(os.getcwd(), "results", file_info[0], sample + file_info[1])
-    with gzip.open(file_path, "rt") as fq_fh:
-        for record in SeqIO.parse(fq_fh, "fastq"):
-            num_reads += 1
-    return num_reads
-
+    if "01_cleanreads" in file_info[0]:
+        num_reads = 0
+        file_path = os.path.join(os.getcwd(), file_info[0], sample + file_info[1])
+        with open(file_path, "r") as fh:
+            for line in fh:
+                if line.startswith("Pairs:"):
+                    num_reads = line.split("\t")[1].split()[0]
+                    return num_reads
+        with open(file_path.split(".cluster.e")[0], "r") as fh:
+            for line in fh:
+                if line.startswith("Pairs:"):
+                    num_reads = line.split("\t")[1].split()[0]
+                    return num_reads
+    else:
+        sys.exit(f"Error: don't know how to parse from {file_info}")
 
 counts_dict = {}
 mapped_dict = {}
@@ -46,7 +54,7 @@ for file in flagstat:
                 if line_split[3] == "primary":
                     count = line_split[0]
                     mapped_dict[sample] = int(count)  
-        counts_dict[sample] = 2*int(get_read_count(sample, ["01_cleanreads","_R1_repaired.fastq.gz"]))
+        counts_dict[sample] = int(get_read_count(sample, ["results/01_cleanreads","_repaired.log.cluster.e"]))
 
 Sample_list = list()
 MinContigLen_list = list()
@@ -66,7 +74,7 @@ for i in range(len(flagstat)):
     print(Sample)
     Sample_list.append(Sample)
     
-    ContigLensList = [int(n) for n in (os.popen("echo $(cat "+scaffolds[i]+" | grep \'>\' | cut -d\'_\' -f4 | tr \'\n\' \',\' )").read()).split(",") if n != '']
+    ContigLensList = [int(n) for n in (os.popen("echo $(cat "+scaffolds[i]+" | grep \'>\' | cut -d\'_\' -f4 | tr \'\n\' \',\' )").read()).split(",") if str.isdigit(str(n))]
     tmp = []
     for tmp_number in set(ContigLensList):
             tmp += [tmp_number] * ContigLensList.count(tmp_number) * tmp_number
@@ -93,8 +101,8 @@ for i in range(len(flagstat)):
 
     AssemblyMapped = mapped_dict[Sample]
     AssemblyMapped_list.append(AssemblyMapped)
-
-ProportionMapped_list = [str(round(x/y*100, 2)) for (x,y) in zip(AssemblyMapped_list, NumReads_list)]
+print(f"NumReads_list: {NumReads_list}")
+ProportionMapped_list = [str(round(x/y*100, 2)) for (x,y) in zip(AssemblyMapped_list, NumReads_list) if y != 0]
 
 Summary_path = os.path.join(os.getcwd(), outfile)
 
@@ -103,5 +111,5 @@ with open(Summary_path, "w") as file:
     "Number of filtered scaffolds, " +
     "N50, Min contig length, Max contig length, " +
     "Number mapped, Percent mapped\n")
-    for i in range(len(input.reads1)):
+    for i in range(len(flagstat)):
         file.write(f"{Sample_list[i]}, {AssemblySize_list[i]}, {NumReads_list[i]}, {NumberOfContigs_list[i]}, {ContigsN50_list[i]}, {MinContigLen_list[i]}, {MaxContigLen_list[i]}, {AssemblyMapped_list[i]}, {ProportionMapped_list[i]}\n")
