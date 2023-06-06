@@ -95,3 +95,53 @@ def get_renamed_input_files(paths_dict):
             renamed_sample_paths.append(renamed_path)
         renamed_paths_dict[sample] = renamed_sample_paths
     return(renamed_paths_dict)
+
+def get_all_mags():
+    with open(metadata, "r") as f:
+        header = f.readline()
+        id_ind = header.split("\t").index("ID")
+        all_mags = [line.split("\t")[id_ind] for line in f.readlines() if "unbinned" not in line.split("\t")[id_ind]]
+    return all_mags
+
+def get_rep_mags(metadata):
+    with open(metadata, "r") as f:
+        header = f.readline()
+        id_ind = header.split("\t").index("ID")
+        reference_ind = header.split("\t").index("reference")
+        rep_mags = [line.split("\t")[id_ind] for line in f.readlines() if str(line.split("\t")[reference_ind]) == "1"]
+    return rep_mags
+
+def get_medium_mags(metadata):
+    with open(metadata, "r") as f:
+        header = f.readline()
+        id_ind = header.split("\t").index("ID")
+        quality_ind = header.split("\t").index("Quality")
+        all_mags = [line.split("\t")[id_ind] for line in f.readlines() if str(line.split("\t")[quality_ind]) in ["medium", "high"]]
+    return all_mags
+
+def get_mags_of_genus(genus, metadata):
+    with open(metadata, "r") as f:
+        header = f.readline()
+        id_ind = header.split("\t").index("ID")
+        genus_ind = header.split("\t").index("Genus")
+        mags = [line.split("\t")[id_ind] for line in f.readlines() if str(line.split("\t")[genus_ind]) == genus_name]
+    return mags
+
+def get_genus_of_mag(mag, metadata):
+    with open(metadata, "r") as f:
+        header = f.readline()
+        id_ind = header.split("\t").index("ID")
+        genus_ind = header.split("\t").index("Genus")
+        for line in f:
+            if line.split("\t")[id_ind] == mag:
+                return line.split("\t")[genus_ind]
+
+def get_significant_genera_list(metadata):
+    with open(metadata, "r") as f:
+        header = f.readline()
+        genus_ind = header.split("\t").index("Genus")
+        genera = [line.split("\t")[genus_ind] for line in f.readlines() if str(line.split("\t")[quality_ind]) in ["medium", "high"]]
+        genera_significant = [x for x in set(genera) if genera.count(x) > 3]
+    return genera_significant
+
+# check if the genera names all make sense for the phylogenies - rename those

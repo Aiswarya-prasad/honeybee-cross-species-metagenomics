@@ -1,0 +1,15 @@
+name: instrain-env
+
+channels:
+  - conda-forge
+  - bioconda
+  - hcc
+
+dependencies:
+  - bcftools
+  - samtools
+  - prodigal
+  - numpy
+  - pysam
+  - biopython=1.74
+  - instrain

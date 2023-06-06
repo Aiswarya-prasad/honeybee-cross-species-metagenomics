@@ -65,7 +65,9 @@ rule targets:
         checkm_summary = "results/09_MAGs_collection/All_mags_sub/checkm_merged.tsv",
         gene_profiling_depth = expand("results/08_gene_content/01_profiling/{sample}_mapped.depth", sample=SAMPLES),
         dram_annotation = expand("results/08_gene_content/02_DRAM_annotations/{sample}/annotations.tsv", sample=SAMPLES_INDIA+SAMPLES_MY),
-        mag_metadata = "results/09_MAGs_collection/All_mags_sub/All_mags_sub_metadata_summary.tsv"
+        mag_metadata = "results/09_MAGs_collection/All_mags_sub/All_mags_sub_metadata_summary.tsv",
+        profiles_plots = expand("results/10_instrain/04_instrain_plot_marker/{sample}_compare_plots.done", sample=SAMPLES),
+        # compare_plots = expand("results/10_instrain/04_instrain_plot_marker/{sample}_profile_plots.done", sample=SAMPLES)
 
 
 include: "trim-qc.smk"
@@ -74,6 +76,7 @@ include: "assemble-qc.smk"
 include: "backmapping-binning.smk"
 include: "binning_summary_annotation.smk"
 include: "annotate_profile_orfs.smk"
+include: "mag_db_instrain.smk"
 
 # to do next, 
 # annotation

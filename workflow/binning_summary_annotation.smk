@@ -129,7 +129,8 @@ rule merge_checkm_output:
 
 rule gtdbtk_batchfile:
     input:
-        all_mags_marker = "results/09_MAGs_collection/All_mags_sub/MAGs/collect_mags.done",
+        all_mags_marker = checkpoints.collect_mags.get().output.collect_mags_marker
+        # all_mags_marker = "results/09_MAGs_collection/All_mags_sub/MAGs/collect_mags.done",
     output:
         batchfile = "results/09_MAGs_collection/All_mags_sub/gtdb_input_batchfile.tsv"
     params:
@@ -221,12 +222,14 @@ rule make_drep_genome_info:
 rule drep_dereplicate:
     input:
         drep_genomeinfo = "results/09_MAGs_collection/All_mags_sub/drep_genome_info.tsv",
-        collect_mags_marker = "results/09_MAGs_collection/All_mags_sub/MAGs/collect_mags.done"
+        collect_mags_marker = checkpoints.collect_mags.get().output.collect_mags_marker
+        # collect_mags_marker = "results/09_MAGs_collection/All_mags_sub/MAGs/collect_mags.done"
     output:
         drep_S = "results/09_MAGs_collection/All_mags_sub/drep_output/data_tables/Sdb.csv",
         drep_N = "results/09_MAGs_collection/All_mags_sub/drep_output/data_tables/Ndb.csv",
         drep_M = "results/09_MAGs_collection/All_mags_sub/drep_output/data_tables/Mdb.csv",
         drep_C = "results/09_MAGs_collection/All_mags_sub/drep_output/data_tables/Cdb.csv",
+        drep_B = "results/09_MAGs_collection/All_mags_sub/drep_output/data_tables/Bdb.csv",
         drep_W = "results/09_MAGs_collection/All_mags_sub/drep_output/data_tables/Wdb.csv",
         drep_Wi = "results/09_MAGs_collection/All_mags_sub/drep_output/data_tables/Widb.csv",
         drep_gI = "results/09_MAGs_collection/All_mags_sub/drep_output/data_tables/genomeInformation.csv",
@@ -238,10 +241,10 @@ rule drep_dereplicate:
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         jobname="drep_dereplicate",
         account="pengel_spirit",
-        runtime_s=convertToSec("0-17:00:00"),
+        runtime_s=convertToSec("0-22:00:00"),
     resources:
-        mem_mb = convertToMb("150G")
-    threads: 4
+        mem_mb = convertToMb("350G")
+    threads: 16
     conda: "../config/envs/mags-env.yaml"
     log: "results/09_MAGs_collection/All_mags_sub/drep_dereplicate.log"
     benchmark: "results/09_MAGs_collection/All_mags_sub/drep_dereplicate.benchmark"
@@ -250,13 +253,21 @@ rule drep_dereplicate:
         marker={input.collect_mags_marker}
         bins=${{marker/collect_mags.done/}}
         out_file={output.drep_S}
-        dRep dereplicate {params.outdir} -g ${{bins}}/*.fa \
-            --genomeInfo {input.drep_genomeinfo} \
-            -comp 0 -con 1000 --clusterAlg average \
-            -sa {params.ani} -nc {params.overlap} -p {threads}
+        if [ -f {output.drep_B} ]; then
+            dRep dereplicate {params.outdir} -g ${{bins}}/*.fa \
+                -comp 0 -con 1000 --clusterAlg average \
+                --genomeInfo {input.drep_genomeinfo} \
+                -sa {params.ani} -nc {params.overlap} -p {threads}
+        else
+            dRep dereplicate {params.outdir} -g ${{bins}}/*.fa \
+                --genomeInfo {input.drep_genomeinfo} \
+                -comp 0 -con 1000 --clusterAlg average \
+                -sa {params.ani} -nc {params.overlap} -p {threads}
+        fi
+
         """
 
-rule mag_metadata_summary:
+checkpoint mag_metadata_summary:
     input:
         gtdb = "/scratch/aprasad/20230313_apis_species_comparison/results/09_MAGs_collection/All_mags_sub/gtdb_output/All_mags_sub.bac120.summary.tsv",
         checkm = "results/09_MAGs_collection/All_mags_sub/checkm_merged.tsv",
@@ -275,10 +286,10 @@ rule mag_metadata_summary:
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         jobname="make_mag_metadata_summary",
         account="pengel_spirit",
-        runtime_s=convertToSec("0-00:40:00"),
+        runtime_s=convertToSec("0-22:10:00"),
     resources:
-        mem_mb = convertToMb("50G")
-    threads: 4
+        mem_mb = convertToMb("200G")
+    threads: 16
     conda: "../config/envs/scripts-env.yaml"
     log: "results/09_MAGs_collection/All_mags_sub/mag_metadata_summary.log"
     benchmark: "results/09_MAGs_collection/All_mags_sub/mag_metadata_summary.benchmark"
@@ -295,13 +306,7 @@ rule mag_metadata_summary:
         #     --outfile {output.metadata}
         """
 
-# def get_mags(wildcards):
-#     all_mags_marker = checkpoints.collect_mags.get().output.collect_mags_marker
-#     all_mags_path = "/".join(all_mags_marker.split("/")[:-1])
-#     mags = glob.glob(os.path.join(all_mags_path, "*.fa"))
-#     return mags
-
-rule collect_prodigal_from_checkm
+rule collect_prodigal_from_checkm:
     input:
         # ensure checkm is run for all the samples from which MAGs were made
         checkm_merged = "results/09_MAGs_collection/All_mags_sub/checkm_merged.tsv"
@@ -329,10 +334,12 @@ rule rename_prodigal_checkm:
         prodigal_checkm_gff = "results/09_MAGs_collection/All_mags_sub/prodigal_output/from_checkm/{mag}.gff",
         mag_fa = "results/09_MAGs_collection/All_mags_sub/MAGs/{mag}.fa"
     output:
-        renamed_ffn = "results/09_MAGs_collection/All_mags_sub/prodigal_output/renamed/{mag}.ffn",
-        renamed_faa = "results/09_MAGs_collection/All_mags_sub/prodigal_output/renamed/{mag}.faa",
-        renamed_gff = "results/09_MAGs_collection/All_mags_sub/prodigal_output/renamed/{mag}.gff"
+        renamed_ffn = "results/09_MAGs_collection/All_mags_sub/prodigal_output/renamed/{mag}/{mag}.ffn",
+        renamed_faa = "results/09_MAGs_collection/All_mags_sub/prodigal_output/renamed/{mag}/{mag}.faa",
+        renamed_gff = "results/09_MAGs_collection/All_mags_sub/prodigal_output/renamed/{mag}/{mag}.gff",
+        renamed_bed = "results/09_MAGs_collection/All_mags_sub/prodigal_output/renamed/{mag}/{mag}.bed"
     params:
+        sample_name = lambda wildcards: wildcards.mag.split("_")[0],
         outdir = "results/09_MAGs_collection/All_mags_sub/prodigal_output/renamed",
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
@@ -344,12 +351,12 @@ rule rename_prodigal_checkm:
     conda: "../config/envs/genes-env.yaml"
     shell:
         """
-        
+        cat {input.prodigal_checkm_faa} | sed -e 's/ID=/ID={params.sample_name}_/g' > {output.renamed_faa}
+        cat {input.prodigal_checkm_gff} | sed -e 's/ID=/ID={params.sample_name}_/g' > {output.renamed_gff}
+        bedtools convert -i {output.renamed_gff} -o {output.renamed_bed}
+        bedtools getfasta -fi {input.mag_fa} -bed {output.renamed_bed} -fo {output.renamed_ffn}
         """
 
-# prodigal = "results/09_MAGs_collection/All_mags_sub/prodigal_output/{mag}.faa"
-collected = "results/09_MAGs_collection/All_mags_sub/prodigal_output/collect_from_checkm.done"
-rule get_fasta_from_prodigal_gff
 
 
 # make table with metadata for all mags 
