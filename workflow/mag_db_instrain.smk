@@ -208,7 +208,7 @@ rule instrain_profile_plot:
         mem_mb = convertToMb("200G")
     threads: 16
     log: "results/10_instrain/04_instrain_plot_marker/{sample}_profile_plots.log"
-    log: "results/10_instrain/04_instrain_plot_marker/{sample}_profile_plots.benchmark"
+    benchmark: "results/10_instrain/04_instrain_plot_marker/{sample}_profile_plots.benchmark"
     conda: "../config/envs/instrain_env.yaml"
     shell:
         """
@@ -233,7 +233,7 @@ rule instrain_compare_plot:
         mem_mb = convertToMb("200G")
     threads: 16
     log: "results/10_instrain/04_instrain_plot_marker/{sample}_compare_plots.log"
-    log: "results/10_instrain/04_instrain_plot_marker/{sample}_compare_plots.benchmark"
+    benchmark: "results/10_instrain/04_instrain_plot_marker/{sample}_compare_plots.benchmark"
     conda: "../config/envs/instrain_env.yaml"
     shell:
         """

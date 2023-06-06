@@ -145,3 +145,14 @@ def get_significant_genera_list(metadata):
     return genera_significant
 
 # check if the genera names all make sense for the phylogenies - rename those
+
+def four_digit(n):
+    n = int(n)
+    if n < 10:
+        return f"000{n}"
+    elif n < 100:
+        return f"00{n}"
+    elif n < 1000:
+        return f"0{n}"
+    else:
+        return f"{n}"

@@ -138,6 +138,7 @@ rule cdhit_clustering:
     output:
         gene_catalog_ffn="results/08_gene_content/gene_catalog_all.ffn",
         gene_catalog_faa="results/08_gene_content/gene_catalog_all.faa",
+        cdhit_clustering="results/08_gene_content/00_cdhit_clustering/gene_catalog_cdhit9590.fasta.clstr",
         cdhit_genes="results/08_gene_content/00_cdhit_clustering/gene_catalog_cdhit9590.fasta"
     params:
         mailto="aiswarya.prasad@unil.ch",
@@ -158,6 +159,25 @@ rule cdhit_clustering:
         cd-hit-est -i {output.gene_catalog_ffn} -o {output.cdhit_genes} \
             -c 0.95 -T 64 -M 0 -G 0 -aS 0.9 -g 1 -r 1 -d 0
         """
+rule parse_clustering_file:
+    input:
+        cdhit_clustering="results/08_gene_content/00_cdhit_clustering/gene_catalog_cdhit9590.fasta.clstr"
+    output:
+        cdhit_clusters="results/08_gene_content/00_cdhit_clustering/cluster_host_affiliations.tsv"
+    params:
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-02:00:00")
+    resources:
+        mem_mb = convertToMb("50G")
+    threads: 4
+    conda: "../config/envs/scripts-env.yaml"
+    shell:
+        """
+        python3 scripts/parse_cluster_file.py --cluster_file {input.cdhit_clustering} --cluster_out {output.cdhit_clusters}
+        """
+
 
 rule dram_annotate_orfs:
     input:
@@ -230,6 +250,8 @@ rule profile_genes:
         bam = temp("results/08_gene_content/01_profiling/{sample}_mapped.bam"),
         flagstat = "results/08_gene_content/01_profiling/{sample}_mapped.flagstat",
         depth = "results/08_gene_content/01_profiling/{sample}_mapped.depth",
+        coverage = "results/08_gene_content/01_profiling/{sample}_mapped.coverage",
+        hist = "results/08_gene_content/01_profiling/{sample}_mapped.hist",
     params:
         match_length = 50,
         edit_distance = 5, # methods in microbiomics recommends 95 perc identity
@@ -253,4 +275,8 @@ rule profile_genes:
         | samtools view -F 4 -h - |  python3 {params.filter_script} -e 5 -m 50 | samtools sort -O bam -@ {threads} > {output.bam}
         samtools flagstat -@ {threads} {output.bam} > {output.flagstat}
         samtools depth -s -a {output.bam} > {output.depth}
+        samtools coverage {output.bam} > {output.coverage}
+        samtools coverage -m {output.bam} > {output.hist}
         """
+
+# rule make_gene_counts_matrix:

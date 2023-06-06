@@ -129,7 +129,7 @@ rule merge_checkm_output:
 
 rule gtdbtk_batchfile:
     input:
-        all_mags_marker = checkpoints.collect_mags.get().output.collect_mags_marker
+        all_mags_marker = lambda wildcards: checkpoints.collect_mags.get().output.collect_mags_marker
         # all_mags_marker = "results/09_MAGs_collection/All_mags_sub/MAGs/collect_mags.done",
     output:
         batchfile = "results/09_MAGs_collection/All_mags_sub/gtdb_input_batchfile.tsv"
@@ -217,12 +217,13 @@ rule make_drep_genome_info:
                     genome = line.split("\t")[ind_genome]
                     completeness = line.split("\t")[ind_comp]
                     contamination = line.split("\t")[ind_cont]
-                    out_fh.write(f"{genome}.fa,{completeness},{contamination}\n")
+                    if completeness > 50 and contamination < 10:
+                        out_fh.write(f"{genome}.fa,{completeness},{contamination}\n")
 
 rule drep_dereplicate:
     input:
         drep_genomeinfo = "results/09_MAGs_collection/All_mags_sub/drep_genome_info.tsv",
-        collect_mags_marker = checkpoints.collect_mags.get().output.collect_mags_marker
+        collect_mags_marker = lambda wildcards: checkpoints.collect_mags.get().output.collect_mags_marker
         # collect_mags_marker = "results/09_MAGs_collection/All_mags_sub/MAGs/collect_mags.done"
     output:
         drep_S = "results/09_MAGs_collection/All_mags_sub/drep_output/data_tables/Sdb.csv",
@@ -244,7 +245,7 @@ rule drep_dereplicate:
         runtime_s=convertToSec("0-22:00:00"),
     resources:
         mem_mb = convertToMb("350G")
-    threads: 16
+    threads: 10
     conda: "../config/envs/mags-env.yaml"
     log: "results/09_MAGs_collection/All_mags_sub/drep_dereplicate.log"
     benchmark: "results/09_MAGs_collection/All_mags_sub/drep_dereplicate.benchmark"
@@ -253,18 +254,10 @@ rule drep_dereplicate:
         marker={input.collect_mags_marker}
         bins=${{marker/collect_mags.done/}}
         out_file={output.drep_S}
-        if [ -f {output.drep_B} ]; then
-            dRep dereplicate {params.outdir} -g ${{bins}}/*.fa \
-                -comp 0 -con 1000 --clusterAlg average \
-                --genomeInfo {input.drep_genomeinfo} \
-                -sa {params.ani} -nc {params.overlap} -p {threads}
-        else
-            dRep dereplicate {params.outdir} -g ${{bins}}/*.fa \
-                --genomeInfo {input.drep_genomeinfo} \
-                -comp 0 -con 1000 --clusterAlg average \
-                -sa {params.ani} -nc {params.overlap} -p {threads}
-        fi
-
+        dRep dereplicate {params.outdir} -g ${{bins}}/*.fa \
+            -comp 0 -con 1000 --clusterAlg average \
+            --genomeInfo {input.drep_genomeinfo} \
+            -sa {params.ani} -nc {params.overlap} -p {threads}
         """
 
 checkpoint mag_metadata_summary:

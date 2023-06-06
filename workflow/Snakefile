@@ -13,6 +13,7 @@ import os
 import glob
 import yaml
 import itertools
+import subprocess
 from itertools import chain
 
 configfile: "config/config.yaml"
@@ -64,6 +65,8 @@ rule targets:
         checkm_plots = expand("results/07_MAG_binng_QC/03_checkm_results/{sample}/plots.done", sample=SAMPLES_sub),
         checkm_summary = "results/09_MAGs_collection/All_mags_sub/checkm_merged.tsv",
         gene_profiling_depth = expand("results/08_gene_content/01_profiling/{sample}_mapped.depth", sample=SAMPLES),
+        gene_profiling_coverage = expand("results/08_gene_content/01_profiling/{sample}_mapped.coverage", sample=SAMPLES),
+        gene_profiling_hist = expand("results/08_gene_content/01_profiling/{sample}_mapped.hist", sample=SAMPLES),
         dram_annotation = expand("results/08_gene_content/02_DRAM_annotations/{sample}/annotations.tsv", sample=SAMPLES_INDIA+SAMPLES_MY),
         mag_metadata = "results/09_MAGs_collection/All_mags_sub/All_mags_sub_metadata_summary.tsv",
         profiles_plots = expand("results/10_instrain/04_instrain_plot_marker/{sample}_compare_plots.done", sample=SAMPLES),
