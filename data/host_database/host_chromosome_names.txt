@@ -1,0 +1,7 @@
+>AUPE... dorsata (contig)
+>GL57... florea
+>JANR... cerana
+>KI2... dorsata (scaffold)
+>NC... mellifera
+>NW... mellifera
+>NC_001566.1 Apis mellifera ligustica mitochondrion, complete genome

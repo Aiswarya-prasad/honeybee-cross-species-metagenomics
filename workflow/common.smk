@@ -99,9 +99,14 @@ def get_renamed_input_files(paths_dict):
 def get_all_mags():
     with open(metadata, "r") as f:
         header = f.readline()
+<<<<<<< HEAD
         header = header.strip()
         id_ind = header.split("\t").index("ID")
         all_mags = [line.split("\t")[id_ind] for line in f.readlines() if "unbinned" not in line.strip().split("\t")[id_ind]]
+=======
+        id_ind = header.split("\t").index("ID")
+        all_mags = [line.split("\t")[id_ind] for line in f.readlines() if "unbinned" not in line.split("\t")[id_ind]]
+>>>>>>> 763120e9c0784e1c35ea87992c12da1651d5a32b
     return all_mags
 
 def get_rep_mags(metadata):

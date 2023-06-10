@@ -57,7 +57,6 @@ gene_lengths = "results/08_gene_content/03_gene_counts/gene_lengths.txt"
 filtering_info = "results/08_gene_content/03_gene_counts/gene_filtering_info.txt"
 os.makedirs(os.path.dirname(gene_lengths), exist_ok=True)
 
-
 # make_gene_lengths_file(gene_catalog, gene_lengths)
 
 gene_lengths_dict = {}

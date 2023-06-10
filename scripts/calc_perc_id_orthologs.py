@@ -141,18 +141,3 @@ with open(outfile, "a") as fh_outfile:
     line_out = [OG_id, str(mean_perc_id), str(min_perc_id), str(max_perc_id)]
     line_out_str = "\t".join(line_out)
     fh_outfile.write(line_out_str + '\n')
-
-
-metadata = "results/09_MAGs_collection/All_mags_sub/All_mags_sub_metadata.tsv"
-
-def get_significant_genera_list(metadata):
-    """
-    reads the metadata file and returns a list of genera that are present in at least 3 medium or high quality MAGs
-    """
-    with open(metadata, "r") as f:
-        header = f.readline()
-        header = header.strip()
-        genus_ind = header.split("\t").index("Genus")
-        genera = [line.split("\t")[genus_ind] for line in f.readlines() if str(line.split("\t")[quality_ind]) in ["medium", "high"]]
-        genera_significant = [x for x in set(genera) if genera.count(x) > 3]
-    return genera_significant
