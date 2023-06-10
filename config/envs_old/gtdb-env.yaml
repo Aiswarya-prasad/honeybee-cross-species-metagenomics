@@ -1,0 +1,9 @@
+name: gtdb-env
+
+channels:
+  - bioconda
+  - conda-forge
+  - hcc
+
+dependencies:
+  - gtdbtk=2.1.0

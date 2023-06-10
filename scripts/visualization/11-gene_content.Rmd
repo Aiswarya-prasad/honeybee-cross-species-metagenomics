@@ -1,0 +1,74 @@
+---
+title: "Honeybee cross-species analysis - 11"
+author: Aiswarya Prasad
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  prettydoc::html_pretty:
+    theme: cayman
+    <!-- other fun themes: architect leonids hpstr cayman -->
+    highlight: github
+    math: katex
+    number_sections: true
+    df_print: paged
+    cold-folding: hide
+    toc: true
+---
+
+# Initialization
+
+To intialize complete all of or relevant sections of `scripts/visualization/Load_data.R`.
+
+```{r}
+hist(df_cdhit_clusters_info %>% pull(num_genes))
+
+ggplot(df_cdhit_clusters_info) +
+  geom_histogram(aes(x = num_genes, fill = factor(num_hosts), group = num_hosts), binwidth = 1) +
+  make_theme()
+
+ggplot(df_cdhit_clusters_info %>% filter(num_genes > 50)) +
+  geom_histogram(aes(x = num_genes, fill = factor(num_hosts), group = num_hosts), binwidth = 1) +
+  make_theme()
+
+ggplot(df_cdhit_clusters_info %>% filter(num_genes < 50)) +
+  geom_histogram(aes(x = num_genes, fill = factor(num_hosts), group = num_hosts), binwidth = 1) +
+  make_theme()
+
+df_clusters_host_info <- df_cdhit_clusters_info %>%
+  mutate(host_summarised = if_else(hosts == "M", "Apis mellifera", 
+             if_else(hosts == "C", "Apis cerana", 
+             if_else(hosts == "D", "Apis dorsata", 
+             if_else(hosts == "F", "Apis florea", 
+             if_else(hosts == "A", "Apis andreniformis", "Mixed"))))))
+                          
+ggplot(df_clusters_host_info) +
+  geom_histogram(aes(x = num_genes, fill = factor(host_summarised), group = host_summarised), binwidth = 1) +
+  scale_fill_manual(values = host_order_color) +
+  make_theme(setFill = FALSE)
+
+ggplot(df_clusters_host_info %>% filter(representative_GH != "NA")) +
+  geom_bar(aes(x = representative_GH, 
+               fill = factor(host_summarised))) +
+  scale_fill_manual(values = host_order_color) +
+  make_theme(setFill = FALSE)
+
+# df_clusters_host_info order by count of GH
+gh_order <- df_clusters_host_info %>%
+  filter(representative_GH != "NA") %>%
+  group_by(representative_GH) %>%
+  mutate(count = n()) %>%
+  unique() %>%
+  arrange(count) %>%
+  pull(representative_GH) %>% unique()
+
+ko_order <- df_clusters_host_info %>%
+  filter(representative_KO != "NA") %>%
+  group_by(representative_KO) %>%
+  mutate(count = n()) %>%
+  unique() %>%
+  arrange(count) %>%
+  pull(representative_KO) %>% unique()
+
+# heatmap of host vs GH and group by hierarchy
+
+
+```

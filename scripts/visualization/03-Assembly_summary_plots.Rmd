@@ -1,0 +1,146 @@
+---
+title: "Honeybee cross-species analysis - 03"
+author: Aiswarya Prasad
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  prettydoc::html_pretty:
+    theme: cayman
+    <!-- other fun themes: architect leonids hpstr cayman -->
+    highlight: github
+    math: katex
+    number_sections: true
+    df_print: paged
+    cold-folding: hide
+    toc: true
+---
+
+# Initialization
+
+To intialize complete all of or relevant sections of `scripts/visualization/Load_data.R`.
+
+```{r assembly_plots}
+assembly_sizes <- ggplot(df_assembly, aes(y = factor(Sample, levels=samples),
+                                          x = Assembly.size,
+                                          fill = factor(Species, host_order)
+                                        )
+                                      ) +
+                    geom_bar(stat = "identity") +
+                    geom_vline(xintercept = 2000000) +
+                      labs(x = "Total Assembly Size", y = "Sample", fill = "Host Species") +
+                        scale_x_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
+                          make_theme(setFill = F,
+                                     leg_size = 6,
+                                     x_angle=0 ,x_vj=0, x_hj=0, x_size=12,
+                                     y_angle=0 ,y_vj=0, y_hj=1, y_size=7,
+                                     guide_nrow = 1) +
+                            scale_fill_manual(values=host_order_color)
+                          # ggsave("figures/03-AssemblySizes.pdf")
+
+
+
+number_mapped_assembly <- ggplot(df_assembly, aes(y = factor(Sample, levels=samples), x = Number.mapped, fill = factor(Species, host_order))) +
+                            geom_bar(stat = "identity") +
+                            labs(x = "Number of reads mapped to assembly", y = "Sample", fill = "Type") +
+                            scale_x_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
+                              make_theme(setFill = F,
+                                         x_angle=0 ,x_vj=0, x_hj=0, x_size=12,
+                                         y_angle=0 ,y_vj=0, y_hj=1, y_size=7,
+                                         guide_nrow = 1) +
+                                scale_fill_manual(values=host_order_color)
+                              # ggsave("figures/03-NumberAssembled.pdf")
+
+
+
+
+
+number_mapped_assembly <- ggplot(df_assembly_plot_number, aes(y = factor(Sample, levels=samples), x = Number, fill = factor(Type, levels = c("Unmapped", "Mapped")))) +
+                            geom_bar(stat = "identity") +
+                            labs(x = "Number of reads (paired end)", y = "Sample", fill = "Type") +
+                            scale_x_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
+                              make_theme(x_angle = 60, x_hj = 1, x_vj = 1, max_colors = length(unique(df_assembly_plot$Type)), x_size = 7, guide_nrow = 1)
+                              # ggsave("figures/03-NumberMappedtoAssembly.pdf")
+
+Number_contig_plot <- ggplot(df_assembly, aes(y = factor(Sample, levels=samples), x = Number.of.filtered.scaffolds, fill = factor(Species, levels = rev(host_order)))) +
+                            geom_bar(stat = "identity") +
+                            labs(y = "Sample", x = "Number of scaffolds", fill = "Host") +
+                            scale_x_continuous(labels=unit_format(unit = "K", scale = 1e-4)) +
+                            scale_fill_manual(values=host_order_color) +
+                              make_theme(setFill = F,
+                                         leg_size = 6,
+                                         x_angle=0 ,x_vj=0, x_hj=0, x_size=12,
+                                         y_angle=0 ,y_vj=0, y_hj=1, y_size=7,
+                                         guide_nrow = 1)
+                              ggsave("figures/03-NumberOfFilteredcontigs.pdf")
+
+percent_mapped_assembly <- ggplot(df_assembly_plot, aes(y = factor(Sample, levels=samples), x = Percent, fill = factor(Type, levels = c("Unmapped", "Mapped")))) +
+                            geom_bar(stat = "identity") +
+                            labs(y = "Percentage of reads", x = "Sample", fill = "Type") +
+                              make_theme(x_angle = 60, x_hj = 1, x_vj = 1, max_colors = length(unique(df_assembly_plot$Type)), x_size = 7, guide_nrow = 1)
+                              # ggsave("figures/03-ProportionMappedtoAssembly.pdf")
+
+Total_data_species <- ggplot(mutate(filter(df_reads_plot, Type == "Raw" ), amount_data = Number*2*150), aes(y=factor(Sample, levels = samples),
+                                      x=amount_data,
+                                      fill = Host)) +
+                        geom_bar(stat="identity") +
+                            ylab("Sample") +
+                            xlab("Number of reads (paired end)") +
+                              make_theme(setFill = F,
+                                         x_angle=0 ,x_vj=0, x_hj=0, x_size=12,
+                                         y_angle=0 ,y_vj=0, y_hj=1, y_size=7,
+                                         guide_nrow = 1, leg_pos = "none") +
+                                scale_x_continuous(labels=unit_format(unit = "G", scale = 1e-9)) +
+                                scale_fill_manual(values=host_order_color)
+
+Total_reads_species_temp <- ggplot(filter(df_reads_plot, Type == "Raw"), aes(y=factor(Sample, levels = samples),
+                                      x=Number,
+                                      fill = Host)) +
+                        geom_bar(stat="identity") +
+                          # ggtitle("Total reads per sample") +
+                            ylab("Sample") +
+                            xlab("Number of reads (paired end)") +
+                              make_theme(setFill = F,
+                                         x_angle=0 ,x_vj=0, x_hj=0, x_size=12,
+                                         y_angle=0 ,y_vj=0, y_hj=1, y_size=7,
+                                         guide_nrow = 1) +
+                                scale_x_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
+                                scale_fill_manual(values=host_order_color)
+g <- grid.arrange(
+      arrangeGrob(
+        assembly_sizes + make_theme(setFill = F, setCol = F, leg_size = 6, y_size = 5, y_hj = 1, y_vj = 1, x_size = 8, guide_nrow = 1, leg_pos = "none"),
+        number_mapped_assembly + make_theme(setFill = F, setCol = F, leg_size = 6, y_size = 5, y_hj = 1, y_vj = 1, x_size = 8, guide_nrow = 1, leg_pos = "none"),
+        nrow = 1
+      ),
+      get_only_legend(assembly_sizes),
+      arrangeGrob(
+        Total_data_species + make_theme(setFill = F, setCol = F, leg_size = 6, y_size = 5, y_hj = 1, y_vj = 1, x_size = 8, guide_nrow = 2, leg_pos = "none"),
+        Total_reads_species_temp + make_theme(setFill = F, setCol = F, leg_size = 6, y_size = 5, y_hj = 1, y_vj = 1, x_size = 8, guide_nrow = 1, leg_pos = "none"),
+        nrow = 1
+      ),
+      nrow = 3, heights = c(8,1,8)
+ )
+ g
+ ggsave("figures/03-Assembly_summary.pdf", g)
+Number_contig_plot
+```
+
+# Time and maximum RAM
+
+```{r}
+df_ram_time <- data.frame()
+for (sample_name in samples) {
+  file_path <- paste0("results/05_assembly/trimmed_reads/", sample_name, "_assemble_metagenomes.benchmark")
+  if (file.exists(file_path)) {
+    df_ram_time_iter <- read.csv(file_path, sep = "\t") %>%
+      select(`h.m.s`, max_rss) %>%
+        rename(max_ram = max_rss) %>%
+        rename(time = `h.m.s`) %>%
+        separate(into = c("Hours", "Minutes", "Seconds"), col = time, sep = ":") %>%
+        mutate(Total = as.numeric(Hours) + as.numeric(Minutes)/60 + as.numeric(Seconds)/(60*60)) %>%
+        mutate(Sample = sample_name)
+    df_ram_time <- rbind(df_ram_time, df_ram_time_iter)
+  }
+}
+df_ram_time
+df_reads
+plot_raw_df <- df_ram_time
+```

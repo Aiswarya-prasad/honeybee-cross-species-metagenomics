@@ -1,0 +1,10 @@
+
+# not being used
+name: antismash-env
+
+channels:
+  - bioconda
+  - conda-forge
+
+dependencies:
+  - antismash

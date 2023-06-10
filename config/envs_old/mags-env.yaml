@@ -1,0 +1,15 @@
+name: mags-env
+
+channels:
+  - bioconda
+  - conda-forge
+  - hcc
+
+dependencies:
+  - python=3.9.7
+  - metabat2
+  - checkm-genome
+  - drep
+  - motulizer
+  - mmseqs2
+  - whokaryote

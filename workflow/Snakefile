@@ -1,0 +1,96 @@
+#!/usr/bin/env python
+
+"""
+name: honeybee-MAGs-pipeline
+description: Snakefile to be used to launch the pipeline and run qc, assembly, binning and some downstream steps
+author: Aiswarya Prasad (aiswarya.prasad@unil.ch)
+dependencies:
+    - raw data
+    - config files
+"""
+
+import os
+import glob
+import yaml
+import itertools
+import subprocess
+from itertools import chain
+
+configfile: "config/config.yaml"
+# read config information into local variables to improve readability of rules
+if config["LocalBackup"]:
+    localrules: backup
+
+SAMPLES_sub = config["SAMPLES_subset"]
+SAMPLES_KE = config["SAMPLES_KE"]
+SAMPLES_INDIA = config["SAMPLES_INDIA"]
+SAMPLES_MY = config["SAMPLES_MY"]
+SAMPLES = SAMPLES_KE + SAMPLES_INDIA + SAMPLES_MY
+# SAMPLES = config["SAMPLES_KE"]
+ADAPTERS = config["Adapters"]
+
+wildcard_constraints:
+  sample = '|'.join(SAMPLES),
+#   read = '|'.join(["R1", "R2"]),
+#   lane = "L*",
+  run = "20[0-9]{6,6}"
+
+onstart:
+    # this is just for updates - needs to be run before starting the pipeline
+    shell("python3 scripts/make_reads_list_file.py")
+
+raw_paths_dict_all = yaml.safe_load(open("config/raw_file_paths.yaml", "r"))
+raw_paths_dict = {key: raw_paths_dict_all[key] for key in SAMPLES}
+
+include: "common.smk"
+
+# samples that failed in the first run (250):
+LARGE_SAMPLES = ["A2-2", "A2-3", "A3-4", "A4-4", "A6-4", "D1-2", "D2-1", "D2-2", "D2-4", "D2-5", "D3-2", "D9-5", "F2-5", "F3-4", "F3-5", "F4-1", "F7-5", "F8-2", "F8-4"]
+# samples that failed in the first run (450 - 800) ("A6-4", "D1-2", "D3-2" were completed with the higher RAM):
+LARGE_SAMPLES = ["A2-2", "A2-3", "A3-4", "A4-4", "D2-1", "D2-2", "D2-4", "D2-5", "D9-5", "F2-5", "F3-4", "F3-5", "F4-1", "F7-5", "F8-2", "F8-4"]
+
+rule targets:
+    input:
+        # raw_files = get_all_input_files(raw_paths_dict),
+        html_qc_raw = [f"results/00_rawreads/fastqc/{x.split('.fastq.gz')[0]}_fastqc.html" for x in get_list_of_values(get_renamed_input_files(raw_paths_dict))],
+        # all_reads_assemblies = [f"results/00_trimmedreads/{x.split('.fastq.gz')[0]}_trim.fastq.gz" for x in get_list_of_values(get_renamed_input_files(raw_paths_dict))],
+        html_qc_trim = [f"results/00_trimmedreads/fastqc/{x.split('.fastq.gz')[0]}_trim_fastqc.html" for x in get_list_of_values(get_renamed_input_files(raw_paths_dict))],
+        concat_reads = expand("results/01_trimmedconcatreads/{sample}_{read}.fastq.gz", sample = SAMPLES, read = ["R1", "R2"]),
+        motus_merged = "results/02_motus_profile/samples_merged.motus",
+        flagstat = expand("results/03_host_mapping/{sample}_flagstat.txt", sample = SAMPLES),
+        orfs = expand("results/06_metagenomicORFs/{sample}_orfs.ffn", sample = SAMPLES_INDIA+SAMPLES_MY),
+        assembly_summary = "results/05_assembly/assembly_summary.txt",
+        ### ! If running backmapping make sure to include a cap on number of --jobs in the snakemake command do <50 is safe don not do >100 ! (40,000 jobs for 200 samples) ###
+        qualimap_results = expand("results/07_MAG_binng_QC/01_backmapping/qualimap_results/{sample_assembly}/", sample_assembly = SAMPLES_INDIA+SAMPLES_MY),
+        checkm_plots = expand("results/07_MAG_binng_QC/03_checkm_results/{sample}/plots.done", sample=SAMPLES_sub),
+        checkm_summary = "results/09_MAGs_collection/All_mags_sub/checkm_merged.tsv",
+        gene_profiling_depth = expand("results/08_gene_content/01_profiling/{sample}_mapped.depth", sample=SAMPLES),
+        gene_profiling_coverage = expand("results/08_gene_content/01_profiling/{sample}_mapped.coverage", sample=SAMPLES),
+        gene_profiling_hist = expand("results/08_gene_content/01_profiling/{sample}_mapped.hist", sample=SAMPLES),
+        dram_annotation = expand("results/08_gene_content/02_DRAM_annotations/{sample}/annotations.tsv", sample=SAMPLES_INDIA+SAMPLES_MY),
+        mag_metadata = "results/09_MAGs_collection/All_mags_sub/All_mags_sub_metadata_summary.tsv",
+        profile_plots = expand("results/10_instrain/04_instrain_plot_marker/{sample}_profile_plots.done", sample=SAMPLES),
+        # compare_plots = "results/10_instrain/04_instrain_plot_marker/compare_plots.done",
+        orthofinder_out = lambda wildcards: expand("results/11_phylogenies/02_orthofinder_results/{genus}/Results_{genus}/Species_Tree/SpeciesTree_rooted.txt", genus = get_significant_genera(checkpoints.mag_metadata_summary.get().output.metadata)),
+        orthofinder_out_iqtree = lambda wildcards: expand("results/11_phylogenies/02_orthofinder_results/{genus}/Results_{genus}_iqtree/Species_Tree/SpeciesTree_rooted.txt", genus = get_significant_genera(checkpoints.mag_metadata_summary.get().output.metadata)),
+
+
+include: "trim-qc.smk"
+include: "motus-profiling.smk"
+include: "assemble-qc.smk"
+include: "backmapping-binning.smk"
+include: "binning_summary_annotation.smk"
+include: "annotate_profile_orfs.smk"
+include: "mag_db_instrain.smk"
+include: "core_pan_genome.smk"
+include: "mag_phylogenies.smk"
+
+# to do next, 
+# annotation
+# phylogenies
+# core coverage
+# sdp validation
+# popcogent
+
+# create rule to run assembly and binning for all samples
+

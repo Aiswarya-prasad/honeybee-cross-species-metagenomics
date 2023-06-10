@@ -1,0 +1,31 @@
+name: genes-env
+
+channels:
+  - conda-forge
+  - bioconda
+  - hcc
+
+dependencies:
+  - bcftools
+  - samtools
+  - prodigal
+  - numpy
+  - pysam
+  - biopython=1.74
+  - instrain
+  - r-data.table
+  - r-ggplot2
+  - r-rcolorbrewer
+  - r-doparallel
+  - r-cowplot
+  - r-bit64
+  - r-gggenes
+  - r-stringr
+  - r-vegan
+  - r-compositions
+  - r-pheatmap
+  - r-ggrepel
+  - cd-hit
+  - seqtk
+  - bwa
+  - bedtools

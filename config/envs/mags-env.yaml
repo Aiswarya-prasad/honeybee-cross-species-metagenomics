@@ -1,0 +1,22 @@
+name: mags-env
+
+channels:
+  - conda-forge
+  - bioconda
+  - hcc
+
+dependencies:
+  - python>=3.6
+  - biopython
+  - prodigal
+  - pplacer
+  - fasttree
+  - fastani
+  - hmmer
+  - metabat2
+  - checkm-genome
+  - drep
+  - motulizer
+  - mmseqs2
+  - whokaryote
+  - gtdbtk=2.3.0
