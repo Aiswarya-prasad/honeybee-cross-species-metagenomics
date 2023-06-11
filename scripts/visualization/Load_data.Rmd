@@ -116,11 +116,11 @@ library(ggnewscale)
 library(ggsignif)
 library(plotly)
 library(htmlwidgets)
-library(picante)
+# library(picante)
 # library(ggpubr) - version confilct
 # Previously saved env data not clean - redo next time
 # save.image("/scratch/aprasad/20230313_apis_species_comparison/Figures/workspace_data_1-9.RData")
-load("/scratch/aprasad/20230313_apis_species_comparison/Figures/workspace_data_1-9.RData")
+load("/scratch/aprasad/20230313_apis_species_comparison/results/figures/workspace_data_20230611.RData")
 ```
 
 ### General definitions
@@ -139,14 +139,14 @@ samples_IN <- c("M1-1", "M1-2", "M1-3", "M1-4", "M1-5",
               "F2-1","F2-2","F2-3","F2-4","F2-5",
               "F3-1","F3-2","F3-3","F3-4","F3-5"
             )
-samples_KE <- c("AmAi01", "AmAi02", "AmAi03", "AmAi04", "AmAi05",
+samples_KE <- c("AcCh01", "AcCh02", "AcCh03", "AcCh04", "AcCh05",
+              "AcCh06", "AcCh07", "AcCh08", "AcCh09", "AcCh10",
+              "AcKn01", "AcKn02", "AcKn03", "AcKn04", "AcKn05",
+              "AcKn06", "AcKn07", "AcKn08", "AcKn09", "AcKn10",
+              "AmAi01", "AmAi02", "AmAi03", "AmAi04", "AmAi05",
               "AmAi06", "AmAi07", "AmAi08", "AmAi09", "AmAi10",
               "AmIu01", "AmIu02", "AmIu03", "AmIu04", "AmIu05",
               "AmIu06", "AmIu07", "AmIu08", "AmIu09", "AmIu10",
-              "AcKn01", "AcKn02", "AcKn03", "AcKn04", "AcKn05",
-              "AcKn06", "AcKn07", "AcKn08", "AcKn09", "AcKn10",
-              "AcCh01", "AcCh02", "AcCh03", "AcCh04", "AcCh05",
-              "AcCh06", "AcCh07", "AcCh08", "AcCh09", "AcCh10",
               "DrY1_F1", "DrY1_F2", "DrY1_F3", "DrY1_F4", "DrY1_F5", "DrY1_F6",
               "DrY1_N1", "DrY1_N2", "DrY1_N3", "DrY1_N4", "DrY1_N5", "DrY1_N6",
               "DrY1_W1", "DrY1_W2", "DrY1_W3", "DrY1_W4", "DrY1_W5", "DrY1_W6",
@@ -310,31 +310,33 @@ location_order_color <- c("Malaysia" = "#1f78b4", "India" = "#33a02c", "Switzerl
 host_order <- c("Apis mellifera", "Apis cerana", "Apis dorsata", "Apis florea", "Apis andreniformis")
 host_order_color <- c("Apis mellifera" = brewer.pal(9, "Pastel1")[2], "Apis cerana" = brewer.pal(9, "Pastel1")[1], "Apis dorsata" = brewer.pal(9, "Pastel1")[4], "Apis florea" = brewer.pal(9, "Pastel1")[3], "Apis andreniformis" = brewer.pal(9, "Pastel1")[5])
 host_order_color_dark <- c("Apis mellifera" = brewer.pal(9, "Set1")[2], "Apis cerana" = brewer.pal(9, "Set1")[1], "Apis dorsata" = brewer.pal(9, "Set1")[4], "Apis florea" = brewer.pal(9, "Set1")[3], "Apis andreniformis" = brewer.pal(9, "Set1")[5])
-phylotypes <- c("firm4", "firm5", "api", "bifido", "bom", "com", "bapis", "fper", "lkun", "snod", "gilli")
-phylotypes_heatmap_order <- c("snod", "gilli", "firm4", "firm5", "bifido", "bapis", "fper", "api", "lkun", "bom", "com")
-sdps <- c('firm4_1', 'firm4_2',
-          'firm5_1', 'firm5_2', 'firm5_3', 'firm5_4', 'firm5_7', 'firm5_bombus',
-          # 'bifido_1', 'bifido_2', 'bifido_bombus',
-          'bifido_1.1', 'bifido_1.2', 'bifido_1.3', 'bifido_1.4', 'bifido_1.5', 'bifido_2', 'bifido_1_cerana', 'bifido_bombus',
-          'api_1', 'api_apis_dorsa', 'api_bombus',
-          'bom_1', 'bom_apis_melli', 'bom_bombus',
-          'com_1', 'com_drosophila', 'com_monarch',
-          'bapis',
-          'fper_1',
-          'lkun',
-          'snod_1', 'snod_2', 'snod_bombus',
-          'gilli_1', 'gilli_2', 'gilli_3', 'gilli_4', 'gilli_5', 'gilli_6',
-          'gilli_apis_andre', 'gilli_apis_dorsa', 'gilli_bombus')
+# phylotypes <- c("firm4", "firm5", "api", "bifido", "bom", "com", "bapis", "fper", "lkun", "snod", "gilli")
+# phylotypes_heatmap_order <- c("snod", "gilli", "firm4", "firm5", "bifido", "bapis", "fper", "api", "lkun", "bom", "com")
+# sdps <- c('firm4_1', 'firm4_2',
+#           'firm5_1', 'firm5_2', 'firm5_3', 'firm5_4', 'firm5_7', 'firm5_bombus',
+#           # 'bifido_1', 'bifido_2', 'bifido_bombus',
+#           'bifido_1.1', 'bifido_1.2', 'bifido_1.3', 'bifido_1.4', 'bifido_1.5', 'bifido_2', 'bifido_1_cerana', 'bifido_bombus',
+#           'api_1', 'api_apis_dorsa', 'api_bombus',
+#           'bom_1', 'bom_apis_melli', 'bom_bombus',
+#           'com_1', 'com_drosophila', 'com_monarch',
+#           'bapis',
+#           'fper_1',
+#           'lkun',
+#           'snod_1', 'snod_2', 'snod_bombus',
+#           'gilli_1', 'gilli_2', 'gilli_3', 'gilli_4', 'gilli_5', 'gilli_6',
+#           'gilli_apis_andre', 'gilli_apis_dorsa', 'gilli_bombus')
 # Data_dir <- "04_CoreCov_211018_Medgenome_india_samples"
 # species <- c('s__Bombilactobacillus mellis', 's__Lactobacillus panisapium', 's__', 's__Gilliamella apicola_E', 's__Bombilactobacillus mellifer', 's__Lactobacillus apis', 's__Snodgrassella alvi', 's__Lactobacillus melliventris', 's__Lactobacillus helsingborgensis', 's__Frischella perrara', 's__Enterobacter hormaechei_A', 's__Apibacter sp002964915', 's__Snodgrassella alvi_E', 's__Frischella japonica', 's__Gilliamella apicola_F', 's__Spiroplasma melliferum', 's__Bartonella apis', 's__Apibacter adventoris', 's__Apilactobacillus kunkeei_A', 's__Hafnia paralvei', 's__Pantoea vagans', 's__Gilliamella apicola_K', 's__Gilliamella apicola', 's__Snodgrassella alvi_G', 's__Bifidobacterium indicum', 's__Gilliamella apicola_N', 's__Klebsiella variicola', 's__Commensalibacter sp003202795', 's__Gilliamella apicola_Q')
 genera <- c(
     "g__Lactobacillus",
     "g__Bifidobacterium",
     "g__Bombilactobacillus",
+    "g__CALYQJ01",
+    "g__CALYQQ01",
     "g__Snodgrassella",
     "g__Gilliamella",
     "g__Apibacter",
-    "g__Bartonella",
+    "g__Bartonella_A",
     "g__Frischella",
     "g__Commensalibacter",
     "g__Apilactobacillus",
@@ -350,54 +352,12 @@ genera <- c(
     "g__WRHT01",
     "g__"
   )
-phy_group_dict = c("firm4" = "g__Bombilactobacillus",
-            "g__Bombilactobacillus_outgroup" = "g__Bombilactobacillus",
-            "firm5" = "g__Lactobacillus",
-            "lacto" = "g__Lactobacillus",
-            "g__Lactobacillus_outgroup" = "g__Lactobacillus",
-            "bifido" = "g__Bifidobacterium",
-            "g__Bifidobacterium_outgroup" = "g__Bifidobacterium",
-            "gilli" = "g__Gilliamella",
-            "entero" = "g__Gilliamella",
-            "g__Gilliamella_outgroup" = "g__Gilliamella",
-            "fper" = "g__Frischella",
-            "g__Frischella_outgroup" = "g__Frischella",
-            "snod" = "g__Snodgrassella",
-            "g__Snodgrassella_outgroup" = "g__Snodgrassella",
-            "bapis" = "g__Bartonella",
-            "g__Bartonella_outgroup" = "g__Bartonella",
-            # "" = "g__Enterobacter",
-            "g__Enterobacter_outgroup" = "g__Enterobacter",
-            # "" = "g__",
-            # "" = "g__Pectinatus",
-            "g__Pectinatus_outgroup" = "g__Pectinatus",
-            "api" = "g__Apibacter",
-            "g__Apibacter_outgroup" = "g__Apibacter",
-            # "" = "g__Dysgonomonas",
-            "g__Dysgonomonas_outgroup" = "g__Dysgonomonas",
-            # "" = "g__Spiroplasma",
-            "g__Spiroplasma_outgroup" = "g__Spiroplasma",
-            # "" = "g__Zymobacter",
-            "g__Zymobacter_outgroup" = "g__Zymobacter",
-            # "" = "g__Entomomonas",
-            "g__Entomomonas_outgroup" = "g__Entomomonas",
-            # "" = "g__Saezia",
-            "g__Saezia_outgroup" = "g__Saezia",
-            # "" = "g__Parolsenella",
-            "g__Parolsenella_outgroup" = "g__Parolsenella",
-            # "" = "g__WRHT01",
-            "g__WRHT01_outgroup" = "g__WRHT01",
-            "com" = "g__Commensalibacter",
-            "g__Commensalibacter_outgroup" = "g__Commensalibacter",
-            "lkun" = "g__Apilactobacillus",
-            "g__Apilactobacillus_outgroup" = "g__Apilactobacillus",
-            "bom" = "g__Bombella",
-            "g__Bombella_outgroup" = "g__Bombella"
-          )
 genusColors <- list("g__Bombilactobacillus" = head(colorRampPalette(c(brewer.pal(11, "Spectral")[1], "#FFFFFF"))(10), -1)[1],
                     "g__Lactobacillus" = head(colorRampPalette(c(brewer.pal(11, "Spectral")[1], "#FFFFFF"))(10), -1)[4],
+                    "g__CALYQJ01" = head(colorRampPalette(c(brewer.pal(11, "Spectral")[1], "#FFFFFF"))(10), -1)[6],
                     "g__Bifidobacterium" = brewer.pal(11, "Spectral")[3],
                     "g__Gilliamella" = brewer.pal(11, "Spectral")[11],
+                    "g__CALQQ01" = head(colorRampPalette(c(brewer.pal(11, "Spectral")[11], "#FFFFFF"))(10), -1)[6],,
                     "g__Frischella" = brewer.pal(11, "Spectral")[8],
                     "g__Bartonella" = brewer.pal(11, "Spectral")[7],
                     "g__Snodgrassella" = brewer.pal(11, "Spectral")[10],
@@ -418,8 +378,10 @@ genusColors <- list("g__Bombilactobacillus" = head(colorRampPalette(c(brewer.pal
 )
 genusColors_char <- c("g__Bombilactobacillus" = head(colorRampPalette(c(brewer.pal(11, "Spectral")[1], "#FFFFFF"))(10), -1)[1],
                     "g__Lactobacillus" = head(colorRampPalette(c(brewer.pal(11, "Spectral")[1], "#FFFFFF"))(10), -1)[4],
+                    "g__CALYQJ01" = head(colorRampPalette(c(brewer.pal(11, "Spectral")[1], "#FFFFFF"))(10), -1)[6],
                     "g__Bifidobacterium" = brewer.pal(11, "Spectral")[3],
                     "g__Gilliamella" = brewer.pal(11, "Spectral")[11],
+                    "g__CALQQ01" = head(colorRampPalette(c(brewer.pal(11, "Spectral")[11], "#FFFFFF"))(10), -1)[6],,
                     "g__Frischella" = brewer.pal(11, "Spectral")[8],
                     "g__Bartonella" = brewer.pal(11, "Spectral")[7],
                     "g__Snodgrassella" = brewer.pal(11, "Spectral")[10],
@@ -436,11 +398,6 @@ genusColors_char <- c("g__Bombilactobacillus" = head(colorRampPalette(c(brewer.p
                     "g__Entomomonas"= head(colorRampPalette(c(brewer.pal(11, "BrBG")[2], "#FFFFFF"))(10), -1)[4],
                     "g__Saezia" = head(colorRampPalette(c(brewer.pal(11, "BrBG")[2], "#FFFFFF"))(10), -1)[6],
                     "g__Parolsenella" = head(colorRampPalette(c(brewer.pal(11, "BrBG")[2], "#FFFFFF"))(10), -1)[8],
-                    "g__Klebsiella" = "#000000",
-                    "g__Hafnia" = "#000000",
-                    "g__JAATFO01" = "#000000",
-                    "g__Floricoccus" = "#000000",
-                    "g__Pantoea" = "#000000",
                     "g__" = "#000000"
 )
 
@@ -464,78 +421,6 @@ familyColors <- list(
   "f__Streptococcaceae" = head(colorRampPalette(c(brewer.pal(11, "BrBG")[2], "#FFFFFF"))(10), -1)[9],
   "f__" = "#000000"
 )
-PhylotypeColors <- brewer.pal(11,"Spectral")
-names(PhylotypeColors) <- phylotypes
-# each color from the Spectral palatte corresponds to a phylotype
-# each SDP of the phylotype gets a color made by colorRampPalette
-# it falls in the sange from the color of the phylotype to #FFFFFF (white)
-SDPColors <- c()
-# 'firm4'
-# 'firm4_1''firm4_2':2
-SDPColors <- c(SDPColors, head(colorRampPalette(c(brewer.pal(11, "Spectral")[1], "#FFFFFF"))(3), -1))
-# show_col(head(colorRampPalette(c(brewer.pal(11, "Spectral")[1], "#FFFFFF"))(3), -1))
-# 'firm5'
-# 'firm5_1''firm5_2''firm5_3''firm5_4''firm5_7''firm5_bombus':6
-SDPColors <- c(SDPColors, head(colorRampPalette(c(brewer.pal(11, "Spectral")[2], "#FFFFFF"))(7), -1))
-# show_col(head(colorRampPalette(c(brewer.pal(11, "Spectral")[2], "#FFFFFF"))(7), -1))
-# 'bifido'
-# # 'bifido_1''bifido_2''bifido_bombus':3 - no
-# 'bifido_1.1', 'bifido_1.2', 'bifido_1.3', 'bifido_1.4', 'bifido_1.5', 'bifido_2', 'bifido_1_cerana' 'bifido_bombus': 8
-SDPColors <- c(SDPColors, head(colorRampPalette(c(brewer.pal(11, "Spectral")[3], "#FFFFFF"))(9), -1))
-# show_col(head(colorRampPalette(c(brewer.pal(11, "Spectral")[3], "#FFFFFF"))(4), -1))
-# 'api'
-# 'api_1''api_apis_dorsa''api_bombus':3
-SDPColors <- c(SDPColors, head(colorRampPalette(c(brewer.pal(11, "Spectral")[4], "#FFFFFF"))(4), -1))
-# show_col(head(colorRampPalette(c(brewer.pal(11, "Spectral")[4], "#FFFFFF"))(4), -1))
-# 'bom''bom_apis_melli''bom_bombus':3
-SDPColors <- c(SDPColors, head(colorRampPalette(c(brewer.pal(11, "Spectral")[5], "#FFFFFF"))(4), -1))
-# show_col(head(colorRampPalette(c(brewer.pal(11, "Spectral")[5], "#FFFFFF"))(4), -1))
-# 'com'
-# 'com_1''com_drosophila''com_monarch':3
-SDPColors <- c(SDPColors, head(colorRampPalette(c(brewer.pal(11, "Spectral")[6], "#FFFFFF"))(4), -1))
-# show_col(head(colorRampPalette(c(brewer.pal(11, "Spectral")[6], "#FFFFFF"))(4), -1))
-# 'bapis'
-# 'bapis':1
-SDPColors <- c(SDPColors, head(colorRampPalette(c(brewer.pal(11, "Spectral")[7], "#FFFFFF"))(2), -1))
-# show_col(head(colorRampPalette(c(brewer.pal(11, "Spectral")[7], "#FFFFFF"))(2), -1))
-# 'fper'
-# 'fper_1':1
-SDPColors <- c(SDPColors, head(colorRampPalette(c(brewer.pal(11, "Spectral")[8], "#FFFFFF"))(2), -1))
-# show_col(head(colorRampPalette(c(brewer.pal(11, "Spectral")[8], "#FFFFFF"))(2), -1))
-# 'lkun'
-# 'lkun':1
-SDPColors <- c(SDPColors, head(colorRampPalette(c(brewer.pal(11, "Spectral")[9], "#FFFFFF"))(2), -1))
-# show_col(head(colorRampPalette(c(brewer.pal(11, "Spectral")[9], "#FFFFFF"))(2), -1))
-# 'snod'
-# 'snod_1''snod_2''snod_bombus':3
-SDPColors <- c(SDPColors, head(colorRampPalette(c(brewer.pal(11, "Spectral")[10], "#FFFFFF"))(4), -1))
-# show_col(head(colorRampPalette(c(brewer.pal(11, "Spectral")[10], "#FFFFFF"))(4), -1))
-# 'gilli'
-# 'gilli_1''gilli_2''gilli_3''gilli_4''gilli_5''gilli_6''gilli_apis_andre''gilli_apis_dorsa''gilli_bombus':9
-SDPColors <- c(SDPColors, head(colorRampPalette(c(brewer.pal(11, "Spectral")[11], "#FFFFFF"))(10), -1))
-# show_col(head(colorRampPalette(c(brewer.pal(11, "Spectral")[11], "#FFFFFF"))(10), -1))
-names(SDPColors) <- sdps
-Groups <- c("g__Bombilactobacillus",
-            "g__Lactobacillus",
-            "g__Bifidobacterium",
-            "g__Gilliamella",
-            "g__Frischella",
-            "g__Snodgrassella",
-            "g__Bartonella",
-            "g__Enterobacter",
-            # "g__",
-            "g__Pectinatus",
-            "g__Apibacter",
-            "g__Dysgonomonas",
-            "g__Spiroplasma",
-            # "g__Zymobacter",
-            "g__Entomomonas",
-            "g__Saezia",
-            "g__Parolsenella",
-            "g__WRHT01",
-            "g__Commensalibacter",
-            "g__Apilactobacillus",
-            "g__Bombella")
 motus <- c("Lactobacillus", "Bifidobacterium", "Gilliamella", "Frischella", "Snodgrassella", "Bartonella", "Bombella", "Acetobacteraceae", "Dysgonomonadaceae", "Spiroplasma", "Flavobacteriaceae", "Fructobacillus", "unassigned")
 motuColors <- list(
   "Lactobacillus" = brewer.pal(11, "Spectral")[1],
@@ -559,7 +444,7 @@ motuColors <- list(
 ```{r general_functions}
 # function to edit the look of ggplot objects to make plots uniform
 # add to any ggplot object with desired parameters modified
-make_theme <- function(theme_name=theme_classic() ,max_colors=0, palettefill="Pastel1", palettecolor="Dark2", modify_guide = T,
+make_theme <- function(theme_name=theme_classic(), max_colors=0, palettefill="Pastel1", palettecolor="Dark2", modify_guide = T,
                         setFill=TRUE, setCol=TRUE,
                         guide_nrow=2, guide_nrow_byrow=TRUE, leg_pos="top", leg_size=12,
                         axis_x_title = 12, axis_y_title = 12,
@@ -657,14 +542,6 @@ make_theme <- function(theme_name=theme_classic() ,max_colors=0, palettefill="Pa
     }
   }
   return(my_theme)
-}
-# function to be used (with Vectorize)
-# to mutate in dataframes
-get_phylotype <- function(SDP){
-  # only works if sdps are written in the right format
-  # phylotype_x (eg. firm5_1)
-  phy = strsplit(SDP, "_")[[1]][1]
-  return(phy)
 }
 # function to be used (with Vectorize)
 # to mutate in dataframes
@@ -784,7 +661,14 @@ get_host_from_sample_name <- function(sample_name){
   }
   return(NA)
 }
-samples
+# function to be used (with Vectorize)
+# convert sample name in the old format to new format
+convert_sample_name <- function(sample_name){
+  if (grepl("AcCh|AcKn|DrY|GrY|AmAi|AmIu", sample_name)) {
+    return(sample_name)
+  }
+  return(sub('\\.', '-', sample_name))
+}
 # function to be used (with Vectorize)
 # to mutate in dataframes
 get_colony_from_sample_name <- function(sample_name){
@@ -993,6 +877,43 @@ paginate_save <- function(plot, variable, plot_name, pass_nrow = 5, pass_ncol = 
     ggsave(filename = paste0(strsplit(plot_name, ".pdf")[[1]][1], "_", i, '.pdf'))
   }
 }
+is_tsv_file <- function(file_path) {
+    # Read the first few lines from the file
+    lines <- readLines(file_path, n = 5)
+    
+    # Check if each line has consistent tab delimiter
+    has_tab_delimiter <- sapply(lines, function(line) {
+      count <- length(strsplit(line, "\t")[[1]])
+      count > 1 && all(lengths(strsplit(line, "\t")) == count)
+    })
+    
+    # Check if all lines have consistent tab delimiter
+    is_tsv <- all(has_tab_delimiter)
+    
+    return(is_tsv)
+  }
+  get_read_count_from_flagstat <- function(flagstat, search_string = "with itself and mate mapped") {
+    if (is_tsv_file(flagstat)) {
+      for (line in readLines(flagstat)) {
+        if (grepl(search_string, line)) {
+          number <- strsplit(line, "\t")[[1]][1] %>% as.numeric()
+          return(number)
+        } else {
+          number <- NA
+        }
+      }
+    } else {
+      for (line in readLines(flagstat)) {
+        if (grepl(search_string, line)) {
+          number <- strsplit(line, " +")[[1]][1] %>% as.numeric()
+          return(number)
+        } else {
+          number <- NA
+        }
+      }
+    }
+    return(number)
+  }
 ```
 
 ### Read metadata and parse into dataframe
@@ -1008,7 +929,8 @@ df_meta_complete <- df_meta_complete %>%
                         rename(ID = Short_name) %>%
                           mutate(Species_long = Species) %>%
                             mutate(Species = Vectorize(get_host_from_sample_name)(ID)) %>%
-                            mutate(Country = Vectorize(get_location_from_sample_name)(ID))
+                            mutate(Country = Vectorize(get_location_from_sample_name)(ID)) %>%
+                            mutate(ID = Vectorize(convert_sample_name)(ID))
 ```
 
 ## Initialization for 00a plot DNA concentration
@@ -1099,7 +1021,8 @@ qpcr_plot_df <- qpcr_df_info %>%
                   mutate(Location = Vectorize(get_location_from_sample_name)(Sample.Name)) %>%
                   filter(!is.na(Host)) %>%
                   filter(Host %in% host_order) %>%
-                    unique()
+                    unique() %>%
+                    mutate(Sample.Name = Vectorize(convert_sample_name)(Sample.Name))
 ```
 
 To do a sanity check use `qpcr_df_info %>% summarise(n())`. 
@@ -1115,67 +1038,61 @@ To do a sanity check use `qpcr_df_info %>% summarise(n())`.
 # extremely slow when done in R (login node)
 df_reads <- data.frame()
 for (sample in samples) {
-  if (0) {
-    raw_R1_reads <- NA
-    number_raw_R1 <- system(paste("zcat ", raw_R1_reads, " | grep -e '^+$' | wc -l"), intern = T)
-  } else {
-    number_raw_R1 <- NA
+  raw_reads <- NA
+  trimmed <- NA
+  total_clean <- NA
+  assembly_mapped <- NA
+  host_mapped <- NA
+  rep_db_mapped <- NA
+  gene_catalog_mapped <- NA
+  # get raw reads
+    # number of reads from raw and trimmed files (before concatenating summed per sample)
+    # for now only getting data from repair cleaning not fastqc so these are not actually
+  if (file.exists(paste0("results/01_cleanreads/", sample, "_repaired.log.cluster.e"))) {
+    lines <- readLines(paste0("results/01_cleanreads/", sample, "_repaired.log.cluster.e"))
+    for (line in lines) {
+      if (startsWith(line, "Input:")) {
+        trimmed <- as.numeric(strsplit(strsplit(line, "\t")[[1]][2], " reads")[[1]][1])
+      }
+      else if (startsWith(line, "Pairs:")) {
+        total_clean <- as.numeric(strsplit(strsplit(line, "\t")[[1]][2], " reads")[[1]][1])
+      } else {
+        if (file.exists(paste0("results/01_cleanreads/", sample, "_repaired.log"))) {
+          lines <- readLines(paste0("results/01_cleanreads/", sample, "_repaired.log"))
+          for (line in lines) {
+            if (startsWith(line, "Input:")) {
+              trimmed <- as.numeric(strsplit(strsplit(line, "\t")[[1]][2], " reads")[[1]][1])
+            }
+            else if (startsWith(line, "Pairs:")) {
+              total_clean <- as.numeric(strsplit(strsplit(line, "\t")[[1]][2], " reads")[[1]][1])
+            }
+          }
+        }
+      }
+    }
   }
-  if (0) {
-    raw_R2_reads <- NA
-    number_raw_R2 <- system(paste("zcat ", raw_R2_reads, " | grep -e '^+$' | wc -l"), intern = T)
-  } else {
-    number_raw_R2 <- NA
+  # reads mapped to assembly
+  assembly_summary <- "results/05_assembly/assembly_summary.txt"
+  assembly_summary_df <- read.csv("results/05_assembly/assembly_summary.txt", header = T, stringsAsFactors = F)
+  if (sample %in% assembly_summary_df$sample) {
+    assembly_mapped <- assembly_summary_df[which(assembly_summary_df$sample == sample), "Number.of.reads"] %>% as.numeric()
   }
-  if (file.exists(paste0("results/01_trimmedconcatreads/", sample, "_R1.fastq.gz"))) {
-    trimmedconcat_R1_reads <- paste0("results/01_trimmedconcatreads/", sample, "_R1.fastq.gz")
-    number_trimmedconcat_R1 <- system(paste("zcat ", trimmedconcat_R1_reads, " | grep -e '^+$' | wc -l"), intern = T)
-  } else {
-    number_trimmed_R1 <- NA
+  # reads mapped to host reference
+  host_flagstat <- paste0("results/03_host_mapping/", sample, "_flagstat.txt")
+  if (file.exists(host_flagstat)) {
+    host_mapped <- get_read_count_from_flagstat(host_flagstat, "and mate mapped")
   }
-  if (file.exists(paste0("results/01_trimmedconcatreads/", sample, "_R2.fastq.gz"))) {
-    trimmedconcat_R2_reads <- paste0("results/01_trimmedconcatreads/", sample, "_R2.fastq.gz")
-    number_trimmedconcat_R2 <- system(paste("zcat ", trimmedconcat_R2_reads, " | grep -e '^+$' | wc -l"), intern = T)
-  } else {
-    number_trimmed_R2 <- NA
+  # reads mapped to rep mag database
+  rep_flagstat <- paste0("results/10_instrain/01_mapping/", sample, "/", sample, "_flagstat.tsv")
+  if (file.exists(rep_flagstat)) {
+    rep_db_mapped <- get_read_count_from_flagstat(rep_flagstat, "and mate mapped")
   }
-  raw_reads <- number_raw_R1 + number_raw_R2
-  trimmed <- number_trimmed_R1 + number_trimmed_R2
-  if (file.exists(paste0("09_MagDatabaseProfiling/MAGsDatabaseMapping/", sample, "_flagstat.tsv"))) {
-    mapped_full_db <- read.csv(paste0("09_MagDatabaseProfiling/MAGsDatabaseMapping/", sample, "_flagstat.tsv"), sep = "\t") %>%
-                        filter(.[[3]] == "with itself and mate mapped") %>%
-                          pull(1) %>%
-                            as.integer()
-  } else {
-    mapped_full_db <- NA
+  # reads mapped to gene catalog
+  gene_catalog_flagstat <- paste0("results/08_gene_content/01_profiling/", sample, "_mapped.flagstat")
+  if (file.exists(gene_catalog_flagstat)) {
+    gene_catalog_mapped <- get_read_count_from_flagstat(gene_catalog_flagstat)
   }
-  if (file.exists(paste0("09_MagDatabaseProfiling/SNVProfiling/Mapping/", sample, "_flagstat.tsv"))) {
-    mapped_rep_db <- read.csv(paste0("09_MagDatabaseProfiling/SNVProfiling/Mapping/", sample, "_flagstat.tsv"), sep = "\t") %>%
-                        filter(.[[3]] == "with itself and mate mapped") %>%
-                          pull(1) %>%
-                            as.integer()
-  } else {
-    mapped_rep_db <- NA
-  }
-  if (file.exists(paste0("09_MagDatabaseProfiling/MAGsDatabaseMapping/", sample, "_host_mapping_flagstat.tsv"))) {
-    mapped_host_db <- read.csv(paste0("09_MagDatabaseProfiling/MAGsDatabaseMapping/", sample, "_host_mapping_flagstat.tsv"), sep = "\t") %>%
-                        filter(.[[3]] == "with itself and mate mapped") %>%
-                          pull(1) %>%
-                            as.integer()
-  } else {
-   mapped_host_db <- NA
-  }
-  host_filtered <- trimmed - mapped_host_db
-  unmapped_all <- trimmed - mapped_host_db - mapped_full_db
-  if (file.exists(paste0("09_MagDatabaseProfiling/MAGsDatabaseMapping/", sample, "_host-filtered_flagstat.tsv"))) {
-    mapped_full_db_host_filtered <- read.csv(paste0("09_MagDatabaseProfiling/MAGsDatabaseMapping/", sample, "_host-filtered_flagstat.tsv"), sep = "\t") %>%
-                        filter(.[[3]] == "with itself and mate mapped") %>%
-                          pull(1) %>%
-                            as.integer()
-  } else {
-   mapped_full_db_host_filtered <- NA
-  }
-  values_to_bind <- c(sample, as.integer(c(raw_reads, trimmed, mapped_full_db, mapped_rep_db, host_filtered, mapped_full_db_host_filtered, mapped_host_db, unmapped_all)))
+  values_to_bind <- c(sample, raw_reads, trimmed, total_clean, assembly_mapped, host_mapped, rep_db_mapped, gene_catalog_mapped)
   df_reads <- rbind(df_reads, values_to_bind)
 }
 # parse this later
@@ -1183,33 +1100,29 @@ for (sample in samples) {
 ```
 
 ```{r load_reads}
-df_colnames <- c("Sample", "Raw", "Trimmed", "MAGs_DB", "Mapped_to_rep_MAGs", "Host_filtered_reads", "MAGs_DB_after_host_filtering", "Host_mapped", "Unmapped")
+df_colnames <- c("Sample", "Raw", "Trimmed", "Total_clean", "Assembly", "Host_mapped", "MAGs_DB", "Gene_catalog")
 colnames(df_reads) <- df_colnames
 df_reads <- df_reads %>%
               mutate(across(!c("Sample"), as.integer))
 df_reads_plot <- df_reads %>%
                           mutate(sum = Host_mapped + MAGs_DB) %>%
-                          mutate(perc_mags = MAGs_DB/Trimmed*100) %>%
-                          mutate(perc_mags_no_host = MAGs_DB/(Trimmed-Host_mapped)*100) %>%
-                          mutate(perc_unmapped_no_host = 100 - perc_mags_no_host) %>%
-                          mutate(perc_host = Host_mapped/Trimmed*100) %>%
-                          mutate(perc_unmapped_all = 100-perc_mags-perc_host) %>%
-                          mutate(perc_mapped = MAGs_DB/Trimmed*100) %>%
-                          mutate(perc_unmapped = 100-perc_mapped) %>%
-                          mutate(perc_mapped_hf = MAGs_DB_after_host_filtering/host_filtered*100) %>%
-                          mutate(perc_unmapped_hf = 100-perc_mapped_hf) %>%
+                          mutate(Unmapped_mags = Total_clean - MAGs_DB) %>%
+                          mutate(Unmapped_host = Total_clean - Host_mapped) %>%
+                          mutate(Unmapped = Total_clean - Host_mapped - MAGs_DB) %>%
                           mutate(microbe_to_host_ratio = MAGs_DB/Host_mapped) %>%
                             pivot_longer(!Sample, names_to = "Type", values_to = "Number") %>%
                               mutate(Host = Vectorize(get_host_from_sample_name)(Sample)) %>%
                               mutate(Location = Vectorize(get_location_from_sample_name)(Sample))
 df_reads_updated <-  df_reads %>%
-  select(Sample, MAGs_DB, Host_mapped, Unmapped, Trimmed) %>%
+  mutate(sum = Host_mapped + MAGs_DB) %>%
+  mutate(Unmapped = Total_clean - sum) %>%
+  select(Sample, MAGs_DB, Host_mapped, Unmapped, Total_clean) %>%
     mutate(Host = Vectorize(get_host_from_sample_name)(Sample)) %>%
     mutate(Location = Vectorize(get_location_from_sample_name)(Sample)) %>%
         mutate(MAGs_DB_range = ifelse(MAGs_DB >= 30e+06, "High", NA)) %>%
         mutate(MAGs_DB_range = ifelse(MAGs_DB >= 15e+06 & MAGs_DB < 30e+06, "Sufficient", MAGs_DB_range)) %>%
         mutate(MAGs_DB_range = ifelse(MAGs_DB >= 0 & MAGs_DB < 15e+06, "Low", MAGs_DB_range)) %>%
-          mutate(Total_depth = ifelse(Trimmed >= 50e+06, "Target_reached", "Insufficient"))
+          mutate(Total_depth = ifelse(Total_clean >= 30e+06, "Target_reached", "Insufficient"))
 ```
 
 ## Initialization for 02 plot motus result
@@ -1238,7 +1151,7 @@ extend_colors_motus <- function(names_vec){
 ### Load and parse data
 
 ```{r load_and_parse_data}
-df_motus_raw <- read.csv("02_motus_profile/samples_merged.motus", sep = "\t", skip = 2, stringsAsFactors=FALSE)
+df_motus_raw <- read.csv("results/02_motus_profile/samples_merged.motus", sep = "\t", skip = 2, stringsAsFactors=FALSE)
 ```
 
 ```{r 02-init}
@@ -1252,6 +1165,7 @@ df_motus_raw <- df_motus_raw %>%
 
 df_motus <- as.data.frame(t(df_motus_raw)) %>%
               rownames_to_column("Sample") %>%
+              mutate(Sample = Vectorize(convert_sample_name)(Sample)) %>%
               pivot_longer(!Sample, names_to = "motu", values_to = "rel_ab") %>%
                 group_by(Sample, motu) %>%
                   mutate(Present = ifelse(rel_ab > 0, 1, 0)) %>%
@@ -1276,7 +1190,7 @@ df_motus_combined <- left_join(df_motus, df_meta_complete, by = c("Sample" = "ID
 ### Load and parse data
 
 ```{r 03-load_and_parse}
-df_assembly <- read.csv("05_Assembly/MapToAssembly/Assembly_mapping_summary.csv", sep = ',') %>%
+df_assembly <- read.csv("results/05_assembly/assembly_summary.txt", sep = ',') %>%
                 left_join(df_meta_complete, by=c("Sample" = "ID"))
 ```
 
@@ -1519,24 +1433,27 @@ get_ani_matrix <- function(genera_list = c(), mag_names = c(), magOTUs = c(), ma
 ### Load and parse data
 
 ```{r 06-load}
-df_gtdbk_bac <- read.csv("06_MAG_binning/gtdbtk_out_dir/classify/gtdbtk.bac120.summary.tsv", sep = "\t")
-drep_Bdb <- read.csv("06_MAG_binning/drep_results/data_tables/Bdb.csv", sep = ",")
-drep_gInformation <- read.csv("06_MAG_binning/drep_results/data_tables/genomeInfo.csv", sep = ",")
-drep_Sdb <- read.csv("06_MAG_binning/drep_results/data_tables/Sdb.csv", sep = ",")
-drep_Widb <- read.csv("06_MAG_binning/drep_results/data_tables/Widb.csv", sep = ",")
-MAGs_collated <- read.csv("06_MAG_binning/all_GenomeInfo_auto.tsv", sep = "\t")
-# system("bash scripts/calc_genome_sizes.sh")
-genome_lengths_df <- read.csv("/scratch/aprasad/211018_Medgenome_india_samples/Figures/Genome_sizes.csv")
-reference_genomes_info <- read.csv("/scratch/aprasad/211018_Medgenome_india_samples/06_MAG_binning/all_GenomeInfo_auto.csv")
-drep_N <- read.csv("06_MAG_binning/drep_results/data_tables/Ndb.csv") %>%
+df_gtdbk_bac <- read.csv("results/09_MAGs_collection/All_mags_sub/gtdb_output/classify/All_mags_sub.bac120.summary.tsv", sep = "\t")
+drep_Bdb <- read.csv("results/09_MAGs_collection/All_mags_sub/drep_output/data_tables/Bdb.csv", sep = ",")
+drep_gInformation <- read.csv("results/09_MAGs_collection/All_mags_sub/drep_output/data_tables/genomeInfo.csv", sep = ",")
+drep_Sdb <- read.csv("results/09_MAGs_collection/All_mags_sub/drep_output/data_tables/Sdb.csv", sep = ",")
+drep_Widb <- read.csv("results/09_MAGs_collection/All_mags_sub/drep_output/data_tables/Widb.csv", sep = ",")
+MAGs_collated <- read.csv("results/09_MAGs_collection/All_mags_sub/All_mags_sub_metadata_summary.tsv", sep = "\t")
+colnames(MAGs_collated)
+# system("bash scripts/calc_genome_sizes.sh /scratch/aprasad/20230313_apis_species_comparison/results/09_MAGs_collection/All_mags_sub/high_medium_mags /scratch/aprasad/20230313_apis_species_comparison/results/figures/Genome_sizes_good_quality.csv")
+# system("bash scripts/calc_genome_sizes.sh /scratch/aprasad/20230313_apis_species_comparison/results/09_MAGs_collection/All_mags_sub/MAGs /scratch/aprasad/20230313_apis_species_comparison/results/figures/Genome_sizes.csv")
+genome_lengths_df <- read.csv("results/figures/Genome_sizes.csv")
+genome_lengths_df_hq <- read.csv("results/figures/Genome_sizes_good_quality.csv")
+reference_genomes_info <- read.csv("config/Outgroup_isolate_genomes.tsv")
+drep_N <- read.csv("results/09_MAGs_collection/All_mags_sub/drep_output/data_tables/Ndb.csv") %>%
             mutate(reference = Vectorize(format_genome_name)(reference)) %>%
               mutate(querry = Vectorize(format_genome_name)(querry))
 ```
 ```{r 06-for_contig_depths}
-samples_am <- c(vis_magOTUs_df_all %>% filter(Host == "Apis mellifera") %>% pull(Sample) %>% unique %>% as.vector)
-samples_ac <- c(vis_magOTUs_df_all %>% filter(Host == "Apis cerana") %>% pull(Sample) %>% unique %>% as.vector)
-samples_ad <-c(vis_magOTUs_df_all %>% filter(Host == "Apis dorsata") %>% pull(Sample) %>% unique %>% as.vector)
-samples_af <-c(vis_magOTUs_df_all %>% filter(Host == "Apis florea") %>% pull(Sample) %>% unique %>% as.vector)
+# samples_am <- c(vis_magOTUs_df_all %>% filter(Host == "Apis mellifera") %>% pull(Sample) %>% unique %>% as.vector)
+# samples_ac <- c(vis_magOTUs_df_all %>% filter(Host == "Apis cerana") %>% pull(Sample) %>% unique %>% as.vector)
+# samples_ad <-c(vis_magOTUs_df_all %>% filter(Host == "Apis dorsata") %>% pull(Sample) %>% unique %>% as.vector)
+# samples_af <-c(vis_magOTUs_df_all %>% filter(Host == "Apis florea") %>% pull(Sample) %>% unique %>% as.vector)
 # contig_fates_df_am <- data.frame()
 # for (sample in samples_am) {
 #   contig_fates_df_am <- rbind(contig_fates_df_am, read.csv(paste0("06_MAG_binning/contig_fates/",sample,"_contig_fates.csv"), sep = ","))
@@ -1653,27 +1570,24 @@ cluster_info <- drep_Widb %>%
                     mutate(representative_genome = Vectorize(format_genome_name)(genome)) %>%
                       select(!genome)
 MAGs_collated_info <- left_join(MAGs_collated, mutate(drep_gInformation, genome = Vectorize(format_genome_name)(genome)), by = c("ID"="genome"))
+# head(MAGs_collated_info)
+# colnames(MAGs_collated_info)
 vis_magOTUs_df_all <- MAGs_collated_info %>%
-                        group_by(Sample) %>%
-                            mutate(all_quality = ifelse(completeness > 50 & contamination < 5 & N50 > 10000, "Pass", "Fail")) %>%
-                            mutate(Completeness_quality = cut(completeness ,breaks=c(-1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 95, 100, 110),
+                            mutate(Completeness_quality = cut(Completeness ,breaks=c(-1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 95, 100, 110),
                                                             labels = c("<10", "10-20", "20-30", "30-40", "40-50", "50-60", "60-70", "70-80", "80-90", "90-95", "95-100", "100"))
                                                           ) %>%
-                              mutate(Contamination_quality = cut(contamination ,breaks=c(-1, 0, 5, 10, 100),
+                              mutate(Contamination_quality = cut(Contamination ,breaks=c(-1, 0, 5, 10, 100),
                                                               labels = c("0", "0-5", "5-10", ">10"))
                                                           ) %>%
                               mutate(N50_quality = cut(N50 ,breaks=c(0, 10000, 50000, 100000, 200000, 500000, 1000000, 2000000, Inf), labels = c("<10Kb", "10-50Kb", "50-100Kb", "100-200Kb", "200-500Kb", "0.5-1Mb", "1-2Mb", ">2Mb"))) %>%
-                                mutate(sample = Vectorize(get_sample_name)(ID)) %>%
-                                filter(grepl("MAG_", ID)) %>%
-                                  mutate(Host = Vectorize(get_host_name)(ID)) # %>%
-                                    # mutate(num_contigs = Vectorize(get_num_contigs_per_bin)(ID))
+                                  mutate(Host = Vectorize(get_host_name)(ID)) %>%
+                                  filter(!grepl("unbinned", ID))
 vis_magOTUs_df_all <- vis_magOTUs_df_all %>%
-                          group_by(Cluster) %>%
-                            mutate(Num_mags = n()) %>%
-                              mutate(Prevalence_overall = Num_mags/length(samples))
-
+                          group_by(magOTU) %>%
+                            mutate(Num_mags = n())
+colnames(vis_magOTUs_df_all)
 vis_magOTUs_df_all <- vis_magOTUs_df_all %>%
-                          group_by(Cluster, Host) %>%
+                          group_by(magOTU, Host) %>%
                             mutate(Present = n()) %>%
                             mutate(Prevalence = ifelse(Host=="Apis mellifera", Present/length(samples_am), NA)) %>%
                             mutate(Prevalence = ifelse(Host=="Apis cerana", Present/length(samples_ac), Prevalence)) %>%

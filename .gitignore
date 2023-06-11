@@ -31,3 +31,7 @@ results/*
 results/*
 */.snakemake/*
 data/*
+
+temp
+temp*
+temp/*

@@ -45,7 +45,7 @@ ggplot(df_concentrations %>% filter(ID %in% c(samples_IN, samples_MY)),
     geom_vline(xintercept = 10, linetype = "solid", color = "#d73027", alpha = 1) +
       scale_fill_manual(values=host_order_color) +
       scale_color_manual(values=host_order_color_dark)
-      ggsave("figures/00a-DNA_Concentrations_compared.pdf")
+      ggsave("results/figures/00a-DNA_Concentrations_compared.pdf")
 ```
 
 ### Samples from Malaysia alone
@@ -72,5 +72,5 @@ ggplot(df_concentrations %>% filter(ID %in% samples_MY),
     geom_vline(xintercept = 10, linetype = "solid", color = "#1a9850", alpha = 1) +
       scale_fill_manual(values=host_order_color) +
       scale_color_manual(values=host_order_color_dark)
-      ggsave("figures/00a-DNA_Concentrations.pdf")
+      ggsave("results/figures/00a-DNA_Concentrations.pdf")
 ```

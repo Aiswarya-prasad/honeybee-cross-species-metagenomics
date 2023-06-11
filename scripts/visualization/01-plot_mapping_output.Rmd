@@ -23,26 +23,25 @@ To intialize complete all of or relevant sections of `scripts/visualization/Load
 ```{r plot_MY_samples_1}
 samples_chosen <- samples_MY
 df_to_plot <- df_reads_plot %>%
-                filter(Sample %in% samples_chosen & Type %in% c("Host_mapped", "MAGs_DB", "Unmapped")) %>%
+                filter(Sample %in% samples_chosen & Type %in% c("Host_mapped", "Unmapped_host")) %>%
+                mutate(Type = ifelse(Type == "Unmapped_host", "Unmapped", Type)) %>%
                 mutate(Location = Vectorize(get_location_from_sample_name)(Sample)) %>%
                 mutate(Colony = Vectorize(get_colonyid_from_sample_name)(Sample)) 
 ggplot() +
   geom_bar(data = df_to_plot,
            aes(x=factor(Sample, levels = samples_chosen),
                y=Number,
-               fill = factor(Type, levels = c("Unmapped", "Host_mapped", "MAGs_DB"))
+               fill = factor(Type, levels = c("Unmapped", "Host_mapped"))
               ),
            stat="identity", position = "stack") +
   labs(x = "Sample",
        y = "Number of reads (paired end)",
        fill = "Type") +
   scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
-  scale_fill_manual(values=c("Unmapped" = brewer.pal(9, "Pastel1")[1],
-                             "MAGs_DB" = brewer.pal(9, "Pastel1")[3],
-                             "Host_mapped" = brewer.pal(9, "Pastel1")[2]
+  scale_fill_manual(values=c("Unmapped" = brewer.pal(9, "Pastel1")[3],
+                             "Host_mapped" = brewer.pal(9, "Pastel1")[1]
                             ),
                     labels=c("Unmapped",
-                             "Mapped to MAGs",
                              "Mapped to Host"
                             )
                    ) +
@@ -79,36 +78,37 @@ ggplot() +
   make_theme(setFill = F, leg_pos = "right",
              x_size = 0, modify_guide = F
             )
-  ggsave("Figures/01-Mapping_qpcr_numbers_MY.pdf")
+  ggsave("results/figures/01-Mapping_qpcr_numbers_MY.pdf")
 ```
 
 ```{r plot_MY_samples_2}
 samples_chosen <- samples_MY
 df_to_plot <- df_reads_plot %>%
-                filter(Sample %in% samples_chosen & Type %in% c("perc_host", "perc_mags", "perc_unmapped_all")) %>%
+                filter(Sample %in% samples_chosen & Type %in% c("Total_clean", "Host_mapped", "MAGs_DB")) %>%
+                # filter(Sample %in% samples_chosen & Type %in% c("Host_mapped", "MAGs_DB", "perc_unmapped_host", "perc_unmapped_mags")) %>%
                 mutate(Location = Vectorize(get_location_from_sample_name)(Sample)) %>%
                 mutate(Colony = Vectorize(get_colonyid_from_sample_name)(Sample)) 
 ggplot() +
   geom_bar(data = df_to_plot,
            aes(x=factor(Sample, levels = samples_chosen),
                y=Number,
-               fill = factor(Type, levels = c("perc_unmapped_all", "perc_host", "perc_mags"))
+               fill = factor(Type, levels = c("Total_clean", "Host_mapped", "MAGs_DB"))
               ),
-           stat="identity", position = "stack") +
+           stat="identity", position = "dodge") +
   labs(x = "Sample",
        y = "Number of reads (paired end)",
        fill = "Type") +
-  scale_y_continuous(labels=unit_format(unit = "%")) +
-  # scale_fill_manual(values=c("perc_unmapped_all" = brewer.pal(9, "Pastel1")[1],
-  #                            "perc_mags" = brewer.pal(9, "Pastel1")[3],
-  #                            "perc_host" = brewer.pal(9, "Pastel1")[2]
-  #                           ),
-  #                   labels=c("Unmapped",
-  #                            "Mapped to MAGs",
-  #                            "Mapped to Host"
-  #                           )
-  #                  ) +
-  facet_wrap(~factor(Host, host_order), scale = "free_x") +
+  scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
+  scale_fill_manual(values=c("Total_clean" = brewer.pal(9, "Pastel1")[2],
+                             "Host_mapped" = brewer.pal(9, "Pastel1")[1],
+                             "MAGs_DB" = brewer.pal(9, "Pastel1")[3]
+                            ),
+                    labels=c("Total",
+                             "Host",
+                             "MAGs"
+                            )
+                   ) +
+  facet_wrap(~factor(Host, host_order), scale = "free") +
   new_scale_fill() +
   geom_rect(data = left_join(df_to_plot, df_reads_updated) %>%
                     select(Sample, Host, Colony) %>%
@@ -139,34 +139,33 @@ ggplot() +
                 fill = copy_num)
                 ) +
   make_theme(setFill = F, leg_pos = "right",
-             x_size = 0, modify_guide = F
+             x_size = 5, modify_guide = F,
+             axis_x_title = 15, axis_y_title = 15
             )
-  ggsave("Figures/01-Mapping_qpcr_proportions_MY.pdf")
+  ggsave("results/figures/01-Mapping_qpcr_MY.pdf", width = 30, height = 15)
 ```
 
 ```{r plot_GTF_sequencing_depths_1}
 samples_chosen <- samples
 df_to_plot <- df_reads_plot %>%
-                filter(Sample %in% samples_chosen & Type %in% c("Host_mapped", "MAGs_DB", "Unmapped")) %>%
+                filter(Sample %in% samples_chosen & Type %in% c("MAGs_DB", "Unmapped_mags")) %>%
                 mutate(Location = Vectorize(get_location_from_sample_name)(Sample))
 ggplot() +
-  geom_bar(data = filter(df_reads_plot, Sample %in% samples_chosen & Type %in% c("Host_mapped", "MAGs_DB", "Unmapped")),
+  geom_bar(data = filter(df_reads_plot, Sample %in% samples_chosen & Type %in% c("MAGs_DB", "Unmapped_mags")),
            aes(x=factor(Sample, levels = samples_chosen),
                y=Number,
-               fill = factor(Type, levels = c("Unmapped", "Host_mapped", "MAGs_DB"))
+               fill = factor(Type, levels = c("Unmapped_mags", "MAGs_DB"))
               ),
            stat="identity", position = "stack") +
   labs(x = "Sample",
-       y = "Number of reads (paired end)",
+       y = "Number of reads",
        fill = "Type") +
   scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
-  scale_fill_manual(values=c("Unmapped" = brewer.pal(9, "Pastel1")[1],
-                             "MAGs_DB" = brewer.pal(9, "Pastel1")[3],
-                             "Host_mapped" = brewer.pal(9, "Pastel1")[2]
+  scale_fill_manual(values=c("Unmapped_mags" = brewer.pal(9, "Pastel1")[1],
+                             "MAGs_DB" = brewer.pal(9, "Pastel1")[3]
                             ),
                     labels=c("Unmapped",
-                             "Mapped to MAGs",
-                             "Mapped to Host"
+                             "Mapped to MAGs"
                             )
                    ) +
   facet_wrap(~factor(Host, host_order), scale = "free_x") +  
@@ -232,35 +231,55 @@ ggplot() +
              modify_guide = F,
              x_angle=45 ,x_vj=1.2, x_hj=1, x_size=0,
              y_angle=0 ,y_vj=0, y_hj=0, y_size=12)
-  ggsave("Figures/01-Sequencing_depth_summary_all.pdf")
+  ggsave("results/figures/01-Sequencing_depth_summary_all.pdf")
 ```
 
 ```{r plot_GTF_sequencing_depths_2}
 samples_chosen <- samples_IN_MY
 df_to_plot <- df_reads_plot %>%
-                filter(Sample %in% samples_chosen & Type %in% c("Host_mapped", "MAGs_DB", "Unmapped")) %>%
+                filter(Sample %in% samples_chosen & Type %in% c("MAGs_DB", "Unmapped_mags")) %>%
                 mutate(Location = Vectorize(get_location_from_sample_name)(Sample))
 ggplot() +
-  geom_bar(data = filter(df_reads_plot, Sample %in% samples_chosen & Type %in% c("Host_mapped", "MAGs_DB", "Unmapped")),
+  geom_bar(data = filter(df_reads_plot, Sample %in% samples_chosen & Type %in% c("MAGs_DB", "Unmapped_mags")),
            aes(x=factor(Sample, levels = samples_chosen),
                y=Number,
-               fill = factor(Type, levels = c("Unmapped", "Host_mapped", "MAGs_DB"))
+               fill = factor(Type, levels = c("Unmapped_mags", "MAGs_DB"))
               ),
            stat="identity", position = "stack") +
   labs(x = "Sample",
-       y = "Number of reads (paired end)",
+       y = "Number of reads",
        fill = "Type") +
   scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
-  scale_fill_manual(values=c("Unmapped" = brewer.pal(9, "Pastel1")[1],
-                             "MAGs_DB" = brewer.pal(9, "Pastel1")[3],
-                             "Host_mapped" = brewer.pal(9, "Pastel1")[2]
+  scale_fill_manual(values=c("Unmapped_mags" = brewer.pal(9, "Pastel1")[1],
+                             "MAGs_DB" = brewer.pal(9, "Pastel1")[3]
                             ),
                     labels=c("Unmapped",
-                             "Mapped to MAGs",
-                             "Mapped to Host"
+                             "Mapped to MAGs"
                             )
                    ) +
   facet_wrap(~factor(Host, host_order), scale = "free_x") +  
+  new_scale_fill() +
+  geom_rect(data = left_join(df_to_plot, df_reads_updated) %>%
+                    select(Sample, Host, MAGs_DB_range) %>%
+                    unique() %>%
+                    group_by(Host) %>%
+                      mutate(SampleID = row_number()), 
+            aes(xmin=SampleID - 0.5,
+                xmax=SampleID + 0.5,
+                ymin = -10e+06,
+                ymax = -20e+06,
+                fill = factor(MAGs_DB_range, levels = c("Low", "Sufficient", "High")))
+          ) +
+  labs(fill = "#Mapped to MAGs DB") +
+  scale_fill_manual(values=c("Low" = brewer.pal(9, "Paired")[6],
+                             "Sufficient" = brewer.pal(9, "Paired")[3],
+                             "High" = brewer.pal(9, "Paired")[4]
+                            ),
+                    labels=c("Low (< 15M)",
+                             "Sufficient (15M - 30M)",
+                             "High (> 30M)"
+                            ),
+                   ) +
   new_scale_fill() +
   geom_rect(data = left_join(df_to_plot, df_reads_updated) %>%
                     select(Sample, Host, Location) %>%
@@ -277,6 +296,58 @@ ggplot() +
   scale_fill_manual(values=location_order_color) +
   new_scale_fill() +
   geom_rect(data = left_join(df_to_plot, df_reads_updated) %>%
+                    select(Sample, Host, Total_depth) %>%
+                    unique() %>%
+                    group_by(Host) %>%
+                      mutate(SampleID = row_number()), 
+            aes(xmin=SampleID - 0.5,
+                xmax=SampleID + 0.5,
+                ymin = -20e+06,
+                ymax = -30e+06,
+                fill = factor(Total_depth, levels = c("Target_reached", "Insufficient")))
+          ) +
+  labs(fill = "#Mapped to MAGs DB") +
+  scale_fill_manual(values=c("Target_reached" = brewer.pal(9, "Paired")[4],
+                             "Insufficient" = brewer.pal(9, "Paired")[6]
+                            ),
+                    labels=c("Target reached (>30M)",
+                             "Insufficient"
+                            ),
+                   ) +
+  make_theme(theme_name=theme_few(), leg_pos="right",
+             setFill = F, setCol = F,
+             guide_nrow = 1,
+             modify_guide = F,
+             x_angle=45 ,x_vj=1.2, x_hj=1, x_size=5,
+             y_angle=0 ,y_vj=0, y_hj=0, y_size=12)
+  ggsave("results/figures/01-Sequencing_depth_summary_IN_MY.pdf")
+```
+```{r plot_GTF_sequencing_depths_3}
+samples_chosen <- samples_MY
+df_to_plot <- df_reads_plot %>%
+                filter(Sample %in% samples_chosen & Type %in% c("MAGs_DB", "Unmapped_mags")) %>%
+                mutate(Location = Vectorize(get_location_from_sample_name)(Sample))
+ggplot() +
+  geom_bar(data = filter(df_reads_plot, Sample %in% samples_chosen & Type %in% c("MAGs_DB", "Unmapped_mags")),
+           aes(x=factor(Sample, levels = samples_chosen),
+               y=Number,
+               fill = factor(Type, levels = c("Unmapped_mags", "MAGs_DB"))
+              ),
+           stat="identity", position = "stack") +
+  labs(x = "Sample",
+       y = "Number of reads",
+       fill = "Type") +
+  scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
+  scale_fill_manual(values=c("Unmapped_mags" = brewer.pal(9, "Pastel1")[1],
+                             "MAGs_DB" = brewer.pal(9, "Pastel1")[3]
+                            ),
+                    labels=c("Unmapped",
+                             "Mapped to MAGs"
+                            )
+                   ) +
+  facet_wrap(~factor(Host, host_order), scale = "free_x") +  
+  new_scale_fill() +
+  geom_rect(data = left_join(df_to_plot, df_reads_updated) %>%
                     select(Sample, Host, MAGs_DB_range) %>%
                     unique() %>%
                     group_by(Host) %>%
@@ -297,61 +368,6 @@ ggplot() +
                              "High (> 30M)"
                             ),
                    ) +
-  new_scale_fill() +
-  geom_rect(data = left_join(df_to_plot, df_reads_updated) %>%
-                    select(Sample, Host, Total_depth) %>%
-                    unique() %>%
-                    group_by(Host) %>%
-                      mutate(SampleID = row_number()), 
-            aes(xmin=SampleID - 0.5,
-                xmax=SampleID + 0.5,
-                ymin = -20e+06,
-                ymax = -30e+06,
-                fill = factor(Total_depth, levels = c("Target_reached", "Insufficient")))
-          ) +
-  labs(fill = "#Mapped to MAGs DB") +
-  scale_fill_manual(values=c("Target_reached" = brewer.pal(9, "Paired")[4],
-                             "Insufficient" = brewer.pal(9, "Paired")[6]
-                            ),
-                    labels=c("Target reached (>50M)",
-                             "Insufficient"
-                            ),
-                   ) +
-  make_theme(theme_name=theme_few(), leg_pos="right",
-             setFill = F, setCol = F,
-             guide_nrow = 1,
-             modify_guide = F,
-             x_angle=45 ,x_vj=1, x_hj=1, x_size=0,
-             y_angle=0 ,y_vj=0, y_hj=0, y_size=12)
-  ggsave("Figures/01-Sequencing_depth_summary_IN_MY.pdf")
-```
-```{r plot_GTF_sequencing_depths_3}
-samples_chosen <- samples_MY
-df_to_plot <- df_reads_plot %>%
-                filter(Sample %in% samples_chosen & Type %in% c("Host_mapped", "MAGs_DB", "Unmapped")) %>%
-                mutate(Location = Vectorize(get_location_from_sample_name)(Sample)) %>%
-                mutate(Colony = Vectorize(get_colonyid_from_sample_name)(Sample)) 
-ggplot() +
-  geom_bar(data = filter(df_reads_plot, Sample %in% samples_chosen & Type %in% c("Host_mapped", "MAGs_DB", "Unmapped")),
-           aes(x=factor(Sample, levels = samples_chosen),
-               y=Number,
-               fill = factor(Type, levels = c("Unmapped", "Host_mapped", "MAGs_DB"))
-              ),
-           stat="identity", position = "stack") +
-  labs(x = "Sample",
-       y = "Number of reads (paired end)",
-       fill = "Type") +
-  scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
-  scale_fill_manual(values=c("Unmapped" = brewer.pal(9, "Pastel1")[1],
-                             "MAGs_DB" = brewer.pal(9, "Pastel1")[3],
-                             "Host_mapped" = brewer.pal(9, "Pastel1")[2]
-                            ),
-                    labels=c("Unmapped",
-                             "Mapped to MAGs",
-                             "Mapped to Host"
-                            )
-                   ) +
-  facet_wrap(~factor(Host, host_order), scale = "free_x") +  
   new_scale_fill() +
   geom_rect(data = left_join(df_to_plot, df_reads_updated) %>%
                     select(Sample, Host, Location) %>%
@@ -365,42 +381,7 @@ ggplot() +
                 fill = factor(Location, levels = location_order))
           ) +
   labs(fill = "Sampling location") +
-  new_scale_fill() +
-  geom_rect(data = left_join(df_to_plot, df_reads_updated) %>%
-                    select(Sample, Host, Colony) %>%
-                    unique() %>%
-                    group_by(Host) %>%
-                      mutate(SampleID = row_number()), 
-            aes(xmin=SampleID - 0.5,
-                xmax=SampleID + 0.5,
-                ymin = 0,
-                ymax = -10e+06,
-                fill = Colony)
-          ) +
-  labs(fill = "Colony #") +
-  scale_fill_manual(values=brewer.pal(9, "Spectral")) +
-  new_scale_fill() +
-  geom_rect(data = left_join(df_to_plot, df_reads_updated) %>%
-                    select(Sample, Host, MAGs_DB_range) %>%
-                    unique() %>%
-                    group_by(Host) %>%
-                      mutate(SampleID = row_number()), 
-            aes(xmin=SampleID - 0.5,
-                xmax=SampleID + 0.5,
-                ymin = -10e+06,
-                ymax = -20e+06,
-                fill = factor(MAGs_DB_range, levels = c("Low", "Sufficient", "High")))
-          ) +
-  labs(fill = "#Mapped to MAGs DB") +
-  scale_fill_manual(values=c("Low" = brewer.pal(9, "Paired")[6],
-                             "Sufficient" = brewer.pal(9, "Paired")[3],
-                             "High" = brewer.pal(9, "Paired")[4]
-                            ),
-                    labels=c("Low (< 15M)",
-                             "Sufficient (15M - 30M)",
-                             "High (> 30M)"
-                            ),
-                   ) +
+  scale_fill_manual(values=location_order_color) +
   new_scale_fill() +
   geom_rect(data = left_join(df_to_plot, df_reads_updated) %>%
                     select(Sample, Host, Total_depth) %>%
@@ -417,7 +398,7 @@ ggplot() +
   scale_fill_manual(values=c("Target_reached" = brewer.pal(9, "Paired")[4],
                              "Insufficient" = brewer.pal(9, "Paired")[6]
                             ),
-                    labels=c("Target reached (>50M)",
+                    labels=c("Target reached (>30M)",
                              "Insufficient"
                             ),
                    ) +
@@ -425,9 +406,9 @@ ggplot() +
              setFill = F, setCol = F,
              guide_nrow = 1,
              modify_guide = F,
-             x_angle=90 ,x_vj=0, x_hj=0.5, x_size=7,
+             x_angle=45 ,x_vj=1.2, x_hj=1, x_size=5,
              y_angle=0 ,y_vj=0, y_hj=0, y_size=12)
-  ggsave("Figures/01-Sequencing_depth_summary_MY.pdf")
+  ggsave("results/figures/01-Sequencing_depth_summary_MY.pdf")
 ```
 
 ```{r other_plots}
