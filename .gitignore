@@ -35,3 +35,6 @@ data/*
 temp
 temp*
 temp/*
+
+# tracked in another repo
+scripts/PopCOGenT*
