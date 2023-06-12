@@ -6,12 +6,12 @@ channels:
  - r
 
 dependencies:
+ - python
  - biopython
  - joblib
  - networkx
  - numpy
  - pandas
- - python
  - scipy
  - statsmodels
  - snakemake
@@ -21,6 +21,4 @@ dependencies:
  - mugsy
  - phyml
  - mmseqs2
- - pip
- - pip:
-   - infomap
+ - infomap
