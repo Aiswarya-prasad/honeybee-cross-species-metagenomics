@@ -67,7 +67,7 @@ rule backmapping:
         singletons = lambda wildcards: f"results/01_cleanreads/{wildcards.sample}_singletons.fastq.gz"
     output:
         flagstat = "results/07_MAG_binng_QC/01_backmapping/{sample_assembly}/{sample}_mapped_flagstat.txt",
-        bam = "results/07_MAG_binng_QC/01_backmapping/{sample_assembly}/{sample}.bam" # only unmapped reads excluded
+        # bam = "results/07_MAG_binng_QC/01_backmapping/{sample_assembly}/{sample}.bam" # only unmapped reads excluded
     params:
         match_length = 50,
         edit_distance = 5, # methods in microbiomics recommends 95 perc identity

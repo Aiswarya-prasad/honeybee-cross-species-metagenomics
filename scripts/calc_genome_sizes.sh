@@ -1,6 +1,6 @@
 #!/bin/bash
 bins=$1
 outfile=$2
-cd /scratch/aprasad/211018_Medgenome_india_samples
-echo "ID, length" > Figures/Genome_sizes.csv
-for file in ${bins}/*.fa; do echo "$(echo ${file##*mes/} | sed -e 's/\.fa//'),$(cat $file | grep -v ">" | wc -c)" >> ${outfile}; done
+ext=$3
+echo "ID, length" > ${outfile}
+for file in ${bins}/*.${ext}; do filename=$(basename $file) ; echo "$(echo ${filename##*mes/} | sed -e "s/\.${ext}//"),$(cat $file | grep -v ">" | wc -c)" >> ${outfile}; done

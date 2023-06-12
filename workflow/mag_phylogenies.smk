@@ -195,7 +195,7 @@ rule run_orthofinder_iqtree:
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         account="pengel_spirit",
-        runtime_s=lambda wildcards: convertToSec("1-2:10:00") if wildcards.genus == "g__Lactobacillus" or wildcards.genus in ["g__Bifidobacterium", "g__Lactobacillus"] else convertToSec("0-15:10:00"),
+        runtime_s=lambda wildcards: convertToSec("1-20:10:00"),
     resources:
         mem_mb = convertToMb("200G")
     threads: 16
