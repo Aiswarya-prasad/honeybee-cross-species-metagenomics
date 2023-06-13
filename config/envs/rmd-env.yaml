@@ -32,8 +32,10 @@ dependencies:
   - r-pheatmap
   - r-heatmaply
   - r-readxl
+  - r-cowplot
   - r-picante
   - r-ggalluvial
+  - r-ggnewscale
   - r-ggraph
   - r-ggrepel
   - r-ggbeeswarm

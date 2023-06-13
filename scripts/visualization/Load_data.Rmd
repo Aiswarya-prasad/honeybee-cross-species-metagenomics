@@ -91,7 +91,6 @@ If there are any specific changes to functions be sure to re-write the RData obj
 working_dir <- "/scratch/aprasad/20230313_apis_species_comparison"
 setwd(working_dir)
 library(ggplot2)
-library(kableExtra)
 library(readxl)
 library(knitr)
 library(tidyverse)
@@ -120,7 +119,7 @@ library(htmlwidgets)
 # library(ggpubr) - version confilct
 # Previously saved env data not clean - redo next time
 # save.image("/scratch/aprasad/20230313_apis_species_comparison/results/figures/workspace_generaldata_chunks_20230611.RData")
-load("/scratch/aprasad/20230313_apis_species_comparison/results/figures/workspace_generaldata_chunks_20230611.RData")
+# load("/scratch/aprasad/20230313_apis_species_comparison/results/figures/workspace_generaldata_chunks_20230611.RData")
 ```
 
 ### General definitions
@@ -352,6 +351,36 @@ genera <- c(
     "g__WRHT01",
     "g__"
   )
+genera_ext <- c(
+    "g__Lactobacillus",
+    "g__Bifidobacterium",
+    "g__Bombilactobacillus",
+    "g__CALYQJ01",
+    "g__Snodgrassella",
+    "g__Gilliamella",
+    "g__CALYQQ01",
+    "g__Apibacter",
+    "g__Bartonella_A",
+    "g__Frischella",
+    "g__Commensalibacter",
+    "g__Apilactobacillus",
+    "g__Bombella",
+    "g__Dysgonomonas",
+    "g__Enterobacter",
+    "g__Pectinatus",
+    "g__Spiroplasma",
+    "g__Zymobacter",
+    "g__Entomomonas",
+    "g__Saezia",
+    "g__Parolsenella",
+    "g__WRHT01",
+    "g__Cronobacter",
+    "g__Melissococcus",
+    "g__Rosenbergiella",
+    "g__Pluralibacter",
+    "g__KACC-21507",
+    "g__"
+  )         
 genusColors <- list("g__Bombilactobacillus" = head(colorRampPalette(c(brewer.pal(11, "Spectral")[1], "#FFFFFF"))(10), -1)[1],
                     "g__Lactobacillus" = head(colorRampPalette(c(brewer.pal(11, "Spectral")[1], "#FFFFFF"))(10), -1)[4],
                     "g__CALYQJ01" = head(colorRampPalette(c(brewer.pal(11, "Spectral")[1], "#FFFFFF"))(10), -1)[7],
@@ -1482,7 +1511,6 @@ drep_N <- read.csv("results/09_MAGs_collection/All_mags_sub/drep_output/data_tab
 
 
 ```{r 06-init}
-get_host_name("A4-2_1")
 cluster_info <- drep_Widb %>%
                   select(genome, score, cluster, cluster_members, furthest_cluster_member) %>%
                     rename(score_representative = score) %>%
@@ -2394,11 +2422,11 @@ for (sample in samples) {
 }
 
 instrain_breadth_depth <- instrain_genomes_info_df %>%
-                            group_by(magOTU) %>%
+                            group_by(sample, magOTU) %>%
                             reframe(coverage, Host, breadth, length, sample, Genus, filtered_read_pair_count, 
                                       reads_unfiltered_pairs, reads_unfiltered_reads) %>%
-                            filter(breadth > 0.7) %>%
-                              mutate(coverage_factor = cut(coverage ,breaks=c(-1, 1e-04, 1e-03, 1e-02, 1e-01, 1, 10, 100, 1000, Inf),labels = c("<0.0001", "0.001", "0.01", "0.1", "1", "10", "100", "1000", ">1000"))) %>%
+                            filter(breadth > 0.5) %>%
+                              mutate(coverage_factor = cut(coverage ,breaks=c(-1, 1e-04, 1e-03, 1e-02, 1e-01, 1, 10, 100, 1000, Inf),labels = c("<0.0001", "0.0001 - 0.001", "0.001 - 0.01", "0.01 - 0.1", "0.1 - 1", "1 - 10", "10 - 100", "100 - 1000", ">1000"))) %>%
                               mutate(expected_number_of_genomes = filtered_read_pair_count*read_length*2/(length)) %>%
                               ungroup() %>%
                               group_by(sample) %>%
@@ -2407,11 +2435,10 @@ instrain_breadth_depth <- instrain_genomes_info_df %>%
                               ) %>%
                               ungroup()
 instrain_breadth_depth_unfiltered <- instrain_genomes_info_df %>%
-                            group_by(magOTU) %>%
+                            group_by(sample, magOTU) %>%
                             reframe(coverage, Host, breadth, length, sample, Genus, filtered_read_pair_count, 
                                       reads_unfiltered_pairs, reads_unfiltered_reads) %>%
-                            # filter(breadth > 0.7) %>%
-                              mutate(coverage_factor = cut(coverage ,breaks=c(-1, 1e-04, 1e-03, 1e-02, 1e-01, 1, 10, 100, 1000, Inf),labels = c("<0.0001", "0.001", "0.01", "0.1", "1", "10", "100", "1000", ">1000"))) %>%
+                              mutate(coverage_factor = cut(coverage ,breaks=c(-1, 1e-04, 1e-03, 1e-02, 1e-01, 1, 10, 100, 1000, Inf),labels = c("<0.0001", "0.0001 - 0.001", "0.001 - 0.01", "0.01 - 0.1", "0.1 - 1", "1 - 10", "10 - 100", "100 - 1000", ">1000"))) %>%
                               mutate(expected_number_of_genomes = filtered_read_pair_count*read_length*2/(length)) %>%
                               ungroup() %>%
                               group_by(sample) %>%
@@ -2419,189 +2446,20 @@ instrain_breadth_depth_unfiltered <- instrain_genomes_info_df %>%
                                      percentage_expected_number_of_genomes = expected_number_of_genomes/sum(expected_number_of_genomes)*100
                               ) %>%
                               ungroup()
-instrain_breadth_depth_by_genus <- instrain_breadth_depth %>%
-                                    ungroup() %>%
-                                    group_by(sample, Genus) %>%
-                                    reframe(sample, Genus, Host, 
-                                              rel_abundance = sum(percentage_expected_number_of_genomes),
-                                              abundance_raw = sum(filtered_read_pair_count),
-                                              abundance = sum(filtered_read_pair_count)
-                                    ) %>% unique                        
-instrain_breadth_depth_by_genus_unfiltered <- instrain_breadth_depth_unfiltered %>%
-                                    ungroup() %>%
-                                    group_by(sample, Genus) %>%
-                                    reframe(sample, Genus, Host, 
-                                              rel_abundance = sum(percentage_expected_number_of_genomes),
-                                              abundance_raw = sum(filtered_read_pair_count),
-                                              abundance = sum(filtered_read_pair_count)
-                                    ) %>% unique                        
-instrain_breadth_depth_by_genus_host <- instrain_breadth_depth %>%
-                                    ungroup() %>%
-                                    group_by(Host, Genus) %>%
-                                    reframe(Genus, Host, 
-                                              rel_abundance = mean(percentage_expected_number_of_genomes),
-                                              abundance_raw = mean(filtered_read_pair_count),
-                                              abundance = mean(filtered_read_pair_count)
-                                    ) %>% unique
-instrain_breadth_depth_by_magOTU_host <- instrain_breadth_depth %>%
-                                    ungroup() %>%
-                                    group_by(Host, magOTU) %>%
-                                    reframe(magOTU, Host, 
-                                              rel_abundance = mean(percentage_expected_number_of_genomes),
-                                              abundance_raw = mean(filtered_read_pair_count),
-                                              abundance = mean(filtered_read_pair_count)
-                                    ) %>% unique
-View(instrain_breadth_depth)
-instrain_pa_by_magOTU <- instrain_breadth_depth %>%
-                                    ungroup() %>%
-                                    mutate(Present = ifelse(percentage_reads > 0, 1, 0))
-samples_am <- instrain_breadth_depth %>% filter(Host == "Apis mellifera") %>% select(sample) %>% unique() %>% unlist()
-samples_ac <- instrain_breadth_depth %>% filter(Host == "Apis cerana") %>% select(sample) %>% unique() %>% unlist()
-samples_ad <- instrain_breadth_depth %>% filter(Host == "Apis dorsata") %>% select(sample) %>% unique() %>% unlist()
-samples_af <- instrain_breadth_depth %>% filter(Host == "Apis florea") %>% select(sample) %>% unique() %>% unlist()
-samples_aa <- instrain_breadth_depth %>% filter(Host == "Apis andreniformis") %>% select(sample) %>% unique() %>% unlist()
+instrain_prev <- instrain_breadth_depth_unfiltered %>%
+                    mutate(detected = ifelse(coverage > 10 & breadth > 0.5, 1, 0)) %>%
+                    group_by(Host, magOTU) %>%
+                    mutate(prevalence_in_host = mean(detected)) %>%
+                    ungroup() %>%
+                    group_by(magOTU) %>%
+                    mutate(prevalence = mean(detected))
 
-instrain_pa_by_magOTU_by_host <- instrain_pa_by_magOTU %>%
-                                    select(Host, Present, magOTU) %>%
-                                    unique() %>%
-                                    group_by(Host, magOTU) %>%
-                                      mutate(Prevalence = ifelse(Host=="Apis mellifera", 100*sum(Present)/length(samples_am), NA)) %>%
-                                      mutate(Prevalence = ifelse(Host=="Apis cerana", 100*sum(Present)/length(samples_ac), Prevalence)) %>%
-                                      mutate(Prevalence = ifelse(Host=="Apis dorsata", 100*sum(Present)/length(samples_ad), Prevalence)) %>%
-                                      mutate(Prevalence = ifelse(Host=="Apis florea", 100*sum(Present)/length(samples_af), Prevalence)) %>%
-                                      mutate(Prevalence = ifelse(Host=="Apis andreniformis", 100*sum(Present)/length(samples_aa), Prevalence))
-instrain_pa_by_genus_by_host <- instrain_pa_by_magOTU %>%
-                                    select(Host, Present, Genus) %>%
-                                    unique() %>%
-                                    group_by(Host, Genus) %>%
-                                      mutate(Prevalence = ifelse(Host=="Apis mellifera", 100*sum(Present)/length(samples_am), NA)) %>%
-                                      mutate(Prevalence = ifelse(Host=="Apis cerana", 100*sum(Present)/length(samples_ac), Prevalence)) %>%
-                                      mutate(Prevalence = ifelse(Host=="Apis dorsata", 100*sum(Present)/length(samples_ad), Prevalence)) %>%
-                                      mutate(Prevalence = ifelse(Host=="Apis florea", 100*sum(Present)/length(samples_af), Prevalence)) %>%
-                                      mutate(Prevalence = ifelse(Host=="Apis andreniformis", 100*sum(Present)/length(samples_aa), Prevalence))
-                                    
-# mutate(Detected = ifelse(abundance_raw > 10, 1, 0)) %>%
-# mutate(Detected = ifelse(is.na(Detected), 0, Detected)) %>%
-# ungroup() %>%
-# group_by(Host, Genus) %>%
-# mutate(Present = sum(Detected)) %>%
-# mutate(Prevalence_host = ifelse(Host=="Apis mellifera", Present/length(samples_am), NA)) %>%
-# mutate(Prevalence_host = ifelse(Host=="Apis cerana",Present/length(samples_ac), Prevalence_host)) %>%
-# mutate(Prevalence_host = ifelse(Host=="Apis dorsata",Present/length(samples_ad), Prevalence_host)) %>%
-# mutate(Prevalence_host = ifelse(Host=="Apis florea",Present/length(samples_af), Prevalence_host))
-
-# corecov_data_dir <- "09_MagDatabaseProfiling/CoverageEstimation/Merged"
-# coords_df <- data.frame()
-# for (file in list.files(corecov_data_dir)) {
-#   if (endsWith(file, "_coord.txt")) {
-#     df_temp <- read.csv(paste0(corecov_data_dir, "/", file), sep = "\t", header = TRUE)
-#     coords_df <- rbind(coords_df, df_temp)
-#   }
-# }
-# cluster_tax_info <- vis_magOTUs_df %>%
-#                       ungroup() %>%
-#                       select(Genus, Species, magOTU, Num_mags) %>%
-#                       unique() %>%
-#                         mutate(magOTU_name = paste0(Genus, "-", magOTU))
-# samples_am <- c(coords_df %>%
-#                 mutate(Host = Vectorize(get_host_from_sample_name)(Sample)) %>%
-#                 filter(Host == "Apis mellifera") %>%
-#                 pull(Sample) %>% unique %>% as.vector)
-# samples_ac <- c(coords_df %>%
-#                 mutate(Host = Vectorize(get_host_from_sample_name)(Sample)) %>%
-#                 filter(Host == "Apis cerana") %>%
-#                 pull(Sample) %>% unique %>% as.vector)
-# samples_ad <- c(coords_df %>%
-#                 mutate(Host = Vectorize(get_host_from_sample_name)(Sample)) %>%
-#                 filter(Host == "Apis dorsata") %>%
-#                 pull(Sample) %>% unique %>% as.vector)
-# samples_af <- c(coords_df %>%
-#                 mutate(Host = Vectorize(get_host_from_sample_name)(Sample)) %>%
-#                 filter(Host == "Apis florea") %>%
-#                 pull(Sample) %>% unique %>% as.vector)
-# samples_aa <- c(coords_df %>%
-#                 mutate(Host = Vectorize(get_host_from_sample_name)(Sample)) %>%
-#                 filter(Host == "Apis andreniformis") %>%
-#                 pull(Sample) %>% unique %>% as.vector)
-# coverage_df <- coords_df %>%
-#   rename(Cluster = magOTU) %>%
-#     left_join(cluster_tax_info) %>%
-#       mutate(Host = Vectorize(get_host_from_sample_name)(Sample)) %>%
-#       mutate(Location = Vectorize(get_location_from_sample_name)(Sample)) %>%
-#         mutate(Detected = ifelse(Cov > 0, 1, 0)) %>%
-#           mutate(Detected = ifelse(is.na(Detected), 0, Detected)) %>%
-#           mutate(Cov = ifelse(is.na(Cov), 0, Cov)) %>%
-#           group_by(Host, Cluster) %>%
-#             mutate(Present = sum(Detected)) %>%
-#             mutate(Mean = mean(Cov)) %>%
-#             mutate(Prevalence_host = ifelse(Host=="Apis mellifera", Present/length(samples_am), NA)) %>%
-#             mutate(Prevalence_host = ifelse(Host=="Apis cerana", Present/length(samples_ac), Prevalence_host)) %>%
-#             mutate(Prevalence_host = ifelse(Host=="Apis dorsata", Present/length(samples_ad), Prevalence_host)) %>%
-#             mutate(Prevalence_host = ifelse(Host=="Apis florea", Present/length(samples_af), Prevalence_host)) %>%
-#             mutate(Prevalence_host = ifelse(Host=="Apis andreniformis", Present/length(samples_aa), Prevalence_host))
-# coverage_df_genus <- coords_df %>%
-#                 rename(Cluster = magOTU) %>%
-#                   left_join(cluster_tax_info) %>%
-#                       mutate(Host = Vectorize(get_host_from_sample_name)(Sample)) %>%
-#                       mutate(Detected = ifelse(Host != "Apis dorsata" & Cov > 1, 1, 0)) %>%
-#                       mutate(Detected = ifelse(Host == "Apis dorsata" & Cov > 1, 1, Detected)) %>%
-#                       # mutate(Detected = ifelse(Cov > 100, 1, 0)) %>%
-#                         mutate(Detected = ifelse(is.na(Detected), 0, Detected)) %>%
-#                         mutate(Cov = ifelse(is.na(Cov), 0, Cov)) %>%
-#                         ungroup() %>%
-                        # group_by(Sample) %>%
-                        # mutate(total_cov = sum(Cov)) %>%
-                        #   ungroup() %>%
-                        #   group_by(Genus, Sample) %>%
-                        #     mutate(rel_cov = sum(Cov)/total_cov*100) %>%
-                        #     mutate(rel_cov = ifelse(total_cov == 0, 0, rel_cov)) %>%
-#                               reframe(rel_cov, Genus_Present = ifelse(any(Detected == 1), 1, 0), Num_mags = sum(Num_mags), Genus_cov = trim_side_mean(Cov, trim = 0.01)) %>%
-#                               mutate(Host = Vectorize(get_host_from_sample_name)(Sample)) %>%
-#                                 group_by(Host, Genus) %>%
-#                                   mutate(Mean = round(mean(Genus_cov), 2)) %>%
-                                  # mutate(Mean_rel_cov = round(mean(rel_cov), 2)) %>%
-#                                   mutate(Median = round(mean(Genus_cov)), 2) %>%
-#                                   mutate(covs_list = paste0(round(Genus_cov, 0), collapse = ",")) %>%
-#                                   mutate(covs_list = Vectorize(shorten_list)(covs_list, 1, 3)) %>%
-#                                   mutate(Present = sum(Genus_Present)) %>%
-#                                   mutate(Prevalence_host = ifelse(Host=="Apis mellifera", Present/length(samples_am), NA)) %>%
-#                                   mutate(Prevalence_host = ifelse(Host=="Apis cerana",Present/length(samples_ac), Prevalence_host)) %>%
-#                                   mutate(Prevalence_host = ifelse(Host=="Apis dorsata",Present/length(samples_ad), Prevalence_host)) %>%
-#                                   mutate(Prevalence_host = ifelse(Host=="Apis florea",Present/length(samples_af), Prevalence_host)) %>%
-#                                   mutate(Prevalence_host = ifelse(Host=="Apis andreniformis",Present/length(samples_aa), Prevalence_host))
-# coverage_df_genus <- coords_df %>%
-#                 rename(Cluster = magOTU) %>%
-#                   left_join(cluster_tax_info) %>%
-#                       mutate(Host = Vectorize(get_host_from_sample_name)(Sample)) %>%
-#                       mutate(Detected = ifelse(Host != "Apis dorsata" & Cov > 10, 1, 0)) %>%
-#                       mutate(Detected = ifelse(Host == "Apis dorsata"& Cov > 1, 1, Detected)) %>%
-#                       # mutate(Detected = ifelse(Cov > 100, 1, 0)) %>%
-#                         mutate(Detected = ifelse(is.na(Detected), 0, Detected)) %>%
-#                         mutate(Cov = ifelse(is.na(Cov), 0, Cov)) %>%
-#                         ungroup() %>%
-#                            group_by(Sample) %>%
-#                         mutate(total_cov = sum(Cov)) %>%
-#                           ungroup() %>%
-#                           group_by(Genus, Sample) %>%
-#                           # fix this part!!
-#                             # mutate(rel_cov = sum(Cov)/total_cov*100) %>%
-#                             # mutate(rel_cov = ifelse(total_cov == 0, 0, rel_cov)) %>%
-#                             # mutate(Mean_rel_cov = round(mean(rel_cov), 2)) %>%
-#                               # reframe(Genus_Present = ifelse(any(Detected == 1), 1, 0), Num_mags = sum(Num_mags), Genus_cov = Mean_rel_cov) %>%
-#                               reframe(Genus_Present = ifelse(any(Detected == 1), 1, 0), Num_mags = sum(Num_mags), Genus_cov = mean(Cov)) %>%
-#                                mutate(Host = Vectorize(get_host_from_sample_name)(Sample)) %>%
-#                                 group_by(Host, Genus) %>%
-#                                   mutate(Mean = round(trim_side_mean(Genus_cov, trim = 0.01)), 2) %>%
-#                                   mutate(Median = round(mean(Genus_cov)), 2) %>%
-#                                   mutate(covs_list = paste0(round(Genus_cov, 0), collapse = ",")) %>%
-#                                   # mutate(Genus_cov = Genus_cov/total_cov*100) %>%
-#                                   mutate(covs_list = Vectorize(shorten_list)(covs_list, 1, 3)) %>%
-#                                   mutate(Present = sum(Genus_Present)) %>%
-#                                   mutate(Prevalence_host = ifelse(Host=="Apis mellifera", Present/length(samples_am), NA)) %>%
-#                                   mutate(Prevalence_host = ifelse(Host=="Apis cerana",Present/length(samples_ac), Prevalence_host)) %>%
-#                                   mutate(Prevalence_host = ifelse(Host=="Apis dorsata",Present/length(samples_ad), Prevalence_host)) %>%
-#                                   mutate(Prevalence_host = ifelse(Host=="Apis florea",Present/length(samples_af), Prevalence_host)) %>%
-#                                   mutate(Prevalence_host = ifelse(Host=="Apis andreniformis",Present/length(samples_aa), Prevalence_host))
+instrain_prev_by_genus <- instrain_breadth_depth_unfiltered %>%
+                    mutate(detected = ifelse(coverage > 10 & breadth > 0.5, 1, 0)) %>%
+                    group_by(Host, Genus) %>%
+                    mutate(detection_genus = ifelse(sum(detected) > 1, 1, 0)) %>%
+                    mutate(presence_in_host = mean(detection_genus)) 
+                              
 abundance_df <- instrain_breadth_depth %>% select() %>%
     left_join(cluster_tax_info %>% filter(!is.na(cluster_name))) %>%
       mutate(Host = Vectorize(get_host_name)(Sample)) %>%
@@ -2886,4 +2744,187 @@ df_cdhit_clusters_info <- read.csv("results/08_gene_content/00_cdhit_clustering/
 # vis_magOTUs_df_all %>%
 #   filter(ID == "MAG_D2.4_17") %>%
 #     select(length)
+# instrain_breadth_depth_by_genus <- instrain_breadth_depth %>%
+#                                     ungroup() %>%
+#                                     group_by(sample, Genus) %>%
+#                                     reframe(sample, Genus, Host, 
+#                                               rel_abundance = sum(percentage_expected_number_of_genomes),
+#                                               abundance_raw = sum(filtered_read_pair_count),
+#                                               abundance = sum(filtered_read_pair_count)
+#                                     ) %>% unique                        
+# instrain_breadth_depth_by_genus_unfiltered <- instrain_breadth_depth_unfiltered %>%
+#                                     ungroup() %>%
+#                                     group_by(sample, Genus) %>%
+#                                     reframe(sample, Genus, Host, 
+#                                               rel_abundance = sum(percentage_expected_number_of_genomes),
+#                                               abundance_raw = sum(filtered_read_pair_count),
+#                                               abundance = sum(filtered_read_pair_count)
+#                                     ) %>% unique                        
+# instrain_breadth_depth_by_genus_host <- instrain_breadth_depth %>%
+#                                     ungroup() %>%
+#                                     group_by(Host, Genus) %>%
+#                                     reframe(Genus, Host, 
+#                                               rel_abundance = mean(percentage_expected_number_of_genomes),
+#                                               abundance_raw = mean(filtered_read_pair_count),
+#                                               abundance = mean(filtered_read_pair_count)
+#                                     ) %>% unique
+# instrain_breadth_depth_by_magOTU_host <- instrain_breadth_depth %>%
+#                                     ungroup() %>%
+#                                     group_by(Host, magOTU) %>%
+#                                     reframe(magOTU, Host, 
+#                                               rel_abundance = mean(percentage_expected_number_of_genomes),
+#                                               abundance_raw = mean(filtered_read_pair_count),
+#                                               abundance = mean(filtered_read_pair_count)
+#                                     ) %>% unique
+# View(instrain_breadth_depth)
+# instrain_pa_by_magOTU <- instrain_breadth_depth %>%
+#                                     ungroup() %>%
+#                                     mutate(Present = ifelse(percentage_reads > 0, 1, 0))
+# samples_am <- instrain_breadth_depth %>% filter(Host == "Apis mellifera") %>% select(sample) %>% unique() %>% unlist()
+# samples_ac <- instrain_breadth_depth %>% filter(Host == "Apis cerana") %>% select(sample) %>% unique() %>% unlist()
+# samples_ad <- instrain_breadth_depth %>% filter(Host == "Apis dorsata") %>% select(sample) %>% unique() %>% unlist()
+# samples_af <- instrain_breadth_depth %>% filter(Host == "Apis florea") %>% select(sample) %>% unique() %>% unlist()
+# samples_aa <- instrain_breadth_depth %>% filter(Host == "Apis andreniformis") %>% select(sample) %>% unique() %>% unlist()
+
+# instrain_pa_by_magOTU_by_host <- instrain_pa_by_magOTU %>%
+#                                     select(Host, Present, magOTU) %>%
+#                                     unique() %>%
+#                                     group_by(Host, magOTU) %>%
+#                                       mutate(Prevalence = ifelse(Host=="Apis mellifera", 100*sum(Present)/length(samples_am), NA)) %>%
+#                                       mutate(Prevalence = ifelse(Host=="Apis cerana", 100*sum(Present)/length(samples_ac), Prevalence)) %>%
+#                                       mutate(Prevalence = ifelse(Host=="Apis dorsata", 100*sum(Present)/length(samples_ad), Prevalence)) %>%
+#                                       mutate(Prevalence = ifelse(Host=="Apis florea", 100*sum(Present)/length(samples_af), Prevalence)) %>%
+#                                       mutate(Prevalence = ifelse(Host=="Apis andreniformis", 100*sum(Present)/length(samples_aa), Prevalence))
+# instrain_pa_by_genus_by_host <- instrain_pa_by_magOTU %>%
+#                                     select(Host, Present, Genus) %>%
+#                                     unique() %>%
+#                                     group_by(Host, Genus) %>%
+#                                       mutate(Prevalence = ifelse(Host=="Apis mellifera", 100*sum(Present)/length(samples_am), NA)) %>%
+#                                       mutate(Prevalence = ifelse(Host=="Apis cerana", 100*sum(Present)/length(samples_ac), Prevalence)) %>%
+#                                       mutate(Prevalence = ifelse(Host=="Apis dorsata", 100*sum(Present)/length(samples_ad), Prevalence)) %>%
+#                                       mutate(Prevalence = ifelse(Host=="Apis florea", 100*sum(Present)/length(samples_af), Prevalence)) %>%
+#                                       mutate(Prevalence = ifelse(Host=="Apis andreniformis", 100*sum(Present)/length(samples_aa), Prevalence))
+                                    
+# mutate(Detected = ifelse(abundance_raw > 10, 1, 0)) %>%
+# mutate(Detected = ifelse(is.na(Detected), 0, Detected)) %>%
+# ungroup() %>%
+# group_by(Host, Genus) %>%
+# mutate(Present = sum(Detected)) %>%
+# mutate(Prevalence_host = ifelse(Host=="Apis mellifera", Present/length(samples_am), NA)) %>%
+# mutate(Prevalence_host = ifelse(Host=="Apis cerana",Present/length(samples_ac), Prevalence_host)) %>%
+# mutate(Prevalence_host = ifelse(Host=="Apis dorsata",Present/length(samples_ad), Prevalence_host)) %>%
+# mutate(Prevalence_host = ifelse(Host=="Apis florea",Present/length(samples_af), Prevalence_host))
+
+# corecov_data_dir <- "09_MagDatabaseProfiling/CoverageEstimation/Merged"
+# coords_df <- data.frame()
+# for (file in list.files(corecov_data_dir)) {
+#   if (endsWith(file, "_coord.txt")) {
+#     df_temp <- read.csv(paste0(corecov_data_dir, "/", file), sep = "\t", header = TRUE)
+#     coords_df <- rbind(coords_df, df_temp)
+#   }
+# }
+# cluster_tax_info <- vis_magOTUs_df %>%
+#                       ungroup() %>%
+#                       select(Genus, Species, magOTU, Num_mags) %>%
+#                       unique() %>%
+#                         mutate(magOTU_name = paste0(Genus, "-", magOTU))
+# samples_am <- c(coords_df %>%
+#                 mutate(Host = Vectorize(get_host_from_sample_name)(Sample)) %>%
+#                 filter(Host == "Apis mellifera") %>%
+#                 pull(Sample) %>% unique %>% as.vector)
+# samples_ac <- c(coords_df %>%
+#                 mutate(Host = Vectorize(get_host_from_sample_name)(Sample)) %>%
+#                 filter(Host == "Apis cerana") %>%
+#                 pull(Sample) %>% unique %>% as.vector)
+# samples_ad <- c(coords_df %>%
+#                 mutate(Host = Vectorize(get_host_from_sample_name)(Sample)) %>%
+#                 filter(Host == "Apis dorsata") %>%
+#                 pull(Sample) %>% unique %>% as.vector)
+# samples_af <- c(coords_df %>%
+#                 mutate(Host = Vectorize(get_host_from_sample_name)(Sample)) %>%
+#                 filter(Host == "Apis florea") %>%
+#                 pull(Sample) %>% unique %>% as.vector)
+# samples_aa <- c(coords_df %>%
+#                 mutate(Host = Vectorize(get_host_from_sample_name)(Sample)) %>%
+#                 filter(Host == "Apis andreniformis") %>%
+#                 pull(Sample) %>% unique %>% as.vector)
+# coverage_df <- coords_df %>%
+#   rename(Cluster = magOTU) %>%
+#     left_join(cluster_tax_info) %>%
+#       mutate(Host = Vectorize(get_host_from_sample_name)(Sample)) %>%
+#       mutate(Location = Vectorize(get_location_from_sample_name)(Sample)) %>%
+#         mutate(Detected = ifelse(Cov > 0, 1, 0)) %>%
+#           mutate(Detected = ifelse(is.na(Detected), 0, Detected)) %>%
+#           mutate(Cov = ifelse(is.na(Cov), 0, Cov)) %>%
+#           group_by(Host, Cluster) %>%
+#             mutate(Present = sum(Detected)) %>%
+#             mutate(Mean = mean(Cov)) %>%
+#             mutate(Prevalence_host = ifelse(Host=="Apis mellifera", Present/length(samples_am), NA)) %>%
+#             mutate(Prevalence_host = ifelse(Host=="Apis cerana", Present/length(samples_ac), Prevalence_host)) %>%
+#             mutate(Prevalence_host = ifelse(Host=="Apis dorsata", Present/length(samples_ad), Prevalence_host)) %>%
+#             mutate(Prevalence_host = ifelse(Host=="Apis florea", Present/length(samples_af), Prevalence_host)) %>%
+#             mutate(Prevalence_host = ifelse(Host=="Apis andreniformis", Present/length(samples_aa), Prevalence_host))
+# coverage_df_genus <- coords_df %>%
+#                 rename(Cluster = magOTU) %>%
+#                   left_join(cluster_tax_info) %>%
+#                       mutate(Host = Vectorize(get_host_from_sample_name)(Sample)) %>%
+#                       mutate(Detected = ifelse(Host != "Apis dorsata" & Cov > 1, 1, 0)) %>%
+#                       mutate(Detected = ifelse(Host == "Apis dorsata" & Cov > 1, 1, Detected)) %>%
+#                       # mutate(Detected = ifelse(Cov > 100, 1, 0)) %>%
+#                         mutate(Detected = ifelse(is.na(Detected), 0, Detected)) %>%
+#                         mutate(Cov = ifelse(is.na(Cov), 0, Cov)) %>%
+#                         ungroup() %>%
+                        # group_by(Sample) %>%
+                        # mutate(total_cov = sum(Cov)) %>%
+                        #   ungroup() %>%
+                        #   group_by(Genus, Sample) %>%
+                        #     mutate(rel_cov = sum(Cov)/total_cov*100) %>%
+                        #     mutate(rel_cov = ifelse(total_cov == 0, 0, rel_cov)) %>%
+#                               reframe(rel_cov, Genus_Present = ifelse(any(Detected == 1), 1, 0), Num_mags = sum(Num_mags), Genus_cov = trim_side_mean(Cov, trim = 0.01)) %>%
+#                               mutate(Host = Vectorize(get_host_from_sample_name)(Sample)) %>%
+#                                 group_by(Host, Genus) %>%
+#                                   mutate(Mean = round(mean(Genus_cov), 2)) %>%
+                                  # mutate(Mean_rel_cov = round(mean(rel_cov), 2)) %>%
+#                                   mutate(Median = round(mean(Genus_cov)), 2) %>%
+#                                   mutate(covs_list = paste0(round(Genus_cov, 0), collapse = ",")) %>%
+#                                   mutate(covs_list = Vectorize(shorten_list)(covs_list, 1, 3)) %>%
+#                                   mutate(Present = sum(Genus_Present)) %>%
+#                                   mutate(Prevalence_host = ifelse(Host=="Apis mellifera", Present/length(samples_am), NA)) %>%
+#                                   mutate(Prevalence_host = ifelse(Host=="Apis cerana",Present/length(samples_ac), Prevalence_host)) %>%
+#                                   mutate(Prevalence_host = ifelse(Host=="Apis dorsata",Present/length(samples_ad), Prevalence_host)) %>%
+#                                   mutate(Prevalence_host = ifelse(Host=="Apis florea",Present/length(samples_af), Prevalence_host)) %>%
+#                                   mutate(Prevalence_host = ifelse(Host=="Apis andreniformis",Present/length(samples_aa), Prevalence_host))
+# coverage_df_genus <- coords_df %>%
+#                 rename(Cluster = magOTU) %>%
+#                   left_join(cluster_tax_info) %>%
+#                       mutate(Host = Vectorize(get_host_from_sample_name)(Sample)) %>%
+#                       mutate(Detected = ifelse(Host != "Apis dorsata" & Cov > 10, 1, 0)) %>%
+#                       mutate(Detected = ifelse(Host == "Apis dorsata"& Cov > 1, 1, Detected)) %>%
+#                       # mutate(Detected = ifelse(Cov > 100, 1, 0)) %>%
+#                         mutate(Detected = ifelse(is.na(Detected), 0, Detected)) %>%
+#                         mutate(Cov = ifelse(is.na(Cov), 0, Cov)) %>%
+#                         ungroup() %>%
+#                            group_by(Sample) %>%
+#                         mutate(total_cov = sum(Cov)) %>%
+#                           ungroup() %>%
+#                           group_by(Genus, Sample) %>%
+#                           # fix this part!!
+#                             # mutate(rel_cov = sum(Cov)/total_cov*100) %>%
+#                             # mutate(rel_cov = ifelse(total_cov == 0, 0, rel_cov)) %>%
+#                             # mutate(Mean_rel_cov = round(mean(rel_cov), 2)) %>%
+#                               # reframe(Genus_Present = ifelse(any(Detected == 1), 1, 0), Num_mags = sum(Num_mags), Genus_cov = Mean_rel_cov) %>%
+#                               reframe(Genus_Present = ifelse(any(Detected == 1), 1, 0), Num_mags = sum(Num_mags), Genus_cov = mean(Cov)) %>%
+#                                mutate(Host = Vectorize(get_host_from_sample_name)(Sample)) %>%
+#                                 group_by(Host, Genus) %>%
+#                                   mutate(Mean = round(trim_side_mean(Genus_cov, trim = 0.01)), 2) %>%
+#                                   mutate(Median = round(mean(Genus_cov)), 2) %>%
+#                                   mutate(covs_list = paste0(round(Genus_cov, 0), collapse = ",")) %>%
+#                                   # mutate(Genus_cov = Genus_cov/total_cov*100) %>%
+#                                   mutate(covs_list = Vectorize(shorten_list)(covs_list, 1, 3)) %>%
+#                                   mutate(Present = sum(Genus_Present)) %>%
+#                                   mutate(Prevalence_host = ifelse(Host=="Apis mellifera", Present/length(samples_am), NA)) %>%
+#                                   mutate(Prevalence_host = ifelse(Host=="Apis cerana",Present/length(samples_ac), Prevalence_host)) %>%
+#                                   mutate(Prevalence_host = ifelse(Host=="Apis dorsata",Present/length(samples_ad), Prevalence_host)) %>%
+#                                   mutate(Prevalence_host = ifelse(Host=="Apis florea",Present/length(samples_af), Prevalence_host)) %>%
+#                                   mutate(Prevalence_host = ifelse(Host=="Apis andreniformis",Present/length(samples_aa), Prevalence_host))
 ```
