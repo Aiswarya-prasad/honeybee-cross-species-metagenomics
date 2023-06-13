@@ -98,201 +98,209 @@ plot_breadth_num_reads <- ggplot() +
 paginate_save(plot_breadth_num_reads, "magOTU", "results/figures/10-instrain_plots/2-mapped_reads_by_magOTU.pdf", pass_nrow = 3, pass_ncol = 3)
 ```
 
-```{r instrain_plots_breadth_vs_num_reads_unfiltered}
-plot_breadth_num_reads <- ggplot(instrain_breadth_depth_unfiltered %>% mutate(breadth = breadth*100),
-                             aes(x = sample,
+```{r instrain_plots_breadth_vs_num_reads_coverage}
+plot_breadth_num_reads <- ggplot() +
+  geom_point(data = instrain_breadth_depth_unfiltered %>% mutate(breadth = breadth*100),
+                             aes(x = factor(sample, samples),
                                  y = filtered_read_pair_count,
                                  size = breadth,
-                                 color = Host
+                                 color = coverage_factor
                               )
                             ) +
-  geom_point() +
+  geom_point(data = instrain_breadth_depth %>% mutate(breadth = breadth*100),
+                             aes(x = factor(sample, samples),
+                                 y = filtered_read_pair_count,
+                                 size = breadth,
+                                 color = coverage_factor,
+                              )
+                            ) +
+  geom_point(data = instrain_breadth_depth %>% mutate(breadth = breadth*100),
+                             aes(x = factor(sample, samples),
+                                 y = filtered_read_pair_count,
+                                 size = breadth,
+                              ), shape = 1, color = "black", stroke = 0.25
+                            ) +
+  scale_color_manual(values = c("<0.0001" = "#a50f15",
+                                "0.0001 - 0.001" = "#d73027",
+                                "0.001 - 0.01" = "#f46d43",
+                                "0.01 - 0.1" = "#fdae61",
+                                "0.1 - 1" = "#fee08b",
+                                "1 - 10" = "#a6d96a", 
+                                "10 - 100" = "#74c476", 
+                                "100 - 1000" = "#41ab5d", 
+                                ">1000" = "#238b45"
+                              )
+                          ) +
   scale_y_continuous(trans = "log10", labels = comma) +
     facet_wrap_paginate(~magOTU, ncol = 3, nrow = 3, page = 4) +
       make_theme(theme_name=theme_few(), leg_pos="right",
-                 guide_nrow = 5,
-                 setFill = F, setCol = F,
+                 guide_nrow = 9,
+                 setFill = F, setCol = F, palettecolor = "RdYlGn",
                  x_angle=45 ,x_vj=1, x_hj=1, x_size=5,
                  y_angle=0 ,y_vj=0, y_hj=0, y_size=10) +
         theme(strip.text = element_text(size = 10)) +
         geom_hline(yintercept = 0, linetype = "solid") +
         geom_hline(yintercept = 10, linetype = "dashed") +
         geom_hline(yintercept = 100, linetype = "dotted") +
-        scale_size(range = c(1,4)) +
-        scale_color_manual(values=host_order_color_dark)
+        scale_size(range = c(1,4))
 
-paginate_save(plot_breadth_num_reads, "magOTU", "results/figures/10-instrain_plots/2-mapped_reads_by_magOTU_unfiltered.pdf", pass_nrow = 3, pass_ncol = 3)
-```
-```{r plot_genus_composition_num}
-samples_chosen <- samples_IN
-df_to_plot <- df_reads_plot %>%
-                filter(Sample %in% samples_chosen & Type %in% c("MAGs_DB", "Unmapped_mags")) %>%
-                mutate(Location = Vectorize(get_location_from_sample_name)(Sample))
-ggplot() +
-  geom_bar(data = df_to_plot,
-           aes(y=factor(Sample, levels = samples_chosen),
-               x=Number,
-               fill = factor(Type, levels = c("Unmapped_mags", "MAGs_DB"))
-              ), alpha = 0.5, color = "white", size=0.2,
-           stat="identity", position = "stack") +
-  labs(x = "Sample",
-       y = "Number of reads (paired end)",
-       fill = "Type") +
-  scale_x_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
-  scale_fill_manual(values=c("Unmapped" = brewer.pal(9, "Pastel1")[1],
-                             "MAGs_DB" = brewer.pal(9, "Pastel1")[3],
-                             "Host_mapped" = brewer.pal(9, "Pastel1")[2]
-                            ),
-                    labels=c("Unmapped",
-                             "Mapped to MAGs",
-                             "Mapped to Host"
-                            )
-                   ) +
-    new_scale_fill() +
-    geom_bar(data = instrain_breadth_depth %>% mutate(filtered_reads = filtered_read_pair_count*2),
-            aes(x = filtered_reads,
-                y = sample,
-                fill = Genus, text=magOTU
-            ),
-            color = "black", size=0.2,
-            stat = "identity", position = "stack"
-    ) +
-    labs(x = "Number of reads", y = "Sample", fill = "Genus") +
-    scale_fill_manual(values = unlist(genusColors)) +
-    make_theme(theme_name=theme_few(), leg_pos="bottom",
-                                          guide_nrow = 10,
-                                          setFill = F, max_colors = length(unique(instrain_breadth_depth$Genus)),
-                                          x_angle=45 ,x_vj=1.2, x_hj=1, x_size=12,
-                                          y_angle=0 ,y_vj=0, y_hj=0, y_size=12) +
-      scale_x_continuous(labels=unit_format(unit = "M", scale = 1e-6))
-    ggsave("results/figures/09-Genus_composition_by_instrain_mapping_num_with_total_reads.pdf")
-```
-```{r plot_genus_composition_unfiltered_num}
-samples_chosen <- samples_IN
-df_to_plot <- df_reads_plot %>%
-                filter(Sample %in% samples_chosen & Type %in% c("MAGs_DB", "Unmapped_mags")) %>%
-                mutate(Location = Vectorize(get_location_from_sample_name)(Sample))
-ggplot() +
-  geom_bar(data = df_to_plot,
-           aes(y=factor(Sample, levels = samples_chosen),
-               x=Number,
-               fill = factor(Type, levels = c("Unmapped_mags", "MAGs_DB"))
-              ), alpha = 0.5, color = "white", size=0.2,
-           stat="identity", position = "stack") +
-  labs(x = "Sample",
-       y = "Number of reads (paired end)",
-       fill = "Type") +
-  scale_x_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
-  scale_fill_manual(values=c("Unmapped_mags" = brewer.pal(9, "Pastel1")[1],
-                             "MAGs_DB" = brewer.pal(9, "Pastel1")[3],
-                             "Host_mapped" = brewer.pal(9, "Pastel1")[2]
-                            ),
-                    labels=c("Unmapped_mags",
-                             "Mapped to MAGs",
-                             "Mapped to Host"
-                            )
-                   ) +
-    new_scale_fill() +
-    geom_bar(data = instrain_breadth_depth_unfiltered %>% mutate(filtered_reads = filtered_read_pair_count*2),
-            aes(x = reads_unfiltered_reads,
-                y = sample,
-                fill = Genus
-            ),
-            color = "black", size=0.2,
-            stat = "identity", position = "stack"
-    ) +
-    labs(x = "Number of reads", y = "Sample", fill = "Genus") +
-    scale_fill_manual(values = unlist(genusColors)) +
-    make_theme(theme_name=theme_few(), leg_pos="bottom",
-                                          guide_nrow = 10,
-                                          setFill = F, max_colors = length(unique(instrain_breadth_depth$Genus)),
-                                          x_angle=45 ,x_vj=1.2, x_hj=1, x_size=12,
-                                          y_angle=0 ,y_vj=0, y_hj=0, y_size=12) +
-      scale_x_continuous(labels=unit_format(unit = "M", scale = 1e-6))
-    ggsave("results/figures/09-Genus_composition_by_instrain_mapping_num_with_total_reads.pdf")
-```
-```{r plot_genus_composition_perc}
-plot_genus_proportions <- ggplot() +
-  geom_bar(data = instrain_breadth_depth,
-           aes(x = percentage_reads,
-               y = factor(sample, samples),
-               fill = factor(Genus, genera),
-           ),
-           color = "black", size=0.2,
-           stat = "identity", position = "stack"
-  ) +
-  scale_fill_manual(values=unlist(genusColors)) +
-  labs(y = "Sample", x = "Relative abundance", fill = "Genus") +
-  # scale_fill_manual(values = extend_colors(unique(instrain_breadth_depth$Genus), genusColors)) +
-  make_theme(theme_name=theme_few(), leg_pos="bottom",
-                                         guide_nrow = 10,
-                                         setFill = F,
-                                         x_angle=45 ,x_vj=1.2, x_hj=1, x_size=12,
-                                         y_angle=0 ,y_vj=0, y_hj=0, y_size=12) +
-    scale_x_continuous(labels=unit_format(unit = "%"))
-    ggsave("results/figures/09-Genus_composition_by_instrain_mapping_proportion.pdf")
-
-ggplotly(plot_genus_proportions)
-# library(pandoc) - install and re run later
-saveWidget(
-                widget = ggplotly(plot_genus_proportions),
-                file = "results/figures/09-Genus_composition_by_instrain_mapping_proportion.html",
-                selfcontained = T #creates a single html file
-          )
-```
-```{r plot_genus_composition_num_corrected}
-plot_genus_num_corrected <- ggplot() +
-  geom_bar(data = instrain_breadth_depth,
-           aes(x = expected_number_of_genomes,
-               y = factor(sample, samples),
-               fill = Genus
-           ),
-           stat = "identity", position = "stack"
-  ) +
-  labs(x = "Expected genome count", y = "Sample", fill = "Genus") +
-  scale_fill_manual(values = extend_colors(unique(instrain_breadth_depth$Genus), genusColors)) +
-  make_theme(theme_name=theme_few(), leg_pos="bottom",
-                                         guide_nrow = 10,
-                                         setFill = F, 
-                                        #  max_colors = length(unique(plot_mapping_df_by_magotu$Genus)),
-                                         x_angle=45 ,x_vj=1.2, x_hj=1, x_size=12,
-                                         y_angle=0 ,y_vj=0, y_hj=0, y_size=12)
-    ggsave("results/figures/09-Genus_composition_by_instrain_mapping_num_corrected.pdf")
-ggplotly(plot_genus_num_corrected)
-saveWidget(
-                widget = ggplotly(plot_genus_num_corrected),
-                file = "results/figures/09-Genus_composition_by_instrain_mapping_num_corrected.html",
-                selfcontained = TRUE #creates a single html file
-          )
-```
-```{r plot_genus_composition_perc_corrected}
-plot_genus_perc_corrected <- ggplot() +
-  geom_bar(data = instrain_breadth_depth,
-           aes(x = percentage_expected_number_of_genomes,
-               y = sample,
-               fill = factor(Genus, genera),
-           ),
-           color = "black", size=0.2,
-           stat = "identity", position = "stack"
-  ) +
-  scale_fill_manual(values=unlist(genusColors)) +
-  labs(y = "Sample", x = "Relative abundance (expected genome count)", fill = "Genus") +
-  # scale_fill_manual(values = extend_colors(unique(plot_mapping_df_by_magotu$Genus), genusColors)) +
-  make_theme(theme_name=theme_few(), leg_pos="bottom",
-                                         guide_nrow = 10,
-                                         setFill = F,
-                                         x_angle=45 ,x_vj=1.2, x_hj=1, x_size=12,
-                                         y_angle=0 ,y_vj=0, y_hj=0, y_size=12) +
-    scale_x_continuous(labels=unit_format(unit = "%"))
-    ggsave("results/figures/09-Genus_composition_by_instrain_mapping_proportion_corrected.pdf")
-ggplotly(plot_genus_perc_corrected)
-saveWidget(
-                widget = ggplotly(plot_genus_perc_corrected),
-                file = "results/figures/09-Genus_composition_by_instrain_mapping_proportion_corrected.html",
-                selfcontained = TRUE #creates a single html file
-          )
+paginate_save(plot_breadth_num_reads, "magOTU", "results/figures/10-instrain_plots/2-mapped_reads_by_magOTU_w_coverage.pdf", pass_nrow = 3, pass_ncol = 3)
 ```
 
+# plot prevalence of magOTUs and genera
+
+```{r}
+ggplot(instrain_prev_by_genus, aes(y = factor(Genus, genera_ext), 
+                          x = factor(Host, host_order),
+                          fill = factor(presence_in_host))) +
+  geom_tile(color="black") +
+    labs(x = "Host", y = "Genus", fill = "Prevalence (%)") +
+      make_theme(setFill = T, modify_guide = F, y_size = 12,
+                 x_size = 14, x_angle = 0, x_hj = 0.5 , x_vj = 1,
+                 y_hj = 1, leg_pos = "right", leg_size = 11)
+      ggsave("results/figures/3-presence_of_genus.pdf")
+
+ggplot(instrain_prev, aes(y = magOTU, 
+                          x = factor(Host, host_order),
+                          fill = prevalence_in_host)) +
+  geom_tile() +
+    labs(x = "Host", y = "Genus", fill = "Prevalence (%)") +
+    scale_fill_gradient2(midpoint = 0.4, low = "#f7fbff",  mid = "#6baed6", high = "#08306b", guide = "colourbar", na.value = "#f7fbff") +
+      make_theme(setFill = F, modify_guide = F, y_size = 12,
+                 x_size = 14, x_angle = 30, x_hj = 1 , x_vj = 1,
+                 y_hj = 1, leg_pos = "right", leg_size = 11)
+      ggsave("results/figures/3-prevalence_in_host_of_magOTU.pdf")
+
+prev_vs_cov <- ggplot(instrain_prev) +
+  geom_point(aes(y = coverage, x = prevalence_in_host, color = Host), size = 0.2) +
+    scale_color_manual(values=host_order_color_dark) +
+    scale_y_continuous(trans = "log10", labels = comma) +
+    facet_wrap(~Genus) +
+    make_theme(setFill = F, setCol = F, 
+               x_angle = 30, x_hj = 1, x_vj = 1)
+  ggsave("results/figures/3-prevalence_vs_coverage.pdf")
+
+prev_vs_cov_magOTU <- ggplot(instrain_prev) +
+  geom_point(aes(y = coverage, x = prevalence_in_host, color = Host), size = 0.2) +
+    scale_color_manual(values=host_order_color_dark) +
+    scale_y_continuous(trans = "log10", labels = comma) +
+    facet_wrap_paginate(~magOTU, ncol = 4, nrow = 4, page = 1) +
+    make_theme(setFill = F, setCol = F, 
+               x_angle = 30, x_hj = 1, x_vj = 1)
+  # ggsave("results/figures/3-prevalence_vs_coverage_magOTU.pdf")
+paginate_save(prev_vs_cov_magOTU, "magOTU", "results/figures/3-prevalence_vs_coverage_magOTU.pdf", pass_nrow = 4, pass_ncol = 4)
+```
+
+# Estimate host range
+```{r}
+estimate_shannon <- function(pa_vector) {
+  return(diversity(pa_vector, index = "shannon"))
+}
+get_host_range_magOTU <- function(magotu) {
+  # get a shannon estimate for each host
+  # and take their mean to estimate host range
+  # shannon is high if Shannon diversity index 
+  # will be higher when the vector has a 
+  # more equal distribution of 1s and 0s
+  # this way instead of a 1 or 0 read out 
+  # of presence of magotu in the host, we
+  # get a more nuanced estimate of host range
+  # which is more sensitive to the number of
+  # samples in a magotu is present in
+  # so a low prevalence one that is present across
+  # all hosts but in very few sample
+  # will be considered to have a lower host range
+  # than one that is present in all hosts
+  # and in many samples
+  shannon <- sapply(host_order, function(host) {
+    pa_vec <- instrain_prev[instrain_prev$magOTU == magotu & instrain_prev$Host == host, "detected"]
+    estimate_shannon(pa_vec)
+  })
+  host_range = mean(shannon)
+  return(host_range)
+}
+
+# host <- "Apis mellifera"
+# magotu <- "g__Lactobacillus_17_1-M1-2_1"
+# instrain_prev[instrain_prev$magOTU == magotu & instrain_prev$Host == host, "detected"]
+# sum(instrain_prev[instrain_prev$magOTU == magotu & instrain_prev$Host == host, "detected"])
+# estimate_shannon(instrain_prev[instrain_prev$magOTU == magotu & instrain_prev$Host == host, "detected"])
+
+get_host_range_magOTU_naive <- function(magotu) {
+  detected <- sapply(host_order, function(host) {
+    pa_vec <- instrain_prev[instrain_prev$magOTU == magotu & instrain_prev$Host == host, "detected"]
+    sum(pa_vec) > 0
+  })
+  host_range = sum(as.numeric(detected))
+  return(host_range)
+}
+
+instrain_host_range <- instrain_prev %>%
+                          select(magOTU, Genus) %>%
+                          unique() %>%
+                          summarise(Genus, host_range = Vectorize(get_host_range_magOTU)(magOTU)) %>%
+                          mutate(host_range_naive = Vectorize(get_host_range_magOTU_naive)(magOTU))
+
+ggplot(instrain_host_range) +
+  geom_bar(aes(x = host_range, y = magOTU, fill = Genus), stat = "identity") +
+  # geom_point(aes(x = host_range_naive, y = magOTU, color = Genus), shape=3, size = 3) +
+  geom_point(aes(x = host_range_naive, y = magOTU, color = Genus), size = 3) +
+    labs(x = "Host range", y = "Number of magOTUs") +
+    scale_color_manual(values=genusColors) +
+    scale_fill_manual(values=genusColors_char) +
+    make_theme(setFill = F, setCol = F)
+  ggsave("results/figures/3-host_range.pdf")
+
+library(ggalluvial)
+
+
+# Duplicate rows based on sample count for each host
+
+
+allu_df <- instrain_prev %>% 
+            group_by(magOTU, Host) %>%
+            summarise(magOTU, Host, Genus, numSamples = sum(detected)) %>%
+            filter(!is.na(Genus)) %>%
+            unique()
+
+ggplot(allu_df %>% filter(numSamples >= 5),
+      aes(axis1 = magOTU, axis2 = factor(Host, host_order), y = numSamples)) +
+  geom_alluvium(aes(fill = factor(Genus, genera_ext)), color = "black", size = .5) +
+  ggtitle("Host range of magOTUs (detected in >= 5 samples of a given host)") +
+  scale_fill_manual(values=genusColors_char) +
+  labs(y = "Number of samples", fill = "Genus") +
+  ggnewscale::new_scale_fill() +
+  geom_stratum(aes(fill = Host)) +
+  scale_fill_manual(values=host_order_color) +
+  # facet_wrap(~factor(Genus, genera), scales = "free") +
+  geom_text(stat = "stratum", aes(label = ifelse(after_stat(x) == 2, as.character(after_stat(stratum)), NA))) +
+  make_theme(setFill = F, leg_pos = "right", guide_nrow = 10) +
+  theme(axis.line=element_blank(),
+        axis.text.x=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks=element_blank())
+      ggsave("results/figures/3-host_range_alluvial_filt.pdf")
+
+ggplot(allu_df, aes(axis1 = magOTU, axis2 = factor(Host, host_order), y = numSamples)) +
+  geom_alluvium(aes(fill = factor(Genus, genera_ext)), color = "black", size = .5) +
+  scale_fill_manual(values=genusColors_char) +
+  labs(x = "magOTU", y = "Number of samples") +
+  ggnewscale::new_scale_fill() +
+  geom_stratum(aes(fill = Host)) +
+  scale_fill_manual(values=host_order_color) +
+  # facet_wrap(~factor(Genus, genera), scales = "free") +
+  geom_text(stat = "stratum", aes(label = ifelse(after_stat(x) == 2, as.character(after_stat(stratum)), NA))) +
+  make_theme(setFill = F, leg_pos = "right", guide_nrow = 10) +
+  theme(axis.line=element_blank(),
+        axis.text.x=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks=element_blank())
+      ggsave("results/figures/3-host_range_alluvial_all.pdf")
+```
+
+```
+
+# plot presence of magOTUs and genera
 
 # Compare core_cov estimation and mapping estimation
 ```{r genus_heatmap}
