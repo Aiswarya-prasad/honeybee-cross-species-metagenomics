@@ -88,10 +88,11 @@ rule backmapping:
     conda: "../config/envs/mapping-env.yaml"
     shell:
         """
-        bwa mem -a -t {threads} {input.scaffolds} {input.reads1} {input.reads2} \
-        | samtools view -F 4 -h - |  python3 {params.filter_script} -e 5 -m 50 | samtools sort -O bam -@ {threads} > {output.bam}
-        samtools flagstat -@ {threads} {output.bam} > {output.flagstat}
+        # get the depth files from other location where they are already made
         """
+        # bwa mem -a -t {threads} {input.scaffolds} {input.reads1} {input.reads2} \
+        # | samtools view -F 4 -h - |  python3 {params.filter_script} -e 5 -m 50 | samtools sort -O bam -@ {threads} > {output.bam}
+        # samtools flagstat -@ {threads} {output.bam} > {output.flagstat}
 
 # for now, use for depth file just the information from the subset
 # of 50 samples from which we make the MAGs

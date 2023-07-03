@@ -42,6 +42,8 @@ dependencies:
   - r-gggenes
   - r-ggcorrplot
   - r-ggnetwork
+  - r-factominer
+  - r-factoextra
   - pandoc
   - bioconductor-phyloseq
   - bioconductor-biostrings

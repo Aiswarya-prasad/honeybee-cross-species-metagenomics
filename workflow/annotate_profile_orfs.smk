@@ -159,6 +159,11 @@ rule cdhit_clustering:
         cd-hit-est -i {output.gene_catalog_ffn} -o {output.cdhit_genes} \
             -c 0.95 -T 64 -M 0 -G 0 -aS 0.9 -g 1 -r 1 -d 0
         """
+
+# before this make sure to profile and remove non-bacterial contigs
+# make non-reduntant gene catalog 
+# mapping should be done to that and then results parsed in terms of clusters
+
 rule parse_clustering_file:
     input:
         cdhit_clustering="results/08_gene_content/00_cdhit_clustering/gene_catalog_cdhit9590.fasta.clstr"
@@ -213,24 +218,6 @@ rule dram_annotate_orfs:
         rm -rf ${{dram_outdir}} &>> {log} # snakemake creates it but DRAM will complain
         DRAM.py annotate_genes -i {input.filt_faa} -o ${{dram_outdir}} --threads {threads} --verbose &>> {log}
         """
-
-# rule dram_distill_orfs:
-#     input:
-#         dram_annotations = "results/08_gene_content/02_DRAM_annotations/{sample}/annotations.tsv",
-#     output:
-#         dram_tsv_product = "results/08_gene_content/02_DRAM_annotations_distilled/{sample}/product.tsv",
-#         dram_tsv_stats = "results/08_gene_content/02_DRAM_annotations_distilled/{sample}/genome_stats.tsv",
-#         dram_html = "results/08_gene_content/02_DRAM_annotations_distilled/{sample}/product.html",
-#         dram_xlsx = "results/08_gene_content/02_DRAM_annotations_distilled/{sample}/metabolism_summary.xlsx",
-#     params:
-#         outdir = "results/08_gene_content/02_DRAM_annotations_distilled/{sample}/"
-#         mailto="aiswarya.prasad@unil.ch",
-#         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-#         account="pengel_spirit",
-#         runtime_s=convertToSec("0-1:00:00")
-#     resources:
-
-
 
 rule index_gene_catalog:
     input:
@@ -292,5 +279,3 @@ rule profile_genes:
         samtools coverage {output.bam} > {output.coverage}
         samtools coverage -m {output.bam} > {output.hist}
         """
-
-# rule make_gene_counts_matrix:

@@ -19,6 +19,7 @@ output:
 To intialize complete all of or relevant sections of `scripts/visualization/Load_data.R`.
 
 ```{r}
+df_cdhit_clusters_info <- read.csv("results/08_gene_content/00_cdhit_clustering/cluster_info.tsv", sep = "\t")
 hist(df_cdhit_clusters_info %>% pull(num_genes))
 
 ggplot(df_cdhit_clusters_info) +
@@ -68,7 +69,69 @@ ko_order <- df_clusters_host_info %>%
   arrange(count) %>%
   pull(representative_KO) %>% unique()
 
+ggplot(df_clusters_host_info %>% 
+        group_by(representative_GH) %>% 
+        mutate(freq = n()) %>%
+        filter(freq > 10) %>% 
+        ungroup() %>%
+        filter(representative_GH != "NA")) +
+  labs(y = "CAZy GH family", x = "Count", fill = "Host") +
+  geom_bar(aes(y = factor(representative_GH, gh_order), 
+               fill = factor(host_summarised))) +
+  scale_fill_manual(values = host_order_color) +
+  make_theme(setFill = FALSE)
+  ggsave("results/figures/11-GH_family_clusters_per_host_filt_10.pdf")
+
 # heatmap of host vs GH and group by hierarchy
 
+# read in gene profiling results
+df_profiling <- data.frame()
+for (sample in samples) {
+  flagstat_path = paste0("/scratch/aprasad/20230313_apis_species_comparison/results/08_gene_content/01_profiling/", sample, "_mapped.flagstat")
+  if (file.exists(flagstat_path)) {
+    reads_mapped = get_read_count_from_flagstat(flagstat_path)
+  }
+  total = df_reads %>% filter(Sample == sample) %>% pull(Total_clean)
+  unmapped = total - reads_mapped
+  df_profiling <- rbind(df_profiling, c(sample, unmapped, reads_mapped))
+}
+colnames(df_profiling) <- c("sample", "b_Mapped_catalog", "a_Unmapped_catalog")
+df_profiling$b_Mapped_catalog <- as.numeric(df_profiling$b_Mapped_catalog)
+df_profiling$a_Unmapped_catalog <- as.numeric(df_profiling$a_Unmapped_catalog)
+ggplot(df_profiling %>% pivot_longer(!sample, names_to = "type", values_to = "reads")) +
+  geom_bar(aes(y = sample, 
+               x = reads, 
+              fill = type), stat = "identity", position = "stack"
+              ) +
+    make_theme(y_size = 5)
+# Pcoa of KO families
+
+df_ko_counts <- read.csv("/scratch/aprasad/20230313_apis_species_comparison/results/08_gene_content/03_gene_counts/ko_family_genes_matrix.txt", sep = "\t", stringsAsFactors = FALSE, na.strings=0)
+df_gh_counts <- read.csv("/scratch/aprasad/20230313_apis_species_comparison/results/08_gene_content/03_gene_counts/GH_family_genes_matrix.txt", sep = "\t", stringsAsFactors = FALSE, na.strings=0)
+colnames(df_ko_counts) = c("KO_group", unlist(lapply(colnames(df_ko_counts)[-1], function(x) convert_sample_name(x))))
+colnames(df_gh_counts) = c("GH_group", unlist(lapply(colnames(df_gh_counts)[-1], function(x) convert_sample_name(x))))
+ko_mat <- data.matrix(df_ko_counts)[,-1]
+rownames(ko_mat) <- data.matrix(df_ko_counts)[,1]
+gh_mat <- data.matrix(df_gh_counts)[,-1]
+rownames(gh_mat) <- data.matrix(df_gh_counts)[,1]
+
+heatmap(ko_mat)
+heatmap(gh_mat)
+distance_mat <- dist(t(ko_mat[, ]))
+pcoa_plot(distance_mat, df_meta_complete, "Species", color_add = T, color_list = host_order_color_dark)
+
+distance_mat_gh <- dist(t(gh_mat[, which(colSums(gh_mat) > 1)]))
+pcoa_plot(distance_mat_gh, df_meta_complete, "Species", color_add = T, color_list = host_order_color_dark)
+
+view(distance_mat)
+view(df_meta_complete)
+
+
+all_gene_counts <- read.csv("/scratch/aprasad/20230313_apis_species_comparison/results/08_gene_content/03_gene_counts/all_genes_matrix.txt", sep = "\t", stringsAsFactors = FALSE, na.strings=0)
+colnames(all_gene_counts) = c("gene_ID", unlist(lapply(colnames(df_ko_counts)[-1], function(x) convert_sample_name(x))))
+```
+
+```{r gggenes}
+library(gggenes)
 
 ```
