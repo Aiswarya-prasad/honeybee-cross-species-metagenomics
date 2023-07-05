@@ -398,3 +398,4 @@ rule collect_prodigal_from_checkm:
 # make non-redundant mag database for instrain
 # ! compare corecov and instrain results from the previous analysis !
 # make redundant magdatabase for core coverage estimation
+erage estimation
