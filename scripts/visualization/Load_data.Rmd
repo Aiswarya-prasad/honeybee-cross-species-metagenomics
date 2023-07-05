@@ -2518,7 +2518,8 @@ abundance_df_matrix_pa <-  abundance_df %>% filter(!is.na(magOTU)) %>%
                             select(sample, magOTU, detected) %>%
                             unique() %>%
                               pivot_wider(names_from=magOTU, values_from=detected, values_fn = function(x) as.numeric(x)) %>% remove_rownames %>%
-                              column_to_rownames(var="sample") %>% 
+                              column_to_rownam
+                              es(var="sample") %>% 
                               mutate_all(~replace_na(.,0))
 
 

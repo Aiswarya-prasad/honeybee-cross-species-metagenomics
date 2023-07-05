@@ -1,3 +1,0 @@
-To add
-    cd-hit
-    seqtk-

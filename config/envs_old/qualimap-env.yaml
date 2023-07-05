@@ -1,5 +1,0 @@
-name: qualimap_env
-channels:
- - bioconda
-dependencies:
- - qualimap

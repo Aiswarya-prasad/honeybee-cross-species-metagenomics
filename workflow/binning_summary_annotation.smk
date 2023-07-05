@@ -34,6 +34,11 @@ rule run_whokaryote:
         whokaryote.py --outdir {params.outdir} --gff {input.gff_input} --model S &> {log}
         """
 
+rule run_kaiju:
+    input:
+    output:
+
+
 rule checkm_evaluate:
     input:
         bins = "results/07_MAG_binng_QC/02_bins/{sample}/"
@@ -323,10 +328,11 @@ rule collect_prodigal_from_checkm:
             {output.collected}
         """
 
-# make table with metadata for all mags 
-
-# add reference genomes from (gtdb?..IMB?...)
-# move on to instrain then phylo and then come back here
+# rule contig_fates:
+#     input:
+#     output:
+#         contig_fates = "results/05_assembly/contig_fates/"
+# collect results from whokaryote, kaiju, binning # number of genes, number of BCGscon
 
 # for an alluvial would be nice to have
 # colored by Prokaryote/Eukaryote:
@@ -341,10 +347,6 @@ rule collect_prodigal_from_checkm:
 #   scale_fill_brewer(type = "qual", palette = "Set1")
 # more examples: https://cran.r-project.org/web/packages/ggalluvial/vignettes/ggalluvial.html
 
-# rule contig_fates:
-#     input:
-#     output:
-#         contig_fates = "results/05_assembly/contig_fates/"
 
 # write rule to summarize contig fates and stats for each bin and assembly (check if this is the right way to do it) 
 # rule summarize_contig_fates:

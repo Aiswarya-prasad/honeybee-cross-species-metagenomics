@@ -75,6 +75,7 @@ rule targets:
         # request DCSR to allow longer than 3 days for 5 of the genera - do this with final MAGs
         # orthofinder_out_iqtree = lambda wildcards: expand("results/11_phylogenies/02_orthofinder_results/{genus}/Results_{genus}_iqtree/Species_Tree/SpeciesTree_rooted.txt", genus = get_significant_genera(checkpoints.mag_metadata_summary.get().output.metadata)),
         kaiju = "",
+        kraken = "",
         eggnogmapper = "",
         motupan = ""
 
