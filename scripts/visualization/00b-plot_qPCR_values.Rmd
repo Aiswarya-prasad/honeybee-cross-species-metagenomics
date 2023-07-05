@@ -1,0 +1,106 @@
+---
+title: "Honeybee cross-species analysis - 00a"
+author: Aiswarya Prasad
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  prettydoc::html_pretty:
+    theme: cayman
+    <!-- other fun themes: architect leonids hpstr cayman -->
+    highlight: github
+    math: katex
+    number_sections: true
+    df_print: paged
+    cold-folding: hide
+    toc: true
+---
+
+# Initialization
+
+To intialize complete all of or relevant sections of `scripts/visualization/Load_data.R`.
+Using values from NAS std curve `smb://nas.unil.ch/DMF/GROUPS/gr_Engel/lab_resources/Protocols/qPCR/qPCR_analysis_workflow/StdCurves/StdCurves.xlsx` done for Berta on 12-11-2022
+
+
+## Plotting C_t values
+
+```{r plot1}
+ggplot(qpcr_plot_df,
+       aes(x = factor(Host, levels = c("Apis mellifera", "Apis dorsata", "Apis cerana", "Apis florea", "Apis andreniformis")),
+      #  aes(x = factor(Host, levels = c(host_order)),
+           y = Ct_mean,
+           fill = factor(Host, levels = c("Apis mellifera", "Apis dorsata", "Apis cerana", "Apis florea", "Apis andreniformis")),
+          #  fill = factor(Host, levels = c(host_order)),
+         )
+     ) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_jitter(width=0.1, size = 2) +
+  # geom_jitter(width=0.2, size = 2, aes(shape = Plate)) +
+  labs(y = "Ct value with UV primers (mean)", x = "Host species") +
+    make_theme(leg_pos = "none", x_angle = 30, setFill = F, x_vj = 1, x_hj = 1, ) +
+      scale_fill_manual(values=host_order_color) +
+      scale_y_continuous(trans = "reverse")
+      ggsave("results/figures/00b-qPCR_CT_values.pdf")
+```
+## Plotting copy numbers
+
+```{r plot2}
+ggplot(qpcr_plot_df,
+       aes(x = factor(Host, levels = c("Apis mellifera", "Apis dorsata", "Apis cerana", "Apis florea", "Apis andreniformis")),
+      #  aes(x = factor(Host, levels = c(host_order)),
+           y = copy_num,
+           fill = factor(Host, levels = c("Apis mellifera", "Apis dorsata", "Apis cerana", "Apis florea", "Apis andreniformis")),
+          #  fill = factor(Host, levels = c(host_order)),
+         )
+     ) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_jitter(width=0.1, size = 2, aes(shape = Plate)) +
+  labs(y = "Copy number (UV primers 356/772)", x = "Host species") +
+    make_theme(leg_pos = "none", x_angle = 30, setFill = F, x_vj = 1, x_hj = 1, 
+               x_size = 15, y_size = 15, axis_x_title = 20, axis_y_title = 20
+              ) +
+      scale_fill_manual(values=host_order_color) +
+      scale_y_continuous(trans = "log10", labels = function(x) parse(text=paste("10^",round(log10(x), 2)))) +
+      # geom_signif(comparisons = split(t(combn(levels(qpcr_plot_df$Host), 2)), seq(nrow(t(combn(levels(qpcr_plot_df$Host), 2))))), 
+      geom_signif(comparisons = list(c("Apis florea", "Apis andreniformis"),
+                                     c("Apis florea", "Apis cerana"),
+                                     c("Apis cerana", "Apis dorsata"),
+                                     c("Apis mellifera", "Apis dorsata")#,
+                                    #  c("Apis mellifera", "Apis cerana"),
+                                    #  c("Apis mellifera", "Apis florea")
+                                    ), 
+              map_signif_level=TRUE, step_increase=0.05)
+      ggsave("results/figures/00b-qPCR_copy_numbers.pdf")
+```
+```{r plot2a}
+ggplot(qpcr_plot_df,
+       aes(x = factor(Host, levels = c("Apis mellifera", "Apis dorsata", "Apis cerana", "Apis florea", "Apis andreniformis")),
+      #  aes(x = factor(Host, levels = c(host_order)),
+           y = copy_num,
+           fill = factor(Host, levels = c("Apis mellifera", "Apis dorsata", "Apis cerana", "Apis florea", "Apis andreniformis")),
+          #  fill = factor(Host, levels = c(host_order)),
+         )
+     ) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_jitter(width=0.1, size = 2, aes(shape = Plate)) +
+  labs(y = "Copy number (UV primers 356/772)", x = "Host species") +
+    make_theme(leg_pos = "none", x_angle = 30, setFill = F, x_vj = 1, x_hj = 1, 
+               x_size = 15, y_size = 15, axis_x_title = 20, axis_y_title = 20
+              ) +
+      scale_fill_manual(values=host_order_color) +
+      # scale_y_continuous(trans = "log10", labels = function(x) parse(text=paste("10^",round(log10(x), 2)))) +
+      # geom_signif(comparisons = split(t(combn(levels(qpcr_plot_df$Host), 2)), seq(nrow(t(combn(levels(qpcr_plot_df$Host), 2))))), 
+      geom_signif(comparisons = list(c("Apis florea", "Apis andreniformis"),
+                                     c("Apis florea", "Apis cerana"),
+                                     c("Apis cerana", "Apis dorsata"),
+                                     c("Apis mellifera", "Apis dorsata")#,
+                                    #  c("Apis mellifera", "Apis cerana"),
+                                    #  c("Apis mellifera", "Apis florea")
+                                    ), 
+              map_signif_level=TRUE, step_increase=0.05)
+      ggsave("results/figures/00b-qPCR_copy_numbers_non_log.pdf")
+```
+
+## Run significance tests
+```{r test}
+pairwise.wilcox.test(qpcr_plot_df$copy_num, qpcr_plot_df$Host, p.adjust = "fdr")
+# summary(glm(data = qpcr_plot_df, copy_num ~ Host, family = "gaussian"))
+```

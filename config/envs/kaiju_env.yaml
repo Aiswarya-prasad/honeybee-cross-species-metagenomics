@@ -1,4 +1,4 @@
-name: trim-qc-env
+name: kaiju-env
 
 channels:
   - bioconda

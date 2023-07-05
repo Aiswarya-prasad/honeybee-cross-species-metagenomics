@@ -1,0 +1,26 @@
+### moved to `scripts/visualization/Load_data.R`
+
+
+To intialize complete all of or relevant sections of `scripts/visualization/Load_data.R`.
+
+##############
+# functions used
+##############
+
+source('scripts/visualization/utilities.R', chdir = TRUE)
+
+##############
+# files to be read
+##############
+
+
+
+##############
+# analyse data and plot
+##############
+
+
+# Number of MAGs coming from each host species
+
+
+

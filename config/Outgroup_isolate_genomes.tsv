@@ -1,0 +1,99 @@
+Name	Completeness	Assembly_accession	Strain	Species	Genus	Host	Source	Group	Completeness_from	Alt_strain
+GCA_002964915.1	99.99	GCA_002964915.1	wkB309	Apibacter sp. wkB309		Apis cerana		g__Apibacter	NCBI/IMG	
+GCA_002964965.1	99.99	GCA_002964965.1	wkB180	Apibacter adventoris				g__Apibacter	NCBI/IMG	
+GCA_004014855.1	100	GCA_004014855.1	HY041	Apibacter raozihei		Bat feces		g__Apibacter	NCBI/IMG	
+GCA_004023655.1	100	GCA_004023655.1	HY039	Apibacter sp. HY039		feces		g__Apibacter	NCBI/IMG	
+GCA_007845595.1	100	GCA_007845595.1	CB23	Apibacter muscae		Mouse		g__Apibacter	NCBI/IMG	
+GCA_019469245.1	99.97	GCA_019469245.1	ESL0404	unclassified		Apis cerana		g__Apibacter	NCBI/IMG	
+GCA_900018365.1	99.99	GCA_900018365.1	R-53146	Apibacter mensalis		Bombus lapidarius		g__Apibacter	NCBI/IMG	
+GCA_001281265.1	99.89	GCA_001281265.1	YH-15	Apilactobacillus kunkeei		Fruits, Wine	Partially fermented grape juice in commercial Cabernet Sauvignon winery, California	g__Apilactobacillus	NCBI/IMG	NBRC 113063
+GCA_001308195.1	99.88	GCA_001308195.1	LMbo	Apilactobacillus kunkeei		Megachile rotundata		g__Apilactobacillus	NCBI/IMG	MP2
+GCA_001433825.1	99.89	GCA_001433825.1	DSM 12361	Apilactobacillus kunkeei		Wine, Fermented food product	commercial grape wine undergoing a sluggish/stuck alcoholic fermentation	g__Apilactobacillus	NCBI/IMG	
+GCA_001435995.1	99.96	GCA_001435995.1	DSM 23829	Apilactobacillus ozensis		Flower	mountain flowers; Inula ciliaris var. glandulosa, a chrysanthemum (Japanese common name, oze-mizugiku)	g__Apilactobacillus	NCBI/IMG	
+GCA_002993975.1	94.58	GCA_002993975.1	Hlig3	Apilactobacillus micheneri		Bee gut	Adult Bee Gut	g__Apilactobacillus	NCBI/IMG	LAla
+GCA_003112615.1	98.37	GCA_003112615.1	NBRC 113063	Apilactobacillus micheneri		Fermented drink	koso, a Japanese sugar-vegetable fermented beverage	g__Apilactobacillus	NCBI/IMG	BHWM-4
+GCA_000196435.1	100	GCA_000196435.1	CIP 105476	Bartonella tribocorum 		Blood of two wild rats, France	Bartonella tribocorum CIP 105476	g__Bartonella_A	NCBI/IMG	
+GCA_000526895.1	100	GCA_000526895.1	ATCC 700133	Bartonella doshiae		Microtus agrestis blood	Genomic Encyclopedia of Type Strains, Phase I: the one thousand microbial genomes (KMG-I) project	g__Bartonella_A	NCBI/IMG	
+GCA_002007485.1	100	GCA_002007485.1	BBC0178	Bartonella apis BBC0178		Bee gut	Comparative genomics of Bartonella species	g__Bartonella_A	NCBI/IMG	
+GCA_902150025.1	100	GCA_902150025.1	OS09	Bartonella massiliensis		Soft tick Ornithodoros sonrai	Bartonella massiliensis OS09 genome sequencing	g__Bartonella_A	NCBI/IMG	
+GCA_000737885.1	100	GCA_000737885.1	22L	Bifidobacterium adolescentis		Human Milk	Evolutionary development of the genus bifidobacterium by comparative genomics - University of Parma	g__Bifidobacterium	NCBI/IMG	
+GCA_000967185.1	99.99	GCA_000967185.1	Bin2	Bifidobacterium asteroides		honeybee	Comparative genomics of the core gut microbiota of the honeybee, Apis mellifera - Uppsala University	g__Bifidobacterium	NCBI/IMG	
+GCA_000967265.1	99.99	GCA_000967265.1	Bin7	Bifidobacterium asteroides		honeybee	Comparative genomics of the core gut microbiota of the honeybee, Apis mellifera - Uppsala University	g__Bifidobacterium	NCBI/IMG	
+GCA_001020355.1	99.63	GCA_001020355.1	85B	Bifidobacterium bifidum		Infant stool	Insights from genomes of representatives of the human gut commensal Bifidobacterium bifidum	g__Bifidobacterium	NCBI/IMG	
+GCA_001042595.1	99.98	GCA_001042595.1	DSM 20436	Bifidobacterium dentium		dental caries	Complete genome sequence of Bifidobacterium dentium	g__Bifidobacterium	NCBI/IMG	
+GCA_002003665.1	100	GCA_002003665.1	R-52487	Bombella intestini		bumblebee crop	Bombella intestini R-52487 genome sequencing	g__Bombella	NCBI/IMG	
+GCA_009725805.1	100	GCA_009725805.1	ESL0380	Bombella sp. ESL0380		adult honey bee queen gut	Genome sequencing of Acetobacteraceae residing in the gut of honey bees	g__Bombella	NCBI/IMG	
+GCA_014048465.1	100	GCA_014048465.1	TMW2.1889	Bombella mellum		Honey	Bee-bacteria symbiosis project	g__Bombella	NCBI/IMG	
+GCA_000014425.1	99.98	GCA_000014425.1	ATCC 33323	Lactobacillus gasseri		Human	Feces, Gastrointestinal tract, Host, Intestinal tract	g__Bombilactobacillus	NCBI/IMG	
+GCA_000179955.1	99.97	GCA_000179955.1	LEAF 2052A-d	Lactobacillus iners		Human	Human Microbiome Project (HMP) Reference Genomes	g__Bombilactobacillus	NCBI/IMG	
+GCA_000204985.1	100	GCA_000204985.1	DPC 6026	Lactobacillus johnsonii		Human 	Gut, Host, Human intestinal microflora, Human vaginal microflora	g__Bombilactobacillus	NCBI/IMG	
+GCA_000967245.1	9.93	GCA_000967245.1	Hon2	Bombilactobacillus mellis		apis mellifera	Comparative genomics of the core gut microbiota of the honeybee, Apis mellifera - Uppsala University	g__Bombilactobacillus	NCBI/IMG	
+GCA_000970795.1	99.34	GCA_000970795.1	Bin4	Bombilactobacillus mellifer		apis mellifera	Comparative genomics of the core gut microbiota of the honeybee, Apis mellifera - Uppsala University	g__Bombilactobacillus	NCBI/IMG	
+GCA_003522965.1	100	GCA_003522965.1	BI-2.5	Bombilactobacillus bombi		bombus	Lactobacillus Genome sequencing	g__Bombilactobacillus	NCBI/IMG	
+GCA_000231445.1	100	GCA_000231445.1	A911	Commensalibacter intestini		Isolated from Drosophila melanogaster Intestine	Commensalibacter intestini A911	g__Commensalibacter	NCBI/IMG	
+GCA_000527695.1	100	GCA_000527695.1	MX01	Commensalibacter sp. MX01		Monarch butterfly		g__Commensalibacter	NCBI/IMG	MX-MONARCH01
+GCA_009725775.1	100	GCA_009725775.1	ESL0382	Commensalibacter sp. ESL0382		Apis mellifera gut	Genome sequencing of Acetobacteraceae residing in the gut of honey bees	g__Commensalibacter	NCBI/IMG	
+GCA_009725835.1	100	GCA_009725835.1	ESL0379	Commensalibacter sp. ESL0379		adult honey bee queen gut	Genome sequencing of Acetobacteraceae residing in the gut of honey bees	g__Commensalibacter	NCBI/IMG	
+GCA_003955925.1	100	GCA_003955925.1	GZcsf-1	Cronobacter sakazakii		Brain abscess fluid	Cronobacter sakazakii GZcsf-1 genome sequencing	g__Cronobacter	NCBI/IMG	
+GCA_000213555.1	99.96	GCA_000213555.1	ATCC BAA-286	Dysgonomonas gadei		infected gall bladder of 68-yr old male	Human Microbiome Project (HMP) Reference Genomes	g__Dysgonomonas	NCBI/IMG	
+GCA_000213575.1	99.99	GCA_000213575.1	DSM 22836	Dysgonomonas mossii		Human abdominal drainage	Human Microbiome Project (HMP) Reference Genomes	g__Dysgonomonas	NCBI/IMG	
+GCA_000376405.1	99.99	GCA_000376405.1	DSM 22836	Dysgonomonas mossii		Human abdominal drainage	Genomic Encyclopedia of Type Strains, Phase I: the one thousand microbial genomes (KMG-I) project	g__Dysgonomonas	NCBI/IMG	
+GCA_000426485.1	99.98	GCA_000426485.1	DSM 22835	Dysgonomonas capnocytophagoides		Human cutaneous abscess	Genomic Encyclopedia of Type Strains, Phase I: the one thousand microbial genomes (KMG-I) project	g__Dysgonomonas	NCBI/IMG	
+GCA_001047035.1	99.99	GCA_001047035.1	JCM 19375	Dysgonomonas macrotermitis			Draft Genome Sequence of Dysgonomonas macrotermitis JCM 19375T isolated from the gut of a termite	g__Dysgonomonas	NCBI/IMG	
+GCA_001261715.1	99.95	GCA_001261715.1	HGC4	Dysgonomonas sp. HGC4		Reticulitermes flavipes hindgut	Dysgonomonas bacterium HGC4 draft genome	g__Dysgonomonas	NCBI/IMG	
+GCA_001261735.1	99.92	GCA_001261735.1	BGC7	Dysgonomonas sp. BGC7		Reticulitermes flavipes hindgut	Draft genome assembly of Dysgonomonas isolate BGC7	g__Dysgonomonas	NCBI/IMG	
+GCA_001312525.1	83.88	GCA_001312525.1	JCM 17038	Dysgonomonas hofstadii			Genome sequencing of Dysgonomonas hofstadii JCM 17038	g__Dysgonomonas	NCBI/IMG	
+GCA_003201355.1	99.99	GCA_003201355.1	DSM 100214	Dysgonomonas alginatilytica		alginate-degrading microbial consortium acclimated from sea sand	Genomic Encyclopedia of Archaeal and Bacterial Type Strains, Phase II (KMG-II): from individual species to whole genera	g__Dysgonomonas	NCBI/IMG	
+GCA_010501055.1	99.9	GCA_010501055.1	521	Dysgonomonas sp. 521		Alimentary canal	Bacteroidetes genomes from Periplaneta americana guts	g__Dysgonomonas	NCBI/IMG	
+GCA_010501065.1	99.41	GCA_010501065.1	216	Dysgonomonas sp. 216		Alimentary canal	Bacteroidetes genomes from Periplaneta americana guts	g__Dysgonomonas	NCBI/IMG	
+GCA_010501075.1	99.1	GCA_010501075.1	25	Dysgonomonas sp. 25		Alimentary canal	Bacteroidetes genomes from Periplaneta americana guts	g__Dysgonomonas	NCBI/IMG	
+GCA_010501095.1	85.75	GCA_010501095.1	520	Dysgonomonas sp. 520		Alimentary canal	Bacteroidetes genomes from Periplaneta americana guts	g__Dysgonomonas	NCBI/IMG	
+GCA_010501105.1	99.99	GCA_010501105.1	511	Dysgonomonas sp. 511		Alimentary canal	Bacteroidetes genomes from Periplaneta americana guts	g__Dysgonomonas	NCBI/IMG	
+GCA_011039195.1	99.41	GCA_011039195.1	ZJ709	Dysgonomonas sp. ZJ709			Dysgonomonas sp. ZJ709 genome sequencing	g__Dysgonomonas	NCBI/IMG	
+GCA_011039205.1	99.15	GCA_011039205.1	ZJ279	Dysgonomonas sp. ZJ279			Dysgonomonas sp. ZJ279 genome sequencing	g__Dysgonomonas	NCBI/IMG	
+GCA_011299335.1	99.66	GCA_011299335.1	HDW5B	Dysgonomonas sp. HDW5B		intestine of Hydrophilus acuminatus	Genome analysis of Dysgonomonas sp. HDW5B, isolated from Hydrophilus acuminatus	g__Dysgonomonas	NCBI/IMG	
+GCA_011299555.1	99.93	GCA_011299555.1	HDW5A	Dysgonomonas sp. HDW5A		Hydrophilus acuminatus	Genome analysis of Dysgonomonas sp. HDW5A, isolated from Hydrophilus acuminatus	g__Dysgonomonas	NCBI/IMG	
+GCA_014196915.1	93.9	GCA_014196915.1	DSM 104969	Dysgonomonas hofstadii		human wound, clinical source	Genomic Encyclopedia of Type Strains, Phase IV (KMG-IV): sequencing the most valuable type-strain genomes for metagenomic binning, comparative biology and taxonomic classification	g__Dysgonomonas	NCBI/IMG	
+GCA_029892385.1	92.07	GCA_029892385.1	PF1-16	Dysgonomonas sp. PF1-16		Periplaneta americana (American cockroach) gut	Genome Encyclopedia of Bacteria and Archaea VI: Functional Genomics of Type Strains	g__Dysgonomonas	NCBI/IMG	
+GCA_029892505.1	92.07	GCA_029892505.1	PF1-23	Dysgonomonas sp. PF1-23		Periplaneta americana (American cockroach) gut	Genome Encyclopedia of Bacteria and Archaea VI: Functional Genomics of Type Strains	g__Dysgonomonas	NCBI/IMG	
+GCA_029892645.1	92.07	GCA_029892645.1	PFB1-18	Dysgonomonas sp. PFB1-18		Periplaneta americana (American cockroach) gut	Genome Encyclopedia of Bacteria and Archaea VI: Functional Genomics of Type Strains	g__Dysgonomonas	NCBI/IMG	
+GCA_029892885.1	79.59	GCA_029892885.1	PH5-37	Dysgonomonas sp. PH5-37		Periplaneta americana (American cockroach) gut	Genome Encyclopedia of Bacteria and Archaea VI: Functional Genomics of Type Strains	g__Dysgonomonas	NCBI/IMG	
+GCA_029892965.1	92.07	GCA_029892965.1	PF1-14	Dysgonomonas sp. PF1-14		Periplaneta americana (American cockroach) gut	Genome Encyclopedia of Bacteria and Archaea VI: Functional Genomics of Type Strains	g__Dysgonomonas	NCBI/IMG	
+GCA_029893235.1	79.8	GCA_029893235.1	PH5-45	Dysgonomonas sp. PH5-45		Periplaneta americana (American cockroach) gut	Genome Encyclopedia of Bacteria and Archaea VI: Functional Genomics of Type Strains	g__Dysgonomonas	NCBI/IMG	
+GCA_900128985.1	96.01	GCA_900128985.1	DSM 27370	Dysgonomonas macrotermitis		hindgut of a fungus-growing termite Macrotermes barneyi	Genomic Encyclopedia of Archaeal and Bacterial Type Strains, Phase II (KMG-II): from individual species to whole genera	g__Dysgonomonas	NCBI/IMG	
+GCA_900240225.1	90.46	GCA_900240225.1	Marseille-P4356	Dysgonomonas massiliensis		stool	Dysgonomonas sp. Marseille-P4356 genome sequencing	g__Dysgonomonas	NCBI/IMG	
+GCA_900343125.1	99.7	GCA_900343125.1	Marseille-P4361	Dysgonomonas sp. Marseille-P4361		stool	Dysgonomonas sp. Marseille-P4361 genome sequencing	g__Dysgonomonas	NCBI/IMG	
+GCA_902374305.1	99.79	GCA_902374305.1	MGYG-HGUT-01376	Dysgonomonas gadei		human gut	A unified sequence catalogue of the human gut microbiome	g__Dysgonomonas	NCBI/IMG	
+GCA_000471645.3	98.24	GCA_000471645.3	Bimp	Candidatus Schmidhempelia bombi str. Bimp 1		NA		g__Frischella	NCBI/IMG	
+GCA_000807275.1	99.99	GCA_000807275.1	PEB0191	Frischella perrara		Apis mellifera		g__Frischella	NCBI/IMG	
+GCA_003202705.1	99.99	GCA_003202705.1	ESL0167	Frischella perrara		Apis mellifera		g__Frischella	NCBI/IMG	
+GCA_003634275.1	99.99	GCA_003634275.1	DSM_22228	Orbus hercynius		Wild Boar		g__Frischella	NCBI/IMG	
+GCA_011745665.1	88.37	GCA_011745665.1	IPMB12	Orbus sp.		Zophobas atratus		g__Frischella	NCBI/IMG	
+GCA_001690335.1	100	GCA_001690335.1	Gris1-4	Gilliamella apicola		Bombus griseocollis		g__Gilliamella	NCBI/IMG	
+GCA_001690595.1	100	GCA_001690595.1	Choc5-1	Gilliamella apicola		Bombus impatiens		g__Gilliamella	NCBI/IMG	
+GCA_001690655.1	100	GCA_001690655.1	Occ3-1	Gilliamella apicola		Bombus occidentalis		g__Gilliamella	NCBI/IMG	
+GCA_013344985.1	100	GCA_013344985.1	ESL0254	Gilliamella sp		Bombus pascuorum		g__Gilliamella	-	
+GCA_013345045.1	100	GCA_013345045.1	ESL0250	Gilliamella sp		Bombus pascuorum		g__Gilliamella	-	
+GCA_013346885.1	100	GCA_013346885.1	ESL0232	Gilliamella sp		Bombus terrestris		g__Gilliamella	-	
+GCA_900094935.2	100	GCA_900094935.2	R-53144	Gilliamella intestini		soil?	Genomic Encyclopedia of Type Strains, Phase III (KMG-III): the genomes of soil and plant-associated and newly described type strains	g__Gilliamella	NCBI/IMG	
+GCA_900094945.1	100	GCA_900094945.1	R-53248	Gilliamella bombicola		NA	NA	g__Gilliamella	NCBI/IMG	
+GCA_000014425.1	99.98	GCA_000014425.1	ATCC 33323	Lactobacillus gasseri		Human	Feces, Gastrointestinal tract, Host, Intestinal tract	g__Lactobacillus	NCBI/IMG	
+GCA_000179955.1	99.97	GCA_000179955.1	LEAF 2052A-d	Lactobacillus iners		Human	Human Microbiome Project (HMP) Reference Genomes	g__Lactobacillus	NCBI/IMG	
+GCA_000204985.1	100	GCA_000204985.1	DPC 6026	Lactobacillus johnsonii		Human 	Gut, Host, Human intestinal microflora, Human vaginal microflora	g__Lactobacillus	NCBI/IMG	
+GCA_004341685.1	98.6	GCA_004341685.1	DSM 20467	Pectinatus cerevisiiphilus		Packaged beer	Genomic Encyclopedia of Type Strains, Phase IV (KMG-IV): sequencing the most valuable type-strain genomes for metagenomic binning, comparative biology and taxonomic classification	g__Pectinatus	NCBI/IMG	
+GCA_014201835.1	94.02	GCA_014201835.1	DSM 24661	Pectinatus brassicae		salty pickle wastewater	Genomic Encyclopedia of Type Strains, Phase IV (KMG-IV): sequencing the most valuable type-strain genomes for metagenomic binning, comparative biology and taxonomic classification	g__Pectinatus	NCBI/IMG	
+GCA_015732185.1	95.01	GCA_015732185.1	MB233	Pectinatus haikarae		air, bottling hall in a brewery	Genomic Encyclopedia of Type Strains, Phase IV (KMG-IV): sequencing the most valuable type-strain genomes for metagenomic binning, comparative biology and taxonomic classification	g__Pectinatus	NCBI/IMG	
+GCA_003991585.1	99.99	GCA_003991585.1	CNM695-12	Saezia sanguinis		human blood	Saezia sanguinis CNM695-12 genome sequencing	g__Saezia	NCBI/IMG	
+GCA_000163775.2	100	GCA_000163775.2	ATCC 29453	Simonsiella muelleri		human oral cavity	Human Microbiome Project (HMP) Reference Genomes	g__Snodgrassella	NCBI/IMG	
+GCA_000695565.1	100	GCA_000695565.1	wkB12	Snodgrassella communis		Bombus bimaculatus		g__Snodgrassella	NCBI/IMG	
+GCA_002777325.1	100	GCA_002777325.1	Pens2-2-5	Snodgrassella alvi		bee	Sequencing of Snodgrassella alvi strains isolated from the guts of honey bees and bumble bees	g__Snodgrassella	NCBI/IMG	
+GCA_002777335.1	100	GCA_002777335.1	Gris2-3-4	Snodgrassella alvi		bee	Sequencing of Snodgrassella alvi strains isolated from the guts of honey bees and bumble bees	g__Snodgrassella	NCBI/IMG	
+GCA_002777415.1	100	GCA_002777415.1	Fer1-2	Snodgrassella alvi		bee	Sequencing of Snodgrassella alvi strains isolated from the guts of honey bees and bumble bees	g__Snodgrassella	NCBI/IMG	
+GCA_002777615.1	100	GCA_002777615.1	Gris1-6	Snodgrassella alvi		bee	Sequencing of Snodgrassella alvi strains isolated from the guts of honey bees and bumble bees	g__Snodgrassella	NCBI/IMG	
+GCA_002777635.1	100	GCA_002777635.1	Occ4-2	Snodgrassella communis		Bombus occidentalis		g__Snodgrassella	NCBI/IMG	
+GCA_002777705.1	100	GCA_002777705.1	HK3	Snodgrassella alvi		Bombus pensylvanicus		g__Snodgrassella	NCBI/IMG	
+GCA_002777775.1	95.29	GCA_002777775.1	wkB237	Snodgrassella alvi		bee	Sequencing of Snodgrassella alvi strains isolated from the guts of honey bees and bumble bees	g__Snodgrassella	NCBI/IMG	
+GCA_002777825.1	98.2	GCA_002777825.1	Nev4-2	Snodgrassella alvi		Bombus nevadensis		g__Snodgrassella	NCBI/IMG	
+GCA_002777855.1	100	GCA_002777855.1	wkB298	Snodgrassella alvi		bee	Sequencing of Snodgrassella alvi strains isolated from the guts of honey bees and bumble bees	g__Snodgrassella	NCBI/IMG	
+GCA_003201855.1	100	GCA_003201855.1	DSM 29661	Rivihabitans pingtungensis		freshwater sample	Genomic Encyclopedia of Type Strains, Phase IV (KMG-IV): sequencing the most valuable type-strain genomes for metagenomic binning, comparative biology and taxonomic classification	g__Snodgrassella	NCBI/IMG	
+GCA_013344965.1	100	GCA_013344965.1	ESL0253	Snodgrassella sp.		Bombus pascuorum		g__Snodgrassella	-	

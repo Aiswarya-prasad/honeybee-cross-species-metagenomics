@@ -1,0 +1,360 @@
+---
+title: "Honeybee cross-species analysis - 08"
+author: Aiswarya Prasad
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  prettydoc::html_pretty:
+    theme: cayman
+    <!-- other fun themes: architect leonids hpstr cayman -->
+    highlight: github
+    math: katex
+    number_sections: true
+    df_print: paged
+    cold-folding: hide
+    toc: true
+---
+
+# Initialization
+
+To intialize complete all of or relevant sections of `scripts/visualization/Load_data.R`.
+
+```{r plot1}
+ggplot() +
+  geom_bar(data = num_genes_binned,
+           aes(x = Sample,
+             y = Perc_genes_binned
+           ),
+           stat = "identity",
+           fill = brewer.pal(9, "Pastel1")[2]
+          ) +
+    labs(x = "Sample", y = "Percentage genes in binned contigs") +
+    scale_y_continuous(labels=unit_format(unit = "%"), limits = c(0, 100)) +
+    make_theme(setFill = F,
+               x_angle = 40, x_hj = 1, x_vj = 1)
+    ggsave("Figures/08-perc_binned_genes.pdf")
+```
+
+```{r pcoa_plots}
+# pcoa_plot_dram(dist_matrix_nitrogen, vis_magOTUs_df_all, "Host", color_add = T, host_order_color_dark, "ID")
+# pcoa_plot_dram(dist_matrix_nitrogen, vis_magOTUs_df_all, "Genus", color_add = T, genusColors, "ID", shape_add = F)
+# pcoa_plot_dram(dist_matrix_nitrogen, vis_magOTUs_df_all, "Genus", color_add = T, genusColors, "ID", shape_add = T, "Host")
+
+# pcoa_plot_dram(dist_matrix_energy, vis_magOTUs_df_all, "Host", color_add = T, host_order_color_dark, "ID")
+# pcoa_plot_dram(dist_matrix_energy, vis_magOTUs_df_all, "Genus", color_add = T, genusColors, "ID", shape_add = F)
+# pcoa_plot_dram(dist_matrix_energy, vis_magOTUs_df_all, "Genus", color_add = T, genusColors, "ID", shape_add = T, "Host")
+
+# pcoa_plot_dram(dist_matrix_transporters, vis_magOTUs_df_all, "Host", color_add = T, host_order_color_dark, "ID")
+# pcoa_plot_dram(dist_matrix_transporters, vis_magOTUs_df_all, "Genus", color_add = T, genusColors, "ID", shape_add = F)
+# pcoa_plot_dram(dist_matrix_transporters, vis_magOTUs_df_all, "Genus", color_add = T, genusColors, "ID", shape_add = T, "Host")
+
+# pcoa_plot_dram(dist_matrix_carbon, vis_magOTUs_df_all, "Host", color_add = T, host_order_color_dark, "ID")
+# pcoa_plot_dram(dist_matrix_carbon, vis_magOTUs_df_all, "Genus", color_add = T, genusColors, "ID", shape_add = F)
+# pcoa_plot_dram(dist_matrix_carbon, vis_magOTUs_df_all, "Genus", color_add = T, genusColors, "ID", shape_add = T, "Host")
+
+# pcoa_plot_dram(dist_matrix_goi, vis_magOTUs_df_all, "Host", color_add = T, host_order_color_dark, "ID")
+# pcoa_plot_dram(dist_matrix_goi, vis_magOTUs_df_all, "Genus", color_add = T, genusColors, "ID", shape_add = F)
+# pcoa_plot_dram(dist_matrix_goi, vis_magOTUs_df_all, "Genus", color_add = T, genusColors, "ID", shape_add = T, "Host")
+
+# pcoa_plot_dram(dist_matrix_product_pathway, vis_magOTUs_df_all, "Host", color_add = T, host_order_color_dark, "ID")
+# pcoa_plot_dram(dist_matrix_product_pathway, vis_magOTUs_df_all, "Genus", color_add = T, genusColors, "ID")
+
+# pcoa_plot_dram(dist_matrix_product_others, vis_magOTUs_df_all, "Host", color_add = T, host_order_color_dark, "ID")
+# pcoa_plot_dram(dist_matrix_product_others, vis_magOTUs_df_all, "Genus", color_add = T, genusColors, "ID")
+```
+
+```{r genes_of_interest_heatmap}
+spl_genes_list <- c("PL22", "PL11", "PL1", "CBM20", "GH43", "GH31", "GH76", "GH125", "GH92", "GH51", "GH5", "GH28", "CE12", "CE8", "GH105", "GH13", "GH57", "GH133", "GH97")
+spl_genes_list_pnas <- c("GH29", "GH78", "GH43", "GH51", "GH2", "GH42", "GH35", "GH28", "GH39", "GH105", "PL1", "PL4", "PL9", "PL22")
+# eg. my_matrix <- get_matrix_from_dram(metabolism_energy)
+# receive matrix with mags as row names and column names as gene or function names
+col_continuous <- colorRamp2(c(0, 10), c("#9ecae1", "#08306b"))
+my_upper_count = 50
+col_continuous2 <- colorRamp2(c(0, 1, 5, 15, my_upper_count), c("#e6f5d0", "#7fbc41", brewer.pal(9, "RdPu")[1], brewer.pal(9, "RdPu")[8], brewer.pal(9, "RdPu")[9]))
+col_binary <- c("#a6cee3", "#ffffff")
+pretty_dram_heatmap(prepare_matrix(get_matrix_from_dram(metabolism_carbon),
+                                   subset_genes = T,
+                                   genes_list = spl_genes_list,
+                                   subset_mags = T,
+                                   by_genus = T,
+                                   genus_list = c("g__Bifidobacterium",
+                                                  "g__Gilliamella",
+                                                  "g__Snodgrasella",
+                                                  "g__Lactobacillus",
+                                                  "g__Bombilactobacillus",
+                                                  "g__Frischella"
+                                                  )
+                                  ),
+                    col_continuous, 
+                    clust_c = F, 
+                    bottom_annotation_name = "Species_Genus",
+                    col_split_by = "Genus",
+                    col_label_size = 8,
+                    grid_line_col = NA)
+pretty_dram_heatmap(prepare_matrix(get_matrix_from_dram(metabolism_carbon),
+                                   subset_genes = T,
+                                   genes_list = spl_genes_list,
+                                   subset_mags = T,
+                                   by_genus = T,
+                                   genus_list = c("g__Lactobacillus",
+                                                  "g__Bombilactobacillus",
+                                                  "g__Bifidobacterium",
+                                                  "g__Gilliamella",
+                                                  "g__Snodgrassella",
+                                                  "g__Frischella",
+                                                  "g__Dysgonomonas",
+                                                  "g__Pectinatus",
+                                                  "g__Apibacter",
+                                                  "g__Commensalibacter",
+                                                  "g__Bartonella",
+                                                  "g__Bombella",
+                                                  "g__WRHT01"
+                                                  )
+                                  ),
+                    col_continuous, 
+                    clust_c = F, 
+                    bottom_annotation_name = "Species_Genus",
+                    col_split_by = "Genus",
+                    col_label_size = 8,
+                    grid_line_col = NA)
+pdf("Figures/08-DRAM_GH_PL_genes_by_host.pdf")
+a_genes_list <- names(get_matrix_from_dram(metabolism_carbon)) %>%
+                unique() %>%
+                as.data.frame() %>%
+                filter(grepl("GH|PL", .)) %>%
+                pull(.)                
+pretty_dram_heatmap(prepare_matrix(get_matrix_from_dram(metabolism_carbon),
+                                   subset_genes = T,
+                                   genes_list = a_genes_list,
+                                   subset_mags = T,
+                                   by_genus = T,
+                                   row_sum_cutoff = 0,
+                                   genus_list = c("g__Lactobacillus",
+                                                  "g__Bombilactobacillus",
+                                                  "g__Bifidobacterium",
+                                                  "g__Gilliamella",
+                                                  "g__Snodgrassella",
+                                                  "g__Frischella",
+                                                  "g__Dysgonomonas",
+                                                  "g__Pectinatus",
+                                                  "g__Apibacter",
+                                                  "g__Commensalibacter",
+                                                  "g__Bartonella",
+                                                  "g__Bombella",
+                                                  "g__WRHT01"
+                                                  )
+                                  ),
+                    col_continuous2, 
+                    clust_c = F, 
+                    bottom_annotation_name = "Species_Genus",
+                    col_split_by = "Host",
+                    col_label_size = 0,
+                    row_names_size = 0,
+                    grid_line_col = NA)
+dev.off()
+pdf("Figures/08-DRAM_GH_PL_genes_by_genus.pdf")
+a_genes_list <- names(get_matrix_from_dram(metabolism_carbon)) %>%
+                unique() %>%
+                as.data.frame() %>%
+                filter(grepl("GH|PL", .)) %>%
+                pull(.)                
+pretty_dram_heatmap(prepare_matrix(get_matrix_from_dram(metabolism_carbon),
+                                   subset_genes = T,
+                                   genes_list = a_genes_list,
+                                   subset_mags = T,
+                                   by_genus = T,
+                                   row_sum_cutoff = 0,
+                                   genus_list = c("g__Lactobacillus",
+                                                  "g__Bombilactobacillus",
+                                                  "g__Bifidobacterium",
+                                                  "g__Gilliamella",
+                                                  "g__Snodgrassella",
+                                                  "g__Frischella",
+                                                  "g__Dysgonomonas",
+                                                  "g__Pectinatus",
+                                                  "g__Apibacter",
+                                                  "g__Commensalibacter",
+                                                  "g__Bartonella",
+                                                  "g__Bombella",
+                                                  "g__WRHT01"
+                                                  )
+                                  ),
+                    col_continuous2, 
+                    clust_c = F, 
+                    bottom_annotation_name = "Species_Genus",
+                    col_split_by = "Genus",
+                    col_label_size = 0,
+                    row_names_size = 0,
+                    grid_line_col = NA)
+dev.off()
+pdf("Figures/08-DRAM_GH_PL_genes_by_genus_w_names.pdf")
+a_genes_list <- names(get_matrix_from_dram(metabolism_carbon)) %>%
+                unique() %>%
+                as.data.frame() %>%
+                filter(grepl("GH|PL", .)) %>%
+                pull(.)                
+pretty_dram_heatmap(prepare_matrix(get_matrix_from_dram(metabolism_carbon),
+                                   subset_genes = T,
+                                   genes_list = a_genes_list,
+                                   subset_mags = T,
+                                   by_genus = T,
+                                   genus_list = c("g__Lactobacillus",
+                                                  "g__Bombilactobacillus",
+                                                  "g__Bifidobacterium",
+                                                  "g__Gilliamella",
+                                                  "g__Snodgrassella",
+                                                  "g__Frischella",
+                                                  "g__Dysgonomonas",
+                                                  "g__Pectinatus",
+                                                  "g__Apibacter",
+                                                  "g__Commensalibacter",
+                                                  "g__Bartonella",
+                                                  "g__Bombella",
+                                                  "g__WRHT01"
+                                                  )
+                                  ),
+                    col_continuous2, 
+                    clust_c = F, 
+                    bottom_annotation_name = "Species_Genus",
+                    col_split_by = "Genus",
+                    col_label_size = 0,
+                    row_names_size = 5,
+                    grid_line_col = NA)
+dev.off()
+a_genes_list <- spl_genes_list              
+pdf("Figures/08-DRAM_cazy_genes_of_interest_1.pdf")
+pretty_dram_heatmap(prepare_matrix(get_matrix_from_dram(metabolism_carbon),
+                                   subset_genes = T,
+                                   genes_list = a_genes_list,
+                                   subset_mags = T,
+                                   by_genus = T,
+                                   genus_list = c("g__Lactobacillus",
+                                                  "g__Bombilactobacillus",
+                                                  "g__Bifidobacterium",
+                                                  "g__Gilliamella",
+                                                  "g__Snodgrassella",
+                                                  "g__Frischella",
+                                                  "g__Dysgonomonas",
+                                                  "g__Pectinatus",
+                                                  "g__Apibacter",
+                                                  "g__Commensalibacter",
+                                                  "g__Bartonella",
+                                                  "g__Bombella",
+                                                  "g__WRHT01"
+                                                  )
+                                  ),
+                    col_continuous2, 
+                    clust_c = F, 
+                    bottom_annotation_name = "Genus_Host",
+                    col_split_by = "Genus",
+                    col_label_size = 8,
+                    row_names_size = 8,
+                    grid_line_col = NA)
+dev.off()
+pdf("Figures/08-DRAM_cazy_genes_of_interest_pnas.pdf")
+pretty_dram_heatmap(prepare_matrix(get_matrix_from_dram(metabolism_carbon),
+                                   subset_genes = T,
+                                   genes_list = spl_genes_list_pnas,
+                                   subset_mags = T,
+                                   by_genus = T,
+                                   genus_list = c("g__Lactobacillus",
+                                                  "g__Bombilactobacillus",
+                                                  "g__Bifidobacterium",
+                                                  "g__Gilliamella",
+                                                  "g__Snodgrassella",
+                                                  "g__Frischella",
+                                                  "g__Dysgonomonas",
+                                                  "g__Pectinatus",
+                                                  "g__Apibacter",
+                                                  "g__Commensalibacter",
+                                                  "g__Bartonella",
+                                                  "g__Bombella",
+                                                  "g__WRHT01"
+                                                  )
+                                  ),
+                    col_continuous2, 
+                    clust_c = F, 
+                    bottom_annotation_name = "Genus_Host",
+                    col_split_by = "Genus",
+                    col_label_size = 8,
+                    row_names_size = 8,
+                    grid_line_col = NA)
+dev.off()
+pdf("Figures/08-DRAM_energy_metabolism_by_host.pdf")
+a_genes_list <- names(get_matrix_from_dram(metabolism_energy)) %>%
+                unique() %>%
+                as.data.frame() %>%
+                # filter(grepl("PL", .)) %>%
+                pull(.)                
+pretty_dram_heatmap(prepare_matrix(get_matrix_from_dram(metabolism_energy),
+                                   subset_genes = T,
+                                   genes_list = a_genes_list,
+                                   subset_mags = T,
+                                   by_genus = T,
+                                   genus_list = c("g__Lactobacillus",
+                                                  "g__Bombilactobacillus",
+                                                  "g__Bifidobacterium",
+                                                  "g__Gilliamella",
+                                                  "g__Snodgrassella",
+                                                  "g__Frischella",
+                                                  "g__Dysgonomonas",
+                                                  "g__Pectinatus",
+                                                  "g__Apibacter",
+                                                  "g__Commensalibacter",
+                                                  "g__Bartonella",
+                                                  "g__Bombella",
+                                                  "g__WRHT01"
+                                                  )
+                                  ),
+                    col_continuous2, 
+                    clust_c = F, 
+                    bottom_annotation_name = "Species_Genus",
+                    col_split_by = "Host",
+                    col_label_size = 8,
+                    row_names_size = 0,
+                    grid_line_col = NA)
+dev.off()
+```
+
+```{r make_pcoa}
+# vis_magOTUs_df_all %>% 
+#     # filter(Num_mags > 2) %>%
+#     filter(Genus != "g__") %>%
+#     filter(!is.na(Genus)) %>%
+#         pull(Cluster) %>%
+#           unique %>% length
+# vis_magOTUs_df %>%
+#     # filter(Num_mags > 2) %>%
+#     filter(Genus != "g__") %>%
+#         pull(Cluster) %>%
+#           unique %>% length
+
+a_genes_list <- names(get_matrix_from_dram(metabolism_carbon)) %>%
+                unique() %>%
+                as.data.frame() %>%
+                # filter(. %in% spl_genes_list) %>%
+                # filter(grepl("PL", .)) %>%
+                filter(grepl("GH|PL", .)) %>%
+                pull(.)
+matrix_pcoa <- prepare_matrix(get_matrix_from_dram(metabolism_carbon),
+               subset_genes = T,
+               genes_list = a_genes_list,
+               subset_mags = F,
+               by_genus = F,
+               genus_list = c("g__Lactobacillus",
+                              "g__Bombilactobacillus",
+                              "g__Bifidobacterium",
+                              "g__Gilliamella",
+                              "g__Snodgrassella",
+                              "g__Frischella",
+                              "g__Dysgonomonas",
+                              "g__Pectinatus",
+                              "g__Apibacter",
+                              "g__Commensalibacter",
+                              "g__Bartonella",
+                              "g__Bombella",
+                              "g__WRHT01"
+                              )
+                )
+pretty_pcoa_plot(matrix_pcoa, metadata = vis_magOTUs_df, variable="Host", color_add=T, color_list=host_order_color_dark, colname_in_metadata = "ID")
+pretty_pcoa_plot(matrix_pcoa, metadata = vis_magOTUs_df, variable="Genus", color_add=T, color_list=genusColors, colname_in_metadata = "ID")
+```

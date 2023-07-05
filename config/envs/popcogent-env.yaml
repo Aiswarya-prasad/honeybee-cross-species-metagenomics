@@ -1,0 +1,24 @@
+name: popcogent-env
+
+channels:
+ - defaults
+ - bioconda
+ - r
+
+dependencies:
+ - python
+ - biopython
+ - joblib
+ - networkx
+ - numpy
+ - pandas
+ - scipy
+ - statsmodels
+ - snakemake
+ - rpy2
+ - r-tidyverse
+ - r-ape
+ - mugsy
+ - phyml
+ - mmseqs2
+ - infomap
