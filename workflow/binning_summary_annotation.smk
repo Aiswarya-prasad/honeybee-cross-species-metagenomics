@@ -34,10 +34,139 @@ rule run_whokaryote:
         whokaryote.py --outdir {params.outdir} --gff {input.gff_input} --model S &> {log}
         """
 
-rule run_kaiju:
+# run kaiju on genes from scaffolds to get an idea of 
+# what each of those genes scaffolds are
+# likely coming from - can later also use this to check 
+# genes from the same contigs coming from different sources (screening)
+rule run_kaiju_scaffolds:
     input:
+        scaffolds = "results/05_assembly/all_reads_assemblies/{sample}_scaffolds.fasta",
     output:
+        kaiju_out = "results/05_assembly/contig_fates/kaiju/nr/{sample}.kaiju",
+    params:
+        kaiju_db_nodes = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/kaiju_db/nr/nodes.dmp",
+        kaiju_db_fmi = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/kaiju_db/nr/nr/kaiju_db_nr.fmi",
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-5:10:00"),
+    resources:
+        mem_mb = convertToMb("300G")
+    threads: 4
+    log: "results/05_assembly/contig_fates/kaiju/nr/{sample}_kaiju.log"
+    benchmark: "results/05_assembly/contig_fates/kaiju/nr/{sample}_kaiju.benchmark"
+    conda: "../config/envs/kaiju_env.yaml"
+    shell:
+        """
+        kaiju -X -t {params.kaiju_db_nodes} -f {params.kaiju_db_fmi} \
+                -o {output.kaiju_out} -z {threads} \
+                -i {input.scaffolds} -v -a mem &> {log}
+        """
 
+# rule run_kraken_scaffolds:
+#     input:
+#         scaffolds = "results/05_assembly/all_reads_assemblies/{sample}_scaffolds.fasta",
+#     output:
+#         kaiju_out = "results/05_assembly/contig_fates/kaiju/nr/{sample}.kaiju",
+#     params:
+#         kaiju_db_nodes = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/kaiju_db/nr/nodes.dmp",
+#         kaiju_db_fmi = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/kaiju_db/nr/nr/kaiju_db_nr.fmi",
+#         mailto="aiswarya.prasad@unil.ch",
+#         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+#         account="pengel_spirit",
+#         runtime_s=convertToSec("0-5:10:00"),
+#     resources:
+#         mem_mb = convertToMb("300G")
+#     threads: 4
+#     log: "results/05_assembly/contig_fates/kaiju/nr/{sample}_kaiju.log"
+#     benchmark: "results/05_assembly/contig_fates/kaiju/nr/{sample}_kaiju.benchmark"
+#     conda: "../config/envs/kaiju_env.yaml"
+#     shell:
+#         """
+#         """
+
+rule run_kaiju_scaffolds_taxonomy:
+    input:
+        kaiju_out = "results/05_assembly/contig_fates/kaiju/nr/{sample}.kaiju",
+    output:
+        kaiju_names = "results/05_assembly/contig_fates/kaiju/nr/{sample}_names.txt",
+        kaiju_names_full = "results/05_assembly/contig_fates/kaiju/nr/{sample}_fullnames.txt",
+    params:
+        kaiju_db_nodes = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/kaiju_db/nr/nodes.dmp",
+        kaiju_db_names = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/kaiju_db/nr/names.dmp",
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-5:10:00"),
+    resources:
+        mem_mb = convertToMb("100G")
+    threads: 1
+    log: "results/05_assembly/contig_fates/kaiju/nr/{sample}_kaiju_names.log"
+    benchmark: "results/05_assembly/contig_fates/kaiju/nr/{sample}_kaiju_names.benchmark"
+    conda: "../config/envs/kaiju_env.yaml"
+    shell:
+        """
+        kaiju-addTaxonNames -t {params.kaiju_db_nodes} \
+            -n {params.kaiju_db_names} -i {input.kaiju_out} \
+            -o {output.kaiju_names} -v &> {log}
+        kaiju-addTaxonNames -p -t {params.kaiju_db_nodes} \
+            -n {params.kaiju_db_names} -i {input.kaiju_out} \
+            -o {output.kaiju_names_full} -v &> {log}
+        """
+
+rule run_kaiju_genes:
+    input:
+        ffn_input = "results/08_gene_content/gene_catalog_all.faa",
+    output:
+        kaiju_out = "results/08_gene_content/04_kaiju_on_genes/nr/gene_catalog_all.kaiju",
+    params:
+        kaiju_db_nodes = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/kaiju_db/nr/nodes.dmp",
+        kaiju_db_fmi = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/kaiju_db/nr/nr/kaiju_db_nr.fmi",
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-5:10:00"),
+    resources:
+        mem_mb = convertToMb("300G")
+    threads: 4
+    log: "results/08_gene_content/04_kaiju_on_genes/nr/kaiju.log"
+    benchmark: "results/08_gene_content/04_kaiju_on_genes/nr/kaiju.benchmark"
+    conda: "../config/envs/kaiju_env.yaml"
+    shell:
+        """
+        kaiju -X -t {params.kaiju_db_nodes} -f {params.kaiju_db_fmi} -p \
+                -o {output.kaiju_out} -z {threads} \
+                -i {input.ffn_input} -v -a mem &> {log}
+        """
+
+rule run_kaiju_genes_taxonomy:
+    input:
+        kaiju_out = "results/08_gene_content/04_kaiju_on_genes/nr/gene_catalog_all.kaiju",
+    output:
+        kaiju_names = "results/08_gene_content/04_kaiju_on_genes/nr/gene_catalog_all_taxa.txt",
+        kaiju_names_full = "results/08_gene_content/04_kaiju_on_genes/nr/gene_catalog_all_taxa_full.txt",
+    params:
+        kaiju_db_nodes = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/kaiju_db/nr/nodes.dmp",
+        kaiju_db_names = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/kaiju_db/nr/names.dmp",
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-1:10:00"),
+    resources:
+        mem_mb = convertToMb("100G")
+    threads: 1
+    log: "results/08_gene_content/04_kaiju_on_genes/nr/kaiju_names.log"
+    benchmark: "results/08_gene_content/04_kaiju_on_genes/nr/kaiju_names.benchmark"
+    conda: "../config/envs/kaiju_env.yaml"
+    shell:
+        """
+        kaiju-addTaxonNames -t {params.kaiju_db_nodes} \
+            -n {params.kaiju_db_names} -i {input.kaiju_out} \
+            -o {output.kaiju_names_full} -v &> {log}
+        kaiju-addTaxonNames -p -t {params.kaiju_db_nodes} \
+            -n {params.kaiju_db_names} -i {input.kaiju_out} \
+            -o {output.kaiju_names} -v &> {log}
+        """
 
 rule checkm_evaluate:
     input:
@@ -328,8 +457,41 @@ rule collect_prodigal_from_checkm:
             {output.collected}
         """
 
-# rule contig_fates:
-#     input:
+rule summarize_contig_fates:
+    input:
+        scaffolds = "results/05_assembly/all_reads_assemblies/{sample}_scaffolds.fasta",
+        whokaryote_out = "results/05_assembly/contig_fates/whokaryote/{sample}/whokaryote_predictions_S.tsv",
+        kaiju_out = "results/05_assembly/contig_fates/kaiju/nr/{sample}.kaiju",
+        kaiju_names = "results/05_assembly/contig_fates/kaiju/nr/{sample}_names.txt",
+        kaiju_names_full = "results/05_assembly/contig_fates/kaiju/nr/{sample}_fullnames.txt",
+        bins_directory = "results/07_MAG_binng_QC/02_bins/{sample}",
+        gtdb_bac = "results/09_MAGs_collection/All_mags_sub/gtdb_output/classify/All_mags_sub.bac120.summary.tsv",
+        gtdb_ar = "results/09_MAGs_collection/All_mags_sub/gtdb_output/classify/All_mags_sub.ar53.summary.tsv",
+        # kraken too
+    output:
+        contig_fates = "results/05_assembly/contig_fates/{sample}_contig_fates.tsv"
+    params:
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-2:10:00"),
+    threads: 4
+    shell:
+        """
+        python scripts/summarize_contig_fates.py \
+            --scaffolds {input.scaffolds} \
+            --whokaryote_out {input.whokaryote_out} \
+            --kaiju_out {input.kaiju_out} \
+            --kaiju_names {input.kaiju_names} \
+            --kaiju_names_full {input.kaiju_names_full} \
+            --bins_directory {input.bins_directory} \
+            --gtdb_bac {input.gtdb_bac} \
+            --gtdb_ar {input.gtdb_ar} \
+            --sample {wildcards.sample} \
+            --outfile {output.contig_fates}
+        """
+
+
 #     output:
 #         contig_fates = "results/05_assembly/contig_fates/"
 # collect results from whokaryote, kaiju, binning # number of genes, number of BCGscon
@@ -348,7 +510,7 @@ rule collect_prodigal_from_checkm:
 # more examples: https://cran.r-project.org/web/packages/ggalluvial/vignettes/ggalluvial.html
 
 
-# write rule to summarize contig fates and stats for each bin and assembly (check if this is the right way to do it) 
+# write rule to summarize contig fates and stats for each bin and assembly
 # rule summarize_contig_fates:
 #     input:
 #         bins = directory("results/07_MAG_binng_QC/02_bins/{sample}/") 
@@ -398,4 +560,4 @@ rule collect_prodigal_from_checkm:
 # make non-redundant mag database for instrain
 # ! compare corecov and instrain results from the previous analysis !
 # make redundant magdatabase for core coverage estimation
-erage estimation
+# erage estimation

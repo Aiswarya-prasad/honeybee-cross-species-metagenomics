@@ -219,11 +219,11 @@ rule dram_annotate_orfs:
         DRAM.py annotate_genes -i {input.filt_faa} -o ${{dram_outdir}} --threads {threads} --verbose &>> {log}
         """
 
-rule index_gene_catalog:
+rule index_nr_gene_catalog:
     input:
-        gene_catalog = "results/08_gene_content/00_cdhit_clustering/gene_catalog_cdhit9590.fasta",
+        gene_catalog = "results/08_gene_content/gene_catalog_all.ffn",
     output:
-        bwa_index = multiext("results/08_gene_content/00_cdhit_clustering/gene_catalog_cdhit9590.fasta", ".amb", ".ann", ".bwt", ".pac", ".sa"),
+        bwa_index = multiext("results/08_gene_content/gene_catalog_all.ffn", ".amb", ".ann", ".bwt", ".pac", ".sa"),
     params:
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
@@ -245,8 +245,8 @@ rule profile_genes:
     input:
         reads1 = lambda wildcards: f"results/01_cleanreads/{wildcards.sample}_R1_repaired.fastq.gz",
         reads2 = lambda wildcards: f"results/01_cleanreads/{wildcards.sample}_R2_repaired.fastq.gz",
-        gene_catalog = "results/08_gene_content/00_cdhit_clustering/gene_catalog_cdhit9590.fasta",
-        bwa_index = multiext("results/08_gene_content/00_cdhit_clustering/gene_catalog_cdhit9590.fasta", ".amb", ".ann", ".bwt", ".pac", ".sa"),
+        gene_catalog = "results/08_gene_content/gene_catalog_all.ffn",
+        bwa_index = multiext("results/08_gene_content/gene_catalog_all.ffn", ".amb", ".ann", ".bwt", ".pac", ".sa"),
     output:
         bam = temp("results/08_gene_content/01_profiling/{sample}_mapped.bam"),
         flagstat = "results/08_gene_content/01_profiling/{sample}_mapped.flagstat",
@@ -279,3 +279,64 @@ rule profile_genes:
         samtools coverage {output.bam} > {output.coverage}
         samtools coverage -m {output.bam} > {output.hist}
         """
+
+# rule index_gene_catalog:
+#     input:
+#         gene_catalog = "results/08_gene_content/00_cdhit_clustering/gene_catalog_cdhit9590.fasta",
+#     output:
+#         bwa_index = multiext("results/08_gene_content/00_cdhit_clustering/gene_catalog_cdhit9590.fasta", ".amb", ".ann", ".bwt", ".pac", ".sa"),
+#     params:
+#         mailto="aiswarya.prasad@unil.ch",
+#         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+#         jobname="build_bwa_index_catalog",
+#         account="pengel_spirit",
+#         runtime_s=convertToSec("0-2:10:00"),
+#     resources:
+#         mem_mb = 8000
+#     threads: 4
+#     log: "results/08_gene_content/00_cdhit_clustering/bwa_index_catalog.log"
+#     benchmark: "results/08_gene_content/00_cdhit_clustering/bwa_index_catalog.benchmark"
+#     conda: "../config/envs/mapping-env.yaml"
+#     shell:
+#         """
+#         bwa index {input.gene_catalog} &> {log}
+#         """
+
+# rule profile_genes:
+#     input:
+#         reads1 = lambda wildcards: f"results/01_cleanreads/{wildcards.sample}_R1_repaired.fastq.gz",
+#         reads2 = lambda wildcards: f"results/01_cleanreads/{wildcards.sample}_R2_repaired.fastq.gz",
+#         gene_catalog = "results/08_gene_content/00_cdhit_clustering/gene_catalog_cdhit9590.fasta",
+#         bwa_index = multiext("results/08_gene_content/00_cdhit_clustering/gene_catalog_cdhit9590.fasta", ".amb", ".ann", ".bwt", ".pac", ".sa"),
+#     output:
+#         bam = temp("results/08_gene_content/01_profiling/{sample}_mapped.bam"),
+#         flagstat = "results/08_gene_content/01_profiling/{sample}_mapped.flagstat",
+#         depth = "results/08_gene_content/01_profiling/{sample}_mapped.depth",
+#         coverage = "results/08_gene_content/01_profiling/{sample}_mapped.coverage",
+#         hist = "results/08_gene_content/01_profiling/{sample}_mapped.hist",
+#     params:
+#         match_length = 50,
+#         edit_distance = 5, # methods in microbiomics recommends 95 perc identity
+#         # since reads are 150 bp long, 5 mismatches is 3.3% mismatch which is almost as instrain recommends
+#         # even less chances of strains mismapping
+#         filter_script = "scripts/filter_bam.py",
+#         mailto="aiswarya.prasad@unil.ch",
+#         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+#         jobname="{sample}_profile_genes",
+#         account="pengel_spirit",
+#         runtime_s=convertToSec("0-10:10:00"),
+#     resources:
+#         mem_mb = convertToMb("40G")
+#     threads: 4
+#     log: "results/08_gene_content/01_profiling/{sample}_profile_genes.log"
+#     benchmark: "results/08_gene_content/01_profiling/{sample}_profile_genes.benchmark"
+#     conda: "../config/envs/mapping-env.yaml"
+#     shell:
+#         """
+#         bwa mem -a -t {threads} {input.gene_catalog} {input.reads1} {input.reads2} \
+#         | samtools view -F 4 -h - |  python3 {params.filter_script} -e 5 -m 50 | samtools sort -O bam -@ {threads} > {output.bam}
+#         samtools flagstat -@ {threads} {output.bam} > {output.flagstat}
+#         samtools depth -s -a {output.bam} > {output.depth}
+#         samtools coverage {output.bam} > {output.coverage}
+#         samtools coverage -m {output.bam} > {output.hist}
+#         """
