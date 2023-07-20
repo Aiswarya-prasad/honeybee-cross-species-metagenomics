@@ -13,79 +13,35 @@ targets:
     - 
 """
 
-
-rule rename_gff_headers:
+rule rename_scaffolds:
     input:
-        gff = "results/06_metagenomicORFs/{sample_assembly}/{sample_assembly}.gff"
+        scaffolds = "results/05_assembly/all_reads_assemblies/{sample}_scaffolds.fasta",
     output:
-        gff = "results/06_metagenomicORFs/{sample_assembly}/{sample_assembly}_renamed.gff"
+        scaffolds = "results/07_MAG_binng_QC/00_assembled_scaffolds/{sample}/{sample}_scaffolds.fasta",
     params:
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        jobname="rename_gff",
+        jobname="build_bwa_index",
         account="pengel_spirit",
-        runtime_s=convertToSec("0-5:30:00"),
-    log: "results/06_metagenomicORFs/{sample_assembly}/{sample_assembly}_rename_gff_headers.log"
-    benchmark: "results/06_metagenomicORFs/{sample_assembly}/{sample_assembly}_rename_gff_headers.benchmark"
-    threads: 4
+        runtime_s=convertToSec("0-2:10:00"),
     resources:
-        mem_mb = 3000,
+        mem_mb = 8000
+    threads: 4
+    log: "results/07_MAG_binng_QC/00_assembled_scaffolds/{sample}/{sample}_rename_scaffolds.log"
+    benchmark: "results/07_MAG_binng_QC/00_assembled_scaffolds/{sample}/{sample}_rename_scaffolds.benchmark"
+    conda: "../config/envs/scripts-env.yaml"
     shell:
         """
-        cat {input.gff} | sed -e 's/ID=/ID={wildcards.sample_assembly}_/g' | sed -e 's/NODE/{wildcards.sample_assembly}_NODE/g' > {output.gff}
-        """
-
-rule rename_faa_headers:
-    input:
-        faa = "results/06_metagenomicORFs/{sample}/{sample}.faa"
-    output:
-        faa = "results/06_metagenomicORFs/{sample}/{sample}_renamed.faa"
-    params:
-        mailto="aiswarya.prasad@unil.ch",
-        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        jobname="rename_faa",
-        account="pengel_spirit",
-        runtime_s=convertToSec("0-5:30:00"),
-    log: "results/06_metagenomicORFs/{sample}_rename_faa_headers.log"
-    benchmark: "results/06_metagenomicORFs/{sample}_rename_faa_headers.benchmark"
-    threads: 4
-    resources:
-        mem_mb = 3000,
-    shell:
-        """
-        cat {input.faa} | sed -e 's/ID=/ID={wildcards.sample}_/g' | sed -e 's/NODE/{wildcards.sample}_NODE/g' > {output.faa}
-        """
-
-rule rename_ffn_headers:
-    input:
-        ffn = "results/06_metagenomicORFs/{sample}/{sample}.ffn"
-    output:
-        ffn = "results/06_metagenomicORFs/{sample}/{sample}_renamed.ffn"
-    params:
-        mailto="aiswarya.prasad@unil.ch",
-        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        jobname="rename_ffn",
-        account="pengel_spirit",
-        runtime_s=convertToSec("0-5:30:00"),
-    log: "results/06_metagenomicORFs/{sample}_rename_ffn_headers.log"
-    benchmark: "results/06_metagenomicORFs/{sample}_rename_ffn_headers.benchmark"
-    threads: 4
-    resources:
-        mem_mb = 3000,
-    shell:
-        """
-        cat {input.ffn} | sed -e 's/ID=/ID={wildcards.sample}_/g' | sed -e 's/NODE/{wildcards.sample}_NODE/g' > {output.ffn}
+        python3 scripts/rename_scaffolds.py --scaffolds_in {input.scaffolds} --scaffolds_out {output.scaffolds} --sample {wildcards.sample} &>> {log}
         """
 
 rule prodigal_get_orfs:
     input:
-        scaffolds = "results/05_assembly/all_reads_assemblies/{sample}_scaffolds.fasta"
+        scaffolds = "results/07_MAG_binng_QC/00_assembled_scaffolds/{sample}/{sample}_scaffolds.fasta"
     output:
-        orfs = "results/06_metagenomicORFs/{sample}_orfs.ffn",
-        filt_log = "results/06_metagenomicORFs/{sample}_orfs_filt_sumary.log",
-        scaffolds_ffn = "results/06_metagenomicORFs/{sample}/{sample}.ffn",
-        scaffolds_faa = "results/06_metagenomicORFs/{sample}/{sample}.faa",
-        scaffolds_gff = "results/06_metagenomicORFs/{sample}/{sample}.gff"
+        scaffolds_ffn = "results/06_metagenomicORFs/{sample}/prodigal_out/{sample}.ffn",
+        scaffolds_faa = "results/06_metagenomicORFs/{sample}/prodigal_out/{sample}.faa",
+        scaffolds_gff = "results/06_metagenomicORFs/{sample}/prodigal_out/{sample}.gff"
     params:
         outdir = "results/06_metagenomicORFs/{sample}/",
         mailto="aiswarya.prasad@unil.ch",
@@ -103,17 +59,76 @@ rule prodigal_get_orfs:
         if [ ! -f {output.scaffolds_ffn} ]; then
             prodigal -i {input.scaffolds} -o {output.scaffolds_gff} -f gff -a {output.scaffolds_faa} -d {output.scaffolds_ffn} -p meta &> {log}
         fi
-        # takes care of renaming the headers
-        python scripts/filt_orfs.py --ffn_in {output.scaffolds_ffn} --ffn_out {output.orfs} --sample {wildcards.sample} --log {output.filt_log}
         """
+        # python scripts/filt_orfs.py --ffn_in {output.scaffolds_ffn} --ffn_out {output.orfs} --sample {wildcards.sample} --log {output.filt_log}
+
+rule run_whokaryote:
+    input:
+        gff_input = "results/06_metagenomicORFs/{sample}/{sample}/prodigal_out.gff",
+    output:
+        whokaryote_eu = "results/05_assembly/contig_fates/whokaryote/{sample}/eukaryote_contig_headers.txt",
+        whokaryote_pro = "results/05_assembly/contig_fates/whokaryote/{sample}/prokaryote_contig_headers.txt",
+        whokaryote_out = "results/05_assembly/contig_fates/whokaryote/{sample}/whokaryote_predictions_S.tsv "
+    params:
+        outdir="results/05_assembly/contig_fates/whokaryote/",
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-2:10:00"),
+    threads: 4
+    log: "results/05_assembly/contig_fates/whokaryote/{sample}_whokaryote.log"
+    benchmark: "results/05_assembly/contig_fates/whokaryote/{sample}_whokaryote.benchmark.txt"
+    conda: "../config/envs/mags-env.yaml"
+    shell:
+        """
+        whokaryote.py --outdir {params.outdir} --gff {input.gff_input} --model S &> {log}
+        """
+
+rule prodigal_filt_orfs:
+    input:
+        scaffolds_ffn = "results/06_metagenomicORFs/{sample}/prodigal_out/{sample}.ffn",
+        whokaryote_result = "results/05_assembly/contig_fates/whokaryote/{sample}/whokaryote_predictions_S.tsv",
+        # replace with kraken later if better
+        tax_result = "results/05_assembly/contig_fates/kaiju/nr/{sample}_fullnames.txt",
+    output:
+        scaffolds_ffn = "results/06_metagenomicORFs/{sample}/filt_orfs/{sample}.ffn",
+        filt_log = "results/06_metagenomicORFs/{sample}/orfs_filt_sumary.log",
+    params:
+        taxtype = "kaiju", # kaiju or kraken
+        outdir = "results/06_metagenomicORFs/{sample}/",
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-2:10:00"),
+    resources:
+        mem_mb = 16000
+    threads: 8
+    log: "results/06_metagenomicORFs/{sample}/{sample}_prodigal_filt_orfs.log"
+    benchmark: "results/06_metagenomicORFs/{sample}/{sample}_prodigal_filt_orfs.benchmark"
+    conda: "../config/envs/scripts-env.yaml"
+    shell:
+        """
+        python scripts/filt_orfs.py --who {input.whokaryote_result} \
+            --tax {input.tax_result}  --taxtype {params.taxtype} \
+            --ffn_in {input.scaffolds_ffn} --ffn_out {output.scaffolds_ffn} \
+            --sample {wildcards.sample} --log {output.filt_log}
+        """
+
+# # ffn to gff rule also
+# rule get_filt_orfs_gff:
+#     input:
+#         filt_ffn = "results/06_metagenomicORFs/{sample}/filt_orfs/{sample}.ffn",
+#         gff = "results/06_metagenomicORFs/{sample}/prodigal_out/{sample}.gff",
+#     output:
+#         gff_filt = "results/06_metagenomicORFs/{sample}/filt_orfs/{sample}.gff",
 
 rule get_filt_orfs_faa:
     input:
-        filt_ffn = "results/06_metagenomicORFs/{sample}_orfs.ffn",
-        faa = "results/06_metagenomicORFs/{sample}/{sample}_renamed.faa",
+        filt_ffn = "results/06_metagenomicORFs/{sample}/filt_orfs/{sample}.ffn",
+        faa = "results/06_metagenomicORFs/{sample}/prodigal_out/{sample}.faa",
     output:
-        headers = "results/06_metagenomicORFs/{sample}_orfs_headers.txt",
-        filt_faa = "results/06_metagenomicORFs/{sample}_orfs.faa"
+        headers = "results/06_metagenomicORFs/{sample}/filt_orfs/{sample}_headers.txt",
+        filt_faa = "results/06_metagenomicORFs/{sample}/filt_orfs/{sample}.faa"
     params:
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
@@ -133,11 +148,11 @@ rule get_filt_orfs_faa:
 
 rule cdhit_clustering:
     input:
-        scaffolds_ffn = expand("results/06_metagenomicORFs/{sample}_orfs.ffn", sample=SAMPLES_INDIA+SAMPLES_MY),
-        scaffolds_faa = expand("results/06_metagenomicORFs/{sample}_orfs.faa", sample=SAMPLES_INDIA+SAMPLES_MY),
+        scaffolds_ffn = expand("results/06_metagenomicORFs/{sample}/filt_orfs/{sample}.ffn", sample=SAMPLES_INDIA+SAMPLES_MY),
+        scaffolds_faa = expand("results/06_metagenomicORFs/{sample}/filt_orfs/{sample}.faa", sample=SAMPLES_INDIA+SAMPLES_MY),
     output:
-        gene_catalog_ffn="results/08_gene_content/gene_catalog_all.ffn",
-        gene_catalog_faa="results/08_gene_content/gene_catalog_all.faa",
+        gene_catalog_ffn="results/08_gene_content/20230313_gene_catalog.ffn",
+        gene_catalog_faa="results/08_gene_content/20230313_gene_catalog.faa",
         cdhit_clustering="results/08_gene_content/00_cdhit_clustering/gene_catalog_cdhit9590.fasta.clstr",
         cdhit_genes="results/08_gene_content/00_cdhit_clustering/gene_catalog_cdhit9590.fasta"
     params:
@@ -159,10 +174,6 @@ rule cdhit_clustering:
         cd-hit-est -i {output.gene_catalog_ffn} -o {output.cdhit_genes} \
             -c 0.95 -T 64 -M 0 -G 0 -aS 0.9 -g 1 -r 1 -d 0
         """
-
-# before this make sure to profile and remove non-bacterial contigs
-# make non-reduntant gene catalog 
-# mapping should be done to that and then results parsed in terms of clusters
 
 rule parse_clustering_file:
     input:
@@ -186,12 +197,12 @@ rule parse_clustering_file:
 
 rule dram_annotate_orfs:
     input:
-        # dram_config = "config/dram_config.json"
-        filt_faa = "results/06_metagenomicORFs/{sample}_orfs.faa",
+        dram_config = "config/dram_config.json",
+        filt_faa = "results/06_metagenomicORFs/{sample}/filt_orfs/{sample}.faa",
     output:
         dram_annotations = "results/08_gene_content/02_DRAM_annotations/{sample}/annotations.tsv",
     params:
-        # db_location = "/reference/dram",
+        db_location = "/reference/dram_20230610",
         dram_outdir = lambda wildcards: os.path.join("results/08_gene_content/02_DRAM_annotations/", wildcards.sample),
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
@@ -205,25 +216,28 @@ rule dram_annotate_orfs:
     conda: "../config/envs/mags-env.yaml"
     shell:
         """
-        source /etc/profile.d/lmodstacks.sh &>> {log}
-        dcsrsoft use old &>> {log}
-        export PATH=/dcsrsoft/spack/external/dram/v1.2.4/bin:$PATH &>> {log}
-        module load gcc/9.3.0 python &>> {log}
-        module load hmmer mmseqs2 prodigal infernal trnascan-se barrnap &>> {log}
-        which DRAM.py &>> {log}
-        dram_annotations={output.dram_annotations} &>> {log}
-        dram_outdir=${{dram_annotations/annotations.tsv}} &>> {log}
-        DRAM-setup.py version &>> {log}
         ###
         rm -rf ${{dram_outdir}} &>> {log} # snakemake creates it but DRAM will complain
-        DRAM.py annotate_genes -i {input.filt_faa} -o ${{dram_outdir}} --threads {threads} --verbose &>> {log}
+        DRAM-setup.py import_config --config_loc {input.dram_config} &>> {log}
+        DRAM.py annotate_genes -i {input.filt_faa} -o ${{dram_outdir}} \
+                --config_loc {input.dram_config} \
+                --threads {threads} --verbose &>> {log}
         """
+        # source /etc/profile.d/lmodstacks.sh &>> {log}
+        # dcsrsoft use old &>> {log}
+        # export PATH=/dcsrsoft/spack/external/dram/v1.2.4/bin:$PATH &>> {log}
+        # module load gcc/9.3.0 python &>> {log}
+        # module load hmmer mmseqs2 prodigal infernal trnascan-se barrnap &>> {log}
+        # which DRAM.py &>> {log}
+        # dram_annotations={output.dram_annotations} &>> {log}
+        # dram_outdir=${{dram_annotations/annotations.tsv}} &>> {log}
+        # DRAM-setup.py version &>> {log}
 
 rule index_nr_gene_catalog:
     input:
-        gene_catalog = "results/08_gene_content/gene_catalog_all.ffn",
+        gene_catalog = "results/08_gene_content/20230313_gene_catalog.ffn",
     output:
-        bwa_index = multiext("results/08_gene_content/gene_catalog_all.ffn", ".amb", ".ann", ".bwt", ".pac", ".sa"),
+        bwa_index = multiext("results/08_gene_content/20230313_gene_catalog.ffn", ".amb", ".ann", ".bwt", ".pac", ".sa"),
     params:
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
@@ -245,8 +259,8 @@ rule profile_genes:
     input:
         reads1 = lambda wildcards: f"results/01_cleanreads/{wildcards.sample}_R1_repaired.fastq.gz",
         reads2 = lambda wildcards: f"results/01_cleanreads/{wildcards.sample}_R2_repaired.fastq.gz",
-        gene_catalog = "results/08_gene_content/gene_catalog_all.ffn",
-        bwa_index = multiext("results/08_gene_content/gene_catalog_all.ffn", ".amb", ".ann", ".bwt", ".pac", ".sa"),
+        gene_catalog = "results/08_gene_content/20230313_gene_catalog.ffn",
+        bwa_index = multiext("results/08_gene_content/20230313_gene_catalog.ffn", ".amb", ".ann", ".bwt", ".pac", ".sa"),
     output:
         bam = temp("results/08_gene_content/01_profiling/{sample}_mapped.bam"),
         flagstat = "results/08_gene_content/01_profiling/{sample}_mapped.flagstat",
@@ -279,64 +293,3 @@ rule profile_genes:
         samtools coverage {output.bam} > {output.coverage}
         samtools coverage -m {output.bam} > {output.hist}
         """
-
-# rule index_gene_catalog:
-#     input:
-#         gene_catalog = "results/08_gene_content/00_cdhit_clustering/gene_catalog_cdhit9590.fasta",
-#     output:
-#         bwa_index = multiext("results/08_gene_content/00_cdhit_clustering/gene_catalog_cdhit9590.fasta", ".amb", ".ann", ".bwt", ".pac", ".sa"),
-#     params:
-#         mailto="aiswarya.prasad@unil.ch",
-#         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-#         jobname="build_bwa_index_catalog",
-#         account="pengel_spirit",
-#         runtime_s=convertToSec("0-2:10:00"),
-#     resources:
-#         mem_mb = 8000
-#     threads: 4
-#     log: "results/08_gene_content/00_cdhit_clustering/bwa_index_catalog.log"
-#     benchmark: "results/08_gene_content/00_cdhit_clustering/bwa_index_catalog.benchmark"
-#     conda: "../config/envs/mapping-env.yaml"
-#     shell:
-#         """
-#         bwa index {input.gene_catalog} &> {log}
-#         """
-
-# rule profile_genes:
-#     input:
-#         reads1 = lambda wildcards: f"results/01_cleanreads/{wildcards.sample}_R1_repaired.fastq.gz",
-#         reads2 = lambda wildcards: f"results/01_cleanreads/{wildcards.sample}_R2_repaired.fastq.gz",
-#         gene_catalog = "results/08_gene_content/00_cdhit_clustering/gene_catalog_cdhit9590.fasta",
-#         bwa_index = multiext("results/08_gene_content/00_cdhit_clustering/gene_catalog_cdhit9590.fasta", ".amb", ".ann", ".bwt", ".pac", ".sa"),
-#     output:
-#         bam = temp("results/08_gene_content/01_profiling/{sample}_mapped.bam"),
-#         flagstat = "results/08_gene_content/01_profiling/{sample}_mapped.flagstat",
-#         depth = "results/08_gene_content/01_profiling/{sample}_mapped.depth",
-#         coverage = "results/08_gene_content/01_profiling/{sample}_mapped.coverage",
-#         hist = "results/08_gene_content/01_profiling/{sample}_mapped.hist",
-#     params:
-#         match_length = 50,
-#         edit_distance = 5, # methods in microbiomics recommends 95 perc identity
-#         # since reads are 150 bp long, 5 mismatches is 3.3% mismatch which is almost as instrain recommends
-#         # even less chances of strains mismapping
-#         filter_script = "scripts/filter_bam.py",
-#         mailto="aiswarya.prasad@unil.ch",
-#         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-#         jobname="{sample}_profile_genes",
-#         account="pengel_spirit",
-#         runtime_s=convertToSec("0-10:10:00"),
-#     resources:
-#         mem_mb = convertToMb("40G")
-#     threads: 4
-#     log: "results/08_gene_content/01_profiling/{sample}_profile_genes.log"
-#     benchmark: "results/08_gene_content/01_profiling/{sample}_profile_genes.benchmark"
-#     conda: "../config/envs/mapping-env.yaml"
-#     shell:
-#         """
-#         bwa mem -a -t {threads} {input.gene_catalog} {input.reads1} {input.reads2} \
-#         | samtools view -F 4 -h - |  python3 {params.filter_script} -e 5 -m 50 | samtools sort -O bam -@ {threads} > {output.bam}
-#         samtools flagstat -@ {threads} {output.bam} > {output.flagstat}
-#         samtools depth -s -a {output.bam} > {output.depth}
-#         samtools coverage {output.bam} > {output.coverage}
-#         samtools coverage -m {output.bam} > {output.hist}
-#         """

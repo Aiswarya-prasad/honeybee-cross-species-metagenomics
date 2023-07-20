@@ -9,17 +9,17 @@ from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from Bio.SeqIO.FastaIO import SimpleFastaParser
-# import matplotlib.pyplot as plt
-# import seaborn as sns
-# import plotly.graph_objs as go
-# import plotly.express as px
-# import plotly.io as pio
-# import plotly.figure_factory as ff
-# import plotly.offline as offline
-# from plotly.subplots import make_subplots
-# from plotly.offline import plot, iplot
-# from plotly.graph_objs import *
-# from plotly import tools
+import matplotlib.pyplot as plt
+import seaborn as sns
+import plotly.graph_objs as go
+import plotly.express as px
+import plotly.io as pio
+import plotly.figure_factory as ff
+import plotly.offline as offline
+from plotly.subplots import make_subplots
+from plotly.offline import plot, iplot
+from plotly.graph_objs import *
+from plotly import tools
 
 """
 This script takes the output of whokaryote and kaiju and summarises the contig fates
@@ -70,18 +70,16 @@ gtdb_ar = args.gtdb_ar
 sample = args.sample
 outfile = args.outfile
 
-sample = "A1-1"
-scaffolds = f"/scratch/aprasad/20230313_apis_species_comparison/results/05_assembly/all_reads_assemblies/{sample}_scaffolds.fasta"
-whokaryote_out = f"/scratch/aprasad/20230313_apis_species_comparison/results/05_assembly/contig_fates/whokaryote/{sample}/whokaryote_predictions_S.tsv"
-kaiju_out = f"/scratch/aprasad/20230313_apis_species_comparison/results/05_assembly/contig_fates/kaiju/nr/{sample}.kaiju"
-kaiju_names = f"/scratch/aprasad/20230313_apis_species_comparison/results/05_assembly/contig_fates/kaiju/nr/{sample}_names.txt"
-kaiju_names_full = f"/scratch/aprasad/20230313_apis_species_comparison/results/05_assembly/contig_fates/kaiju/nr/{sample}_fullnames.txt"
-bins_directory = f"/scratch/aprasad/20230313_apis_species_comparison/results/07_MAG_binng_QC/02_bins/{sample}/"
-gtdb_bac = "/scratch/aprasad/20230313_apis_species_comparison/results/09_MAGs_collection/All_mags_sub/gtdb_output/classify/All_mags_sub.bac120.summary.tsv"
-gtdb_ar = "/scratch/aprasad/20230313_apis_species_comparison/results/09_MAGs_collection/All_mags_sub/gtdb_output/classify/All_mags_sub.ar53.summary.tsv"
-outfile = f"/scratch/aprasad/20230313_apis_species_comparison/results/05_assembly/contig_fates/contig_fates_{sample}.tsv"
-
-# df = pd.DataFrame(columns=['node_id', 'contig_id', 'contig_length', 'sample', 'bin', 'gtdb_tax', 'whokaryote', 'kaiju_tax', 'kaiju_tax_full'])
+# sample = "A1-1"
+# scaffolds = f"/scratch/aprasad/20230313_apis_species_comparison/results/05_assembly/all_reads_assemblies/{sample}_scaffolds.fasta"
+# whokaryote_out = f"/scratch/aprasad/20230313_apis_species_comparison/results/05_assembly/contig_fates/whokaryote/{sample}/whokaryote_predictions_S.tsv"
+# kaiju_out = f"/scratch/aprasad/20230313_apis_species_comparison/results/05_assembly/contig_fates/kaiju/nr/{sample}.kaiju"
+# kaiju_names = f"/scratch/aprasad/20230313_apis_species_comparison/results/05_assembly/contig_fates/kaiju/nr/{sample}_names.txt"
+# kaiju_names_full = f"/scratch/aprasad/20230313_apis_species_comparison/results/05_assembly/contig_fates/kaiju/nr/{sample}_fullnames.txt"
+# bins_directory = f"/scratch/aprasad/20230313_apis_species_comparison/results/07_MAG_binng_QC/02_bins/{sample}/"
+# gtdb_bac = "/scratch/aprasad/20230313_apis_species_comparison/results/09_MAGs_collection/All_mags_sub/gtdb_output/classify/All_mags_sub.bac120.summary.tsv"
+# gtdb_ar = "/scratch/aprasad/20230313_apis_species_comparison/results/09_MAGs_collection/All_mags_sub/gtdb_output/classify/All_mags_sub.ar53.summary.tsv"
+# outfile = f"/scratch/aprasad/20230313_apis_species_comparison/results/05_assembly/contig_fates/contig_fates_{sample}.tsv"
 
 contig_ids = []
 contig_ids_dict = {}
@@ -96,7 +94,6 @@ contig_gtdb_dict = {}
 with open(scaffolds, 'r') as scaffolds_fh:
     for line in scaffolds_fh:
         if line.startswith('>'):
-            count += 1
             line = line.strip()
             contig_id = line.split(' ')[0].replace('>', '')
             node_id = contig_id.split('NODE_')[1].split('_')[0]
@@ -244,8 +241,9 @@ with open(outfile, "w+") as outfile_fh:
 
 df = pd.read_csv(outfile, sep='\t', index_col=False)
 
-filtered_df = df[df['contig_length'].astype(int) > 50000]  # Filter contigs longer than 10,000
-# filtered_df = df[df['contig_whokaryote'] != 'eukaryote']  # Filter contigs longer than 10,000
+filtered_df = df
+filtered_df = filtered_df[filtered_df['contig_length'].astype(int) > 10000]
+# filtered_df = filtered_df[filtered_df['contig_whokaryote'] != 'eukaryote']
 filtered_df['mag_gtdb'] =filtered_df['mag_gtdb'].str.extract(r'^(?:.*;)?(?:s__|g__|f__)?([^;]+)$')
 filtered_df['contig_kaiju'] = filtered_df['contig_kaiju'].str.rsplit(';', n=2, expand=True)[1].str.strip()
 
@@ -265,19 +263,19 @@ for _, row in filtered_df.iterrows():
         nodes.append(source_node)
         node_ids[source_node] = len(nodes) - 1
         node_x.append(0)
-        node_y.append(len(nodes) - 1)
+        # node_y.append(len(nodes) - 1)
 
     if target_node not in nodes:
         nodes.append(target_node)
         node_ids[target_node] = len(nodes) - 1
         node_x.append(1)
-        node_y.append(len(nodes) - 1)
+        # node_y.append(len(nodes) - 1)
 
     if kaiju_node not in nodes:
         nodes.append(kaiju_node)
         node_ids[kaiju_node] = len(nodes) - 1
         node_x.append(2)
-        node_y.append(len(nodes) - 1)
+        # node_y.append(len(nodes) - 1)
 
     links.append(
         dict(
@@ -323,14 +321,16 @@ fig = go.Figure(data=[go.Sankey(
 )])
 
 fig.update_layout(
-    title='Contig Whokaryote, Contig Bins, and Contig Kaiju Sankey Diagram',
+    title='Contig Whokaryote, Contig Bins, and Contig Kaiju Sankey Diagram (Contig Length > 5000)',
     height=2000,
     font=dict(size=8)
 )
 
 fig.show()
+fig.write_html(outfile.replace('.tsv', '_contig_classification_sankey.html'))
 
-filtered_df = df[df['contig_length'].astype(int) > 50000]  # Filter contigs longer than 10,000
+filtered_df = df
+# filtered_df = df[df['contig_length'].astype(int) > 5000]  # Filter contigs longer than 10,000
 filtered_df = filtered_df[filtered_df['contig_whokaryote'] == 'prokaryote']  # Filter contigs longer than 10,000
 filtered_df = filtered_df[~filtered_df['contig_bins'].str.contains('unbinned')]
 filtered_df['mag_gtdb'] =filtered_df['mag_gtdb'].str.extract(r'^(?:.*;)?(?:s__|g__|f__)?([^;]+)$')
@@ -352,19 +352,19 @@ for _, row in filtered_df.iterrows():
         nodes.append(source_node)
         node_ids[source_node] = len(nodes) - 1
         node_x.append(0)
-        node_y.append(len(nodes) - 1)
+        # node_y.append(len(nodes) - 1)
 
     if target_node not in nodes:
         nodes.append(target_node)
         node_ids[target_node] = len(nodes) - 1
         node_x.append(1)
-        node_y.append(len(nodes) - 1)
+        # node_y.append(len(nodes) - 1)
 
     if kaiju_node not in nodes:
         nodes.append(kaiju_node)
         node_ids[kaiju_node] = len(nodes) - 1
         node_x.append(2)
-        node_y.append(len(nodes) - 1)
+        # node_y.append(len(nodes) - 1)
 
     links.append(
         dict(
@@ -410,18 +410,18 @@ fig = go.Figure(data=[go.Sankey(
 )])
 
 fig.update_layout(
-    title='Contig Whokaryote, Contig Bins, and Contig Kaiju Sankey Diagram',
+    title='Contig Whokaryote, Contig Bins, and Contig Kaiju Sankey Diagram (Contig Length > 5000)',
     height=800,
     font=dict(size=8)
 )
 
 fig.show()
-
+fig.write_html(outfile.replace('.tsv', '_prokaryote_contig_classification_sankey.html'))
 
 # Create the sunburst plot
 df = pd.read_csv(outfile, sep='\t', index_col=False)
-
-filtered_df = df[df['contig_length'].astype(int) > 50000]  # Filter contigs longer than 10,000
+filtered_df = df
+filtered_df = df[df['contig_length'].astype(int) > 5000]  # Filter contigs longer than 10,000
 filtered_df['mag_gtdb'] =filtered_df['mag_gtdb'].str.extract(r'^(?:.*;)?(?:s__|g__|f__)?([^;]+)$')
 filtered_df['contig_kaiju'] = filtered_df['contig_kaiju'].str.rsplit(';', n=2, expand=True)[1].str.strip()
 filtered_df['mag_gtdb'].fillna('gtdb_Unclassified', inplace=True)
@@ -443,9 +443,10 @@ fig_sun = px.sunburst(
 
 # Customize the appearance of the sunburst plot
 fig_sun.update_layout(
-    title='Contig Classification Sunburst Plot',
-    height=600  # Adjust the height as needed
+    title='Contig Classification Sunburst Plot (Contig Length > 5000)',
+    height=800  # Adjust the height as needed
 )
 
 # Display the sunburst plot
 fig_sun.show()
+fig_sun.write_html(outfile.replace('.tsv', '_contig_classification_sunburst.html'))

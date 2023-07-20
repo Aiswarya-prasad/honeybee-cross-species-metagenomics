@@ -14,9 +14,9 @@ targets:
 
 rule make_mag_rep_database:
     input:
-        collect_mags_marker = "results/09_MAGs_collection/All_mags_sub/MAGs/collect_mags.done",
+        collect_mags_marker = "results/09_MAGs_collection/MAGs/collect_mags.done",
         mag_metadata_summary = lambda wildcards: checkpoints.mag_metadata_summary.get().output.metadata,
-        rep_mags = lambda wildcards: expand("results/09_MAGs_collection/All_mags_sub/MAGs/{mag}.fa", mag = get_rep_mags(checkpoints.mag_metadata_summary.get().output.metadata)),
+        rep_mags = lambda wildcards: expand("results/09_MAGs_collection/MAGs/{mag}.fa", mag = get_rep_mags(checkpoints.mag_metadata_summary.get().output.metadata)),
     output:
         mag_rep_database = "results/10_instrain/00_prepare_mags/mag_rep_database.fa"
     params:
@@ -38,7 +38,7 @@ rule make_mag_rep_database:
 
 rule get_genes_mag_rep_database:
     input:
-        # ffn_files = lambda wildcards: ["results/09_MAGs_collection/All_mags_sub/prodigal_output/renamed/{mag}/{mag}.ffn" for mag in get_rep_mags(checkpoints.mag_metadata_summary.get().output.metadata)]
+        # ffn_files = lambda wildcards: ["results/09_MAGs_collection/prodigal_output/renamed/{mag}/{mag}.ffn" for mag in get_rep_mags(checkpoints.mag_metadata_summary.get().output.metadata)]
         mag_rep_database = "results/10_instrain/00_prepare_mags/mag_rep_database.fa"
     output:
         instrain_genes_faa = "results/10_instrain/00_prepare_mags/mag_rep_database_genes.faa",
@@ -112,7 +112,7 @@ rule map_to_rep_MAGs:
 rule make_scaffold_to_bin_file:
     input:
         rep_mags_db = "results/10_instrain/00_prepare_mags/mag_rep_database.fa",
-        rep_mags = lambda wildcards: expand("results/09_MAGs_collection/All_mags_sub/MAGs/{mag}.fa", mag = get_rep_mags(checkpoints.mag_metadata_summary.get().output.metadata)),
+        rep_mags = lambda wildcards: expand("results/09_MAGs_collection/MAGs/{mag}.fa", mag = get_rep_mags(checkpoints.mag_metadata_summary.get().output.metadata)),
     output:
         scaffold_to_bin_file = "results/10_instrain/00_prepare_mags/scaffold_to_bin_file.tsv"
     params:

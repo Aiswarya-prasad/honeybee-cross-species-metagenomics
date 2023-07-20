@@ -144,72 +144,72 @@ rule get_non_host_reads:
         gzip ${{outreads1/.gz/}}
         gzip ${{outreads2/.gz/}}
         """
-        
-def reads_for_assembly(sample, R_n):
-    if sample in LARGE_SAMPLES:
-        if sample in SAMPLES_TO_HOST_FILTER:
-            return f"results/05_assembly/hostfiltered_reads/{sample}_R{R_n}.fastq.gz"
-        else:
-            return f"results/05_assembly/bbnormed_reads/{sample}_R{R_n}.fastq.gz"
-    else:
-        return f"results/01_trimmedconcatreads/{sample}_R{R_n}.fastq.gz"
 
-rule assemble_metagenomes:
-    input:
-        reads1 = lambda wildcards: reads_for_assembly(wildcards.sample, 1),
-        reads2 = lambda wildcards: reads_for_assembly(wildcards.sample, 2),
-    output:
-        scaffolds_unparsed = temp("results/05_assembly/all_reads_assemblies/{sample}_scaffolds_unparsed.fasta"),
-        scaffolds = "results/05_assembly/all_reads_assemblies/{sample}_scaffolds.fasta",
-        graph = "results/05_assembly/all_reads_assemblies/{sample}_assembly_graph.fastg",
-        spades_log = "results/05_assembly/all_reads_assemblies/{sample}_spades.log",
-    params:
-        outdir = lambda wildcards: "results/05_assembly/all_reads_assemblies/"+wildcards.sample,
-        length_t = 1000,
-        cov_t = 1,
-        memory_limit = lambda wildcards, resources: "500",
-        # memory_limit = lambda wildcards, resources: "850" if resources.attempt > 1 else "250",
-        mailto="aiswarya.prasad@unil.ch",
-        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        account="pengel_spirit",
-        runtime_s=lambda wildcards, resources: convertToSec("3-00:00:00"),
-        # runtime_s=lambda wildcards, resources: convertToSec("1-20:00:00") if resources.attempt > 1 else convertToSec("0-20:00:00"),
-    resources:
-        attempt = lambda wildcards, attempt: attempt,
-        mem_mb = lambda wildcards, attempt: convertToMb("500G")
-        # mem_mb = lambda wildcards, attempt: convertToMb("800G") if attempt > 1 else convertToMb("200G")
-    retries: 0
-    # retries: 2
-    threads: 5
-    # threads: 4
-    log: "results/05_assembly/all_reads_assemblies/{sample}_assemble_metagenomes.log"
-    benchmark: "results/05_assembly/all_reads_assemblies/{sample}_assemble_metagenomes.benchmark"
-    conda: "../config/envs/spades-env.yaml"
-    shell:
-        """
-        if [ -f \"{params.outdir}/scaffolds.fasta\" ]; then
-          echo {params.outdir}/scaffolds.fasta\" exists copying and cleaning\" | tee {log}
-        else
-          if [ -d \"{params.outdir}/\" ]; then
-            echo {params.outdir}\" exists resuming spades\" | tee -a {log}
-            spades.py -m {params.memory_limit} -o {params.outdir} --restart-from last || true &>> {log}
-          else
-            echo \"{params.outdir} not found. Starting new spades run.\" | tee -a {log}
-            spades.py -m {params.memory_limit} --meta -1 {input.reads1} -2 {input.reads2} -t {threads} -o {params.outdir} || true &>> {log}
-          fi
-        fi
-        if [ -f \"{params.outdir}/scaffolds.fasta\" ]; then
-          cp {params.outdir}/scaffolds.fasta {output.scaffolds_unparsed}
-        else
-          echo \"assembly may have failed for \"{wildcards.sample} | tee -a {log}
-          echo \"touching file \"{output.scaffolds_unparsed} | tee -a {log}
-          touch {output.scaffolds_unparsed}
-        fi
-        python3 scripts/parse_spades_metagenome.py -i {output.scaffolds_unparsed} -o {output.scaffolds} -l {params.length_t} -c {params.cov_t} &>> {log}
-        cp {params.outdir}/assembly_graph.fastg {output.graph} &>> {log}
-        cp {params.outdir}/spades.log {output.spades_log} &>> {log}
-        rm -rf {params.outdir} &>> {log}
-        """
+# def reads_for_assembly(sample, R_n):
+#     if sample in LARGE_SAMPLES:
+#         if sample in SAMPLES_TO_HOST_FILTER:
+#             return f"results/05_assembly/hostfiltered_reads/{sample}_R{R_n}.fastq.gz"
+#         else:
+#             return f"results/05_assembly/bbnormed_reads/{sample}_R{R_n}.fastq.gz"
+#     else:
+#         return f"results/01_trimmedconcatreads/{sample}_R{R_n}.fastq.gz"
+
+# rule assemble_metagenomes:
+#     input:
+#         reads1 = lambda wildcards: reads_for_assembly(wildcards.sample, 1),
+#         reads2 = lambda wildcards: reads_for_assembly(wildcards.sample, 2),
+#     output:
+#         scaffolds_unparsed = temp("results/05_assembly/all_reads_assemblies/{sample}_scaffolds_unparsed.fasta"),
+#         scaffolds = "results/05_assembly/all_reads_assemblies/{sample}_scaffolds.fasta",
+#         graph = "results/05_assembly/all_reads_assemblies/{sample}_assembly_graph.fastg",
+#         spades_log = "results/05_assembly/all_reads_assemblies/{sample}_spades.log",
+#     params:
+#         outdir = lambda wildcards: "results/05_assembly/all_reads_assemblies/"+wildcards.sample,
+#         length_t = 1000,
+#         cov_t = 1,
+#         memory_limit = lambda wildcards, resources: "500",
+#         # memory_limit = lambda wildcards, resources: "850" if resources.attempt > 1 else "250",
+#         mailto="aiswarya.prasad@unil.ch",
+#         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+#         account="pengel_spirit",
+#         runtime_s=lambda wildcards, resources: convertToSec("3-00:00:00"),
+#         # runtime_s=lambda wildcards, resources: convertToSec("1-20:00:00") if resources.attempt > 1 else convertToSec("0-20:00:00"),
+#     resources:
+#         attempt = lambda wildcards, attempt: attempt,
+#         mem_mb = lambda wildcards, attempt: convertToMb("500G")
+#         # mem_mb = lambda wildcards, attempt: convertToMb("800G") if attempt > 1 else convertToMb("200G")
+#     retries: 0
+#     # retries: 2
+#     threads: 5
+#     # threads: 4
+#     log: "results/05_assembly/all_reads_assemblies/{sample}_assemble_metagenomes.log"
+#     benchmark: "results/05_assembly/all_reads_assemblies/{sample}_assemble_metagenomes.benchmark"
+#     conda: "../config/envs/spades-env.yaml"
+#     shell:
+#         """
+#         if [ -f \"{params.outdir}/scaffolds.fasta\" ]; then
+#           echo {params.outdir}/scaffolds.fasta\" exists copying and cleaning\" | tee {log}
+#         else
+#           if [ -d \"{params.outdir}/\" ]; then
+#             echo {params.outdir}\" exists resuming spades\" | tee -a {log}
+#             spades.py -m {params.memory_limit} -o {params.outdir} --restart-from last || true &>> {log}
+#           else
+#             echo \"{params.outdir} not found. Starting new spades run.\" | tee -a {log}
+#             spades.py -m {params.memory_limit} --meta -1 {input.reads1} -2 {input.reads2} -t {threads} -o {params.outdir} || true &>> {log}
+#           fi
+#         fi
+#         if [ -f \"{params.outdir}/scaffolds.fasta\" ]; then
+#           cp {params.outdir}/scaffolds.fasta {output.scaffolds_unparsed}
+#         else
+#           echo \"assembly may have failed for \"{wildcards.sample} | tee -a {log}
+#           echo \"touching file \"{output.scaffolds_unparsed} | tee -a {log}
+#           touch {output.scaffolds_unparsed}
+#         fi
+#         python3 scripts/parse_spades_metagenome.py -i {output.scaffolds_unparsed} -o {output.scaffolds} -l {params.length_t} -c {params.cov_t} &>> {log}
+#         cp {params.outdir}/assembly_graph.fastg {output.graph} &>> {log}
+#         cp {params.outdir}/spades.log {output.spades_log} &>> {log}
+#         rm -rf {params.outdir} &>> {log}
+#         """
 
 # headers and IDs in the gff file are renamed to include sample name
 # corresponding ffn file will have the header ID can be obtailed as 
@@ -273,3 +273,164 @@ rule assembly_summary:
         python3 scripts/assembly_summary.py --flagstat {input.flagstat} --scaffolds {input.scaffolds} --outfile {output.outfile} &> {log}
         """
 
+# run kaiju on genes from scaffolds to get an idea of 
+# what each of those genes scaffolds are
+# likely coming from - can later also use this to check 
+# genes from the same contigs coming from different sources (screening)
+rule run_kaiju_scaffolds:
+    input:
+        scaffolds = "results/05_assembly/all_reads_assemblies/{sample}_scaffolds.fasta",
+    output:
+        kaiju_out = "results/05_assembly/contig_fates/kaiju/nr/{sample}.kaiju",
+    params:
+        kaiju_db_nodes = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/kaiju_db/nr/nodes.dmp",
+        kaiju_db_fmi = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/kaiju_db/nr/nr/kaiju_db_nr.fmi",
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-5:10:00"),
+    resources:
+        mem_mb = convertToMb("300G")
+    threads: 4
+    log: "results/05_assembly/contig_fates/kaiju/nr/{sample}_kaiju.log"
+    benchmark: "results/05_assembly/contig_fates/kaiju/nr/{sample}_kaiju.benchmark"
+    conda: "../config/envs/kaiju_env.yaml"
+    shell:
+        """
+        kaiju -X -t {params.kaiju_db_nodes} -f {params.kaiju_db_fmi} \
+                -o {output.kaiju_out} -z {threads} \
+                -i {input.scaffolds} -v -a mem &> {log}
+        """
+
+rule run_kraken_scaffolds:
+    input:
+        scaffolds = "results/05_assembly/all_reads_assemblies/{sample}_scaffolds.fasta",
+    output:
+        kraken_out = "results/05_assembly/contig_fates/kraken2/{sample}.kraken",
+        kraken_report = "results/05_assembly/contig_fates/kraken2/{sample}_report.txt",
+    params:
+        kraken_db = "data/220131_costum_kraken2db",
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-5:10:00"),
+    resources:
+        mem_mb = convertToMb("300G")
+    threads: 4
+    log: "results/05_assembly/contig_fates/kraken2/{sample}_kraken2.log"
+    benchmark: "results/05_assembly/contig_fates/kraken2/{sample}_kraken2.benchmark"
+    conda: "../config/envs/kraken_env.yaml"
+    shell:
+        """
+        kraken2 --use-names --threads {threads} --db {params.kraken_db} \
+                --report {output.kraken_report} --output {output.kraken_out} \
+                 {input.ffn_input}o &> {log}
+        """
+
+rule run_kaiju_scaffolds_taxonomy:
+    input:
+        kaiju_out = "results/05_assembly/contig_fates/kaiju/nr/{sample}.kaiju",
+    output:
+        kaiju_names = "results/05_assembly/contig_fates/kaiju/nr/{sample}_names.txt",
+        kaiju_names_full = "results/05_assembly/contig_fates/kaiju/nr/{sample}_fullnames.txt",
+    params:
+        kaiju_db_nodes = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/kaiju_db/nr/nodes.dmp",
+        kaiju_db_names = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/kaiju_db/nr/names.dmp",
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-5:10:00"),
+    resources:
+        mem_mb = convertToMb("100G")
+    threads: 1
+    log: "results/05_assembly/contig_fates/kaiju/nr/{sample}_kaiju_names.log"
+    benchmark: "results/05_assembly/contig_fates/kaiju/nr/{sample}_kaiju_names.benchmark"
+    conda: "../config/envs/kaiju_env.yaml"
+    shell:
+        """
+        kaiju-addTaxonNames -t {params.kaiju_db_nodes} \
+            -n {params.kaiju_db_names} -i {input.kaiju_out} \
+            -o {output.kaiju_names} -v &> {log}
+        kaiju-addTaxonNames -p -t {params.kaiju_db_nodes} \
+            -n {params.kaiju_db_names} -i {input.kaiju_out} \
+            -o {output.kaiju_names_full} -v &> {log}
+        """
+
+rule run_kaiju_genes:
+    input:
+        ffn_input = "results/08_gene_content/20230313_gene_catalog.faa",
+    output:
+        kaiju_out = "results/08_gene_content/04_kaiju_on_genes/nr/gene_catalog_all.kaiju",
+    params:
+        kaiju_db_nodes = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/kaiju_db/nr/nodes.dmp",
+        kaiju_db_fmi = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/kaiju_db/nr/nr/kaiju_db_nr.fmi",
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-5:10:00"),
+    resources:
+        mem_mb = convertToMb("300G")
+    threads: 4
+    log: "results/08_gene_content/04_kaiju_on_genes/nr/kaiju.log"
+    benchmark: "results/08_gene_content/04_kaiju_on_genes/nr/kaiju.benchmark"
+    conda: "../config/envs/kaiju_env.yaml"
+    shell:
+        """
+        kaiju -X -t {params.kaiju_db_nodes} -f {params.kaiju_db_fmi} -p \
+                -o {output.kaiju_out} -z {threads} \
+                -i {input.ffn_input} -v -a mem &> {log}
+        """
+
+rule run_kraken2_genes:
+    input:
+        ffn_input = "results/08_gene_content/20230313_gene_catalog.ffn",
+    output:
+        kraken_out = "results/08_gene_content/04_kraken2_on_genes/gene_catalog_all.kraken",
+        kraken_report = "results/08_gene_content/04_kraken2_on_genes/gene_catalog_all_report.txt",
+    params:
+        kraken_db = "data/220131_costum_kraken2db",
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-10:10:00"),
+    resources:
+        mem_mb = convertToMb("300G")
+    threads: 8
+    log: "results/08_gene_content/04_kraken2_on_genes/kraken2.log"
+    benchmark: "results/08_gene_content/04_kraken2_on_genes/kraken2.benchmark"
+    conda: "../config/envs/kraken_env.yaml"
+    shell:
+        """
+        kraken2 --use-names --threads {threads} --db {params.kraken_db} \
+                --report {output.kraken_report} --output {output.kraken_out} \
+                 {input.ffn_input}o &> {log}
+        """
+
+rule run_kaiju_genes_taxonomy:
+    input:
+        kaiju_out = "results/08_gene_content/04_kaiju_on_genes/nr/gene_catalog_all.kaiju",
+    output:
+        kaiju_names = "results/08_gene_content/04_kaiju_on_genes/nr/gene_catalog_all_taxa.txt",
+        kaiju_names_full = "results/08_gene_content/04_kaiju_on_genes/nr/gene_catalog_all_taxa_full.txt",
+    params:
+        kaiju_db_nodes = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/kaiju_db/nr/nodes.dmp",
+        kaiju_db_names = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/kaiju_db/nr/names.dmp",
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-1:10:00"),
+    resources:
+        mem_mb = convertToMb("100G")
+    threads: 1
+    log: "results/08_gene_content/04_kaiju_on_genes/nr/kaiju_names.log"
+    benchmark: "results/08_gene_content/04_kaiju_on_genes/nr/kaiju_names.benchmark"
+    conda: "../config/envs/kaiju_env.yaml"
+    shell:
+        """
+        kaiju-addTaxonNames -t {params.kaiju_db_nodes} \
+            -n {params.kaiju_db_names} -i {input.kaiju_out} \
+            -o {output.kaiju_names_full} -v &> {log}
+        kaiju-addTaxonNames -p -t {params.kaiju_db_nodes} \
+            -n {params.kaiju_db_names} -i {input.kaiju_out} \
+            -o {output.kaiju_names} -v &> {log}
+        """

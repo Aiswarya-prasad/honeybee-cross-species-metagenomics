@@ -14,11 +14,11 @@ targets:
     - build_bwa_index
 """
 
-rule rename_scaffolds:
+rule build_bwa_index:
     input:
-        scaffolds = rules.assemble_metagenomes.output.scaffolds,
+        scaffolds = "results/07_MAG_binng_QC/00_assembled_scaffolds/{sample}/{sample_assembly}_scaffolds.fasta"
     output:
-        scaffolds = "results/07_MAG_binng_QC/00_assembled_scaffolds/{sample}/{sample_assembly}_scaffolds.fasta",
+        bwa_index = multiext("results/07_MAG_binng_QC/00_assembled_scaffolds/{sample}/{sample_assembly}_scaffolds.fasta", ".amb", ".ann", ".bwt", ".pac", ".sa"),
     params:
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
@@ -28,37 +28,13 @@ rule rename_scaffolds:
     resources:
         mem_mb = 8000
     threads: 4
-    log: "results/07_MAG_binng_QC/00_assembled_scaffolds/{sample}/{sample_assembly}_rename_scaffolds.log"
-    benchmark: "results/07_MAG_binng_QC/00_assembled_scaffolds/{sample}/{sample_assembly}_rename_scaffolds.benchmark"
-    conda: "../config/envs/scripts-env.yaml"
+    log: "results/07_MAG_binng_QC/00_assembled_scaffolds/{sample}/{sample_assembly}_build_bwa_index.log"
+    benchmark: "results/07_MAG_binng_QC/00_assembled_scaffolds/{sample}/{sample_assembly}_build_bwa_index.benchmark"
+    conda: "../config/envs/mapping-env.yaml"
     shell:
         """
-        python3 scripts/rename_scaffolds.py --scaffolds_in {input.scaffolds} --scaffolds_out {output.scaffolds} --sample {wildcards.sample} &>> {log}
+        bwa index {input.scaffolds} &>> {log}
         """
-# # ran separately in a different directory
-# copied using the command
-# 
-# rule build_bwa_index:
-#     input:
-#         scaffolds = "results/07_MAG_binng_QC/00_assembled_scaffolds/{sample}/{sample_assembly}_scaffolds.fasta"
-#     output:
-#         bwa_index = multiext("results/07_MAG_binng_QC/00_assembled_scaffolds/{sample}/{sample_assembly}_scaffolds.fasta", ".amb", ".ann", ".bwt", ".pac", ".sa"),
-#     params:
-#         mailto="aiswarya.prasad@unil.ch",
-#         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-#         jobname="build_bwa_index",
-#         account="pengel_spirit",
-#         runtime_s=convertToSec("0-2:10:00"),
-#     resources:
-#         mem_mb = 8000
-#     threads: 4
-#     log: "results/07_MAG_binng_QC/00_assembled_scaffolds/{sample}/{sample_assembly}_build_bwa_index.log"
-#     benchmark: "results/07_MAG_binng_QC/00_assembled_scaffolds/{sample}/{sample_assembly}_build_bwa_index.benchmark"
-#     conda: "../config/envs/mapping-env.yaml"
-#     shell:
-#         """
-#         bwa index {input.scaffolds} &>> {log}
-#         """
 
 # rule backmapping:
 #     input:

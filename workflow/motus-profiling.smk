@@ -15,8 +15,10 @@ targets:
 
 rule run_motus:
     input:
-        reads1 = "results/01_trimmedconcatreads/{sample}_R1.fastq.gz",
-        reads2 = "results/01_trimmedconcatreads/{sample}_R2.fastq.gz",
+        # reads1 = "results/01_trimmedconcatreads/{sample}_R1.fastq.gz",
+        # reads2 = "results/01_trimmedconcatreads/{sample}_R2.fastq.gz",
+        reads1 = "results/01_cleanreads/{sample}_R1_repaired.fastq.gz",
+        reads2 = "results/01_cleanreads/{sample}_R2_repaired.fastq.gz",
     output:
         motus_temp = "results/02_motus_profile/{sample}.motus"
     params:
