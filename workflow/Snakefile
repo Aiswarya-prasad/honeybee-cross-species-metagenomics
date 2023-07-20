@@ -77,7 +77,7 @@ rule targets:
         profile_plots = expand("results/10_instrain/04_instrain_plot_marker/{sample}_profile_plots.done", sample=SAMPLES),
         # compare_plots = "results/10_instrain/04_instrain_plot_marker/compare_plots.done",
         orthofinder_out = lambda wildcards: expand("results/11_phylogenies/02_orthofinder_results/{genus}/Results_{genus}/Species_Tree/SpeciesTree_rooted.txt", genus = get_significant_genera(checkpoints.mag_metadata_summary.get().output.metadata)),
-        # request DCSR to allow longer than 3 days for 5 of the genera - do this with final MAGs
+        # request DCSR to allow longer than 3 days for 5 of the genera - do for final MAGs
         orthofinder_out_iqtree = lambda wildcards: expand("results/11_phylogenies/02_orthofinder_results/{genus}/Results_{genus}_iqtree/Species_Tree/SpeciesTree_rooted.txt", genus = get_significant_genera(checkpoints.mag_metadata_summary.get().output.metadata)),
         kaiju = expand("results/05_assembly/contig_fates/kaiju/nr/{sample}_names.txt", sample=SAMPLES_INDIA+SAMPLES_MY),
         kaiju_full = expand("results/05_assembly/contig_fates/kaiju/nr/{sample}_fullnames.txt", sample=SAMPLES_INDIA+SAMPLES_MY),
