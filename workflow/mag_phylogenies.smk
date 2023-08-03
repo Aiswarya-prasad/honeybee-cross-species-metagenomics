@@ -17,6 +17,7 @@ checkpoint make_phylo_metadata:
     input:
         mag_metadata = lambda wildcards: checkpoints.mag_metadata_summary.get().output.metadata,
         Isolate_metadata = "config/Outgroup_isolate_genomes.tsv",
+        assembly_summary = "results/11_phylogenies/assembly_summary.txt"
     output:
         phylo_metadata = "results/11_phylogenies/phylo_genomes_metadata.tsv",
     params:
@@ -57,12 +58,45 @@ rule download_assembly_summary:
         wget ftp://ftp.ncbi.nlm.nih.gov/genomes/genbank/bacteria/assembly_summary.txt -O {output.assembly_summary}
         """
 
+rule rename_prodigal_checkm:
+    input:
+        prodigal_checkm_faa = lambda wildcards: f"results/09_MAGs_collection/prodigal_output/from_checkm/{wildcards.mag}.faa",
+        prodigal_checkm_gff = lambda wildcards: f"results/09_MAGs_collection/prodigal_output/from_checkm/{wildcards.mag}.gff",
+        mag_fa = "results/09_MAGs_collection/MAGs/{mag}.fa",
+        collected = lambda wildcards: checkpoints.collect_prodigal_from_checkm.get().output.collected
+    output:
+        renamed_ffn = "results/09_MAGs_collection/prodigal_output/renamed_for_pangenome/{mag}/{mag}.ffn",
+        renamed_faa = "results/09_MAGs_collection/prodigal_output/renamed_for_pangenome/{mag}/{mag}.faa",
+        renamed_gff = "results/09_MAGs_collection/prodigal_output/renamed_for_pangenome/{mag}/{mag}.gff",
+        renamed_bed = "results/09_MAGs_collection/prodigal_output/renamed_for_pangenome/{mag}/{mag}.bed"
+    params:
+        sample_name = lambda wildcards: wildcards.mag.split("_")[0],
+        outdir = "results/09_MAGs_collection/prodigal_output/renamed_for_pangenome",
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-2:10:00"),
+    threads: 4
+    log: "results/09_MAGs_collection/prodigal_output/renamed_for_pangenome/{mag}_rename_prodigal.log"
+    benchmark: "results/09_MAGs_collection/prodigal_output/renamed_for_pangenome/{mag}_rename_prodigal.benchmark"
+    conda: "../config/envs/genes-env.yaml"
+    shell:
+        """
+        cat {input.prodigal_checkm_faa} | sed -e 's/ID=/ID={wildcards.mag}_/g' > {output.renamed_faa}
+        cat {input.prodigal_checkm_gff} | sed -e 's/ID=/ID={wildcards.mag}_/g' > {output.renamed_gff}
+        python3 scripts/gff_to_bed.py --gff {output.renamed_gff} --bed {output.renamed_bed}
+        bedtools getfasta -fi {input.mag_fa} -bed {output.renamed_bed} -fo {output.renamed_ffn}
+        # python3 scripts/gff_to_bed.py --gff {output.renamed_gff} --bed {output.renamed_bed} --rename
+        # bedtools getfasta -fi {input.mag_fa} -bed {output.renamed_bed} -fo {output.renamed_ffn} -nameOnly
+        """
+
 rule prepare_genomes_faa:
     input:
         phylo_genomes_metadata = "results/11_phylogenies/phylo_genomes_metadata.tsv",
         assembly_summary = "results/11_phylogenies/assembly_summary.txt",
         genome_file_faa = lambda wildcards: get_genome_path(wildcards.genome, checkpoints.mag_metadata_summary.get().output.metadata, "faa")["path"],
         genome_file_ffn = lambda wildcards: get_genome_path(wildcards.genome, checkpoints.mag_metadata_summary.get().output.metadata, "ffn")["path"],
+        collected = lambda wildcards: checkpoints.collect_prodigal_from_checkm.get().output.collected
     output:
         genome_faa = "results/11_phylogenies/00_genomes/{genome}/{genome}_original.faa",
         genome_ffn = "results/11_phylogenies/00_genomes/{genome}/{genome}_original.ffn",

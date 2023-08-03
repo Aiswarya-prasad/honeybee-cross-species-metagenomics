@@ -12,37 +12,7 @@ targets:
     - ...
 """
 
-rule rename_prodigal_checkm:
-    input:
-        prodigal_checkm_faa = "results/09_MAGs_collection/All_mags_sub/prodigal_output/from_checkm/{mag}.faa",
-        prodigal_checkm_gff = "results/09_MAGs_collection/All_mags_sub/prodigal_output/from_checkm/{mag}.gff",
-        mag_fa = "results/09_MAGs_collection/All_mags_sub/MAGs/{mag}.fa",
-        collected = "results/09_MAGs_collection/All_mags_sub/prodigal_output/collect_from_checkm.done"
-    output:
-        renamed_ffn = "results/09_MAGs_collection/All_mags_sub/prodigal_output/renamed_for_pangenome/{mag}/{mag}.ffn",
-        renamed_faa = "results/09_MAGs_collection/All_mags_sub/prodigal_output/renamed_for_pangenome/{mag}/{mag}.faa",
-        renamed_gff = "results/09_MAGs_collection/All_mags_sub/prodigal_output/renamed_for_pangenome/{mag}/{mag}.gff",
-        renamed_bed = "results/09_MAGs_collection/All_mags_sub/prodigal_output/renamed_for_pangenome/{mag}/{mag}.bed"
-    params:
-        sample_name = lambda wildcards: wildcards.mag.split("_")[0],
-        outdir = "results/09_MAGs_collection/All_mags_sub/prodigal_output/renamed_for_pangenome",
-        mailto="aiswarya.prasad@unil.ch",
-        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        account="pengel_spirit",
-        runtime_s=convertToSec("0-2:10:00"),
-    threads: 4
-    log: "results/09_MAGs_collection/All_mags_sub/prodigal_output/renamed_for_pangenome/{mag}_rename_prodigal.log"
-    benchmark: "results/09_MAGs_collection/All_mags_sub/prodigal_output/renamed_for_pangenome/{mag}_rename_prodigal.benchmark"
-    conda: "../config/envs/genes-env.yaml"
-    shell:
-        """
-        cat {input.prodigal_checkm_faa} | sed -e 's/ID=/ID={wildcards.mag}_/g' > {output.renamed_faa}
-        cat {input.prodigal_checkm_gff} | sed -e 's/ID=/ID={wildcards.mag}_/g' > {output.renamed_gff}
-        python3 scripts/gff_to_bed.py --gff {output.renamed_gff} --bed {output.renamed_bed}
-        bedtools getfasta -fi {input.mag_fa} -bed {output.renamed_bed} -fo {output.renamed_ffn}
-        # python3 scripts/gff_to_bed.py --gff {output.renamed_gff} --bed {output.renamed_bed} --rename
-        # bedtools getfasta -fi {input.mag_fa} -bed {output.renamed_bed} -fo {output.renamed_ffn} -nameOnly
-        """
+
 
 # rule motupan:
 #     input:

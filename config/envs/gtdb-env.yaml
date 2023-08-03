@@ -1,0 +1,16 @@
+name: gtdb-env
+
+channels:
+  - conda-forge
+  - bioconda
+  - hcc
+
+dependencies:
+  # https://ecogenomics.github.io/GTDBTk/installing/index.html for versions
+  - python>=3.6
+  - prodigal>=2.6.2
+  - pplacer
+  - fastani>=1.32
+  - fasttree>=2.1.9
+  - mash>=2.2
+  - gtdbtk=2.3.2

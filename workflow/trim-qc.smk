@@ -131,28 +131,28 @@ rule concatenate_reads:
         cat {input.reads} > {output.concat_reads}
         """
 
-rule re_pair_reads:
-    input:
-        reads1 = "results/01_trimmedconcatreads/{sample}_R1.fastq.gz",
-        reads2 = "results/01_trimmedconcatreads/{sample}_R2.fastq.gz"
-    output:
-        reads1 = "results/01_cleanreads/{sample}_R1_repaired.fastq.gz",
-        reads2 = "results/01_cleanreads/{sample}_R2_repaired.fastq.gz",
-        singletons = "results/01_cleanreads/{sample}_singletons.fastq.gz"
-    params:
-        java_mem="170", # 70 worked for most but 11/150 samples needed more - should not be more than 85% total memory requested
-        mailto="aiswarya.prasad@unil.ch",
-        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        jobname="{sample}_re-paired",
-        account="pengel_spirit",
-        runtime_s=convertToSec("0-23:00:00"),
-    resources:
-        mem_mb = convertToMb("400G")
-    threads: 2 # 4 worked for most but 11/150 samples needed more
-    log: "results/01_cleanreads/{sample}_repaired.log"
-    benchmark: "results/01_cleanreads/{sample}_repaired.benchmark"
-    conda: "../config/envs/mapping-env.yaml"
-    shell:
-        """
-        repair.sh -Xmx{params.java_mem}g threads={threads} in1={input.reads1} in2={input.reads2} out1={output.reads1} out2={output.reads2} outs={output.singletons} repair &> {log}
-        """
+# rule re_pair_reads:
+#     input:
+#         reads1 = "results/01_trimmedconcatreads/{sample}_R1.fastq.gz",
+#         reads2 = "results/01_trimmedconcatreads/{sample}_R2.fastq.gz"
+#     output:
+#         reads1 = "results/01_cleanreads/{sample}_R1_repaired.fastq.gz",
+#         reads2 = "results/01_cleanreads/{sample}_R2_repaired.fastq.gz",
+#         singletons = "results/01_cleanreads/{sample}_singletons.fastq.gz"
+#     params:
+#         java_mem="170", # 70 worked for most but 11/150 samples needed more - should not be more than 85% total memory requested
+#         mailto="aiswarya.prasad@unil.ch",
+#         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+#         jobname="{sample}_re-paired",
+#         account="pengel_spirit",
+#         runtime_s=convertToSec("0-23:00:00"),
+#     resources:
+#         mem_mb = convertToMb("400G")
+#     threads: 2 # 4 worked for most but 11/150 samples needed more
+#     log: "results/01_cleanreads/{sample}_repaired.log"
+#     benchmark: "results/01_cleanreads/{sample}_repaired.benchmark"
+#     conda: "../config/envs/mapping-env.yaml"
+#     shell:
+#         """
+#         repair.sh -Xmx{params.java_mem}g threads={threads} in1={input.reads1} in2={input.reads2} out1={output.reads1} out2={output.reads2} outs={output.singletons} repair &> {log}
+#         """

@@ -239,10 +239,10 @@ def get_genome_path(genome, metadata, type):
                     print(f"please check the {genome} name and the assembly_summary.txt file")
                     sys.exit(1)
         else:
-            fna_path = f"results/09_MAGs_collection/All_mags_sub/MAGs/{genome}.fa"
-            # faa_path = f"results/09_MAGs_collection/All_mags_sub/prodigal_output/from_checkm/{genome}.faa"
-            faa_path = f"results/09_MAGs_collection/All_mags_sub/prodigal_output/renamed_for_pangenome/{genome}/{genome}.faa",
-            ffn_path = f"results/09_MAGs_collection/All_mags_sub/prodigal_output/renamed_for_pangenome/{genome}/{genome}.ffn",
+            fna_path = f"results/09_MAGs_collection/MAGs/{genome}.fa"
+            # faa_path = f"results/09_MAGs_collection/prodigal_output/from_checkm/{genome}.faa"
+            faa_path = f"results/09_MAGs_collection/prodigal_output/renamed_for_pangenome/{genome}/{genome}.faa",
+            ffn_path = f"results/09_MAGs_collection/prodigal_output/renamed_for_pangenome/{genome}/{genome}.ffn",
             if type == "fna":
                 returned_path = fna_path
             if type == "faa":

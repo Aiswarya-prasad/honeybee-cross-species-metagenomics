@@ -55,7 +55,9 @@ rule targets:
         html_qc_raw = [f"results/00_rawreads/fastqc/{x.split('.fastq.gz')[0]}_fastqc.html" for x in get_list_of_values(get_renamed_input_files(raw_paths_dict))],
         # all_reads_assemblies = [f"results/00_trimmedreads/{x.split('.fastq.gz')[0]}_trim.fastq.gz" for x in get_list_of_values(get_renamed_input_files(raw_paths_dict))],
         html_qc_trim = [f"results/00_trimmedreads/fastqc/{x.split('.fastq.gz')[0]}_trim_fastqc.html" for x in get_list_of_values(get_renamed_input_files(raw_paths_dict))],
-        concat_reads = expand("results/01_trimmedconcatreads/{sample}_{read}.fastq.gz", sample = SAMPLES, read = ["R1", "R2"]),
+        # concat_reads = expand("results/01_trimmedconcatreads/{sample}_{read}.fastq.gz", sample = SAMPLES, read = ["R1", "R2"]),
+        reads1 = expand("results/01_cleanreads/{sample}_R1_repaired.fastq.gz", sample = SAMPLES),
+        reads2 = expand("results/01_cleanreads/{sample}_R2_repaired.fastq.gz", sample = SAMPLES),
         motus_merged = "results/02_motus_profile/samples_merged.motus",
         flagstat = expand("results/03_host_mapping/{sample}_flagstat.txt", sample = SAMPLES),
         orfs = expand("results/06_metagenomicORFs/{sample}/filt_orfs/{sample}.ffn", sample = SAMPLES_INDIA+SAMPLES_MY),
@@ -79,10 +81,12 @@ rule targets:
         orthofinder_out = lambda wildcards: expand("results/11_phylogenies/02_orthofinder_results/{genus}/Results_{genus}/Species_Tree/SpeciesTree_rooted.txt", genus = get_significant_genera(checkpoints.mag_metadata_summary.get().output.metadata)),
         # request DCSR to allow longer than 3 days for 5 of the genera - do for final MAGs
         orthofinder_out_iqtree = lambda wildcards: expand("results/11_phylogenies/02_orthofinder_results/{genus}/Results_{genus}_iqtree/Species_Tree/SpeciesTree_rooted.txt", genus = get_significant_genera(checkpoints.mag_metadata_summary.get().output.metadata)),
+        kraken = expand("results/05_assembly/contig_fates/kraken2/{sample}_report.txt", sample=SAMPLES_INDIA+SAMPLES_MY),
         kaiju = expand("results/05_assembly/contig_fates/kaiju/nr/{sample}_names.txt", sample=SAMPLES_INDIA+SAMPLES_MY),
         kaiju_full = expand("results/05_assembly/contig_fates/kaiju/nr/{sample}_fullnames.txt", sample=SAMPLES_INDIA+SAMPLES_MY),
         kaiju_genes = "results/08_gene_content/04_kaiju_on_genes/nr/gene_catalog_all_taxa.txt",
         kaiju_genes_full = "results/08_gene_content/04_kaiju_on_genes/nr/gene_catalog_all_taxa_full.txt",
+        kraken_genes = "results/08_gene_content/04_kraken2_on_genes/gene_catalog_all_report.txt",
         # contig_fates = "results/05_assembly/contig_fates/{sample}_contig_fates.tsv"
 
 

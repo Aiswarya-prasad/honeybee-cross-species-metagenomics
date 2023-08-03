@@ -112,7 +112,7 @@ rule gtdbtk_batchfile:
     output:
         batchfile = "results/09_MAGs_collection/gtdb_input_batchfile.tsv"
     params:
-        genomes_dir="results/09_MAGs_collection/mags",
+        genomes_dir="results/09_MAGs_collection/MAGs",
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         account="pengel_spirit",
@@ -135,21 +135,21 @@ rule gtdb_annotate:
     input:
         batchfile = "results/09_MAGs_collection/gtdb_input_batchfile.tsv"
     output:
-        tax_info = "/scratch/aprasad/20230313_apis_species_comparison/results/09_MAGs_collection/gtdb_output/classify/All_mags_sub.bac120.summary.tsv",
-        tax_info_ar = "/scratch/aprasad/20230313_apis_species_comparison/results/09_MAGs_collection/gtdb_output/classify/All_mags_sub.ar53.summary.tsv",
+        tax_info = "results/09_MAGs_collection/gtdb_output/classify/20230313_MAGs.bac120.summary.tsv",
+        tax_info_ar = "results/09_MAGs_collection/gtdb_output/classify/20230313_MAGs.ar53.summary.tsv",
     params:
         path_to_db="/work/FAC/FBM/DMF/pengel/spirit/aprasad/gtdb/release214/", # new db
-        prefix = "All_mags_sub",
+        prefix = "20230313_MAGs",
         mash_path = "results/09_MAGs_collection/gtdb_output/mash_sketch/cli/mash_db.msh",
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         jobname="gtdb_annotate",
         account="pengel_spirit",
-        runtime_s=convertToSec("3-00:00:00"),
+        runtime_s=convertToSec("1-00:00:00"),
     resources:
         mem_mb = convertToMb("512G")
     threads: 8
-    conda: "../config/envs/mags-env.yaml"
+    conda: "../config/envs/gtdb-env.yaml"
     log: "results/09_MAGs_collection/gtdb_annotate.log"
     benchmark: "results/09_MAGs_collection/gtdb_annotate.benchmark"
     shell:
@@ -157,7 +157,7 @@ rule gtdb_annotate:
         # set up path to database
         export GTDBTK_DATA_PATH={params.path_to_db}
         out_file={output.tax_info}
-        gtdbtk classify_wf --batchfile {input.batchfile} --out_dir ${{out_file/\/classify\/gtdbtk.bac120.summary.tsv/}} \
+        gtdbtk classify_wf --batchfile {input.batchfile} --out_dir ${{out_file%%/classify*}} \
             --extension ".fa" --write_single_copy_genes --keep_intermediates \
             --prefix {params.prefix} --mash_db {params.mash_path} \
             --cpus {threads}
@@ -168,8 +168,8 @@ rule make_drep_genome_info:
         checkm_merged = "results/09_MAGs_collection/checkm_merged.tsv",
         collect_mags_marker = lambda wildcards: checkpoints.collect_mags.get().output.collect_mags_marker
     output:
-        drep_genomeinfo = "results/09_MAGs_collection/drep_genome_info.tsv",
-        mags_collected = touch("results/09_MAGs_collection/high_medium_mags/collect_mags.done")
+        drep_genomeinfo = "results/09_MAGs_collection/drep_genome_info.tsv"
+        # mags_collected = touch("results/09_MAGs_collection/high_medium_mags/collect_mags.done")
     params:
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
@@ -182,7 +182,6 @@ rule make_drep_genome_info:
     log: "results/09_MAGs_collection/drep_genome_info.log"
     benchmark: "results/09_MAGs_collection/drep_genome_info.benchmark"
     run:
-        shell("mkdir -p results/09_MAGs_collection/high_medium_mags")
         with open(output.drep_genomeinfo, "w") as out_fh:
             out_fh.write("genome,completeness,contamination\n")
             with open(input.checkm_merged, "r") as in_fh:
@@ -197,12 +196,46 @@ rule make_drep_genome_info:
                     genome = line.split("\t")[ind_genome]
                     completeness = line.split("\t")[ind_comp]
                     contamination = line.split("\t")[ind_cont]
-                    if float(completeness) > 50 and float(contamination) < 10:
-                        shell(f"cp results/09_MAGs_collection/MAGs/{genome}.fa results/09_MAGs_collection/high_medium_mags/")
-                        out_fh.write(f"{genome}.fa,{completeness},{contamination}\n")
+                    out_fh.write(f"{genome}.fa,{completeness},{contamination}\n")
 
 # only dereplicate high and medium quality MAGs
-# as the step is computationally expensive
+# rule make_drep_genome_info:
+#     input:
+#         checkm_merged = "results/09_MAGs_collection/checkm_merged.tsv",
+#         collect_mags_marker = lambda wildcards: checkpoints.collect_mags.get().output.collect_mags_marker
+#     output:
+#         drep_genomeinfo = "results/09_MAGs_collection/drep_genome_info.tsv",
+#         mags_collected = touch("results/09_MAGs_collection/high_medium_mags/collect_mags.done")
+#     params:
+#         mailto="aiswarya.prasad@unil.ch",
+#         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+#         jobname="make_drep_genome_info",
+#         account="pengel_spirit",
+#         runtime_s=convertToSec("0-04:00:00"),
+#     resources:
+#         mem_mb = convertToMb("2G")
+#     threads: 4
+#     log: "results/09_MAGs_collection/drep_genome_info.log"
+#     benchmark: "results/09_MAGs_collection/drep_genome_info.benchmark"
+#     run:
+#         shell("mkdir -p results/09_MAGs_collection/high_medium_mags")
+#         with open(output.drep_genomeinfo, "w") as out_fh:
+#             out_fh.write("genome,completeness,contamination\n")
+#             with open(input.checkm_merged, "r") as in_fh:
+#                 header = in_fh.readline()
+#                 header = header.strip().split("\t")
+#                 ind_genome = header.index("Bin Id")
+#                 ind_comp = header.index("Completeness")
+#                 ind_cont = header.index("Contamination")
+#                 for line in in_fh:
+#                     if "unbinned" in line:
+#                         continue
+#                     genome = line.split("\t")[ind_genome]
+#                     completeness = line.split("\t")[ind_comp]
+#                     contamination = line.split("\t")[ind_cont]
+#                     if float(completeness) > 50 and float(contamination) < 10:
+#                         shell(f"cp results/09_MAGs_collection/MAGs/{genome}.fa results/09_MAGs_collection/high_medium_mags/")
+#                         out_fh.write(f"{genome}.fa,{completeness},{contamination}\n")
 
 rule drep_dereplicate:
     input:
@@ -226,7 +259,7 @@ rule drep_dereplicate:
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         jobname="drep_dereplicate",
         account="pengel_spirit",
-        runtime_s=convertToSec("3-00:00:00"),
+        runtime_s=convertToSec("1-00:00:00"),
     resources:
         mem_mb = convertToMb("250G")
     threads: 8
@@ -246,7 +279,7 @@ rule drep_dereplicate:
 
 checkpoint mag_metadata_summary:
     input:
-        gtdb = "/scratch/aprasad/20230313_apis_species_comparison/results/09_MAGs_collection/gtdb_output/classify/All_mags_sub.bac120.summary.tsv",
+        gtdb = "results/09_MAGs_collection/gtdb_output/classify/20230313_MAGs.bac120.summary.tsv",
         checkm = "results/09_MAGs_collection/checkm_merged.tsv",
         drep_gI = "results/09_MAGs_collection/drep_output/data_tables/genomeInformation.csv",
         drep_Wi = "results/09_MAGs_collection/drep_output/data_tables/Widb.csv",
@@ -281,7 +314,9 @@ checkpoint mag_metadata_summary:
             --outfile {output.metadata}
         """
 
-rule collect_prodigal_from_checkm:
+# this is a checkpoint becuase it does the collection for all the MAGs for which checkm already ran prodigal
+# rules using the results of prodigal for mags should only be run after this rule
+checkpoint collect_prodigal_from_checkm:
     input:
         # ensure checkm is run for all the samples from which MAGs were made
         checkm_merged = "results/09_MAGs_collection/checkm_merged.tsv"
@@ -311,11 +346,11 @@ rule summarize_contig_fates:
         kaiju_names = "results/05_assembly/contig_fates/kaiju/nr/{sample}_names.txt",
         kaiju_names_full = "results/05_assembly/contig_fates/kaiju/nr/{sample}_fullnames.txt",
         bins_directory = "results/07_MAG_binng_QC/02_bins/{sample}",
-        gtdb_bac = "results/09_MAGs_collection/gtdb_output/classify/All_mags_sub.bac120.summary.tsv",
-        gtdb_ar = "results/09_MAGs_collection/gtdb_output/classify/All_mags_sub.ar53.summary.tsv",
+        gtdb_bac = "results/09_MAGs_collection/gtdb_output/classify/20230313_MAGs.bac120.summary.tsv",
+        gtdb_ar = "results/09_MAGs_collection/gtdb_output/classify/20230313_MAGs.ar53.summary.tsv",
         # kraken too
     output:
-        contig_fates = "results/05_assembly/contig_fates/{sample}_contig_fates.tsv"
+        contig_fates = "results/05_assembly/contig_fates/{sample}/{sample}_contig_fates.tsv"
     params:
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",

@@ -25,7 +25,7 @@ rule run_motus:
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         account="pengel_spirit",
-        runtime_s=convertToSec("0-2:10:00"),
+        runtime_s=convertToSec("0-5:10:00"),
         jobname="run_motus_{sample}"
     resources:
         mem_mb = convertToMb("50G")

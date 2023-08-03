@@ -114,13 +114,27 @@ rule prodigal_filt_orfs:
             --sample {wildcards.sample} --log {output.filt_log}
         """
 
-# # ffn to gff rule also
-# rule get_filt_orfs_gff:
-#     input:
-#         filt_ffn = "results/06_metagenomicORFs/{sample}/filt_orfs/{sample}.ffn",
-#         gff = "results/06_metagenomicORFs/{sample}/prodigal_out/{sample}.gff",
-#     output:
-#         gff_filt = "results/06_metagenomicORFs/{sample}/filt_orfs/{sample}.gff",
+rule get_filt_orfs_gff:
+    input:
+        filt_ffn = "results/06_metagenomicORFs/{sample}/filt_orfs/{sample}.ffn",
+        gff = "results/06_metagenomicORFs/{sample}/prodigal_out/{sample}.gff",
+    output:
+        filt_gff = "results/06_metagenomicORFs/{sample}/filt_orfs/{sample}.gff"
+    params:
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-00:10:00"),
+    resources:
+        mem_mb = convertToMb("16G")
+    log: "results/06_metagenomicORFs/{sample}_get_filt_orfs_gff.log"
+    benchmark: "results/06_metagenomicORFs/{sample}_get_filt_orfs_gff.benchmark"
+    conda: "../config/envs/genes-env.yaml"
+    threads: 2
+    shell:
+        """
+        python3 scripts/get_filt_gff.py --ffn_in {input.filt_ffn} --gff_in {input.gff} --gff_out {output.filt_gff}
+        """
 
 rule get_filt_orfs_faa:
     input:
@@ -128,6 +142,7 @@ rule get_filt_orfs_faa:
         faa = "results/06_metagenomicORFs/{sample}/prodigal_out/{sample}.faa",
     output:
         headers = "results/06_metagenomicORFs/{sample}/filt_orfs/{sample}_headers.txt",
+        unfilt_faa = temp("results/06_metagenomicORFs/{sample}/filt_orfs/{sample}_unfilt.faa"),
         filt_faa = "results/06_metagenomicORFs/{sample}/filt_orfs/{sample}.faa"
     params:
         mailto="aiswarya.prasad@unil.ch",
@@ -143,7 +158,8 @@ rule get_filt_orfs_faa:
     shell:
         """
         grep \"^>\" {input.filt_ffn} | cut -f 2 -d \">\" | cut -f 1 -d \" \" > {output.headers}
-        seqtk subseq {input.faa} {output.headers} > {output.filt_faa}
+        python3 scripts/clean_faa_header.py -i {input.faa} > {output.unfilt_faa}
+        seqtk subseq {output.unfilt_faa} {output.headers} > {output.filt_faa}
         """
 
 rule cdhit_clustering:
@@ -213,10 +229,12 @@ rule dram_annotate_orfs:
     threads: 8
     log: "results/08_gene_content/02_DRAM_annotations/{sample}_dram_annotate_orfs_{sample}.log"
     benchmark: "results/08_gene_content/02_DRAM_annotations/{sample}_dram_annotate_orfs_{sample}.benchmark"
-    conda: "../config/envs/mags-env.yaml"
+    conda: "../config/envs/dram-env.yaml"
     shell:
         """
-        ###
+        which DRAM.py &>> {log}
+        dram_annotations={output.dram_annotations} &>> {log}
+        dram_outdir=${{dram_annotations/annotations.tsv}} &>> {log}
         rm -rf ${{dram_outdir}} &>> {log} # snakemake creates it but DRAM will complain
         DRAM-setup.py import_config --config_loc {input.dram_config} &>> {log}
         DRAM.py annotate_genes -i {input.filt_faa} -o ${{dram_outdir}} \
@@ -277,7 +295,7 @@ rule profile_genes:
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         jobname="{sample}_profile_genes",
         account="pengel_spirit",
-        runtime_s=convertToSec("0-10:10:00"),
+        runtime_s=convertToSec("0-25:10:00"),
     resources:
         mem_mb = convertToMb("40G")
     threads: 4

@@ -10,17 +10,6 @@ from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from Bio.SeqIO.FastaIO import SimpleFastaParser
-import matplotlib.pyplot as plt
-import seaborn as sns
-import plotly.graph_objs as go
-import plotly.express as px
-import plotly.io as pio
-import plotly.figure_factory as ff
-import plotly.offline as offline
-from plotly.subplots import make_subplots
-from plotly.offline import plot, iplot
-from plotly.graph_objs import *
-from plotly import tools
 
 """
 This script reads the ffn file made by prodigal and makes a new one where the name of the contig
@@ -61,15 +50,15 @@ tax = args.tax
 taxtype = args.taxtype
 log = args.log
 
-# # for testing only
-# who="results/05_assembly/contig_fates/whokaryote/D6-1/whokaryote_predictions_S.tsv"
-# tax="results/05_assembly/contig_fates/kaiju/nr/D6-1_fullnames.txt"
+# for testing only
+# who="results/05_assembly/contig_fates/whokaryote/D2-4/whokaryote_predictions_S.tsv"
+# tax="results/05_assembly/contig_fates/kaiju/nr/D2-4_fullnames.txt"
 # taxtype="kaiju"
-# ffn_in="results/06_metagenomicORFs/D6-1/prodigal_out/D6-1.ffn"
-# ffn_out="results/06_metagenomicORFs/D6-1/filt_orfs/D6-1.ffn"
-# sample="D6-1"
-# log="results/06_metagenomicORFs/D6-1/orfs_filt_sumary.log"
-# # 
+# ffn_in="results/06_metagenomicORFs/D2-4/prodigal_out/D2-4.ffn"
+# ffn_out="results/06_metagenomicORFs/D2-4/filt_orfs/D2-4.ffn"
+# sample="D2-4"
+# log="results/06_metagenomicORFs/D2-4/orfs_filt_sumary.log"
+# 
 
 count_records = 0
 lost_records_length_partial = 0
@@ -89,16 +78,37 @@ with open(who, "r") as who_fh:
             whokaryote = line.split("\t")[1]
             contigs_karyote[contig] = whokaryote
 
-tax_df = pd.read_csv(tax, sep="\t", header=None)
+tax_df = pd.DataFrame(columns=["classification", "contig", "taxonomy"])
 
+with open(tax, "r") as tax_fh:
+    rows_to_concat = []
+    for line in tax_fh:
+        line = line.strip()
+        data = line.split("\t")
+        classification = data[0]
+        contig = data[1]
+        taxonomy = ''
+        if classification == 'C':
+            try:
+                taxonomy = data[7]
+            except IndexError:
+                if data[2] == '1':
+                    taxonomy = 'root'
+        elif classification == 'U':
+            taxonomy = 'unknown'
+
+        # Append the data as a dictionary to the list
+        rows_to_concat.append({"classification": classification, "contig": contig, "taxonomy": taxonomy})
+
+# Concatenate the list of dictionaries to create the DataFrame
+tax_df = pd.concat([tax_df, pd.DataFrame(rows_to_concat)], ignore_index=True)
+
+# contig_name = "NODE_169933_length_1001_cov_4.932347"
 def tax_info_ok(contig_name):
     if taxtype == "kaiju":
-        tax_df[contig_name]
-        tax_df.loc[tax_df[0] == "U"]
-        # tax_df.loc[tax_df[1] == contig_name][7].values[0]
-        if tax_df.loc[tax_df[1] == contig_name][0].values[0] == 'U':
+        if tax_df.loc[tax_df["contig"] == contig_name]["classification"].values == 'U':
             return False
-        if tax_df.loc[tax_df[1] == contig_name][0].values[0] == 'C':
+        if tax_df.loc[tax_df["contig"] == contig_name]["classification"].values == 'C':
             return True
         print(f"could not determine tax info for contig {contig_name}")
     else:

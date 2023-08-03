@@ -79,7 +79,7 @@ outfile = args.outfile
 # bins_directory = f"/scratch/aprasad/20230313_apis_species_comparison/results/07_MAG_binng_QC/02_bins/{sample}/"
 # gtdb_bac = "/scratch/aprasad/20230313_apis_species_comparison/results/09_MAGs_collection/All_mags_sub/gtdb_output/classify/All_mags_sub.bac120.summary.tsv"
 # gtdb_ar = "/scratch/aprasad/20230313_apis_species_comparison/results/09_MAGs_collection/All_mags_sub/gtdb_output/classify/All_mags_sub.ar53.summary.tsv"
-# outfile = f"/scratch/aprasad/20230313_apis_species_comparison/results/05_assembly/contig_fates/contig_fates_{sample}.tsv"
+# outfile = f"/scratch/aprasad/20230313_apis_species_comparison/results/05_assembly/contig_fates/{sample}/contig_fates_{sample}.tsv"
 
 contig_ids = []
 contig_ids_dict = {}

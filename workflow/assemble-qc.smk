@@ -302,13 +302,13 @@ rule run_kaiju_scaffolds:
                 -i {input.scaffolds} -v -a mem &> {log}
         """
 
-rule run_kraken_scaffolds:
+rule run_kraken2_scaffolds:
     input:
         scaffolds = "results/05_assembly/all_reads_assemblies/{sample}_scaffolds.fasta",
     output:
-        kraken_out = "results/05_assembly/contig_fates/kraken2/{sample}.kraken",
         kraken_report = "results/05_assembly/contig_fates/kraken2/{sample}_report.txt",
     params:
+        kraken_out = "results/05_assembly/contig_fates/kraken2/{sample}.kraken",
         kraken_db = "data/220131_costum_kraken2db",
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
@@ -323,8 +323,8 @@ rule run_kraken_scaffolds:
     shell:
         """
         kraken2 --use-names --threads {threads} --db {params.kraken_db} \
-                --report {output.kraken_report} --output {output.kraken_out} \
-                 {input.ffn_input}o &> {log}
+                --report {output.kraken_report} --output {params.kraken_out} \
+                 {input.scaffolds}o &> {log}
         """
 
 rule run_kaiju_scaffolds_taxonomy:
@@ -385,9 +385,9 @@ rule run_kraken2_genes:
     input:
         ffn_input = "results/08_gene_content/20230313_gene_catalog.ffn",
     output:
-        kraken_out = "results/08_gene_content/04_kraken2_on_genes/gene_catalog_all.kraken",
         kraken_report = "results/08_gene_content/04_kraken2_on_genes/gene_catalog_all_report.txt",
     params:
+        kraken_out = "results/08_gene_content/04_kraken2_on_genes/gene_catalog_all.kraken",
         kraken_db = "data/220131_costum_kraken2db",
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
@@ -402,7 +402,7 @@ rule run_kraken2_genes:
     shell:
         """
         kraken2 --use-names --threads {threads} --db {params.kraken_db} \
-                --report {output.kraken_report} --output {output.kraken_out} \
+                --report {output.kraken_report} --output {params.kraken_out} \
                  {input.ffn_input}o &> {log}
         """
 
