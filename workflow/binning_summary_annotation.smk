@@ -314,30 +314,6 @@ checkpoint mag_metadata_summary:
             --outfile {output.metadata}
         """
 
-# this is a checkpoint becuase it does the collection for all the MAGs for which checkm already ran prodigal
-# rules using the results of prodigal for mags should only be run after this rule
-checkpoint collect_prodigal_from_checkm:
-    input:
-        # ensure checkm is run for all the samples from which MAGs were made
-        checkm_merged = "results/09_MAGs_collection/checkm_merged.tsv"
-    output:
-        collected = "results/09_MAGs_collection/prodigal_output/collect_from_checkm.done"
-    params:
-        # pattern to use in script to collect prodigal genes from checkm
-        # checkm_prodigal_genes = "results/07_MAG_binng_QC/03_checkm_results/*/bins/*",
-        outdir = "results/09_MAGs_collection/prodigal_output/from_checkm",
-        mailto="aiswarya.prasad@unil.ch",
-        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        account="pengel_spirit",
-        runtime_s=convertToSec("0-2:10:00"),
-    threads: 4
-    shell:
-        """
-        bash scripts/collect_prodigal_from_checkm.sh \
-            {params.outdir} \
-            {output.collected}
-        """
-
 rule summarize_contig_fates:
     input:
         scaffolds = "results/05_assembly/all_reads_assemblies/{sample}_scaffolds.fasta",

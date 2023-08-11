@@ -58,10 +58,35 @@ rule download_assembly_summary:
         wget ftp://ftp.ncbi.nlm.nih.gov/genomes/genbank/bacteria/assembly_summary.txt -O {output.assembly_summary}
         """
 
+# this is a checkpoint becuase it does the collection for all the MAGs for which checkm already ran prodigal
+# rules using the results of prodigal for mags should only be run after this rule
+# puts the checkm outputs at "outdir"
+checkpoint collect_prodigal_from_checkm:
+    input:
+        # ensure checkm is run for all the samples from which MAGs were made
+        checkm_merged = "results/09_MAGs_collection/checkm_merged.tsv"
+    output:
+        collected = "results/09_MAGs_collection/prodigal_output/collect_from_checkm.done"
+    params:
+        # pattern to use in script to collect prodigal genes from checkm
+        # checkm_prodigal_genes = "results/07_MAG_binng_QC/03_checkm_results/*/bins/*",
+        outdir = "results/09_MAGs_collection/prodigal_output/from_checkm",
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-2:10:00"),
+    threads: 4
+    shell:
+        """
+        bash scripts/collect_prodigal_from_checkm.sh \
+            {params.outdir} \
+            {output.collected}
+        """
+
 rule rename_prodigal_checkm:
     input:
-        prodigal_checkm_faa = lambda wildcards: f"results/09_MAGs_collection/prodigal_output/from_checkm/{wildcards.mag}.faa",
-        prodigal_checkm_gff = lambda wildcards: f"results/09_MAGs_collection/prodigal_output/from_checkm/{wildcards.mag}.gff",
+        # prodigal_checkm_faa = lambda wildcards: f"results/09_MAGs_collection/prodigal_output/from_checkm/{wildcards.mag}.faa",
+        # prodigal_checkm_gff = lambda wildcards: f"results/09_MAGs_collection/prodigal_output/from_checkm/{wildcards.mag}.gff",
         mag_fa = "results/09_MAGs_collection/MAGs/{mag}.fa",
         collected = lambda wildcards: checkpoints.collect_prodigal_from_checkm.get().output.collected
     output:
@@ -70,7 +95,7 @@ rule rename_prodigal_checkm:
         renamed_gff = "results/09_MAGs_collection/prodigal_output/renamed_for_pangenome/{mag}/{mag}.gff",
         renamed_bed = "results/09_MAGs_collection/prodigal_output/renamed_for_pangenome/{mag}/{mag}.bed"
     params:
-        sample_name = lambda wildcards: wildcards.mag.split("_")[0],
+        # sample_name = lambda wildcards: wildcards.mag.split("_")[0],
         outdir = "results/09_MAGs_collection/prodigal_output/renamed_for_pangenome",
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
@@ -86,17 +111,18 @@ rule rename_prodigal_checkm:
         cat {input.prodigal_checkm_gff} | sed -e 's/ID=/ID={wildcards.mag}_/g' > {output.renamed_gff}
         python3 scripts/gff_to_bed.py --gff {output.renamed_gff} --bed {output.renamed_bed}
         bedtools getfasta -fi {input.mag_fa} -bed {output.renamed_bed} -fo {output.renamed_ffn}
-        # python3 scripts/gff_to_bed.py --gff {output.renamed_gff} --bed {output.renamed_bed} --rename
-        # bedtools getfasta -fi {input.mag_fa} -bed {output.renamed_bed} -fo {output.renamed_ffn} -nameOnly
         """
-
+# needs them to be at "results/09_MAGs_collection/prodigal_output/renamed_for_pangenome/.."
+# as expected by get_genome_path()
+# if GCA... fails, edit the config/Outgroup_isolate_genomes.tsv file as needed and continue from there ->
+# often is it the last didgit after the "." that is different
+# phylometadata will be remade
 rule prepare_genomes_faa:
     input:
         phylo_genomes_metadata = "results/11_phylogenies/phylo_genomes_metadata.tsv",
         assembly_summary = "results/11_phylogenies/assembly_summary.txt",
         genome_file_faa = lambda wildcards: get_genome_path(wildcards.genome, checkpoints.mag_metadata_summary.get().output.metadata, "faa")["path"],
-        genome_file_ffn = lambda wildcards: get_genome_path(wildcards.genome, checkpoints.mag_metadata_summary.get().output.metadata, "ffn")["path"],
-        collected = lambda wildcards: checkpoints.collect_prodigal_from_checkm.get().output.collected
+        genome_file_ffn = lambda wildcards: get_genome_path(wildcards.genome, checkpoints.mag_metadata_summary.get().output.metadata, "ffn")["path"]
     output:
         genome_faa = "results/11_phylogenies/00_genomes/{genome}/{genome}_original.faa",
         genome_ffn = "results/11_phylogenies/00_genomes/{genome}/{genome}_original.ffn",

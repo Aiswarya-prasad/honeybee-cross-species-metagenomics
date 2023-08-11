@@ -30,7 +30,7 @@ GCA_000204985.1	100	GCA_000204985.1	DPC 6026	Lactobacillus johnsonii		Human 	Gut
 GCA_000967245.1	9.93	GCA_000967245.1	Hon2	Bombilactobacillus mellis		apis mellifera	Comparative genomics of the core gut microbiota of the honeybee, Apis mellifera - Uppsala University	g__Bombilactobacillus	NCBI/IMG	
 GCA_000970795.1	99.34	GCA_000970795.1	Bin4	Bombilactobacillus mellifer		apis mellifera	Comparative genomics of the core gut microbiota of the honeybee, Apis mellifera - Uppsala University	g__Bombilactobacillus	NCBI/IMG	
 GCA_003522965.1	100	GCA_003522965.1	BI-2.5	Bombilactobacillus bombi		bombus	Lactobacillus Genome sequencing	g__Bombilactobacillus	NCBI/IMG	
-GCA_000231445.1	100	GCA_000231445.1	A911	Commensalibacter intestini		Isolated from Drosophila melanogaster Intestine	Commensalibacter intestini A911	g__Commensalibacter	NCBI/IMG	
+GCA_000231445.2	100	GCA_000231445.2	A911	Commensalibacter intestini		Isolated from Drosophila melanogaster Intestine	Commensalibacter intestini A911	g__Commensalibacter	NCBI/IMG	
 GCA_000527695.1	100	GCA_000527695.1	MX01	Commensalibacter sp. MX01		Monarch butterfly		g__Commensalibacter	NCBI/IMG	MX-MONARCH01
 GCA_009725775.1	100	GCA_009725775.1	ESL0382	Commensalibacter sp. ESL0382		Apis mellifera gut	Genome sequencing of Acetobacteraceae residing in the gut of honey bees	g__Commensalibacter	NCBI/IMG	
 GCA_009725835.1	100	GCA_009725835.1	ESL0379	Commensalibacter sp. ESL0379		adult honey bee queen gut	Genome sequencing of Acetobacteraceae residing in the gut of honey bees	g__Commensalibacter	NCBI/IMG	
@@ -75,7 +75,7 @@ GCA_001690655.1	100	GCA_001690655.1	Occ3-1	Gilliamella apicola		Bombus occidenta
 GCA_013344985.1	100	GCA_013344985.1	ESL0254	Gilliamella sp		Bombus pascuorum		g__Gilliamella	-	
 GCA_013345045.1	100	GCA_013345045.1	ESL0250	Gilliamella sp		Bombus pascuorum		g__Gilliamella	-	
 GCA_013346885.1	100	GCA_013346885.1	ESL0232	Gilliamella sp		Bombus terrestris		g__Gilliamella	-	
-GCA_900094935.2	100	GCA_900094935.2	R-53144	Gilliamella intestini		soil?	Genomic Encyclopedia of Type Strains, Phase III (KMG-III): the genomes of soil and plant-associated and newly described type strains	g__Gilliamella	NCBI/IMG	
+GCA_900094935.1	100	GCA_900094935.1	R-53144	Gilliamella intestini		soil?	Genomic Encyclopedia of Type Strains, Phase III (KMG-III): the genomes of soil and plant-associated and newly described type strains	g__Gilliamella	NCBI/IMG	
 GCA_900094945.1	100	GCA_900094945.1	R-53248	Gilliamella bombicola		NA	NA	g__Gilliamella	NCBI/IMG	
 GCA_000014425.1	99.98	GCA_000014425.1	ATCC 33323	Lactobacillus gasseri		Human	Feces, Gastrointestinal tract, Host, Intestinal tract	g__Lactobacillus	NCBI/IMG	
 GCA_000179955.1	99.97	GCA_000179955.1	LEAF 2052A-d	Lactobacillus iners		Human	Human Microbiome Project (HMP) Reference Genomes	g__Lactobacillus	NCBI/IMG	

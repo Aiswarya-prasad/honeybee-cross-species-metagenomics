@@ -1,0 +1,30 @@
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 4
+Rules claiming more threads will be scaled down.
+Provided resources: mem_mb=1000, mem_mib=954, disk_mb=1000, disk_mib=954
+Select jobs to execute...
+
+[Thu Aug  3 17:02:59 2023]
+checkpoint collect_prodigal_from_checkm:
+    input: results/09_MAGs_collection/checkm_merged.tsv
+    output: results/09_MAGs_collection/prodigal_output/collect_from_checkm.done
+    jobid: 0
+    reason: Missing output files: results/09_MAGs_collection/prodigal_output/collect_from_checkm.done
+    threads: 4
+    resources: mem_mb=1000, mem_mib=954, disk_mb=1000, disk_mib=954, tmpdir=/tmp/31471776
+DAG of jobs will be updated after completion.
+
+
+        bash scripts/collect_prodigal_from_checkm.sh             results/09_MAGs_collection/prodigal_output/from_checkm             results/09_MAGs_collection/prodigal_output/collect_from_checkm.done
+        
+ImproperOutputException in rule collect_prodigal_from_checkm in file /scratch/aprasad/20230313_apis_species_comparison/workflow/mag_phylogenies.smk, line 64:
+Outputs of incorrect type (directories when expecting files or vice versa). Output directories must be flagged with directory(). for rule collect_prodigal_from_checkm:
+    output: results/09_MAGs_collection/prodigal_output/collect_from_checkm.done
+    affected files:
+        results/09_MAGs_collection/prodigal_output/collect_from_checkm.done
+Removing output files of failed job collect_prodigal_from_checkm since they might be corrupted:
+results/09_MAGs_collection/prodigal_output/collect_from_checkm.done
+Skipped removing non-empty directory results/09_MAGs_collection/prodigal_output/collect_from_checkm.done
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
