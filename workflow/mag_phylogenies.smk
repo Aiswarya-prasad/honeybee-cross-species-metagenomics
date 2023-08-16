@@ -89,6 +89,7 @@ rule rename_prodigal_checkm:
         # prodigal_checkm_gff = lambda wildcards: f"results/09_MAGs_collection/prodigal_output/from_checkm/{wildcards.mag}.gff",
         mag_fa = "results/09_MAGs_collection/MAGs/{mag}.fa",
         collected = lambda wildcards: checkpoints.collect_prodigal_from_checkm.get().output.collected
+        # results/09_MAGs_collection/prodigal_output/collect_from_checkm.done
     output:
         renamed_ffn = "results/09_MAGs_collection/prodigal_output/renamed_for_pangenome/{mag}/{mag}.ffn",
         renamed_faa = "results/09_MAGs_collection/prodigal_output/renamed_for_pangenome/{mag}/{mag}.faa",
@@ -107,8 +108,10 @@ rule rename_prodigal_checkm:
     conda: "../config/envs/genes-env.yaml"
     shell:
         """
-        cat {input.prodigal_checkm_faa} | sed -e 's/ID=/ID={wildcards.mag}_/g' > {output.renamed_faa}
-        cat {input.prodigal_checkm_gff} | sed -e 's/ID=/ID={wildcards.mag}_/g' > {output.renamed_gff}
+        collected={input.collected}
+        collected_dir=${{collected/collect_from_checkm.done/from_checkm}}
+        cat ${{collected_dir}}/{wildcards.mag}.faa | sed -e 's/ID=/ID={wildcards.mag}_/g' > {output.renamed_faa}
+        cat ${{collected_dir}}/{wildcards.mag}.gff | sed -e 's/ID=/ID={wildcards.mag}_/g' > {output.renamed_gff}
         python3 scripts/gff_to_bed.py --gff {output.renamed_gff} --bed {output.renamed_bed}
         bedtools getfasta -fi {input.mag_fa} -bed {output.renamed_bed} -fo {output.renamed_ffn}
         """
