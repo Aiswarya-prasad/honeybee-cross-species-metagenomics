@@ -324,7 +324,7 @@ rule run_kraken2_scaffolds:
         """
         kraken2 --use-names --threads {threads} --db {params.kraken_db} \
                 --report {output.kraken_report} --output {params.kraken_out} \
-                 {input.scaffolds}o &> {log}
+                 {input.scaffolds} &> {log}
         """
 
 rule run_kaiju_scaffolds_taxonomy:
@@ -354,83 +354,4 @@ rule run_kaiju_scaffolds_taxonomy:
         kaiju-addTaxonNames -p -t {params.kaiju_db_nodes} \
             -n {params.kaiju_db_names} -i {input.kaiju_out} \
             -o {output.kaiju_names_full} -v &> {log}
-        """
-
-rule run_kaiju_genes:
-    input:
-        ffn_input = "results/08_gene_content/20230313_gene_catalog.faa",
-    output:
-        kaiju_out = "results/08_gene_content/04_kaiju_on_genes/nr/gene_catalog_all.kaiju",
-    params:
-        kaiju_db_nodes = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/kaiju_db/nr/nodes.dmp",
-        kaiju_db_fmi = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/kaiju_db/nr/nr/kaiju_db_nr.fmi",
-        mailto="aiswarya.prasad@unil.ch",
-        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        account="pengel_spirit",
-        runtime_s=convertToSec("0-5:10:00"),
-    resources:
-        mem_mb = convertToMb("300G")
-    threads: 4
-    log: "results/08_gene_content/04_kaiju_on_genes/nr/kaiju.log"
-    benchmark: "results/08_gene_content/04_kaiju_on_genes/nr/kaiju.benchmark"
-    conda: "../config/envs/kaiju_env.yaml"
-    shell:
-        """
-        kaiju -X -t {params.kaiju_db_nodes} -f {params.kaiju_db_fmi} -p \
-                -o {output.kaiju_out} -z {threads} \
-                -i {input.ffn_input} -v -a mem &> {log}
-        """
-
-rule run_kraken2_genes:
-    input:
-        ffn_input = "results/08_gene_content/20230313_gene_catalog.ffn",
-    output:
-        kraken_report = "results/08_gene_content/04_kraken2_on_genes/gene_catalog_all_report.txt",
-    params:
-        kraken_out = "results/08_gene_content/04_kraken2_on_genes/gene_catalog_all.kraken",
-        kraken_db = "data/220131_costum_kraken2db",
-        mailto="aiswarya.prasad@unil.ch",
-        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        account="pengel_spirit",
-        runtime_s=convertToSec("0-10:10:00"),
-    resources:
-        mem_mb = convertToMb("300G")
-    threads: 8
-    log: "results/08_gene_content/04_kraken2_on_genes/kraken2.log"
-    benchmark: "results/08_gene_content/04_kraken2_on_genes/kraken2.benchmark"
-    conda: "../config/envs/kraken_env.yaml"
-    shell:
-        """
-        kraken2 --use-names --threads {threads} --db {params.kraken_db} \
-                --report {output.kraken_report} --output {params.kraken_out} \
-                 {input.ffn_input}o &> {log}
-        """
-
-rule run_kaiju_genes_taxonomy:
-    input:
-        kaiju_out = "results/08_gene_content/04_kaiju_on_genes/nr/gene_catalog_all.kaiju",
-    output:
-        kaiju_names = "results/08_gene_content/04_kaiju_on_genes/nr/gene_catalog_all_taxa.txt",
-        kaiju_names_full = "results/08_gene_content/04_kaiju_on_genes/nr/gene_catalog_all_taxa_full.txt",
-    params:
-        kaiju_db_nodes = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/kaiju_db/nr/nodes.dmp",
-        kaiju_db_names = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/kaiju_db/nr/names.dmp",
-        mailto="aiswarya.prasad@unil.ch",
-        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        account="pengel_spirit",
-        runtime_s=convertToSec("0-1:10:00"),
-    resources:
-        mem_mb = convertToMb("100G")
-    threads: 1
-    log: "results/08_gene_content/04_kaiju_on_genes/nr/kaiju_names.log"
-    benchmark: "results/08_gene_content/04_kaiju_on_genes/nr/kaiju_names.benchmark"
-    conda: "../config/envs/kaiju_env.yaml"
-    shell:
-        """
-        kaiju-addTaxonNames -t {params.kaiju_db_nodes} \
-            -n {params.kaiju_db_names} -i {input.kaiju_out} \
-            -o {output.kaiju_names_full} -v &> {log}
-        kaiju-addTaxonNames -p -t {params.kaiju_db_nodes} \
-            -n {params.kaiju_db_names} -i {input.kaiju_out} \
-            -o {output.kaiju_names} -v &> {log}
         """

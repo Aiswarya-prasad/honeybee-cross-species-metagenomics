@@ -76,6 +76,8 @@ checkpoint collect_prodigal_from_checkm:
         account="pengel_spirit",
         runtime_s=convertToSec("0-2:10:00"),
     threads: 4
+    log: "results/09_MAGs_collection/prodigal_output/collect_prodigal_from_checkm.log"
+    benchmark: "results/09_MAGs_collection/prodigal_output/collect_prodigal_from_checkm.benchmark"
     shell:
         """
         bash scripts/collect_prodigal_from_checkm.sh \

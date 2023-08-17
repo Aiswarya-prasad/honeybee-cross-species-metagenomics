@@ -8,6 +8,7 @@ from Bio.SeqRecord import SeqRecord
 for a given gene, find the scaffold it is on 
 using the gene_id and a given gff or bed file
 and optionally the start and end positions and print them to stdout
+and depending on what is asked for, info about the contig
 
 example usage:
 python scripts/find_gene_info.py --gene_id "gnl|Prokka|NC_000913.3_1" --type gff --file file.gff

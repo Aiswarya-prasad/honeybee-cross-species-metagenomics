@@ -60,11 +60,10 @@ rule prodigal_get_orfs:
             prodigal -i {input.scaffolds} -o {output.scaffolds_gff} -f gff -a {output.scaffolds_faa} -d {output.scaffolds_ffn} -p meta &> {log}
         fi
         """
-        # python scripts/filt_orfs.py --ffn_in {output.scaffolds_ffn} --ffn_out {output.orfs} --sample {wildcards.sample} --log {output.filt_log}
 
 rule run_whokaryote:
     input:
-        gff_input = "results/06_metagenomicORFs/{sample}/{sample}/prodigal_out.gff",
+        gff_input = "results/06_metagenomicORFs/{sample}/{sample}/prodigal_out/{sample}.gff",
     output:
         whokaryote_eu = "results/05_assembly/contig_fates/whokaryote/{sample}/eukaryote_contig_headers.txt",
         whokaryote_pro = "results/05_assembly/contig_fates/whokaryote/{sample}/prokaryote_contig_headers.txt",
@@ -169,8 +168,8 @@ rule cdhit_clustering:
     output:
         gene_catalog_ffn="results/08_gene_content/20230313_gene_catalog.ffn",
         gene_catalog_faa="results/08_gene_content/20230313_gene_catalog.faa",
-        cdhit_clustering="results/08_gene_content/00_cdhit_clustering/gene_catalog_cdhit9590.fasta.clstr",
-        cdhit_genes="results/08_gene_content/00_cdhit_clustering/gene_catalog_cdhit9590.fasta"
+        cdhit_clustering="results/08_gene_content/00_cdhit_clustering/20230313_gene_catalog_cdhit9590.fasta.clstr",
+        cdhit_genes="results/08_gene_content/00_cdhit_clustering/20230313_gene_catalog_cdhit9590.fasta"
     params:
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
@@ -193,7 +192,7 @@ rule cdhit_clustering:
 
 rule parse_clustering_file:
     input:
-        cdhit_clustering="results/08_gene_content/00_cdhit_clustering/gene_catalog_cdhit9590.fasta.clstr"
+        cdhit_clustering="results/08_gene_content/00_cdhit_clustering/20230313_gene_catalog_cdhit9590.fasta.clstr"
     output:
         cdhit_clusters="results/08_gene_content/00_cdhit_clustering/cluster_host_affiliations.tsv"
     params:
@@ -310,4 +309,83 @@ rule profile_genes:
         samtools depth -s -a {output.bam} > {output.depth}
         samtools coverage {output.bam} > {output.coverage}
         samtools coverage -m {output.bam} > {output.hist}
+        """
+
+rule run_kaiju_genes:
+    input:
+        ffn_input = "results/08_gene_content/20230313_gene_catalog.faa",
+    output:
+        kaiju_out = "results/08_gene_content/04_kaiju_on_genes/nr/20230313_gene_catalog.kaiju",
+    params:
+        kaiju_db_nodes = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/kaiju_db/nr/nodes.dmp",
+        kaiju_db_fmi = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/kaiju_db/nr/nr/kaiju_db_nr.fmi",
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-5:10:00"),
+    resources:
+        mem_mb = convertToMb("300G")
+    threads: 4
+    log: "results/08_gene_content/04_kaiju_on_genes/nr/kaiju.log"
+    benchmark: "results/08_gene_content/04_kaiju_on_genes/nr/kaiju.benchmark"
+    conda: "../config/envs/kaiju_env.yaml"
+    shell:
+        """
+        kaiju -X -t {params.kaiju_db_nodes} -f {params.kaiju_db_fmi} -p \
+                -o {output.kaiju_out} -z {threads} \
+                -i {input.ffn_input} -v -a mem &> {log}
+        """
+
+rule run_kaiju_genes_taxonomy:
+    input:
+        kaiju_out = "results/08_gene_content/04_kaiju_on_genes/nr/20230313_gene_catalog.kaiju",
+    output:
+        kaiju_names = "results/08_gene_content/04_kaiju_on_genes/nr/20230313_gene_catalog_taxa.txt",
+        kaiju_names_full = "results/08_gene_content/04_kaiju_on_genes/nr/20230313_gene_catalog_taxa_full.txt",
+    params:
+        kaiju_db_nodes = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/kaiju_db/nr/nodes.dmp",
+        kaiju_db_names = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/kaiju_db/nr/names.dmp",
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-1:10:00"),
+    resources:
+        mem_mb = convertToMb("100G")
+    threads: 1
+    log: "results/08_gene_content/04_kaiju_on_genes/nr/kaiju_names.log"
+    benchmark: "results/08_gene_content/04_kaiju_on_genes/nr/kaiju_names.benchmark"
+    conda: "../config/envs/kaiju_env.yaml"
+    shell:
+        """
+        kaiju-addTaxonNames -t {params.kaiju_db_nodes} \
+            -n {params.kaiju_db_names} -i {input.kaiju_out} \
+            -o {output.kaiju_names_full} -v &> {log}
+        kaiju-addTaxonNames -p -t {params.kaiju_db_nodes} \
+            -n {params.kaiju_db_names} -i {input.kaiju_out} \
+            -o {output.kaiju_names} -v &> {log}
+        """
+
+rule run_kraken2_genes:
+    input:
+        ffn_input = "results/08_gene_content/20230313_gene_catalog.ffn",
+    output:
+        kraken_report = "results/08_gene_content/04_kraken2_on_genes/20230313_gene_catalog_report.txt",
+    params:
+        kraken_out = "results/08_gene_content/04_kraken2_on_genes/20230313_gene_catalog.kraken",
+        kraken_db = "data/220131_costum_kraken2db",
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-10:10:00"),
+    resources:
+        mem_mb = convertToMb("300G")
+    threads: 8
+    log: "results/08_gene_content/04_kraken2_on_genes/kraken2.log"
+    benchmark: "results/08_gene_content/04_kraken2_on_genes/kraken2.benchmark"
+    conda: "../config/envs/kraken_env.yaml"
+    shell:
+        """
+        kraken2 --use-names --threads {threads} --db {params.kraken_db} \
+                --report {output.kraken_report} --output {params.kraken_out} \
+                 {input.ffn_input} &> {log}
         """

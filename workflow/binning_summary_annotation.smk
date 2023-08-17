@@ -240,7 +240,7 @@ rule make_drep_genome_info:
 rule drep_dereplicate:
     input:
         drep_genomeinfo = "results/09_MAGs_collection/drep_genome_info.tsv",
-        collect_mags_marker = "results/09_MAGs_collection/high_medium_mags/collect_mags.done",
+        collect_mags_marker = lambda wildcards: checkpoints.collect_mags.get().output.collect_mags_marker
     output:
         drep_S = "results/09_MAGs_collection/drep_output/data_tables/Sdb.csv",
         drep_N = "results/09_MAGs_collection/drep_output/data_tables/Ndb.csv",
@@ -387,3 +387,4 @@ rule summarize_contig_fates:
 
 # make non-redundant mag database for instrain
 # ! compare corecov and instrain results from the previous analysis !
+
