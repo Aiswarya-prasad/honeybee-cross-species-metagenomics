@@ -67,9 +67,8 @@ rule targets:
         graph = expand("results/05_assembly/all_reads_assemblies/{sample}_assembly_graph.fastg", sample = SAMPLES_INDIA+SAMPLES_MY),
         ### ! If running backmapping make sure to include a cap on number of --jobs in the snakemake command do <50 is safe don not do >100 ! (40,000 jobs for 200 samples) ###
         # qualimap_results = expand("results/07_MAG_binng_QC/01_backmapping/qualimap_results/{sample_assembly}/", sample_assembly = SAMPLES_INDIA+SAMPLES_MY),
-        checkm_plots = expand("results/07_MAG_binng_QC/03_checkm_results/{sample}/plots.done", sample=SAMPLES_sub),
+        checkm_plots = expand("results/07_MAG_binng_QC/03_checkm_results/{sample}/plots.done", sample=SAMPLES_INDIA+SAMPLES_MY),
         checkm_summary = "results/09_MAGs_collection/checkm_merged.tsv",
-        gene_profiling_depth = expand("results/08_gene_content/01_profiling/{sample}_mapped.depth", sample=SAMPLES),
         gene_profiling_coverage = expand("results/08_gene_content/01_profiling/{sample}_mapped.coverage", sample=SAMPLES),
         gene_profiling_hist = expand("results/08_gene_content/01_profiling/{sample}_mapped.hist", sample=SAMPLES),
         dram_annotation = expand("results/08_gene_content/02_DRAM_annotations/{sample}/annotations.tsv", sample=SAMPLES_INDIA+SAMPLES_MY),

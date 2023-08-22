@@ -76,7 +76,7 @@ rule checkm_evaluate:
 
 rule merge_checkm_output:
     input:
-        checkm_summary = expand("results/07_MAG_binng_QC/03_checkm_results/{sample}_checkm.summary", sample=SAMPLES_sub)
+        checkm_summary = expand("results/07_MAG_binng_QC/03_checkm_results/{sample}_checkm.summary", sample=SAMPLES_INDIA+SAMPLES_MY)
     output:
         checkm_merged = "results/09_MAGs_collection/checkm_merged.tsv"
     params:
@@ -168,8 +168,8 @@ rule make_drep_genome_info:
         checkm_merged = "results/09_MAGs_collection/checkm_merged.tsv",
         collect_mags_marker = lambda wildcards: checkpoints.collect_mags.get().output.collect_mags_marker
     output:
-        drep_genomeinfo = "results/09_MAGs_collection/drep_genome_info.tsv"
-        # mags_collected = touch("results/09_MAGs_collection/high_medium_mags/collect_mags.done")
+        drep_genomeinfo = "results/09_MAGs_collection/drep_genome_info.tsv",
+        mags_collected = touch("results/09_MAGs_collection/MAGs_high_medium/collect_mags.done")
     params:
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
@@ -182,6 +182,7 @@ rule make_drep_genome_info:
     log: "results/09_MAGs_collection/drep_genome_info.log"
     benchmark: "results/09_MAGs_collection/drep_genome_info.benchmark"
     run:
+        shell("mkdir -p results/09_MAGs_collection/MAGs_high_medium")
         with open(output.drep_genomeinfo, "w") as out_fh:
             out_fh.write("genome,completeness,contamination\n")
             with open(input.checkm_merged, "r") as in_fh:
@@ -196,51 +197,54 @@ rule make_drep_genome_info:
                     genome = line.split("\t")[ind_genome]
                     completeness = line.split("\t")[ind_comp]
                     contamination = line.split("\t")[ind_cont]
-                    out_fh.write(f"{genome}.fa,{completeness},{contamination}\n")
+                    if float(completeness) > 50 and float(contamination) < 5:
+                        shell(f"cp results/09_MAGs_collection/MAGs/{genome}.fa results/09_MAGs_collection/MAGs_high_medium/")
+                        out_fh.write(f"{genome}.fa,{completeness},{contamination}\n")
 
-# only dereplicate high and medium quality MAGs
-# rule make_drep_genome_info:
+# # only dereplicate high and medium quality MAGs
+# rule make_drep_genome_info_high_medium:
 #     input:
 #         checkm_merged = "results/09_MAGs_collection/checkm_merged.tsv",
 #         collect_mags_marker = lambda wildcards: checkpoints.collect_mags.get().output.collect_mags_marker
 #     output:
-#         drep_genomeinfo = "results/09_MAGs_collection/drep_genome_info.tsv",
-#         mags_collected = touch("results/09_MAGs_collection/high_medium_mags/collect_mags.done")
+#         drep_genomeinfo = "results/09_MAGs_collection/drep_genome_info_hm.tsv",
+#         mags_collected = touch("results/09_MAGs_collection/MAGs_high_medium/collect_mags.done")
 #     params:
 #         mailto="aiswarya.prasad@unil.ch",
 #         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-#         jobname="make_drep_genome_info",
+#         jobname="make_drep_genome_info_hm",
 #         account="pengel_spirit",
 #         runtime_s=convertToSec("0-04:00:00"),
 #     resources:
 #         mem_mb = convertToMb("2G")
 #     threads: 4
-#     log: "results/09_MAGs_collection/drep_genome_info.log"
-#     benchmark: "results/09_MAGs_collection/drep_genome_info.benchmark"
+#     log: "results/09_MAGs_collection/drep_genome_info_hm.log"
+#     benchmark: "results/09_MAGs_collection/drep_genome_info_hm.benchmark"
 #     run:
-#         shell("mkdir -p results/09_MAGs_collection/high_medium_mags")
-#         with open(output.drep_genomeinfo, "w") as out_fh:
-#             out_fh.write("genome,completeness,contamination\n")
-#             with open(input.checkm_merged, "r") as in_fh:
-#                 header = in_fh.readline()
-#                 header = header.strip().split("\t")
-#                 ind_genome = header.index("Bin Id")
-#                 ind_comp = header.index("Completeness")
-#                 ind_cont = header.index("Contamination")
-#                 for line in in_fh:
-#                     if "unbinned" in line:
-#                         continue
-#                     genome = line.split("\t")[ind_genome]
-#                     completeness = line.split("\t")[ind_comp]
-#                     contamination = line.split("\t")[ind_cont]
-#                     if float(completeness) > 50 and float(contamination) < 10:
-#                         shell(f"cp results/09_MAGs_collection/MAGs/{genome}.fa results/09_MAGs_collection/high_medium_mags/")
-#                         out_fh.write(f"{genome}.fa,{completeness},{contamination}\n")
+        # shell("mkdir -p results/09_MAGs_collection/MAGs_high_medium")
+        # with open(output.drep_genomeinfo, "w") as out_fh:
+        #     out_fh.write("genome,completeness,contamination\n")
+        #     with open(input.checkm_merged, "r") as in_fh:
+        #         header = in_fh.readline()
+        #         header = header.strip().split("\t")
+        #         ind_genome = header.index("Bin Id")
+        #         ind_comp = header.index("Completeness")
+        #         ind_cont = header.index("Contamination")
+        #         for line in in_fh:
+        #             if "unbinned" in line:
+        #                 continue
+        #             genome = line.split("\t")[ind_genome]
+        #             completeness = line.split("\t")[ind_comp]
+        #             contamination = line.split("\t")[ind_cont]
+        #             if float(completeness) > 50 and float(contamination) < 5:
+        #                 shell(f"cp results/09_MAGs_collection/MAGs/{genome}.fa results/09_MAGs_collection/MAGs_high_medium/")
+        #                 out_fh.write(f"{genome}.fa,{completeness},{contamination}\n")
 
 rule drep_dereplicate:
     input:
         drep_genomeinfo = "results/09_MAGs_collection/drep_genome_info.tsv",
-        collect_mags_marker = lambda wildcards: checkpoints.collect_mags.get().output.collect_mags_marker
+        collect_mags_marker = "results/09_MAGs_collection/MAGs_high_medium/collect_mags.done"
+        # collect_mags_marker = lambda wildcards: checkpoints.collect_mags.get().output.collect_mags_marker
     output:
         drep_S = "results/09_MAGs_collection/drep_output/data_tables/Sdb.csv",
         drep_N = "results/09_MAGs_collection/drep_output/data_tables/Ndb.csv",
@@ -259,7 +263,7 @@ rule drep_dereplicate:
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         jobname="drep_dereplicate",
         account="pengel_spirit",
-        runtime_s=convertToSec("1-00:00:00"),
+        runtime_s=convertToSec("3-00:00:00"),
     resources:
         mem_mb = convertToMb("250G")
     threads: 8

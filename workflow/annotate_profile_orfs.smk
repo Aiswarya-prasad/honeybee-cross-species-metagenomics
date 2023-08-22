@@ -281,7 +281,6 @@ rule profile_genes:
     output:
         bam = temp("results/08_gene_content/01_profiling/{sample}_mapped.bam"),
         flagstat = "results/08_gene_content/01_profiling/{sample}_mapped.flagstat",
-        depth = "results/08_gene_content/01_profiling/{sample}_mapped.depth",
         coverage = "results/08_gene_content/01_profiling/{sample}_mapped.coverage",
         hist = "results/08_gene_content/01_profiling/{sample}_mapped.hist",
     params:
@@ -306,7 +305,6 @@ rule profile_genes:
         bwa mem -a -t {threads} {input.gene_catalog} {input.reads1} {input.reads2} \
         | samtools view -F 4 -h - |  python3 {params.filter_script} -e 5 -m 50 | samtools sort -O bam -@ {threads} > {output.bam}
         samtools flagstat -@ {threads} {output.bam} > {output.flagstat}
-        samtools depth -s -a {output.bam} > {output.depth}
         samtools coverage {output.bam} > {output.coverage}
         samtools coverage -m {output.bam} > {output.hist}
         """

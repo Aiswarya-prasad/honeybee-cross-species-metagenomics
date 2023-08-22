@@ -107,7 +107,7 @@ info_df[info_df_cols] = checkm_info[checkm_df_cols]
 info_df["Size_readable"] = info_df["Size"].apply(lambda x: str(round(x/1000000, 2))+"M" )
 info_df["Sample"] = info_df["ID"].apply(lambda x: x.split("_")[0])
 info_df["Type"] = info_df["ID"].apply(lambda x: "unbinned" if "unbinned" in x else "MAG")
-info_df["Quality"] = info_df.apply(lambda x: "high" if x["Completeness"] > 90 and x["Contamination"] < 5 else "medium" if x["Completeness"] > 50 and x["Contamination"] < 10 else "low", axis=1)
+info_df["Quality"] = info_df.apply(lambda x: "high" if x["Completeness"] > 90 and x["Contamination"] < 5 else "medium" if x["Completeness"] > 50 and x["Contamination"] < 5 else "low", axis=1)
 classification_info = gtdb_info["classification"].str.split(";", expand=True)
 classification_info["ID"] = gtdb_info["user_genome"]
 classification_info.rename(columns={0:'Domain', 1:'Phylum', 2:'Class', 3:'Order', 4:'Family', 5:'Genus', 6:'Species'},inplace=True)

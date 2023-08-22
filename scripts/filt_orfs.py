@@ -110,7 +110,6 @@ def tax_info_ok(contig_name):
             return False
         if tax_df.loc[tax_df["contig"] == contig_name]["classification"].values == 'C':
             return True
-        print(f"could not determine tax info for contig {contig_name}")
     else:
         print(f"taxtype {taxtype} not supported yet. No filtering for this step.")
 
@@ -120,8 +119,14 @@ def isprokaryote(contig_name):
         print(f"contig {contig_name} not found in whokaryote results")
         print(f"checking tax info for contig {contig_name}")
         try:
+            # if taxonomy is determined, then it
+            # is classified based on taxonomy
             return tax_info_ok(contig_name)
         except:
+            # if taxonomy is not determined, then it
+            # and whokaryote is not determined either
+            # then the contig is rejected in filtering
+            print(f"could not determine tax info for contig {contig_name}")
             unknown_who_and_tax += 1
             return False
     else:

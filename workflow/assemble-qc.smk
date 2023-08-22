@@ -268,6 +268,7 @@ rule assembly_summary:
     log: "results/05_assembly/all_reads_assemblies/assembly_summary.log"
     benchmark: "results/05_assembly/all_reads_assemblies/assembly_summary.benchmark"
     conda: "../config/envs/scripts-env.yaml"
+    retries: 3
     shell:
         """
         python3 scripts/assembly_summary.py --flagstat {input.flagstat} --scaffolds {input.scaffolds} --outfile {output.outfile} &> {log}

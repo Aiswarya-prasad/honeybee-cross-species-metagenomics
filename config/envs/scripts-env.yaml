@@ -20,3 +20,4 @@ dependencies:
   - basemap
   - seaborn
   - AdjustText
+  # - bcbio-gff

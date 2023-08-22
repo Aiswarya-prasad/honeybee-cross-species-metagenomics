@@ -1,8 +1,8 @@
 #!/bin/bash
 
 
-marker=$1
-outdir=$2
+outdir=$1
+marker=$2
 mkdir -p ${outdir}
 for dir in results/07_MAG_binng_QC/03_checkm_results/*/bins/*;
 do

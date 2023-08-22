@@ -2,6 +2,7 @@ import os
 import sys
 import argparse
 import gzip
+import pyfastx
 from Bio import SeqIO
 
 parser = argparse.ArgumentParser()
@@ -17,22 +18,28 @@ flagstat = args.flagstat
 outfile = args.outfile
 is_tsv = True if flagstat[0].endswith(".tsv") else False
 
-def get_read_count(sample, file_info):
-    if "01_cleanreads" in file_info[0]:
-        num_reads = 0
-        file_path = os.path.join(os.getcwd(), file_info[0], sample + file_info[1])
-        with open(file_path, "r") as fh:
-            for line in fh:
-                if line.startswith("Pairs:"):
-                    num_reads = line.split("\t")[1].split()[0]
-                    return num_reads
-        with open(file_path.split(".cluster.e")[0], "r") as fh:
-            for line in fh:
-                if line.startswith("Pairs:"):
-                    num_reads = line.split("\t")[1].split()[0]
-                    return num_reads
-    else:
-        sys.exit(f"Error: don't know how to parse from {file_info}")
+# def get_read_count(sample, file_info):
+#     if "01_cleanreads" in file_info[0]:
+#         num_reads = 0
+#         file_path = os.path.join(os.getcwd(), file_info[0], sample + file_info[1])
+#         with open(file_path, "r") as fh:
+#             for line in fh:
+#                 if line.startswith("Pairs:"):
+#                     num_reads = line.split("\t")[1].split()[0]
+#                     return num_reads
+#         with open(file_path.split(".cluster.e")[0], "r") as fh:
+#             for line in fh:
+#                 if line.startswith("Pairs:"):
+#                     num_reads = line.split("\t")[1].split()[0]
+#                     return num_reads
+#     else:
+#         sys.exit(f"Error: don't know how to parse from {file_info}")
+
+def count_reads_in_fastq(sample_name, file_info):
+        file_path = os.path.join(os.getcwd(), file_info[0], sample_name + file_info[1])
+        print(file_path)
+        reads = pyfastx.Fastq(file_path)
+        return len(reads)
 
 counts_dict = {}
 mapped_dict = {}
@@ -53,8 +60,8 @@ for file in flagstat:
                 line_split = line.strip().split(" ")
                 if line_split[3] == "primary":
                     count = line_split[0]
-                    mapped_dict[sample] = int(count)  
-        counts_dict[sample] = int(get_read_count(sample, ["results/01_cleanreads","_repaired.log.cluster.e"]))
+                    mapped_dict[sample] = int(count)
+        counts_dict[sample] = int(count_reads_in_fastq(sample, ["results/01_cleanreads","_R1_repaired.fastq.gz"]))
 
 Sample_list = list()
 MinContigLen_list = list()
