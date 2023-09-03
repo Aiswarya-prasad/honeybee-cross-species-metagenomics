@@ -335,8 +335,6 @@ print('Writing filtered records to file...')
 with open('results/08_gene_content/05_parse_catalog/20230313_gene_catalog_filtered.ffn', 'w+') as fh:
     SeqIO.write(filtered_records, fh, 'fasta')
 
-
-
 # # reading from /scratch/aprasad/backups/.. just for now because
 # # 11_phylogenies is not run yet
 # original = '/scratch/aprasad/backups/11_phylogenies/00_genomes/D1-1_24/D1-1_24_original.ffn'
