@@ -86,12 +86,16 @@ plot_breadth_num_reads <- ggplot() +
       make_theme(theme_name=theme_few(), leg_pos="right",
                  guide_nrow = 5,
                  setFill = F, setCol = F,
-                 x_angle=45 ,x_vj=1, x_hj=1, x_size=5,
+                 x_angle=90 ,x_vj=1, x_hj=1, x_size=0,
                  y_angle=0 ,y_vj=0, y_hj=0, y_size=10) +
         theme(strip.text = element_text(size = 10)) +
         geom_hline(yintercept = 0, linetype = "solid") +
         geom_hline(yintercept = 10, linetype = "dashed") +
         geom_hline(yintercept = 100, linetype = "dotted") +
+        geom_vline(xintercept = 97, linetype = "dotted") +
+        geom_vline(xintercept = 162, linetype = "dotted") +
+        geom_vline(xintercept = 207, linetype = "dotted") +
+        geom_vline(xintercept = 252, linetype = "dotted") +
         scale_size(range = c(1,4)) +
         scale_color_manual(values=host_order_color_dark)
 
@@ -193,6 +197,7 @@ paginate_save(prev_vs_cov_magOTU, "magOTU", "results/figures/3-prevalence_vs_cov
 
 # Estimate host range
 ```{r}
+#  update this with better estimates and summaries!
 estimate_shannon <- function(pa_vector) {
   return(diversity(pa_vector, index = "shannon"))
 }

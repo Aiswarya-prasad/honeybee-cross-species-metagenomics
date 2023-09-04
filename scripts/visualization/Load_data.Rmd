@@ -1395,21 +1395,22 @@ get_ani_matrix <- function(genera_list = c(), mag_names = c(), magOTUs = c(), ma
 ### Load and parse data
 
 ```{r 06-load}
-df_gtdbk_bac <- read.csv("results/09_MAGs_collection/All_mags_sub/gtdb_output/classify/All_mags_sub.bac120.summary.tsv", sep = "\t")
-drep_Bdb <- read.csv("results/09_MAGs_collection/All_mags_sub/drep_output/data_tables/Bdb.csv", sep = ",")
-drep_gInformation <- read.csv("results/09_MAGs_collection/All_mags_sub/drep_output/data_tables/genomeInfo.csv", sep = ",")
-drep_Sdb <- read.csv("results/09_MAGs_collection/All_mags_sub/drep_output/data_tables/Sdb.csv", sep = ",")
-drep_Widb <- read.csv("results/09_MAGs_collection/All_mags_sub/drep_output/data_tables/Widb.csv", sep = ",")
-MAGs_collated <- read.csv("results/09_MAGs_collection/All_mags_sub/All_mags_sub_metadata_summary.tsv", sep = "\t")
+df_gtdbk_bac <- read.csv("results/09_MAGs_collection/gtdb_output/classify/20230313_MAGs.bac120.summary.tsv", sep = "\t")
+df_gtdbk_ar <- read.csv("results/09_MAGs_collection/gtdb_output/classify/20230313_MAGs.ar53.summary.tsv", sep = "\t")
+drep_Bdb <- read.csv("results/09_MAGs_collection/drep_output/data_tables/Bdb.csv", sep = ",")
+drep_gInformation <- read.csv("results/09_MAGs_collection/drep_output/data_tables/genomeInfo.csv", sep = ",")
+drep_Sdb <- read.csv("results/09_MAGs_collection/drep_output/data_tables/Sdb.csv", sep = ",")
+drep_Widb <- read.csv("results/09_MAGs_collection/drep_output/data_tables/Widb.csv", sep = ",")
+MAGs_collated <- read.csv("results/09_MAGs_collection/MAGs_metadata_summary.tsv", sep = "\t")
 colnames(MAGs_collated)
-# system("bash scripts/calc_genome_sizes.sh /scratch/aprasad/20230313_apis_species_comparison/results/09_MAGs_collection/All_mags_sub/high_medium_mags /scratch/aprasad/20230313_apis_species_comparison/results/figures/Genome_sizes_good_quality.csv fa")
-# system("bash scripts/calc_genome_sizes.sh /scratch/aprasad/20230313_apis_species_comparison/results/09_MAGs_collection/All_mags_sub/MAGs /scratch/aprasad/20230313_apis_species_comparison/results/figures/Genome_sizes.csv fa")
+# system("bash scripts/calc_genome_sizes.sh /scratch/aprasad/20230313_apis_species_comparison/results/09_MAGs_collection/MAGs_high_medium /scratch/aprasad/20230313_apis_species_comparison/results/figures/Genome_sizes_good_quality.csv fa")
+# system("bash scripts/calc_genome_sizes.sh /scratch/aprasad/20230313_apis_species_comparison/results/09_MAGs_collection/MAGs /scratch/aprasad/20230313_apis_species_comparison/results/figures/Genome_sizes.csv fa")
 # system("bash scripts/calc_genome_sizes.sh /scratch/aprasad/20230313_apis_species_comparison/results/11_phylogenies/downloads /scratch/aprasad/20230313_apis_species_comparison/results/figures/Genome_sizes_refs.csv fna")
 genome_lengths_df <- read.csv("results/figures/Genome_sizes.csv")
 genome_lengths_df_hq <- read.csv("results/figures/Genome_sizes_good_quality.csv")
 genome_lengths_df_ref <- read.csv("results/figures/Genome_sizes_refs.csv")
 reference_genomes_info <- read.csv("config/Outgroup_isolate_genomes.tsv", "\t", header = T)
-drep_N <- read.csv("results/09_MAGs_collection/All_mags_sub/drep_output/data_tables/Ndb.csv") %>%
+drep_N <- read.csv("results/09_MAGs_collection/drep_output/data_tables/Ndb.csv") %>%
             mutate(reference = Vectorize(format_genome_name)(reference)) %>%
               mutate(querry = Vectorize(format_genome_name)(querry))
 ```
@@ -1636,7 +1637,7 @@ drep_dist <- drep_N %>%
 get_genecount_matrix <- function(my_genus, scps_only = F, upper_count = 10, combined_info = combined_info_df, mags_info = vis_magOTUs_df, only_mags = F, with_isolates = T) {
   # change motupsn paths as needed!
   if (with_isolates & !only_mags) {
-    OG_numbers_df <- read.csv(paste0("07_AnnotationAndPhylogenies/02_orthofinder/", my_genus, "/OrthoFinder/Results_", my_genus, "/Orthogroups/Orthogroups.GeneCount.tsv"), sep = "\t")
+    OG_numbers_df <- read.csv(paste0("11_phylogenies/02_orthofinder_results", my_genus, "/OrthoFinder/Results_", my_genus, "/Orthogroups/Orthogroups.GeneCount.tsv"), sep = "\t")
     motupan_out <- paste0("/scratch/aprasad/211018_Medgenome_india_samples/15_FurtherProcessing/motupan_test/",my_genus,"/mOTUpan.tsv")
   }
   if (!with_isolates && only_mags) {
@@ -1853,8 +1854,9 @@ for (file_name in list.files("database/MAGs_database_Orthofinder/")) {
 all_Isolates <- c()
 all_MAGs <- c()
 Number_genomes_df <- data.frame()
+Groups = genera_list
 for (group in Groups) {
-  OG_numbers_df <- read.csv(paste0("07_AnnotationAndPhylogenies/02_orthofinder/", group, "/OrthoFinder/Results_", group, "/Orthogroups/Orthogroups.GeneCount.tsv"), sep = "\t")
+  OG_numbers_df <- read.csv(paste0("11_phylogenies/02_orthofinder_results", group, "/OrthoFinder/Results_", group, "/Orthogroups/Orthogroups.GeneCount.tsv"), sep = "\t")
   genomes <- head(colnames(OG_numbers_df)[-1], -1)
   MAGs <- genomes[which(grepl("MAG", genomes, fixed=TRUE))]
   all_MAGs <- c(all_MAGs, MAGs)
@@ -1881,13 +1883,13 @@ for (genus_name in genera_list) {
 }
 ortho_w_isolates_df <- data.frame()
 for (group in Groups) {
-  orthofinder_summary_w_isolates <- read.csv(paste0("07_AnnotationAndPhylogenies/02_orthofinder/", group, "_Orthogroups_summary.csv"))
+  orthofinder_summary_w_isolates <- read.csv(paste0("11_phylogenies/02_orthofinder_results", group, "_Orthogroups_summary.csv"))
   ortho_w_isolates_df <- rbind(ortho_w_isolates_df, orthofinder_summary_w_isolates)
 }
 
 Orthogroups_summary_df <- data.frame()
 for (group in Groups) {
-  OG_summary <- read.csv(paste0("07_AnnotationAndPhylogenies/02_orthofinder/", group, "_Orthogroups_summary.csv"), sep = ",")
+  OG_summary <- read.csv(paste0("11_phylogenies/02_orthofinder_results", group, "_Orthogroups_summary.csv"), sep = ",")
   Orthogroups_summary_df <- rbind(Orthogroups_summary_df,
                                   OG_summary
                             ) %>%
@@ -1919,7 +1921,7 @@ plot_number_OGs_mags %>%
                                 pivot_wider(names_from = Type, values_from = Number), by = c("group" = "Group")) %>%
                         ungroup() %>%
                         filter(group %in% Groups) %>%
-                           mutate(SampleID = row_number()) %>% pull(SampleID)     
+                           mutate(SampleID = row_number()) %>% pull(SampleID)
 ```
 
 ## Initialization for 08 plot DRAM results
@@ -2437,12 +2439,11 @@ for (sample in samples) {
     instrain_genomes_info_df <- bind_rows(instrain_genomes_info_df, cbind(df_read, "sample"=sample))
   }
 }
-
 instrain_breadth_depth <- instrain_genomes_info_df %>%
                             group_by(sample, magOTU) %>%
                             reframe(coverage, Host, breadth, length, sample, Genus, filtered_read_pair_count, 
                                       reads_unfiltered_pairs, reads_unfiltered_reads) %>%
-                            filter(breadth > 0.8) %>%
+                            filter(breadth > 0.75) %>%
                               mutate(coverage_factor = cut(coverage ,breaks=c(-1, 1e-04, 1e-03, 1e-02, 1e-01, 1, 10, 100, 1000, Inf),labels = c("<0.0001", "0.0001 - 0.001", "0.001 - 0.01", "0.01 - 0.1", "0.1 - 1", "1 - 10", "10 - 100", "100 - 1000", ">1000"))) %>%
                               mutate(expected_number_of_genomes = filtered_read_pair_count*read_length*2/(length)) %>%
                               ungroup() %>%
@@ -2547,7 +2548,7 @@ sample_data_mat <- df_meta_complete %>%
                    filter(ID %in% samples_MY) %>%
                     mutate(Host = Vectorize(get_host_from_sample_name)(ID)) %>%
                     column_to_rownames("ID")
-colnames(abundance_df$magOTU)
+# colnames(abundance_df$magOTU)
 get_rep_genome_magotu <- function(magOTU_name, genus_name) {
   temp = strsplit(magOTU_name, paste0(genus_name, "_"))[[1]][2]
   temp_split = strsplit(temp, paste0("-"))[[1]]

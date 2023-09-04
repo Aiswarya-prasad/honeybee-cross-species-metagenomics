@@ -1,0 +1,6 @@
+name: eggnog-env
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - eggnog-mapper
