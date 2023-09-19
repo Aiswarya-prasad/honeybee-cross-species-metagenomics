@@ -1,0 +1,14 @@
+name: cayman-env
+
+channels:
+  - conda-forge
+  - bioconda
+
+dependencies:
+  - bwa
+  - numpy==1.24.2
+  - pandas==1.5.3
+  - pysam
+  # - gqlib>=2.14.0
+  - intervaltree
+  - sqlalchemy

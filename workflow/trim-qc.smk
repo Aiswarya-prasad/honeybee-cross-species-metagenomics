@@ -131,6 +131,8 @@ rule concatenate_reads:
         cat {input.reads} > {output.concat_reads}
         """
 
+
+# rest of the pipeline starts from clean reads so commenting out this rule for now
 # rule re_pair_reads:
 #     input:
 #         reads1 = "results/01_trimmedconcatreads/{sample}_R1.fastq.gz",
@@ -156,3 +158,187 @@ rule concatenate_reads:
 #         """
 #         repair.sh -Xmx{params.java_mem}g threads={threads} in1={input.reads1} in2={input.reads2} out1={output.reads1} out2={output.reads2} outs={output.singletons} repair &> {log}
 #         """
+
+# map to host and then the unmapped ones to the MAG database
+rule get_host_unmapd:
+    input:
+        bam = "results/03_host_mapping/{sample}_hostfiltered.bam", # bam with unmapped reads from host mapping
+    output:
+        reads1 = temp("results/04_MapToDBs/{sample}/{sample}_host_unmapd_R1.fastq.gz"),
+        reads2 = temp("results/04_MapToDBs/{sample}/{sample}_host_unmapd_R2.fastq.gz"),
+        bam_unmapped = temp("results/04_MapToDBs/{sample}/{sample}_host_unmapd.bam"),
+    params:
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        jobname="{sample}_get_host_unmapd",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-07:10:00"),
+    resources:
+        mem_mb = convertToMb("50G")
+    threads: 4
+    log: "results/04_MapToDBs/{sample}/{sample}_get_host_unmapd.log"
+    benchmark: "results/04_MapToDBs/{sample}/{sample}_get_host_unmapd.benchmark"
+    conda: "../config/envs/mapping-env.yaml"
+    shell:
+        """
+        samtools view -b {input.bam} | samtools sort -n - > {output.bam_unmapped}
+        outreads1={output.reads1}
+        outreads2={output.reads2}
+        bedtools bamtofastq -i {input.bam} -fq ${{outreads1/.gz/}} -fq2 ${{outreads2/.gz/}} &> {log}
+        gzip ${{outreads1/.gz/}}
+        gzip ${{outreads2/.gz/}}
+        """
+
+
+rule host_unmapd_map_to_mags_rep:
+    input:
+        bwa_index = multiext("results/10_instrain/00_prepare_mags/mag_rep_database.fa", ".amb", ".ann", ".bwt", ".pac", ".sa"),
+        reads1_hf = "results/04_MapToDBs/{sample}/{sample}_host_unmapd_R1.fastq.gz",
+        reads2_hf = "results/04_MapToDBs/{sample}/{sample}_host_unmapd_R2.fastq.gz",
+        mag_rep_database = "results/10_instrain/00_prepare_mags/mag_rep_database.fa"
+    output:
+        bam = temp("results/04_MapToDBs/{sample}/{sample}_host_unmapd_map_MAGs_rep.bam"),
+        flagstat_hf = "results/04_MapToDBs/{sample}/{sample}_host_unmapd_map_MAGs_rep.flagstat"
+    params:
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        jobname="{sample}_host_unmapd_map_to_mags_rep",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-17:10:00"),
+    resources:
+        mem_mb = convertToMb("50G")
+    threads: 4
+    log: "results/04_MapToDBs/{sample}/{sample}_host_unmapd_map_to_mags_rep.log"
+    benchmark: "results/04_MapToDBs/{sample}/{sample}_host_unmapd_map_to_mags_rep.benchmark"
+    conda: "../config/envs/mapping-env.yaml"
+    shell:
+        """
+        bwa mem -t 4 {input.mag_rep_database} {input.reads1_hf} {input.reads2_hf} | samtools view -bh - | samtools sort - > {output.bam}
+        samtools flagstat {output.bam} > {output.flagstat_hf}
+        """
+
+rule get_host_unmapd_map_mags_unmapped:
+    input:
+        bam = "results/04_MapToDBs/{sample}/{sample}_host_unmapd_map_MAGs_rep.bam",
+    output:
+        reads1 = "results/04_MapToDBs/{sample}/{sample}_R1_host_unmapd_map_MAGs_rep_unmapped.fastq.gz",
+        reads2 = "results/04_MapToDBs/{sample}/{sample}_R2_host_unmapd_map_MAGs_rep_unmapped.fastq.gz",
+        bam_unmapped = temp("results/04_MapToDBs/{sample}/{sample}_host_unmapd_map_MAGs_rep_unmapped.bam"),
+    params:
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        jobname="{sample}_get_host_unmapd_map_mags_unmapped",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-17:10:00"),
+    resources:
+        mem_mb = convertToMb("50G")
+    threads: 4
+    log: "results/04_MapToDBs/{sample}/{sample}_host_unmapd_map_mags_rep.log"
+    benchmark: "results/04_MapToDBs/{sample}/{sample}_host_unmapd_map_mags_rep.benchmark"
+    conda: "../config/envs/mapping-env.yaml"
+    shell:
+        """
+        samtools view -b -f 4 {input.bam} | samtools sort -n - > {output.bam_unmapped}
+        outreads1={output.reads1}
+        outreads2={output.reads2}
+        bedtools bamtofastq -i {input.bam} -fq ${{outreads1/.gz/}} -fq2 ${{outreads2/.gz/}} &> {log}
+        gzip ${{outreads1/.gz/}}
+        gzip ${{outreads2/.gz/}}
+        """
+
+rule get_unmapd_to_rep_MAGs:
+    input:
+        bam = "results/10_instrain/01_mapping/{sample}/{sample}.bam",
+    output:
+        reads1 = "results/04_MapToDBs/{sample}/{sample}_R1_unmapd_rep_MAGs.fastq.gz",
+        reads2 = "results/04_MapToDBs/{sample}/{sample}_R2_unmapd_rep_MAGs.fastq.gz",
+        bam_unmapped = temp("results/04_MapToDBs/{sample}/{sample}_unmapd_rep_MAGs_unmapped.bam"),
+    params:
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        jobname="{sample}_get_unmapd_to_rep_MAGs",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-07:10:00"),
+    resources:
+        mem_mb = convertToMb("50G")
+    threads: 4
+    log: "results/04_MapToDBs/{sample}/{sample}_get_unmapd_to_rep_MAGs.log"
+    benchmark: "results/04_MapToDBs/{sample}/{sample}_get_unmapd_to_rep_MAGs.benchmark"
+    conda: "../config/envs/mapping-env.yaml"
+    shell:
+        """
+        samtools view -b -f 4 {input.bam} | samtools sort -n - > {output.bam_unmapped}
+        outreads1={output.reads1}
+        outreads2={output.reads2}
+        bedtools bamtofastq -i {input.bam} -fq ${{outreads1/.gz/}} -fq2 ${{outreads2/.gz/}} &> {log}
+        gzip ${{outreads1/.gz/}}
+        gzip ${{outreads2/.gz/}}
+        """
+
+
+rule unmapd_to_rep_MAGs_host_mapping:
+    input:
+        reads1 = "results/04_MapToDBs/{sample}/{sample}_R1_unmapd_rep_MAGs.fastq.gz",
+        reads2 = "results/04_MapToDBs/{sample}/{sample}_R2_unmapd_rep_MAGs.fastq.gz",
+        host_db = "data/host_database/apis_bees_db.fasta",
+        host_db_index = multiext("data/host_database/apis_bees_db.fasta", ".amb", ".ann", ".bwt", ".pac", ".sa")
+    output:
+        bam = temp("results/04_MapToDBs/{sample}/{sample}_unmapd_rep_MAGs_host_mapping.bam"),
+        flagstat = "results/04_MapToDBs/{sample}/{sample}_unmapd_rep_MAGs_host_mapping.flagstat",
+    params:
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        jobname="{sample}_unmapd_rep_MAGs_host_mapping",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-17:10:00"),
+    resources:
+        mem_mb = convertToMb("50G")
+    threads: 4
+    log: "results/04_MapToDBs/{sample}/{sample}_unmapd_rep_MAGs_host_mapping.log"
+    benchmark: "results/04_MapToDBs/{sample}/{sample}_unmapd_rep_MAGs_host_mapping.benchmark"
+    conda: "../config/envs/mapping-env.yaml"
+    shell:
+        """
+        bwa mem -t {threads} {input.host_db} {input.reads1} {input.reads2} | samtools view -bh - | samtools sort - > {output.bam}
+        samtools flagstat {output.bam} > {output.flagstat}
+        """
+
+rule get_unmapd_to_rep_MAGs_unmaped_host:
+    input:
+        bam = "results/04_MapToDBs/{sample}/{sample}_unmapd_rep_MAGs_host_mapping.bam",
+    output:
+        reads1 = "results/04_MapToDBs/{sample}/{sample}_R1_unmapd_rep_MAGs_host_unmapd.fastq.gz",
+        reads2 = "results/04_MapToDBs/{sample}/{sample}_R2_unmapd_rep_MAGs_host_unmapd.fastq.gz",
+        bam_unmapped = temp("results/04_MapToDBs/{sample}/{sample}_unmapd_rep_MAGs_host_unmapd.bam"),
+    params:
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        jobname="{sample}_get_unmapd_to_rep_MAGs",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-17:10:00"),
+    resources:
+        mem_mb = convertToMb("50G")
+    threads: 4
+    log: "results/04_MapToDBs/{sample}/{sample}_get_unmapd_to_rep_MAGs.log"
+    benchmark: "results/04_MapToDBs/{sample}/{sample}_get_unmapd_to_rep_MAGs.benchmark"
+    conda: "../config/envs/mapping-env.yaml"
+    shell:
+        """
+        samtools view -b -f 4 {input.bam} | samtools sort -n - > {output.bam_unmapped}
+        outreads1={output.reads1}
+        outreads2={output.reads2}
+        bedtools bamtofastq -i {input.bam} -fq ${{outreads1/.gz/}} -fq2 ${{outreads2/.gz/}} &> {log}
+        gzip ${{outreads1/.gz/}}
+        gzip ${{outreads2/.gz/}}
+        """
+
+# later also check that rep mags recruit as many reads as "all MAGs" together would
+
+# # map reads unmapped to the rep database now to "all MAGs"
+# # to see if they are unmapped becuase they are missing from the rep database
+# # other better way to check this?
+# rule unmapd_rep_MAGs_map_all_MAGs_hq:
+#     input:
+#         reads1 = "results/04_MapToDBs/{sample}/{sample}_R1_unmapd_rep_MAGs.fastq.gz",
+#         reads2 = "results/04_MapToDBs/{sample}/{sample}_R2_unmapd_rep_MAGs.fastq.gz",
+#         all_mags

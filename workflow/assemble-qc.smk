@@ -24,9 +24,9 @@ targets:
     - summary_assembly
 """
 
-# samples that failed in the first run (250):
+# samples that failed in the first run (250G):
 LARGE_SAMPLES = ["A2-2", "A2-3", "A3-4", "A4-4", "A6-4", "D1-2", "D2-1", "D2-2", "D2-4", "D2-5", "D3-2", "D9-5", "F2-5", "F3-4", "F3-5", "F4-1", "F7-5", "F8-2", "F8-4"]
-# samples that failed in the first run (450 - 800) ("A6-4", "D1-2", "D3-2" were completed with the higher RAM):
+# samples that failed in the first run (450G - 800G) ("A6-4", "D1-2", "D3-2" were completed with the higher RAM):
 # LARGE_SAMPLES = ["A2-2", "A2-3", "A3-4", "A4-4", "D2-1", "D2-2", "D2-4", "D2-5", "D9-5", "F2-5", "F3-4", "F3-5", "F4-1", "F7-5", "F8-2", "F8-4"]
 SAMPLES_TO_HOST_FILTER = ["D2-2", "A2-2", "F2-5"]
 
@@ -113,6 +113,11 @@ rule map_reads_to_host:
         samtools coverage {output.bam} -m > {output.hist}
         samtools view -bh -f4 {output.bam} | samtools sort - > {output.bam_hostfiltered}
         """
+
+# just used for assembly and for the specified samples
+# in my case, I used this for the samples that failed in the first run
+# SAMPLES_TO_HOST_FILTER
+# a different rule collects non-host reads for all of the samples
 
 rule get_non_host_reads:
     input:

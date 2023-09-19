@@ -22,6 +22,8 @@ To intialize complete all of or relevant sections of `scripts/visualization/Load
 
 ### Samples from Malaysia and India
 
+There are a total of 200 samples. 150 (5 species * 6 colonies * 5 individual bees = 150 samples) from Malaysia and 50 (5 individuals * [1 colony (mellifera) + 3 colonies * 3 species(cerana, dorsata, florea)] = 50 samples) from India.
+
 ```{r plot1}
 ggplot(df_concentrations %>% filter(ID %in% c(samples_IN, samples_MY)), 
         aes(y = factor(ID, rev(c(samples_IN, samples_MY))),

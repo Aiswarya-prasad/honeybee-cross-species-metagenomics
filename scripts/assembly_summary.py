@@ -104,7 +104,7 @@ for i in range(len(flagstat)):
     AssemblySize_list.append(AssemblySize)
 
     NumReads = counts_dict[Sample]
-    NumReads_list.append(NumReads)
+    NumReads_list.append(int(NumReads)*2)
 
     AssemblyMapped = mapped_dict[Sample]
     AssemblyMapped_list.append(AssemblyMapped)
