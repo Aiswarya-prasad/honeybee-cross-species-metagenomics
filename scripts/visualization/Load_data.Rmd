@@ -206,6 +206,7 @@ qpcr_plot_df <- qpcr_df_info %>%
                   filter(!is.na(Host)) %>%
                   filter(Host %in% host_order) %>%
                     unique()
+write.csv(qpcr_plot_df, "results/figures/qpcr_plot_df.csv", row.names = F, quote = F)
 ```
 
 To do a sanity check use `qpcr_df_info %>% reframe(n())`. 
@@ -887,22 +888,22 @@ drep_dist <- drep_N %>%
 ### Definitions and functions
 
 ```{r 07-func_def}
-get_genecount_matrix <- function(my_genus, scps_only = F, upper_count = 10, combined_info = combined_info_df, mags_info = vis_magOTUs_df, only_mags = F, with_isolates = T) {
+get_genecount_matrix <- function(my_genus, scps_only = F, upper_count = 10, combined_info = combined_info_df, mags_info = vis_magOTUs_df, only_mags = T, with_isolates = F) {
   # change motupsn paths as needed!
   if (with_isolates & !only_mags) {
-    OG_numbers_df <- read.csv(paste0("11_phylogenies/02_orthofinder_results", my_genus, "/OrthoFinder/Results_", my_genus, "/Orthogroups/Orthogroups.GeneCount.tsv"), sep = "\t")
-    motupan_out <- paste0("/scratch/aprasad/211018_Medgenome_india_samples/15_FurtherProcessing/motupan_test/",my_genus,"/mOTUpan.tsv")
+    OG_numbers_df <- read.csv(paste0("results/11_phylogenies/02_orthofinder_results/", my_genus, "/Results_", my_genus, "/Orthogroups/Orthogroups.GeneCount.tsv"), sep = "\t")
+    # motupan_out <- paste0("/scratch/aprasad/211018_Medgenome_india_samples/15_FurtherProcessing/motupan_test/",my_genus,"/mOTUpan.tsv")
   }
-  if (!with_isolates && only_mags) {
-    OG_numbers_df <- read.csv(paste0("database/MAGs_database_Orthofinder/", my_genus,"/OrthoFinder/Results_", my_genus, "/Orthogroups/Orthogroups.GeneCount.tsv"), sep = "\t")
-    motupan_out <- paste0("/scratch/aprasad/211018_Medgenome_india_samples/15_FurtherProcessing/motupan_test/",my_genus,"/mOTUpan.tsv")
-  }
-  if (file.exists(motupan_out)) {
-    motupan_df <- read.csv(motupan_out, skip = 16, sep = "\t") %>%
-                    column_to_rownames("trait_name") %>%
-                    select(type) %>%
-                    rownames_to_column("OG")
-  }
+  # if (!with_isolates && only_mags) {
+  #   OG_numbers_df <- read.csv(paste0("database/MAGs_database_Orthofinder/", my_genus,"/Results_", my_genus, "/Orthogroups/Orthogroups.GeneCount.tsv"), sep = "\t")
+  #   # motupan_out <- paste0("/scratch/aprasad/211018_Medgenome_india_samples/15_FurtherProcessing/motupan_test/",my_genus,"/mOTUpan.tsv")
+  # }
+  # if (file.exists(motupan_out)) {
+  #   # motupan_df <- read.csv(motupan_out, skip = 16, sep = "\t") %>%
+  #                   column_to_rownames("trait_name") %>%
+  #                   select(type) %>%
+  #                   rownames_to_column("OG")
+  # }
   single_copy_OGs <- OG_numbers_df %>%
                     select(!Total) %>%
                     filter(if_all(is.numeric, ~ .x <= 1)) %>%
@@ -912,12 +913,12 @@ get_genecount_matrix <- function(my_genus, scps_only = F, upper_count = 10, comb
                         select(!Total) %>%
                         mutate(across(is.numeric, ~+as.logical(.x))) %>%
                         select(starts_with(c("MAG"))) %>%
-                          mutate(core = ifelse(rowSums(.) == num_mags, 1, ifelse(rowSums(.) > num_mags/2, 0.5, 0))) %>%
                           rownames_to_column("OG") %>%
                           mutate(scp = ifelse(OG %in% single_copy_OGs, 1, 0)) %>%
-                          left_join(motupan_df) %>%
-                          mutate(type_motupan = type) %>%
-                          select(!type) %>%
+                          mutate(core = scp) %>%
+                          # left_join(motupan_df) %>%
+                          # mutate(type_motupan = type) %>%
+                          # select(!type) %>%
                           select(!matches("MAG_"))
   if (scps_only) {
     OG_numbers_df_core_isolate <- OG_numbers_df %>%
@@ -992,10 +993,10 @@ pretty_orthogene_heatmaps <- function(matrix, do_motupan_anno = F, motupan_info 
   magOTU_names <- rownames(matrix) %>% as.data.frame() %>%
                         left_join(combined_info_df %>%
                           ungroup() %>%
-                            select(ID, Cluster) %>%
+                            select(ID, magOTU) %>%
                             unique(), by = c(. = "ID")) %>%
-                            mutate(Cluster = ifelse(is.na(Cluster), "Unknown", Cluster)) %>% 
-                            pull(Cluster)
+                            mutate(magOTU = ifelse(is.na(magOTU), "Unknown", magOTU)) %>% 
+                            pull(magOTU)
   host_names <- rownames(matrix) %>% as.data.frame() %>%
                         left_join(combined_info_df %>%
                           ungroup() %>%
@@ -1024,51 +1025,6 @@ pretty_orthogene_heatmaps <- function(matrix, do_motupan_anno = F, motupan_info 
                                       border = TRUE
                           )
   row_split  = as.character(as.factor(magOTU_names))
-  if (do_motupan_anno) {
-    scp_names <- colnames(matrix) %>% as.data.frame() %>%
-                        left_join(motupan_info %>% select(OG, scp), by = c("." = "OG")) %>%
-                          pull(scp)
-    type_names <- colnames(matrix) %>% as.data.frame() %>%
-                        left_join(motupan_info %>% select(OG, type), by = c("." = "OG")) %>%
-                          pull(type)
-    motupan_names <- colnames(matrix) %>% as.data.frame() %>%
-                        left_join(motupan_info %>% select(OG, type_motupan), by = c("." = "OG")) %>%
-                          pull(type_motupan)
-    anno_col = HeatmapAnnotation(`Single Copy` = scp_names,
-                                     `Inferred` = type_names,
-                                     `mOTUpan Inferred` = motupan_names,
-                                    col = list(`Single Copy` = make_col_list(scp_names, "Paired"),
-                                               `Inferred` = make_col_list(type_names, "Spectral"),
-                                               `mOTUpan Inferred` = make_col_list(motupan_names, "Spectral")
-                                    ),
-                                    border = T
-                                  )
-    col_split = colnames(matrix) %>% as.data.frame() %>%
-                        left_join(motupan_info %>% select(OG, scp), by = c("." = "OG")) %>%
-                        pull(scp) %>%
-                        as.factor() %>%
-                        as.character()
-    heatmap_obj = Heatmap(matrix, 
-              col = col_fun,
-              # col = brewer.pal(3, "Set1")[1:2],
-              # clustering_method_columns = 'ward.D2',
-              top_annotation = anno_col,
-              right_annotation = anno_completeness_ref_row,
-              left_annotation = anno_type_host_row,
-              column_names_gp = grid::gpar(fontsize = 0),
-              row_names_gp = grid::gpar(fontsize = 0),
-              heatmap_legend_param = list(title = "Gene count"),
-              # col_split = col_split,
-              # col_title_rot = 0,
-              row_split = row_split,
-              row_title_rot = 0,
-              row_title_gp = grid::gpar(fontsize = 10),
-              cluster_columns = T,
-              border = TRUE,
-              cluster_rows = F
-              )
-    return(heatmap_obj)
-  } else {
     heatmap_obj = Heatmap(matrix, 
             col = col_fun,
             # col = brewer.pal(3, "Set1")[1:2],
@@ -1087,29 +1043,22 @@ pretty_orthogene_heatmaps <- function(matrix, do_motupan_anno = F, motupan_info 
             cluster_rows = F
             )
   return(heatmap_obj)
-  }
-  # draw(heatmap_obj, merge_legend = TRUE)
+  draw(heatmap_obj, merge_legend = TRUE)
 }
 ```
 
 ### Load and parse data
 
 ```{r 07-Load}
-genera_list <- c()
-for (file_name in list.files("database/MAGs_database_Orthofinder/")) {
-  if (!grepl(".csv", file_name)) {
-    genus_name <- file_name
-  }
-  if (!(genus_name %in% genera_list)) {
-    genera_list <- c(genera_list, genus_name)
-  }
-}
+files <- list.files("results/11_phylogenies/02_orthofinder_results/")
+genera_list <- files[which(sapply(files, function(x) !grepl("[.-]", x)))]
+
 all_Isolates <- c()
 all_MAGs <- c()
 Number_genomes_df <- data.frame()
 Groups = genera_list
 for (group in Groups) {
-  OG_numbers_df <- read.csv(paste0("11_phylogenies/02_orthofinder_results", group, "/OrthoFinder/Results_", group, "/Orthogroups/Orthogroups.GeneCount.tsv"), sep = "\t")
+  OG_numbers_df <- read.csv(paste0("results/11_phylogenies/02_orthofinder_results/", group, "/Results_", group, "/Orthogroups/Orthogroups.GeneCount.tsv"), sep = "\t")
   genomes <- head(colnames(OG_numbers_df)[-1], -1)
   MAGs <- genomes[which(grepl("MAG", genomes, fixed=TRUE))]
   all_MAGs <- c(all_MAGs, MAGs)
@@ -1126,55 +1075,55 @@ for (group in Groups) {
 }
 Number_genomes_df <- pivot_longer(Number_genomes_df, !Group, names_to = "Type", values_to = "Number") %>%
                       mutate(Number = as.numeric(Number))
-ortho_mags_df <- data.frame()
-ortho_mags_filt_df <- data.frame()
-for (genus_name in genera_list) {
-  orthofinder_filtered_summary <- read.csv(paste0("database/MAGs_database_Orthofinder/", genus_name,"_Orthogroups_filtered_summary.csv"))
-  orthofinder_summary <- read.csv(paste0("database/MAGs_database_Orthofinder/", genus_name,"_Orthogroups_summary.csv"))
-  ortho_mags_df <- rbind(ortho_mags_df, orthofinder_summary)
-  ortho_mags_filt_df <- rbind(ortho_mags_filt_df, orthofinder_filtered_summary)
-}
-ortho_w_isolates_df <- data.frame()
-for (group in Groups) {
-  orthofinder_summary_w_isolates <- read.csv(paste0("11_phylogenies/02_orthofinder_results", group, "_Orthogroups_summary.csv"))
-  ortho_w_isolates_df <- rbind(ortho_w_isolates_df, orthofinder_summary_w_isolates)
-}
+# ortho_mags_df <- data.frame()
+# ortho_mags_filt_df <- data.frame()
+# for (genus_name in genera_list) {
+#   orthofinder_filtered_summary <- read.csv(paste0("database/MAGs_database_Orthofinder/", genus_name,"_Orthogroups_filtered_summary.csv"))
+#   orthofinder_summary <- read.csv(paste0("database/MAGs_database_Orthofinder/", genus_name,"_Orthogroups_summary.csv"))
+#   ortho_mags_df <- rbind(ortho_mags_df, orthofinder_summary)
+#   ortho_mags_filt_df <- rbind(ortho_mags_filt_df, orthofinder_filtered_summary)
+# }
+# ortho_w_isolates_df <- data.frame()
+# for (group in Groups) {
+#   orthofinder_summary_w_isolates <- read.csv(paste0("11_phylogenies/02_orthofinder_results", group, "_Orthogroups_summary.csv"))
+#   ortho_w_isolates_df <- rbind(ortho_w_isolates_df, orthofinder_summary_w_isolates)
+# }
 
-Orthogroups_summary_df <- data.frame()
-for (group in Groups) {
-  OG_summary <- read.csv(paste0("11_phylogenies/02_orthofinder_results", group, "_Orthogroups_summary.csv"), sep = ",")
-  Orthogroups_summary_df <- rbind(Orthogroups_summary_df,
-                                  OG_summary
-                            ) %>%
-                              filter(present_in != "None")
-}
-ortho_w_isolates_df <- ortho_w_isolates_df %>%
-                        left_join(cluster_tax_info, by = c("group" = "Genus")) %>%
-ortho_mags_df <- ortho_mags_df %>%
-                        left_join(cluster_tax_info, by = c("group" = "Genus")) %>%
-ortho_mags_filt_df <- ortho_mags_filt_df %>%
-                        left_join(cluster_tax_info, by = c("group" = "Genus")) %>%
-plot_number_OGs <- ortho_w_isolates_df %>%
-  mutate(Type = ifelse(status %in% c("Isolates:ScpCore ; MAGs:ScpCore0.5"), "Present in at least 50% MAGs", NA)) %>%
-  mutate(Type = ifelse(status %in% c("Isolates:ScpCore ; MAGs:ScpCore"), "Present in all MAGs", Type)) %>%
-  filter(!is.na(Type)) %>%
-    group_by(group, Type) %>%
-     reframe(Number = n())
-plot_number_OGs_mags <- ortho_mags_df %>%
-  mutate(Type = ifelse(status %in% c("; MAGs:ScpCore0.5"), "Present in at least 50% MAGs", NA)) %>%
-  mutate(Type = ifelse(status %in% c("; MAGs:ScpCore"), "Present in all MAGs", Type)) %>%
-  filter(!is.na(Type)) %>%
-    group_by(group, Type) %>%
-    filter(group %in% Groups) %>%
-    group_by(group, Type) %>%
-     reframe(Type, Number = n())
-plot_number_OGs_mags %>%
-                    select(group) %>% unique %>%
-                    left_join(Number_genomes_df %>%
-                                pivot_wider(names_from = Type, values_from = Number), by = c("group" = "Group")) %>%
-                        ungroup() %>%
-                        filter(group %in% Groups) %>%
-                           mutate(SampleID = row_number()) %>% pull(SampleID)
+# Orthogroups_summary_df <- data.frame()
+# for (group in Groups) {
+#   OG_summary <- read.csv(paste0("11_phylogenies/02_orthofinder_results", group, "_Orthogroups_summary.csv"), sep = ",")
+#   Orthogroups_summary_df <- rbind(Orthogroups_summary_df,
+#                                   OG_summary
+#                             ) %>%
+#                               filter(present_in != "None")
+# }
+# ortho_w_isolates_df <- ortho_w_isolates_df %>%
+#                         left_join(cluster_tax_info, by = c("group" = "Genus")) %>%
+# ortho_mags_df <- ortho_mags_df %>%
+#                         left_join(cluster_tax_info, by = c("group" = "Genus")) %>%
+# ortho_mags_filt_df <- ortho_mags_filt_df %>%
+#                         left_join(cluster_tax_info, by = c("group" = "Genus")) %>%
+# plot_number_OGs <- ortho_w_isolates_df %>%
+#   mutate(Type = ifelse(status %in% c("Isolates:ScpCore ; MAGs:ScpCore0.5"), "Present in at least 50% MAGs", NA)) %>%
+#   mutate(Type = ifelse(status %in% c("Isolates:ScpCore ; MAGs:ScpCore"), "Present in all MAGs", Type)) %>%
+#   filter(!is.na(Type)) %>%
+#     group_by(group, Type) %>%
+#      reframe(Number = n())
+# plot_number_OGs_mags <- ortho_mags_df %>%
+#   mutate(Type = ifelse(status %in% c("; MAGs:ScpCore0.5"), "Present in at least 50% MAGs", NA)) %>%
+#   mutate(Type = ifelse(status %in% c("; MAGs:ScpCore"), "Present in all MAGs", Type)) %>%
+#   filter(!is.na(Type)) %>%
+#     group_by(group, Type) %>%
+#     filter(group %in% Groups) %>%
+#     group_by(group, Type) %>%
+#      reframe(Type, Number = n())
+# plot_number_OGs_mags %>%
+#                     select(group) %>% unique %>%
+#                     left_join(Number_genomes_df %>%
+#                                 pivot_wider(names_from = Type, values_from = Number), by = c("group" = "Group")) %>%
+#                         ungroup() %>%
+#                         filter(group %in% Groups) %>%
+#                            mutate(SampleID = row_number()) %>% pull(SampleID)
 ```
 
 ## Initialization for 08 plot DRAM results
@@ -1680,7 +1629,7 @@ remove_extension <- function(name, extension) {
 ```{r 09-load_parse}
 read_length <- 150
 instrain_genomes_info_df <- data.frame()
-for (sample in samples) {
+for (sample in samples_IN_MY) {
   genome_info_path <- paste0("results/10_instrain/02_instrain_profile/", sample, "/output/", sample, "_genome_info.tsv")
   if (file.exists(genome_info_path)) {
     print(paste0("Reading ", sample))
@@ -1692,13 +1641,28 @@ for (sample in samples) {
     instrain_genomes_info_df <- bind_rows(instrain_genomes_info_df, cbind(df_read, "sample"=sample))
   }
 }
-breadth_cutoff = 0.75
+
+instrain_genomes_info_df_all <- data.frame()
+for (sample in samples) {
+  genome_info_path <- paste0("results/10_instrain/02_instrain_profile/", sample, "/output/", sample, "_genome_info.tsv")
+  if (file.exists(genome_info_path)) {
+    print(paste0("Reading ", sample))
+    df_read <- read.csv(genome_info_path, sep = "\t") %>%
+      mutate(genome = Vectorize(remove_extension)(genome, ".fna")) %>%
+        left_join(vis_magOTUs_df_all %>% ungroup() %>% select(ID, magOTU, Genus, Representative, Quality), by = c("genome" = "ID")) %>%
+          mutate(Host = Vectorize(get_host_from_sample_name)(sample)) %>%
+            mutate(magOTU = paste0(Genus, "_", magOTU, "-", genome))
+    instrain_genomes_info_df_all <- bind_rows(instrain_genomes_info_df_all, cbind(df_read, "sample"=sample))
+  }
+}
+breadth_cutoff = 0.5
+
 instrain_breadth_depth <- instrain_genomes_info_df %>%
                             group_by(sample, magOTU) %>%
-                            reframe(coverage, Host, breadth, length, sample, Genus, filtered_read_pair_count, 
+                            reframe(coverage_median, Host, breadth, length, sample, Genus, filtered_read_pair_count, 
                                       reads_unfiltered_pairs, reads_unfiltered_reads) %>%
                             filter(breadth > breadth_cutoff) %>%
-                              mutate(coverage_factor = cut(coverage ,breaks=c(-1, 1e-04, 1e-03, 1e-02, 1e-01, 1, 10, 100, 1000, Inf),labels = c("<0.0001", "0.0001 - 0.001", "0.001 - 0.01", "0.01 - 0.1", "0.1 - 1", "1 - 10", "10 - 100", "100 - 1000", ">1000"))) %>%
+                              mutate(coverage_factor = cut(coverage_median ,breaks=c(-1, 1e-04, 1e-03, 1e-02, 1e-01, 1, 10, 100, 1000, Inf),labels = c("<0.0001", "0.0001 - 0.001", "0.001 - 0.01", "0.01 - 0.1", "0.1 - 1", "1 - 10", "10 - 100", "100 - 1000", ">1000"))) %>%
                               mutate(expected_number_of_genomes = filtered_read_pair_count*read_length*2/(length)) %>%
                               ungroup() %>%
                               group_by(sample) %>%
@@ -1708,9 +1672,9 @@ instrain_breadth_depth <- instrain_genomes_info_df %>%
                               ungroup()
 instrain_breadth_depth_unfiltered <- instrain_genomes_info_df %>%
                             group_by(sample, magOTU) %>%
-                            reframe(coverage, Host, breadth, length, sample, Genus, filtered_read_pair_count, 
+                            reframe(coverage_median, Host, breadth, length, sample, Genus, filtered_read_pair_count, 
                                       reads_unfiltered_pairs, reads_unfiltered_reads) %>%
-                              mutate(coverage_factor = cut(coverage ,breaks=c(-1, 1e-04, 1e-03, 1e-02, 1e-01, 1, 10, 100, 1000, Inf),labels = c("<0.0001", "0.0001 - 0.001", "0.001 - 0.01", "0.01 - 0.1", "0.1 - 1", "1 - 10", "10 - 100", "100 - 1000", ">1000"))) %>%
+                              mutate(coverage_factor = cut(coverage_median ,breaks=c(-1, 1e-04, 1e-03, 1e-02, 1e-01, 1, 10, 100, 1000, Inf),labels = c("<0.0001", "0.0001 - 0.001", "0.001 - 0.01", "0.01 - 0.1", "0.1 - 1", "1 - 10", "10 - 100", "100 - 1000", ">1000"))) %>%
                               mutate(expected_number_of_genomes = filtered_read_pair_count*read_length*2/(length)) %>%
                               ungroup() %>%
                               group_by(sample) %>%
@@ -1719,47 +1683,84 @@ instrain_breadth_depth_unfiltered <- instrain_genomes_info_df %>%
                               ) %>%
                               ungroup()
 
+instrain_breadth_depth_all <- instrain_genomes_info_df_all %>%
+                            group_by(sample, magOTU) %>%
+                            reframe(coverage_median, Host, breadth, length, sample, Genus, filtered_read_pair_count, 
+                                      reads_unfiltered_pairs, reads_unfiltered_reads) %>%
+                            filter(breadth > breadth_cutoff) %>%
+                              mutate(coverage_factor = cut(coverage_median ,breaks=c(-1, 1e-04, 1e-03, 1e-02, 1e-01, 1, 10, 100, 1000, Inf),labels = c("<0.0001", "0.0001 - 0.001", "0.001 - 0.01", "0.01 - 0.1", "0.1 - 1", "1 - 10", "10 - 100", "100 - 1000", ">1000"))) %>%
+                              mutate(expected_number_of_genomes = filtered_read_pair_count*read_length*2/(length)) %>%
+                              ungroup() %>%
+                              group_by(sample) %>%
+                              mutate(percentage_reads = filtered_read_pair_count/sum(filtered_read_pair_count)*100,
+                                     percentage_expected_number_of_genomes = expected_number_of_genomes/sum(expected_number_of_genomes)*100
+                              ) %>%
+                              ungroup()
+instrain_breadth_depth_unfiltered_all <- instrain_genomes_info_df_all %>%
+                            group_by(sample, magOTU) %>%
+                            reframe(coverage_median, Host, breadth, length, sample, Genus, filtered_read_pair_count, 
+                                      reads_unfiltered_pairs, reads_unfiltered_reads) %>%
+                              mutate(coverage_factor = cut(coverage_median ,breaks=c(-1, 1e-04, 1e-03, 1e-02, 1e-01, 1, 10, 100, 1000, Inf),labels = c("<0.0001", "0.0001 - 0.001", "0.001 - 0.01", "0.01 - 0.1", "0.1 - 1", "1 - 10", "10 - 100", "100 - 1000", ">1000"))) %>%
+                              mutate(expected_number_of_genomes = filtered_read_pair_count*read_length*2/(length)) %>%
+                              ungroup() %>%
+                              group_by(sample) %>%
+                              mutate(percentage_reads = filtered_read_pair_count/sum(filtered_read_pair_count)*100,
+                                     percentage_expected_number_of_genomes = expected_number_of_genomes/sum(expected_number_of_genomes)*100
+                              ) %>%
+                              ungroup()
+
+magOTU_tax_info_all <- instrain_breadth_depth_unfiltered_all %>%
+                    select(Genus, magOTU) %>% unique()
 magOTU_tax_info <- instrain_breadth_depth_unfiltered %>%
                     select(Genus, magOTU) %>% unique()
 
-instrain_prev <- instrain_breadth_depth_unfiltered %>%
-                    mutate(detected = ifelse(coverage > 1 & breadth > breadth_cutoff, 1, 0)) %>%
-                    group_by(Host, magOTU) %>%
-                    mutate(prevalence_in_host = mean(detected)) %>%
-                    ungroup() %>%
-                    group_by(magOTU) %>%
-                    mutate(prevalence = mean(detected))
 
-instrain_prev_by_genus <- instrain_breadth_depth_unfiltered %>%
-                    mutate(detected = ifelse(coverage > 1 & breadth > breadth_cutoff, 1, 0)) %>%
-                    group_by(Host, Genus) %>%
-                    mutate(detection_genus = ifelse(sum(detected) > 1, 1, 0)) %>%
-                    mutate(presence_in_host = mean(detection_genus)) 
 # adjust coverage for sequencing depth
-df_reads$Sample
-min_reads = min(df_reads$MAGs_DB)
+length(df_reads$Sample)
+min_reads = min(df_reads$MAGs_DB_mf)
 # for normalizing coverage across samples
 
 min_copies <- min(qpcr_plot_df$copy_num)
+max_copies <- max(qpcr_plot_df$copy_num)
 df_copy_norm <- qpcr_plot_df %>% 
                   group_by(Host) %>% 
-                    summarise(Median_cp = median(copy_num)/min_copies) %>% 
-                      unique() %>%
-                      mutate(Median_cp = Median_cp/min(Median_cp))
-qpcr_normalizing_factor <- function(x) {
-  num = df_copy_norm[df_copy_norm$Host== x, "Median_cp"][[1]]
+                    summarise(Median_cp = median(copy_num)) %>% 
+                    # summarise(Median_cp = median(copy_num)/min_copies) %>% 
+                      unique() #%>%
+                      # mutate(Median_cp = Median_cp/min(Median_cp))
+# # get the median copy number for that host species
+# qpcr_normalizing_factor <- function(x) {
+#   num = df_copy_norm[df_copy_norm$Host== x, "Median_cp"][[1]]
+#   return(num)
+# }
+# get the copy number of that sample if available and if not, get the median copy number for that species 
+qpcr_normalizing_factor_indiv <- function(sample) {
+  if (sample %in% qpcr_plot_df$Sample.Name) {
+    num = qpcr_plot_df[qpcr_plot_df$Sample.Name == sample, "copy_num"] %>% pull
+  } else {
+    h = get_host_from_sample_name(sample)
+    num = df_copy_norm[df_copy_norm$Host== h, "Median_cp"][[1]]
+    print(paste0("gettin median for ", sample, " as it is not found in the qpcr data"))
+  }
   return(num)
 }
 
 abundance_df <-  instrain_breadth_depth_unfiltered %>%
                                 filter(!is.na(magOTU)) %>%
-                                left_join(df_reads %>% select(Sample, MAGs_DB), by = c("sample" = "Sample")) %>%
-                                  # normalize by sequencing depth (of bacterial reads)
-                                  mutate(coverage = coverage*MAGs_DB/min_reads) %>%
-                                  # normalize by qpcr - community size
-                                  mutate(coverage = coverage*Vectorize(qpcr_normalizing_factor)(Host)) %>%
-                                    select(!MAGs_DB) %>%
-                                      unique()
+                                left_join(df_reads %>% select(Sample, MAGs_DB_mf), by = c("sample" = "Sample")) %>%
+                                mutate(coverage = coverage_median) %>%
+                                group_by(sample) %>%
+                                mutate(rel_cov = coverage/sum(coverage)) %>%
+                                ungroup() %>%
+                                mutate(copies_cov = rel_cov*Vectorize(qpcr_normalizing_factor_indiv)(sample))
+                                  # for now not doing any adjusting - using median coverage as is
+                                  # # normalize by sequencing depth (of bacterial reads)
+                                  # mutate(coverage_adj = coverage_median/MAGs_DB_mf*min_reads) %>%
+                                  # # normalize by qpcr - community size
+                                  # mutate(coverage_norm = coverage_adj/max_copies*Vectorize(qpcr_normalizing_factor_indiv)(sample)) %>%
+                                  # mutate(coverage = coverage_norm) %>%
+                                  #   select(!MAGs_DB_mf) %>%
+                                  #     unique()
 abundance_df_matrix <-  abundance_df %>% filter(!is.na(magOTU)) %>%
                             filter(breadth > breadth_cutoff) %>%
                             select(sample, magOTU, coverage) %>%
@@ -1767,13 +1768,30 @@ abundance_df_matrix <-  abundance_df %>% filter(!is.na(magOTU)) %>%
                               pivot_wider(names_from=magOTU, values_from=coverage, values_fn = function(x) as.numeric(x)) %>% remove_rownames %>%
                               column_to_rownames(var="sample") %>% 
                               mutate_all(~replace_na(.,0))
+
+abundance_df_matrix_copies <-  abundance_df %>% filter(!is.na(magOTU)) %>%
+                            filter(breadth > breadth_cutoff) %>%
+                            select(sample, magOTU, copies_cov) %>%
+                            unique() %>%
+                              pivot_wider(names_from=magOTU, values_from=copies_cov, values_fn = function(x) as.numeric(x)) %>% remove_rownames %>%
+                              column_to_rownames(var="sample") %>% 
+                              mutate_all(~replace_na(.,0))
+
+abundance_df_matrix_rel <-  abundance_df %>% filter(!is.na(magOTU)) %>%
+                            filter(breadth > breadth_cutoff) %>%
+                            select(sample, magOTU, rel_cov) %>%
+                            unique() %>%
+                              pivot_wider(names_from=magOTU, values_from=rel_cov, values_fn = function(x) as.numeric(x)) %>% remove_rownames %>%
+                              column_to_rownames(var="sample") %>% 
+                              mutate_all(~replace_na(.,0))
+
 abundance_df_matrix_pa <-  abundance_df %>% filter(!is.na(magOTU)) %>%
                             filter(breadth > breadth_cutoff) %>%
                             mutate(detected = ifelse(coverage > 1 & breadth > breadth_cutoff, 1, 0))  %>%
                             group_by(magOTU) %>%
                             # count number of samples where magOTU is detected
                             mutate(numSamples = sum(detected)) %>%
-                            # only keep magOTUs that are detected in more than 5 samples
+                            # only keep magOTUs that are detected in more than 3 samples
                             filter(numSamples > 3) %>%
                             ungroup() %>%
                             select(sample, magOTU, detected) %>%
@@ -1781,26 +1799,66 @@ abundance_df_matrix_pa <-  abundance_df %>% filter(!is.na(magOTU)) %>%
                               pivot_wider(names_from=magOTU, values_from=detected, values_fn = function(x) as.numeric(x)) %>% remove_rownames %>%
                               column_to_rownames(var="sample") %>% 
                               mutate_all(~replace_na(.,0))
+write.csv(abundance_df_matrix, "results/figures/magOTU_abundance_matrix_coverage.csv", row.names = T, quote = F)
+write.csv(abundance_df_matrix_pa, "results/figures/magOTU_abundance_matrix_presence_absence.csv", row.names = T, quote = F)
 
-# df_Cov_copy_num_adj <-  abundance_df %>% filter(!is.na(magOTU)) %>%
-#                           select(Sample, magOTU, Cov) %>%
-#                           left_join(cluster_tax_info %>% ungroup %>% select(Genus, magOTU)) %>%
-#                           filter(Sample %in% samples_MY) %>%
-#                           left_join(df_reads %>% select(Sample, MAGs_DB)) %>%
-#                             mutate(Cov_adj = Cov/MAGs_DB*min_reads) %>%
-#                             select(!MAGs_DB) %>%
-#                           group_by(Sample) %>%
-#                           mutate(Cov_rel = 100*Cov_adj/sum(Cov_adj)) %>%
-#                           ungroup() %>%
-#                             left_join(qpcr_plot_df %>% ungroup() %>% select(Sample.Name, copy_num), by = c("Sample" = "Sample.Name")) %>%
-#                             mutate(Cov_adj_copy = Cov_rel*copy_num) %>%
-#                             mutate(Host = Vectorize(get_host_from_sample_name)(Sample))
-# abundance_df_matrix_Cov <-  abundance_df %>% filter(!is.na(magOTU)) %>%
-#                           select(Sample, magOTU, Cov) %>%
-#                           # filter(Sample %in% samples_IN) %>%
-#                           unique() %>%
-#                             pivot_wider(names_from=magOTU, values_from=Cov, values_fn = as.numeric) %>% remove_rownames %>%
-#                             column_to_rownames(var="Sample")
+
+abundance_df_all <-  instrain_breadth_depth_unfiltered_all %>%
+                                filter(!is.na(magOTU)) %>%
+                                left_join(df_reads %>% select(Sample, MAGs_DB_mf), by = c("sample" = "Sample")) %>%
+                                mutate(coverage = coverage_median) %>%
+                                group_by(sample) %>%
+                                mutate(rel_cov = coverage/sum(coverage)) %>%
+                                ungroup() %>%
+                                mutate(copies_cov = rel_cov*Vectorize(qpcr_normalizing_factor_indiv)(sample))
+                                  # for now not doing any adjusting - using median coverage as is
+                                  # # normalize by sequencing depth (of bacterial reads)
+                                  # mutate(coverage_adj = coverage_median/MAGs_DB_mf*min_reads) %>%
+                                  # # normalize by qpcr - community size
+                                  # mutate(coverage_norm = coverage_adj/max_copies*Vectorize(qpcr_normalizing_factor_indiv)(sample)) %>%
+                                  # mutate(coverage = coverage_norm) %>%
+                                  #   select(!MAGs_DB_mf) %>%
+                                  #     unique()
+abundance_df_matrix_all <-  abundance_df_all %>% filter(!is.na(magOTU)) %>%
+                            filter(breadth > breadth_cutoff) %>%
+                            select(sample, magOTU, coverage) %>%
+                            unique() %>%
+                              pivot_wider(names_from=magOTU, values_from=coverage, values_fn = function(x) as.numeric(x)) %>% remove_rownames %>%
+                              column_to_rownames(var="sample") %>% 
+                              mutate_all(~replace_na(.,0))
+
+abundance_df_matrix_copies_all <-  abundance_df_all %>% filter(!is.na(magOTU)) %>%
+                            filter(breadth > breadth_cutoff) %>%
+                            select(sample, magOTU, copies_cov) %>%
+                            unique() %>%
+                              pivot_wider(names_from=magOTU, values_from=copies_cov, values_fn = function(x) as.numeric(x)) %>% remove_rownames %>%
+                              column_to_rownames(var="sample") %>% 
+                              mutate_all(~replace_na(.,0))
+
+abundance_df_matrix_rel_all <-  abundance_df_all %>% filter(!is.na(magOTU)) %>%
+                            filter(breadth > breadth_cutoff) %>%
+                            select(sample, magOTU, rel_cov) %>%
+                            unique() %>%
+                              pivot_wider(names_from=magOTU, values_from=rel_cov, values_fn = function(x) as.numeric(x)) %>% remove_rownames %>%
+                              column_to_rownames(var="sample") %>% 
+                              mutate_all(~replace_na(.,0))
+
+abundance_df_matrix_pa_all <-  abundance_df_all %>% filter(!is.na(magOTU)) %>%
+                            filter(breadth > breadth_cutoff) %>%
+                            mutate(detected = ifelse(coverage > 1 & breadth > breadth_cutoff, 1, 0))  %>%
+                            group_by(magOTU) %>%
+                            # count number of samples where magOTU is detected
+                            mutate(numSamples = sum(detected)) %>%
+                            # only keep magOTUs that are detected in more than 3 samples
+                            filter(numSamples > 3) %>%
+                            ungroup() %>%
+                            select(sample, magOTU, detected) %>%
+                            unique() %>%
+                              pivot_wider(names_from=magOTU, values_from=detected, values_fn = function(x) as.numeric(x)) %>% remove_rownames %>%
+                              column_to_rownames(var="sample") %>% 
+                              mutate_all(~replace_na(.,0))
+write.csv(abundance_df_matrix_all, "results/figures/magOTU_abundance_matrix_coverage_all.csv", row.names = T, quote = F)
+write.csv(abundance_df_matrix_pa_all, "results/figures/magOTU_abundance_matrix_presence_absence_all.csv", row.names = T, quote = F)
 
 sample_data_mat <- df_meta_complete %>%
                    filter(ID %in% samples_MY) %>%

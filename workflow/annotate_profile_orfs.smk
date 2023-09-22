@@ -387,3 +387,39 @@ rule run_kraken2_genes:
                 --report {output.kraken_report} --output {params.kraken_out} \
                  {input.ffn_input} &> {log}
         """
+
+rule cayman_profiling:
+    input:
+        reads1 = lambda wildcards: f"results/01_cleanreads/{wildcards.sample}_R1_repaired.fastq.gz",
+        reads2 = lambda wildcards: f"results/01_cleanreads/{wildcards.sample}_R2_repaired.fastq.gz",
+        annot_db = "data/cayman_gene_db/20230313_gene_catalog_db.csv",
+        gene_catalog = "results/08_gene_content/20230313_gene_catalog.ffn",
+        bwa_index = multiext("results/08_gene_content/20230313_gene_catalog.ffn", ".amb", ".ann", ".bwt", ".pac", ".sa"),
+    output:
+        aln_stats = "results/08_gene_content/06_cayman/{sample}.aln_stats.txt.gz",
+        cazy_profile = "results/08_gene_content/06_cayman/{sample}.cazy.txt.gz",
+        gene_counts = "results/08_gene_content/06_cayman/{sample}.gene_counts.txt.gz"
+    params:
+        prefix = "results/08_gene_content/06_cayman/{sample}",
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-17:10:00"),
+    resources:
+        mem_mb = convertToMb("100G")
+    threads: 8
+    log: "results/08_gene_content/06_cayman/{sample}_cayman.log"
+    benchmark: "results/08_gene_content/06_cayman/{sample}_cayman.benchmark"
+    conda: "../config/envs/cayman-env.yaml"
+    shell:
+        """
+        # pip3 installed into /work/FAC/FBM/DMF/pengel/spirit/aprasad/snakemake-conda-envs/78089992c6f27e235e9cb6bb5c91607c_
+        # better yet check if it is in path and if not, set it up
+        # for now this fix is ok
+        cayman -t {threads} --db_separator , --db_coordinates hmmer \
+                                     -1 {input.reads1} \
+                                     -2 {input.reads2} \
+                                     --out_prefix {params.prefix} \
+                                     {input.annot_db} \
+                                     {input.gene_catalog} &> {log}
+        """

@@ -96,7 +96,8 @@ rule targets:
         kaiju_genes = "results/08_gene_content/04_kaiju_on_genes/nr/20230313_gene_catalog_taxa.txt",
         kaiju_genes_full = "results/08_gene_content/04_kaiju_on_genes/nr/20230313_gene_catalog_taxa_full.txt",
         kraken_genes = "results/08_gene_content/04_kraken2_on_genes/20230313_gene_catalog_report.txt",
-        # contig_fates = "results/05_assembly/contig_fates/{sample}_contig_fates.tsv"
+        # contig_fates = "results/05_assembly/contig_fates/{sample}_contig_fates.tsv",
+        cayman_profile = expand("results/08_gene_content/06_cayman/{sample}.cazy.txt.gz", sample = SAMPLES),
 
 
 include: "trim-qc.smk"

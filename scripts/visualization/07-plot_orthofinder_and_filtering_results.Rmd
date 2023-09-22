@@ -28,53 +28,41 @@ Below is a summary of the number of genes used and how and where they occured.
 
 # Number of genes used for trees
 
-```{r summary1}
-ortho_w_isolates_df %>%
-  filter(status %in% c("Isolates:ScpCore ; MAGs:ScpCore", "Isolates:ScpCore ; MAGs:ScpCore0.5")) %>%
-    group_by(group) %>%
-      summarise(genes_used = n())
-# ortho_w_isolates_df %>% pull(status) %>% unique()
-```
-# Number of genes used for core cov (MAGs only - no reference genomes)
-```{r summary2}
-# ortho_mags_df %>% pull(status) %>% unique()
-ortho_mags_df %>%
-  filter(status %in% c("; MAGs:ScpCore", "; MAGs:ScpCore0.5")) %>%
-    group_by(group) %>%
-      summarise(genes_used = n()) %>%
-        print(n = 50)
-```
+# ```{r summary1}
+# ortho_w_isolates_df %>%
+#   filter(status %in% c("Isolates:ScpCore ; MAGs:ScpCore", "Isolates:ScpCore ; MAGs:ScpCore0.5")) %>%
+#     group_by(group) %>%
+#       summarise(genes_used = n())
+# # ortho_w_isolates_df %>% pull(status) %>% unique()
+# ```
+# # Number of genes used for core cov (MAGs only - no reference genomes)
+# ```{r summary2}
+# # ortho_mags_df %>% pull(status) %>% unique()
+# ortho_mags_df %>%
+#   filter(status %in% c("; MAGs:ScpCore", "; MAGs:ScpCore0.5")) %>%
+#     group_by(group) %>%
+#       summarise(genes_used = n()) %>%
+#         print(n = 50)
+# ```
 ## Heatmaps of OrthoFinder results
 
 Code is below it saves heatmaps at `Figures/07-Orthogroup_heatmaps/*.pdf`.
 
 ```{r ortho_genes_heatmap}
 combined_info_df <- vis_magOTUs_df_all %>%
-                      select(colnames(reference_genomes_info)) %>%
-                        rbind(reference_genomes_info)
+                      mutate(Cluster = paste0(Genus, "_", magOTU))
+
+                      # select(colnames(reference_genomes_info)) %>%
+                        # rbind(reference_genomes_info)
 # rename these figures and remake them using the newly refurbished function get_genecount_matrix
+system('mkdir -p results/figures/07-Orthogroup_heatmaps')
 for (genus_iter in genera) {
   my_upper_count <- 20
-  if (genus_iter == "g__Lactobacillus") {
-    pdf(paste0("Figures/07-Orthogroup_heatmaps/", genus_iter, "_OG_counts.pdf"))
-    my_heatmap <- pretty_orthogene_heatmaps(matrix = get_genecount_matrix(my_genus=genus_iter, upper_count = my_upper_count)$matrix, 
-      do_motupan_anno = T, motupan_info = get_genecount_matrix(my_genus=genus_iter, upper_count = my_upper_count)$info,
-      col_fun = colorRamp2(c(0, 1, 2, 5, my_upper_count), c("#e6f5d0", "#7fbc41", brewer.pal(9, "RdPu")[1], brewer.pal(9, "RdPu")[8], brewer.pal(9, "RdPu")[9])))
-    draw(my_heatmap, merge_legend = TRUE, column_title=paste0("Number of OG genes: ", ncol(my_heatmap)), column_title_gp=grid::gpar(fontsize=12))
-    dev.off()
-    pdf(paste0("Figures/07-Orthogroup_heatmaps/", genus_iter, "_OG_scp.pdf"))
-      my_heatmap <- pretty_orthogene_heatmaps(matrix = get_genecount_matrix(my_genus=genus_iter, scps_only = T, upper_count = my_upper_count)$matrix, 
-      do_motupan_anno = T, motupan_info = get_genecount_matrix(my_genus=genus_iter, scps_only = T, upper_count = my_upper_count)$info,
-      col_fun = colorRamp2(c(0, 1, 2, 5, my_upper_count), c("#e6f5d0", "#7fbc41", brewer.pal(9, "RdPu")[1], brewer.pal(9, "RdPu")[8], brewer.pal(9, "RdPu")[9])))
-    draw(my_heatmap, merge_legend = TRUE, column_title=paste0("Number of OG genes: ", ncol(my_heatmap)), column_title_gp=grid::gpar(fontsize=12))
-    dev.off()
-  } else {
-    pdf(paste0("Figures/07-Orthogroup_heatmaps/", genus_iter, "_OG_counts.pdf"))
-    my_heatmap <- pretty_orthogene_heatmaps(get_genecount_matrix(my_genus=genus_iter, upper_count = my_upper_count), 
-      col_fun = colorRamp2(c(0, 1, 2, 5, my_upper_count), c("#e6f5d0", "#7fbc41", brewer.pal(9, "RdPu")[1], brewer.pal(9, "RdPu")[8], brewer.pal(9, "RdPu")[9])))
-    draw(my_heatmap, merge_legend = TRUE, column_title=paste0("Number of OG genes: ", ncol(my_heatmap)), column_title_gp=grid::gpar(fontsize=12))
-    dev.off()
-  }
+  pdf(paste0("results/figures/07-Orthogroup_heatmaps/", genus_iter, "_OG_counts.pdf"))
+  my_heatmap <- pretty_orthogene_heatmaps(get_genecount_matrix(my_genus=genus_iter, upper_count = my_upper_count), 
+    col_fun = colorRamp2(c(0, 1, 2, 5, my_upper_count), c("#e6f5d0", "#7fbc41", brewer.pal(9, "RdPu")[1], brewer.pal(9, "RdPu")[8], brewer.pal(9, "RdPu")[9])))
+  draw(my_heatmap, merge_legend = TRUE, column_title=paste0("Number of OG genes: ", ncol(my_heatmap)), column_title_gp=grid::gpar(fontsize=12))
+  dev.off()
 }
 ```
 
