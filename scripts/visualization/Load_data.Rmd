@@ -1787,7 +1787,7 @@ abundance_df_matrix_rel <-  abundance_df %>% filter(!is.na(magOTU)) %>%
 
 abundance_df_matrix_pa <-  abundance_df %>% filter(!is.na(magOTU)) %>%
                             filter(breadth > breadth_cutoff) %>%
-                            mutate(detected = ifelse(coverage > 1 & breadth > breadth_cutoff, 1, 0))  %>%
+                            mutate(detected = ifelse(coverage >= 1 & breadth > breadth_cutoff, 1, 0))  %>%
                             group_by(magOTU) %>%
                             # count number of samples where magOTU is detected
                             mutate(numSamples = sum(detected)) %>%
@@ -1799,7 +1799,8 @@ abundance_df_matrix_pa <-  abundance_df %>% filter(!is.na(magOTU)) %>%
                               pivot_wider(names_from=magOTU, values_from=detected, values_fn = function(x) as.numeric(x)) %>% remove_rownames %>%
                               column_to_rownames(var="sample") %>% 
                               mutate_all(~replace_na(.,0))
-write.csv(abundance_df_matrix, "results/figures/magOTU_abundance_matrix_coverage.csv", row.names = T, quote = F)
+write.csv(abundance_df_matrix_copies, "results/figures/magOTU_abundance_matrix_copies.csv", row.names = T, quote = F)
+write.csv(abundance_df_matrix_rel, "results/figures/magOTU_abundance_matrix_rel.csv", row.names = T, quote = F)
 write.csv(abundance_df_matrix_pa, "results/figures/magOTU_abundance_matrix_presence_absence.csv", row.names = T, quote = F)
 
 

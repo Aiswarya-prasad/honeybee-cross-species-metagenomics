@@ -66,3 +66,4 @@ for genus in [os.path.basename('/'.join(x.split('/')[:-1])) for x in glob.glob('
 # are some of these orthogroups annotates in the cazyme database?
 
 # anno with ghostkoala and then check more
+

@@ -29,13 +29,17 @@ system("mkdir -p results/figures/10-instrain_plots/")
 ```{r instrain_scaff_detected}
 # plot number of true scaffolds vs detected scaffolds for each sample each magOTU
 # showing breadth and coverage...
-plot_scaff_detected <- ggplot(instrain_genomes_info_df_all %>% 
+
+plot_scaff_detected_list <- list()
+for (magotu in sort(unique(instrain_genomes_info_df$magOTU))) {
+  plot_scaff_detected <- ggplot(instrain_genomes_info_df_all %>% 
                                 mutate(perc_detected = detected_scaffolds/true_scaffolds*100) %>%
                                 mutate(detected = ifelse(coverage > 1 & breadth > breadth_cutoff, "y", "n")) %>%
                                 mutate(breadth = breadth*100, breadth_expected =  breadth_expected*100) %>%
                                 mutate(Genus = as.character(Genus)) %>%
                                 mutate(Genus = ifelse(detected == "y", Genus, "g__")) %>%
-                                mutate(Host = ifelse(detected == "y", Host, "g__")),
+                                mutate(Host = ifelse(detected == "y", Host, "g__")) %>%
+                                filter(magOTU == magotu),
                              aes(y = perc_detected,
                                  x = breadth,
                                  color = Host,
@@ -45,31 +49,37 @@ plot_scaff_detected <- ggplot(instrain_genomes_info_df_all %>%
   geom_point() +
   scale_size_continuous(trans = scales::pseudo_log_trans(base = 10)) +
   labs(y = "Percentage of scaffolds detected (at least a read mapped)") +
+  ggtitle(paste0(magotu)) +
   # scale_size_continuous(trans = "log10") +
-    facet_wrap_paginate(~magOTU, ncol = 3, nrow = 3, page = 6) +
+    # facet_wrap_paginate(~magOTU, ncol = 3, nrow = 3, page = 6) +
     geom_vline(xintercept = 50, linetype = "dotted") +
       make_theme(theme_name=theme_few(), leg_pos="right",
-                 guide_nrow = 16,
+                 guide_nrow = 6, leg_size = 6,
                  setFill = F, setCol = F,
                  x_angle=0 ,x_vj=0, x_hj=0, x_size=10,
                  y_angle=0 ,y_vj=0, y_hj=0, y_size=10) +
         theme(strip.text = element_text(size = 6)) +
         scale_color_manual(values=host_order_color_dark) +
         guides(color="none")
-
-paginate_save(plot_scaff_detected, "magOTU", "results/figures/10-instrain_plots/1-scaffolds_detected_by_magOTU.pdf", pass_nrow = 3, pass_ncol = 3)
+  plot_scaff_detected_list[[magotu]] <- plot_scaff_detected
+}
+pdf("results/figures/10-instrain_plots/1-scaffolds_detected_by_magOTU.pdf", width = 20, height = 25)
+marrangeGrob(plot_scaff_detected_list, nrow = 3, ncol = 3)
+dev.off()
 ```
 
 ```{r instrain_plots_breadth_by_sample}
-colnames(instrain_genomes_info_df)
-plot_breadth_by_sample <- ggplot(instrain_genomes_info_df_all %>% mutate(breadth = breadth*100, breadth_expected =  breadth_expected*100),
+plot_breadth_by_sample_list <- list()
+for (a_sample in unique(instrain_genomes_info_df$sample)) {
+  plot_breadth_by_sample <- ggplot(instrain_genomes_info_df_all %>% mutate(breadth = breadth*100, breadth_expected =  breadth_expected*100) %>%
+                                filter(sample == a_sample),
                              aes(x = breadth,
                                  y = breadth_expected,
                                  color = Genus,
                               )
                             ) +
   geom_point() +
-    facet_wrap_paginate(~sample, ncol = 3, nrow = 3, page = 6) +
+    ggtitle(paste0(a_sample)) +
       make_theme(theme_name=theme_few(), leg_pos="none",
                  # guide_nrow = 6,
                  setFill = F, setCol = F,
@@ -78,13 +88,20 @@ plot_breadth_by_sample <- ggplot(instrain_genomes_info_df_all %>% mutate(breadth
         geom_abline(slope=1, linetype = "dotted") +
         theme(strip.text = element_text(size = 6)) +
         scale_color_manual(values=genusColors)
-
-paginate_save(plot_breadth_by_sample, "sample", "results/figures/10-instrain_plots/1-breadth_vs_expected_by_sample.pdf", pass_nrow = 3, pass_ncol = 3)
+  plot_breadth_by_sample_list[[a_sample]] <- plot_breadth_by_sample
+}
+pdf("results/figures/10-instrain_plots/1-breadth_vs_expected_by_sample.pdf", width = 20, height = 25)
+marrangeGrob(plot_breadth_by_sample_list, nrow = 3, ncol = 3)
+dev.off()
 ```
 
 
 ```{r instrain_plots_breadth_by_sample_with_coveraeg}
-plot_breadth_by_sample_w_cov <- ggplot(instrain_genomes_info_df_all %>% mutate(breadth = breadth*100, breadth_expected =  breadth_expected*100),
+# redo using marrangeGrob !
+plot_breadth_by_sample_w_cov_list <- list()
+for (a_sample in unique(instrain_genomes_info_df$sample)) {
+  plot_breadth_by_sample_w_cov <- ggplot(instrain_genomes_info_df_all %>% mutate(breadth = breadth*100, breadth_expected =  breadth_expected*100) %>%
+                                filter(sample == a_sample),
                              aes(y = breadth,
                                  x = breadth_expected,
                                  color = Genus,
@@ -92,7 +109,7 @@ plot_breadth_by_sample_w_cov <- ggplot(instrain_genomes_info_df_all %>% mutate(b
                               ), alpha = 0.75
                             ) +
   geom_point() +
-    facet_wrap_paginate(~sample, ncol = 3, nrow = 3, page = 6) +
+    ggtitle(paste0(a_sample)) +
       make_theme(theme_name=theme_few(), leg_pos="right",
                  guide_nrow = 12,
                  setFill = F, setCol = F,
@@ -102,31 +119,45 @@ plot_breadth_by_sample_w_cov <- ggplot(instrain_genomes_info_df_all %>% mutate(b
         theme(strip.text = element_text(size = 6)) +
         scale_color_manual(values=genusColors) +
         guides(color = guide_legend(show = FALSE))
-
-paginate_save(plot_breadth_by_sample_w_cov, "sample", "results/figures/10-instrain_plots/1-breadth_vs_expected_w_cov_by_sample.pdf", pass_nrow = 3, pass_ncol = 3)
+  plot_breadth_by_sample_w_cov_list[[a_sample]] <- plot_breadth_by_sample_w_cov
+}
+pdf("results/figures/10-instrain_plots/1-breadth_vs_expected_w_cov_by_sample.pdf", width = 20, height = 25)
+marrangeGrob(plot_breadth_by_sample_w_cov_list, nrow = 3, ncol = 3)
+dev.off()
 ```
 
 ```{r instrain_plots_breadth_by_magOTU}
-plot_breadth_by_magOTU <- ggplot(instrain_genomes_info_df_all %>% mutate(breadth = breadth*100, breadth_expected =  breadth_expected*100),
+plot_breadth_by_magOTU_list <- list()
+for (magotu in unique(instrain_genomes_info_df_all)) {
+  plot_breadth_by_magOTU <- ggplot(instrain_genomes_info_df_all %>% mutate(breadth = breadth*100, breadth_expected =  breadth_expected*100),
                              aes(x = breadth,
                                  y = breadth_expected,
                                  color = Host,
                               )
                             ) +
-  geom_point() +
-    facet_wrap_paginate(~magOTU, ncol = 3, nrow = 3, page = 5) +
-      make_theme(theme_name=theme_few(), leg_pos="none",
-                 # guide_nrow = 6,
-                 setFill = F, setCol = F,
-                 x_angle=0 ,x_vj=0, x_hj=0, x_size=10,
-                 y_angle=0 ,y_vj=0, y_hj=0, y_size=10) +
-        geom_abline(slope=1, linetype = "dotted") +
-        theme(strip.text = element_text(size = 6)) +
-        scale_color_manual(values=host_order_color_dark)
-
-paginate_save(plot_breadth_by_magOTU, "magOTU", "results/figures/10-instrain_plots/1-breadth_vs_expected_by_magOTU.pdf", pass_nrow = 3, pass_ncol = 3)
+                              geom_point() +
+                                ggtitle(paste0(magotu)) +
+                                  make_theme(theme_name=theme_few(), leg_pos="none",
+                                            # guide_nrow = 6,
+                                            setFill = F, setCol = F,
+                                            x_angle=0 ,x_vj=0, x_hj=0, x_size=10,
+                                            y_angle=0 ,y_vj=0, y_hj=0, y_size=10) +
+                                    geom_abline(slope=1, linetype = "dotted") +
+                                    theme(strip.text = element_text(size = 6)) +
+                                    scale_color_manual(values=host_order_color_dark)
+  plot_breadth_by_magOTU_list[[magotu]] <- plot_breadth_by_magOTU
+}
+pdf("results/figures/10-instrain_plots/1-breadth_vs_expected_by_magOTU.pdf", width = 20, height = 25)
+marrangeGrob(plot_breadth_by_magOTU_list, nrow = 3, ncol = 3)
+dev.off()
 ```
+
 ```{r instrain_plots_breadth_vs_num_reads}
+
+# redo using marrangeGrob !
+
+
+
 plot_breadth_num_reads <- ggplot() +
   geom_point(data = instrain_breadth_depth_unfiltered_all %>% mutate(breadth = breadth*100),
                              aes(x = factor(sample, samples),
@@ -162,6 +193,8 @@ plot_breadth_num_reads <- ggplot() +
 paginate_save(plot_breadth_num_reads, "magOTU", "results/figures/10-instrain_plots/2-mapped_reads_by_magOTU.pdf", pass_nrow = 3, pass_ncol = 3)
 ```
 ```{r instrain_plots_breadth_vs_coverage}
+# redo using marrangeGrob
+
 plot_breadth_num_reads <- ggplot() +
   geom_point(data = instrain_breadth_depth_unfiltered_all %>% mutate(breadth = breadth*100),
                              aes(x = factor(sample, samples),
@@ -198,6 +231,8 @@ paginate_save(plot_breadth_num_reads, "magOTU", "results/figures/10-instrain_plo
 ```
 
 ```{r instrain_plots_breadth_vs_num_reads_coverage}
+# redo using marrangeGrob
+
 plot_breadth_num_reads <- ggplot() +
   geom_point(data = instrain_breadth_depth_unfiltered_all %>% mutate(breadth = breadth*100),
                              aes(x = factor(sample, samples),
@@ -328,96 +363,135 @@ host_comp_order <- c("mellifera_mellifera",
                     "florea_mellifera",
                     "andreniformis_mellifera")
 
-# plot_magotu_shared <- ggplot(df_all_combos_plot) +
-#   geom_point(aes(y = factor(host_comp, host_comp_order), x = prop_shared), color = "#000000", size = 2.2) +
-#   geom_point(aes(y = factor(host_comp, host_comp_order), x = prop_shared, color = Genus), size = 2) +
-#     labs(x = "Host species pair", y = "Proportion of host species pairs that share the magOTU") +
-#     scale_color_manual(values=genusColors) +
-#     facet_wrap_paginate(~magotu, ncol = 4, nrow = 4, page = 3) +
-#     make_theme(setFill = F, setCol = F,
-#                y_hj = 1, y_vj = 1, y_size = 10, y_angle = 30,
-#                leg_pos = "none"
+# df_shared <- read.csv("results/figures/magotu_shared_same_diff.csv", stringsAsFactors = F) %>%
+#               pivot_longer(cols = !c("X"), names_to = "host_comb", values_to = "prop_shared") %>%
+#               left_join(magOTU_tax_info, by = c("X" = "magOTU"))
+
+# p_list <- list()
+# for (genus in unique(df_shared$Genus)) {
+#   p <- ggplot(df_shared %>% filter(Genus == genus),
+#   aes(x = factor(host_comb, host_comp_order), y = prop_shared, group = X)
+#   ) +
+#   geom_point(color = "#000000", size = 3) +
+#   geom_point(aes(color = Genus), size = 2) +
+#   scale_color_manual(values=genusColors) +
+#   new_scale_color() +
+#   geom_line(aes(color = X), size = 1) +
+#   scale_color_manual(values=head(colorRampPalette(c(genusColors[[genus]], "#FFFFFF"))(2+length(unique(df_shared %>% filter(Genus == genus) %>% pull(X)))), -2)) +
+#     labs(x = "Host species pair", y = "") +
+#     ggtitle(paste0(genus, " - Proportion of host species pairs that share the magOTU")) +
+#     geom_vline(xintercept = 5.5, linetype = "solid", color = "#000000") +
+#     make_theme(setFill = F, setCol = F, leg_pos = "none",
+#                y_hj = 1, y_vj = 1, y_size = 7,
+#                x_angle = 30, x_hj = 1, x_vj = 1, x_size = 7, axis_x_title = 7
 #     ) +
-#       theme(strip.text = element_text(size = 10),
+#     ylim(0,1) +
+#       theme(plot.title = element_text(size = 10, face = "bold"),
 #             panel.background = element_rect(fill = "white", colour = "black"),
 #             panel.grid.major = element_line(colour = "grey", linetype = "solid"),
-#       )
+#       )  
+#   p_list[[genus]] <- p
+# }
+# pdf("results/figures/3-magotu_shared.pdf", width = 12, height = 15)
+# marrangeGrob(p_list, nrow = 5, ncol = 2)
+# dev.off()
 
-# paginate_save(plot_magotu_shared, "magotu", "results/figures/3-magotu_shared.pdf", pass_nrow = 4, pass_ncol = 4)
 
-df_shared <- read.csv("results/figures/magotu_shared_same_diff.csv", stringsAsFactors = F) %>%
-              pivot_longer(cols = !c("X"), names_to = "host_comb", values_to = "prop_shared") %>%
-              left_join(magOTU_tax_info, by = c("X" = "magOTU"))
+# df_shared_ab <- read.csv("results/figures/magotu_shared_same_diff_ab.csv", stringsAsFactors = F) %>%
+#               pivot_longer(cols = !c("X"), names_to = "host_comb", values_to = "prop_shared") %>%
+#               left_join(magOTU_tax_info, by = c("X" = "magOTU"))
+
+# p_list <- list()
+# for (genus in unique(df_shared_ab$Genus)) {
+#   p <- ggplot(df_shared_ab %>% filter(Genus == genus),
+#   aes(x = factor(host_comb, host_comp_order), y = prop_shared, group = X)
+#   ) +
+#   geom_point(color = "#000000", size = 3) +
+#   geom_point(aes(color = Genus), size = 2) +
+#   scale_color_manual(values=genusColors) +
+#   new_scale_color() +
+#   geom_line(aes(color = X), size = 1) +
+#   scale_color_manual(values=head(colorRampPalette(c(genusColors[[genus]], "#FFFFFF"))(2+length(unique(df_shared_ab %>% filter(Genus == genus) %>% pull(X)))), -2)) +
+#     labs(x = "Host species pair", y = "") +
+#     ggtitle(paste0(genus, " - Proportion of host species pairs that share the magOTU")) +
+#     geom_vline(xintercept = 5.5, linetype = "solid", color = "#000000") +
+#     make_theme(setFill = F, setCol = F, leg_pos = "none",
+#                y_hj = 1, y_vj = 1, y_size = 7,
+#                x_angle = 30, x_hj = 1, x_vj = 1, x_size = 7, axis_x_title = 7
+#     ) +
+#     ylim(0,1) +
+#       theme(plot.title = element_text(size = 10, face = "bold"),
+#             panel.background = element_rect(fill = "white", colour = "black"),
+#             panel.grid.major = element_line(colour = "grey", linetype = "solid"),
+#       )  
+#   p_list[[genus]] <- p
+# }
+# pdf("results/figures/3-magotu_shared_ab.pdf", width = 12, height = 15)
+# marrangeGrob(p_list, nrow = 5, ncol = 2)
+# dev.off()
+
+
+
+# rhodes specificity index (with modification for std.)
+# https://hal.sorbonne-universite.fr/hal-03246067/document
+# implemented this in python and made "results/figures/magotu_rohdes_index.csv"
+
+df_rohdes <- read.csv("results/figures/magotu_rohdes_index.csv", stringsAsFactors = F) %>%
+              left_join(magOTU_tax_info, by = c("X" = "magOTU")) %>%
+              pivot_longer(cols = !c("X", "Genus"), names_to = "type", values_to = "rohdes_index") %>%
+              mutate(specific = ifelse(rohdes_index == 1, "specific", "general"))
 
 p_list <- list()
-for (genus in unique(df_shared$Genus)) {
-  p <- ggplot(df_shared %>% filter(Genus == genus),
-  aes(x = factor(host_comb, host_comp_order), y = prop_shared, group = X)
+for (genus in unique(df_rohdes$Genus)) {
+  p <- ggplot(df_rohdes %>% filter(Genus == genus)
   ) +
-  geom_point(color = "#000000", size = 3) +
-  geom_point(aes(color = Genus), size = 2) +
-  scale_color_manual(values=genusColors) +
-  new_scale_color() +
-  geom_line(aes(color = X), size = 1) +
-  scale_color_manual(values=head(colorRampPalette(c(genusColors[[genus]], "#FFFFFF"))(2+length(unique(df_shared %>% filter(Genus == genus) %>% pull(X)))), -2)) +
-    labs(x = "Host species pair", y = "") +
-    ggtitle(paste0(genus, " - Proportion of host species pairs that share the magOTU")) +
-    geom_vline(xintercept = 5.5, linetype = "solid", color = "#000000") +
-    make_theme(setFill = F, setCol = F, leg_pos = "none",
-               y_hj = 1, y_vj = 1, y_size = 7,
+  geom_bar(aes(x = X, 
+               y = rohdes_index,
+               fill = type, 
+               color = factor(specific, c("specific", "general"))), size = 0.25, stat = "identity", position = position_dodge2(padding = 0.2)) +
+    labs(x = "magOTU", y = "Rohde's index of host specificity", fill = "Input Type", color = "specificity") +
+    ggtitle(paste0(genus, " - Rhodes specificity index")) +
+    scale_color_manual(values=c("general" = "#ffffff","specific" = "#000000")) +
+    make_theme(setFill = T, setCol = F, leg_pos = "right",
+               y_hj = 1, y_vj = 1, y_size = 7, leg_size = 6,
                x_angle = 30, x_hj = 1, x_vj = 1, x_size = 7, axis_x_title = 7
     ) +
-    ylim(0,1) +
       theme(plot.title = element_text(size = 10, face = "bold"),
             panel.background = element_rect(fill = "white", colour = "black"),
             panel.grid.major = element_line(colour = "grey", linetype = "solid"),
-      )  
+      )
   p_list[[genus]] <- p
 }
-pdf("results/figures/3-magotu_shared.pdf", width = 12, height = 15)
+pdf("results/figures/3-magotu_rohdes_types.pdf", width = 12, height = 15)
 marrangeGrob(p_list, nrow = 5, ncol = 2)
 dev.off()
 
+# Use prevalence, it seems to be the most robust... compare more quantitatively ???...
 
-df_shared_ab <- read.csv("results/figures/magotu_shared_same_diff_ab.csv", stringsAsFactors = F) %>%
-              pivot_longer(cols = !c("X"), names_to = "host_comb", values_to = "prop_shared") %>%
-              left_join(magOTU_tax_info, by = c("X" = "magOTU"))
-
-p_list <- list()
-for (genus in unique(df_shared_ab$Genus)) {
-  p <- ggplot(df_shared_ab %>% filter(Genus == genus),
-  aes(x = factor(host_comb, host_comp_order), y = prop_shared, group = X)
+magotu_order <- df_rohdes %>% filter(type == "prev") %>% filter(Genus != "g__") %>% arrange(Genus, rohdes_index) %>% pull(X)
+ggplot(df_rohdes %>% filter(type == "prev") %>% filter(Genus != "g__")
   ) +
-  geom_point(color = "#000000", size = 3) +
-  geom_point(aes(color = Genus), size = 2) +
-  scale_color_manual(values=genusColors) +
-  new_scale_color() +
-  geom_line(aes(color = X), size = 1) +
-  scale_color_manual(values=head(colorRampPalette(c(genusColors[[genus]], "#FFFFFF"))(2+length(unique(df_shared_ab %>% filter(Genus == genus) %>% pull(X)))), -2)) +
-    labs(x = "Host species pair", y = "") +
-    ggtitle(paste0(genus, " - Proportion of host species pairs that share the magOTU")) +
-    geom_vline(xintercept = 5.5, linetype = "solid", color = "#000000") +
+  geom_bar(aes(y = factor(X, magotu_order), 
+               x = rohdes_index,
+              #  color = factor(specific, c("specific", "general")),
+               fill = Genus
+              ), 
+              color = "#000000",
+              size = 0.25, stat = "identity", position = position_dodge2(padding = 0.2)) +
+    labs(y = "magOTU", x = "Rohde's index of host specificity", fill = "Input Type", color = "specificity") +
+    scale_color_manual(values=c("general" = "#ffffff","specific" = "#000000")) +
+    scale_fill_manual(values=genusColors) +
+    facet_grid(factor(Genus, genera) ~ ., scales = "free", space = "free") +
     make_theme(setFill = F, setCol = F, leg_pos = "none",
-               y_hj = 1, y_vj = 1, y_size = 7,
+               y_hj = 1, y_vj = 1, y_size = 7, leg_size = 6, guide_nrow = 22,
                x_angle = 30, x_hj = 1, x_vj = 1, x_size = 7, axis_x_title = 7
     ) +
-    ylim(0,1) +
       theme(plot.title = element_text(size = 10, face = "bold"),
+            strip.text.y = element_text(angle = 0),
             panel.background = element_rect(fill = "white", colour = "black"),
-            panel.grid.major = element_line(colour = "grey", linetype = "solid"),
-      )  
-  p_list[[genus]] <- p
-}
-pdf("results/figures/3-magotu_shared_ab.pdf", width = 12, height = 15)
-marrangeGrob(p_list, nrow = 5, ncol = 2)
-dev.off()
-
-
-
-# rhodes specificity index
-
-# for each host species j, sum_j()
-
+            panel.grid.major = element_line(colour = "grey", linetype = "solid")
+      )
+ggsave("results/figures/3-magotu_rohdes.pdf", width = 12, height = 15)
 ```
 
 # Test for correlation between reads and coverage
@@ -1051,13 +1125,34 @@ beta.multi <- function(x, index.family="sorensen"){
 }
 
 df_magOTUs_vegan_pa <- abundance_df_matrix_pa %>%
-                      filter(rowSums(.) > 0) %>%
-                        filter(sample %in% samples_IN)
-df_pcoa <- dist_matrix_betapart$beta.sor
+                      filter(rowSums(.) > 0)
+# df_pcoa <- dist_matrix_betapart$beta.sor
 dist_matrix_betapart <- beta.pair(df_magOTUs_vegan_pa, "sorensen")
 pdf("results/figures/09-PCoA_sorensen_microbiome.pdf")
 pcoa_plot(dist_matrix_betapart$beta.sor, df_meta_complete %>% select(ID, Species), variable = "Species", color_add=T, color_list=host_order_color_dark)
 dev.off()
+
+dist_matrix_atch <- vegdist(abundance_df_matrix_copies, method = "robust.aitchison")
+pdf("results/figures/09-PCoA_atchinson_microbiome.pdf")
+pcoa_plot(dist_matrix_atch, df_meta_complete %>% select(ID, Species), variable = "Species", color_add=T, color_list=host_order_color_dark)
+dev.off()
+
+dist_matrix_atch_rel <- vegdist(abundance_df_matrix_rel, method = "robust.aitchison")
+pdf("results/figures/09-PCoA_atchinson_relative_ab_microbiome.pdf")
+pcoa_plot(dist_matrix_atch_rel, df_meta_complete %>% select(ID, Species), variable = "Species", color_add=T, color_list=host_order_color_dark)
+dev.off()
+
+
+# beta.SIM value of the turnover component, measured as Simpson dissimilarity
+# beta.SNE value of the nestedness component, measured as nestedness-resultant fraction of
+# Sorensen dissimilarity
+# beta.SOR value of the overall beta diversity, measured as Sorensen dissimilarity
+
+pdf("results/figures/09-PCoA_sorensen_microbiome_turnover.pdf")
+pcoa_plot(dist_matrix_betapart$beta.sim, df_meta_complete %>% select(ID, Species), variable = "Species", color_add=T, color_list=host_order_color_dark)
+dev.off()
+
+
 
 # pcoa_plot(dist_matrix_betapart$beta.sne, df_meta_complete, "Species", color_add=T, color_list=host_order_color_dark)
 # pcoa_plot(dist_matrix_betapart$beta.sim, df_meta_complete, "Species", color_add=T, color_list=host_order_color_dark)

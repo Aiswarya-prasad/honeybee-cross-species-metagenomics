@@ -16,13 +16,15 @@ followed by TAB-separated trait/gene-names (example in example_files/example_gen
 For this script,
 the output will be a tsv file with genome name as the first column followed
 by a tab-seperated list of OG names next to it.
+
+example usage:
+python3 prepare_motupan_OG_file.py --input Orthogroups.GeneCount.tsv --output motupan_cog.tsv
 """
 
 parser  = argparse.ArgumentParser()
 requiredNamed = parser.add_argument_group('required arguments')
 requiredNamed.add_argument('--input', metavar="input", required=True, help="Orthofinder output listing genes inside each orthogroup", action="store")
 requiredNamed.add_argument('--output_core', metavar='output', required=True, help="output file to be given to motupan", action="store")
-requiredNamed.add_argument('--output_genecounts', metavar='output', required=True, help="File to write output genecounts to", action="store")
 args = parser.parse_args()
 
 input_orthofile = args.input
