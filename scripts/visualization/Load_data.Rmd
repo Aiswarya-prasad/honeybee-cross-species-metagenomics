@@ -480,7 +480,7 @@ make_col_list <- function(my_vec, my_palette = "Spectral") {
   names(col_list) = uniq_names
   return(col_list)
 }
-my_col_fun <- colorRamp2(c(0.7, 0.8, 0.9, 0.93, 0.94, 0.95, 1), c("#ffffe5", "#f7fcb9", "#d9f0a3", "#4d9221", "#fddbc7", "#b2182b", "#67000d"))
+my_col_fun <- colorRamp2(c(0.7, 0.9, 0.93, 0.94, 0.95, 1), c("#ffffe5", "#d9f0a3", "#4d9221", "#fddbc7", "#b2182b", "#67000d"))
 pretty_ani_heatmaps <- function(matrix, mags_info_df=vis_magOTUs_df, row_split = "magotus", add_values = F, value_size = 10, limit_l = 0.95, limit_h = 1, col_fun = colorRamp2(c(limit_l, limit_h), c("#9ecae1", "#08306b"))) {
   host_names <- rownames(matrix) %>% as.data.frame() %>%
                   as.data.frame() %>%
@@ -544,7 +544,6 @@ pretty_ani_heatmaps <- function(matrix, mags_info_df=vis_magOTUs_df, row_split =
                                    )
   if (row_split == "magotus") {
     row_split = as.character(as.factor(magOTU_names))
-    # column_split = as.numeric(as.factor(host_names))
   }
   if (add_values) {
     cell_fun = function(j, i, x, y, width, height, fill) {
@@ -559,12 +558,17 @@ pretty_ani_heatmaps <- function(matrix, mags_info_df=vis_magOTUs_df, row_split =
             left_annotation = anno_host_row,
             column_names_gp = grid::gpar(fontsize = 0),
             row_names_gp = grid::gpar(fontsize = 0),
-            heatmap_legend_param = list(title = "ANI", color_bar = "Continuous"),
+            heatmap_legend_param = list(title = "ANI", color_bar = "discrete", 
+                                        at = c(0.7, 0.9, 0.93, 0.94, 0.95, 1), labels = c("0.7", "0.9", "0.93", "0.94", "0.95", "1"),
+                                        legend_height = unit(6, "cm")
+                                        ),
             row_split = row_split,
+            column_split = row_split,
+            column_title_gp = grid::gpar(fontsize = 0),
             row_title_rot = 0,
             cell_fun = cell_fun,
             cluster_columns = F,
-            border = TRUE,
+            border = F,
             # row_dend_reorder = T,
             cluster_rows = F
             )
@@ -578,12 +582,17 @@ pretty_ani_heatmaps <- function(matrix, mags_info_df=vis_magOTUs_df, row_split =
             left_annotation = anno_host_row,
             column_names_gp = grid::gpar(fontsize = 0),
             row_names_gp = grid::gpar(fontsize = 0),
-            heatmap_legend_param = list(title = "ANI", color_bar = "Continuous"),
+            heatmap_legend_param = list(title = "ANI", color_bar = "discrete",
+                                        at = c(0.7, 0.9, 0.93, 0.94, 0.95, 1), labels = c("0.7", "0.9", "0.93", "0.94", "0.95", "1"),
+                                        legend_height = unit(6, "cm")
+                                        ),
             row_split = row_split,
+            column_split = row_split,
             row_title_rot = 0,
+            column_title_gp = grid::gpar(fontsize = 0),
             # cell_fun = cell_fun,
             cluster_columns = F,
-            border = TRUE,
+            border = F,
             # row_dend_reorder = T,
             cluster_rows = F
             )
