@@ -404,7 +404,7 @@ rule cayman_profiling:
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         account="pengel_spirit",
-        runtime_s=convertToSec("0-17:10:00"),
+        runtime_s=convertToSec("0-10:10:00"),
     resources:
         mem_mb = convertToMb("100G")
     threads: 8

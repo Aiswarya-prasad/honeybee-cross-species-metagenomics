@@ -123,79 +123,79 @@ for sample in samples:
     host_dict[sample] = host_spec(sample)
 
 
-host_combos = []
-for host1, host2 in combinations(set(host_dict.values()), 2):
-    host_combos.append('_'.join(sorted([host1, host2])))
-for host in set(host_dict.values()):
-    host_combos.append('_'.join([host, host]))
+# host_combos = []
+# for host1, host2 in combinations(set(host_dict.values()), 2):
+#     host_combos.append('_'.join(sorted([host1, host2])))
+# for host in set(host_dict.values()):
+#     host_combos.append('_'.join([host, host]))
 
-final_dict = {}
-for magotu in pa_mat.columns:
-    shared_dict = {}
-    totals_dict = {}
-    for comb in host_combos:
-        shared_dict[comb] = 0
-        totals_dict[comb] = 0
+# final_dict = {}
+# for magotu in pa_mat.columns:
+#     shared_dict = {}
+#     totals_dict = {}
+#     for comb in host_combos:
+#         shared_dict[comb] = 0
+#         totals_dict[comb] = 0
     
-    combinations_seen = set()
-    # populate it with sample sample combinations for all samples in the samples
-    for sample in samples:
-        combinations_seen.add(frozenset([sample, sample]))
+#     combinations_seen = set()
+#     # populate it with sample sample combinations for all samples in the samples
+#     for sample in samples:
+#         combinations_seen.add(frozenset([sample, sample]))
     
-    final_dict[magotu] = {}
+#     final_dict[magotu] = {}
 
-    for sample1, sample2 in combinations(samples, 2):
-        if frozenset([sample1, sample2]) in combinations_seen:
-            continue
-        combinations_seen.add(frozenset([sample1, sample2]))
-        comb_i = '_'.join(sorted([host_dict[sample1], host_dict[sample2]]))
-        totals_dict[comb_i] += 1
-        if pa_mat.loc[sample1, magotu] == pa_mat.loc[sample2, magotu] == 1:
-            shared_dict[comb_i] += 1
+#     for sample1, sample2 in combinations(samples, 2):
+#         if frozenset([sample1, sample2]) in combinations_seen:
+#             continue
+#         combinations_seen.add(frozenset([sample1, sample2]))
+#         comb_i = '_'.join(sorted([host_dict[sample1], host_dict[sample2]]))
+#         totals_dict[comb_i] += 1
+#         if pa_mat.loc[sample1, magotu] == pa_mat.loc[sample2, magotu] == 1:
+#             shared_dict[comb_i] += 1
     
-    print(f'{magotu}')
-    for comb in host_combos:
-        print(f'{comb}: {shared_dict[comb]} / {totals_dict[comb]}')
-        final_dict[magotu][comb] = shared_dict[comb] / totals_dict[comb]
+#     print(f'{magotu}')
+#     for comb in host_combos:
+#         print(f'{comb}: {shared_dict[comb]} / {totals_dict[comb]}')
+#         final_dict[magotu][comb] = shared_dict[comb] / totals_dict[comb]
 
-shared_df_plot = pd.DataFrame(final_dict).T
-shared_df_plot.to_csv('results/figures/magotu_shared_same_diff.csv')
+# shared_df_plot = pd.DataFrame(final_dict).T
+# shared_df_plot.to_csv('results/figures/magotu_shared_same_diff.csv')
 
-final_dict_ab = {}
-for magotu in pa_mat.columns:
-    shared_dict = {}
-    totals_dict = {}
-    for comb in host_combos:
-        shared_dict[comb] = 0
-        totals_dict[comb] = 0
+# final_dict_ab = {}
+# for magotu in pa_mat.columns:
+#     shared_dict = {}
+#     totals_dict = {}
+#     for comb in host_combos:
+#         shared_dict[comb] = 0
+#         totals_dict[comb] = 0
     
-    combinations_seen = set()
-    # populate it with sample sample combinations for all samples in the samples
-    for sample in samples:
-        combinations_seen.add(frozenset([sample, sample]))
+#     combinations_seen = set()
+#     # populate it with sample sample combinations for all samples in the samples
+#     for sample in samples:
+#         combinations_seen.add(frozenset([sample, sample]))
     
-    final_dict_ab[magotu] = {}
+#     final_dict_ab[magotu] = {}
 
-    for sample1, sample2 in combinations(samples, 2):
-        if frozenset([sample1, sample2]) in combinations_seen:
-            continue
-        combinations_seen.add(frozenset([sample1, sample2]))
-        comb_i = '_'.join(sorted([host_dict[sample1], host_dict[sample2]]))
-        totals_dict[comb_i] += 1
-        # if the log of the ratio of higher one and lower one is
-        # smaller than 1, we count them as shared
-        if np.log2(ab_mat.loc[sample1, magotu] / ab_mat.loc[sample2, magotu]) < 1:
-            shared_dict[comb_i] += 1
-        elif np.log2(ab_mat.loc[sample2, magotu] / ab_mat.loc[sample1, magotu]) < 1:
-            shared_dict[comb_i] += 1
+#     for sample1, sample2 in combinations(samples, 2):
+#         if frozenset([sample1, sample2]) in combinations_seen:
+#             continue
+#         combinations_seen.add(frozenset([sample1, sample2]))
+#         comb_i = '_'.join(sorted([host_dict[sample1], host_dict[sample2]]))
+#         totals_dict[comb_i] += 1
+#         # if the log of the ratio of higher one and lower one is
+#         # smaller than 1, we count them as shared
+#         if np.log2(ab_mat.loc[sample1, magotu] / ab_mat.loc[sample2, magotu]) < 1:
+#             shared_dict[comb_i] += 1
+#         elif np.log2(ab_mat.loc[sample2, magotu] / ab_mat.loc[sample1, magotu]) < 1:
+#             shared_dict[comb_i] += 1
     
-    print(f'{magotu}')
-    for comb in host_combos:
-        print(f'{comb}: {shared_dict[comb]} / {totals_dict[comb]}')
-        final_dict_ab[magotu][comb] = shared_dict[comb] / totals_dict[comb]
+#     print(f'{magotu}')
+#     for comb in host_combos:
+#         print(f'{comb}: {shared_dict[comb]} / {totals_dict[comb]}')
+#         final_dict_ab[magotu][comb] = shared_dict[comb] / totals_dict[comb]
 
-shared_df_plot_ab = pd.DataFrame(final_dict_ab).T
-shared_df_plot_ab.to_csv('results/figures/magotu_shared_same_diff_ab.csv')
+# shared_df_plot_ab = pd.DataFrame(final_dict_ab).T
+# shared_df_plot_ab.to_csv('results/figures/magotu_shared_same_diff_ab.csv')
 
 
 # estimating rhodes std. index using prevalence
@@ -245,6 +245,9 @@ for magotu in pa_mat.columns:
 
 ranks_df = pd.DataFrame.from_dict(rank_dict, orient='index')
 ranks_df.to_csv('results/figures/magotu_prev_ranks.csv')
+
+prevs_df = pd.DataFrame.from_dict(prevalence_in_host, orient='index')
+prevs_df.to_csv('results/figures/magotu_prevs.csv')
 
 # estimating rhodes std. index using intensity (abundance)
 '''
@@ -341,3 +344,57 @@ rohdes_df = pd.DataFrame.from_dict(rohdes_dict, orient='index', columns=['prev']
 rohdes_df['ab'] = pd.Series(rohdes_dict_ab)
 rohdes_df['rel'] = pd.Series(rohdes_dict_rel)
 rohdes_df.to_csv('results/figures/magotu_rohdes_index.csv')
+
+
+
+# make cumulative curve df from this info
+pa_mat = pd.read_csv('results/figures/magOTU_abundance_matrix_presence_absence.csv', index_col=0)
+pa_mat_all = pd.read_csv('results/figures/magOTU_abundance_matrix_presence_absence_all.csv', index_col=0)
+
+
+# the resuling df should have for each iteration, the number of magotus detected for each sample size for each host species
+# the sample size goes from 1 to all samples in that host
+df_cum_curves = pd.DataFrame(columns=['host', 'sample_size', 'num_magotus', 'iteration'])
+num_iters = 20
+samples = pa_mat.index.tolist()
+host_dict = {}
+for sample in samples:
+    host_dict[sample] = host_spec(sample) 
+for host in set(host_dict.values()):
+    print(f'working on {host}')
+    # get all samples for that host
+    samples_host = [sample for sample in samples if host_spec(sample) == host]
+    for iter in range(0, num_iters):
+        i = iter + 1
+        for n in range(0, len(samples_host)):
+            sam_size = n + 1
+            # get a random sample of size sam_size from samples_host
+            random_samples = random.sample(samples_host, sam_size)
+            # get the number of magotus detected in that random sample
+            num_magotus = len([magotu for magotu in pa_mat.columns if pa_mat.loc[random_samples, magotu].sum() > 2])
+            # add that info to the df
+            df_cum_curves = df_cum_curves._append({'host': host, 'sample_size': sam_size, 'num_magotus': num_magotus, 'iteration': i}, ignore_index=True)
+df_cum_curves.to_csv('results/figures/magotu_cum_curves.csv')
+
+
+df_cum_curves_loc_all = pd.DataFrame(columns=['host', 'sample_size', 'num_magotus', 'iteration'])
+num_iters = 20
+samples = pa_mat_all.index.tolist()
+host_dict = {}
+for sample in samples:
+    host_dict[sample] = host_spec(sample)
+for host in ['Apis mellifera (India)', 'Apis mellifera (Malaysia)', 'Apis mellifera (Japan)', 'Apis mellifera (Switzerland)', 'Apis cerana (Japan)', 'Apis cerana (India)', 'Apis cerana (Malaysia)', 'Apis dorsata (Malaysia)', 'Apis dorsata (India)', 'Apis florea (Malaysia)', 'Apis florea (India)', 'Apis andreniformis (Malaysia)']:
+    print(f'working on {host}')
+    # get all samples for that host
+    samples_host = [sample for sample in samples if host_spec(sample) == host.split(' (')[0].split('Apis ')[1] and location(sample) == host.split(' (')[1].split(')')[0]]
+    for iter in range(0, num_iters):
+        i = iter + 1
+        for n in range(0, len(samples_host)):
+            sam_size = n + 1
+            # get a random sample of size sam_size from samples_host
+            random_samples = random.sample(samples_host, sam_size)
+            # get the number of magotus detected in that random sample
+            num_magotus = len([magotu for magotu in pa_mat_all.columns if pa_mat_all.loc[random_samples, magotu].sum() > 1])
+            # add that info to the df
+            df_cum_curves_loc_all = df_cum_curves_loc_all._append({'host': host, 'sample_size': sam_size, 'num_magotus': num_magotus, 'iteration': i}, ignore_index=True)
+df_cum_curves_loc_all.to_csv('results/figures/magotu_cum_curves_loc_all.csv')

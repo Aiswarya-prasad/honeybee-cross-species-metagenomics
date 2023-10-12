@@ -135,3 +135,197 @@ colnames(all_gene_counts) = c("gene_ID", unlist(lapply(colnames(df_ko_counts)[-1
 library(gggenes)
 
 ```
+
+
+```{r}
+# visualize cazy
+
+get_prev <- function(present, host) {
+  total <- pull(filter(host_count, Host == host), count)
+  return(present / total)
+}
+
+host_count <- cazy_df %>% group_by(Host) %>% summarize(count = n_distinct(sample))
+
+cazy_df <- read.csv("results/figures/cazy_df.tsv", sep = "\t") %>%
+            mutate(Host = Vectorize(get_host_from_sample_name)(sample)) %>%
+              mutate(present = ifelse(uniq_rpkm > 0, 1, 0)) %>%
+              group_by(feature, Host) %>%
+              mutate(count = sum(present)) %>%
+              ungroup() %>%
+              mutate(Prevalence_host = Vectorize(get_prev)(count, Host))
+# count is number of samples of host in which it is present
+# present if uniq_rpkm > 0
+order_feature_count <- cazy_df %>%
+            group_by(feature) %>%
+            mutate(sum = sum(count)) %>%
+            arrange(sum) %>%
+            pull(feature) %>% unique
+
+order_feature_prev <- cazy_df %>% 
+            reframe(feature, Host, present, Prevalence_host) %>%
+            group_by(feature) %>%
+            mutate(sum = sum(Prevalence_host)) %>%
+            arrange(sum) %>%
+            pull(feature) %>% unique
+
+ggplot(cazy_df %>% reframe(feature, Host, count, Prevalence_host) %>% unique) +
+  geom_tile(aes(x = Host, y = feature, fill = Prevalence_host)) +
+  labs(y = "CAZy GH family", x = "Host", fill = "Prevalence") +
+  scale_y_discrete(limits = order_feature_prev) +
+  coord_fixed(ratio = 0.05) +
+  make_theme(setFill = FALSE, leg_pos = "right", 
+             x_angle = 45, x_size = 10,
+             y_size = 6, y_hj = 1)
+
+
+p_list <- list()
+for (a_feature in unique(cazy_df$feature)) {
+  p <- ggplot(cazy_df %>% filter(feature == a_feature)) +
+    geom_boxplot(aes(y = uniq_rpkm, x = Host, fill = Host), outlier.size = 0) +
+    geom_point(aes(y = uniq_rpkm, x = Host, fill = Host), alpha = 0.5) +
+    ggtitle(a_feature) +
+    labs(y = "CAZy GH family", x = "rpkm", fill = "Host") +
+    scale_fill_manual(values = host_order_color) +
+    make_theme(setFill = FALSE, leg_pos = "none")
+  p_list[[a_feature]] <- p
+}
+pdf("results/figures/cazy_boxplots.pdf")
+marrangeGrob(p_list, nrow = 2, ncol = 2)
+dev.off()
+
+"data/cayman_gene_db/20230607_glycan_annotations_cleaned.xlsx"
+
+completed_substrate_annotations <- read_xlsx("data/cayman_gene_db/20230607_glycan_annotations_cleaned.xlsx")
+glycan_annotations_final_cleaned <- completed_substrate_annotations %>% select(c(Family:Subfamily,ORIGIN:FUNCTION_AT_DESTINATION_3, Glycan_annotation))
+glycan_annotations_final_cleaned_long <- glycan_annotations_final_cleaned %>% separate_rows(ORIGIN,sep=",") %>% separate_rows(FUNCTION_IN_ORIGIN,sep=",") %>% separate_rows(FUNCTION_AT_DESTINATION_1,sep=",") %>% separate_rows(FUNCTION_AT_DESTINATION_2,sep=",") %>% separate_rows(FUNCTION_AT_DESTINATION_3,sep=",")
+glycan_annotations_cleaned <- glycan_annotations_final_cleaned
+
+glycan_annotations_cleaned_filt <- glycan_annotations_cleaned %>% filter(!is.na(FUNCTION_AT_DESTINATION_3))
+
+# and abbreviate long glycan names
+
+cazy_df_annotated <- cazy_df %>%
+                      left_join(glycan_annotations_cleaned, by = c("feature" = "Subfamily")) %>%
+                      mutate(mod_names_pec = ifelse(grepl("pectin", FUNCTION_AT_DESTINATION_3), 1, 0)) %>%
+                      mutate(short_names = abbreviate(FUNCTION_AT_DESTINATION_3, minlength = 30))
+
+
+write.csv(cazy_df_annotated, "results/figures/cazy_df_annotated.txt", row.names = FALSE, quote = FALSE)
+
+# heatmap of Glycan_annotatoin vs host showing prevalence as size of dot
+ggplot(cazy_df_annotated %>% filter(sample %in% samples_IN_MY) %>% filter(uniq_rpkm > 0) %>% filter(grepl("ectin", FUNCTION_AT_DESTINATION_3))) +
+  geom_tile(aes(x = sample, y = feature, fill = uniq_rpkm)) +
+  labs(y = "Cazyme family", x = "sample", fill = "uniq_rpkm") +
+  scale_fill_viridis_c(trans = "log10") +
+  new_scale_fill() +
+  geom_tile(aes(x = sample, y = 0, fill = Host)) +
+  scale_fill_manual(values = host_order_color) +
+  make_theme(setFill = FALSE, leg_pos = "right", guide_nrow = 10, modify_guide = F,
+             x_angle = 90, x_size = 0,
+             x_hj = 10, x_vj = 1,
+             y_size = 10, y_hj = 1)
+             ggsave("results/figures/cazyme_uniq_rpkm_pectin_assoc_familes.pdf")
+
+ggplot(cazy_df_annotated %>% filter(sample %in% samples_IN_MY) %>% filter(uniq_rpkm > 0)) +
+# ggplot(cazy_df_annotated %>% filter(sample %in% samples_IN_MY) %>% filter(FUNCTION_AT_DESTINATION_3 != "Unknown") %>% filter(!is.na(FUNCTION_AT_DESTINATION_3))) +
+  geom_tile(aes(x = sample, y = short_names, fill = uniq_rpkm)) +
+  labs(y = "Cazyme family", x = "sample", fill = "uniq_rpkm") +
+  scale_fill_viridis_c(trans = "log10") +
+  new_scale_fill() +
+  geom_tile(aes(x = sample, y = 0, fill = Host)) +
+  scale_fill_manual(values = host_order_color) +
+  make_theme(setFill = FALSE, leg_pos = "right", guide_nrow = 10, modify_guide = F,
+             x_angle = 90, x_size = 0,
+             x_hj = 10, x_vj = 1,
+             y_size = 10, y_hj = 1)
+             ggsave("results/figures/cazyme_uniq_rpkm_glyc_annotation.pdf")
+
+# make this with complex heatmap and add glycan annotation
+
+cazyme_uniq_mat_pec <- cazy_df_annotated %>%
+                        select(sample, feature, uniq_rpkm) %>%
+                        pivot_wider(names_from = sample, values_from = uniq_rpkm) %>%
+                        column_to_rownames("feature") %>% as.matrix
+column_ba <- HeatmapAnnotation(Host = colnames(cazyme_uniq_mat_pec) %>% as.data.frame() %>% mutate(Host = Vectorize(get_host_from_sample_name)(.)) %>% pull(Host),
+                              col = list(Host = host_order_color
+                              ), border = T
+                          )
+glycan_anno_names <- rownames(cazyme_uniq_mat_pec) %>% as.data.frame() %>% left_join(cazy_df_annotated %>% select(feature, short_names) %>% filter(!is.na(short_names)) %>% unique, by = c("." = "feature")) %>% pull(short_names) %>% replace_na(., "Unknown")
+row_la <- rowAnnotation(Glycan = glycan_anno_names,
+                        col = list(Glycan = make_col_list(glycan_anno_names)
+                        ), border = T
+                    )
+column_split <- colnames(cazyme_uniq_mat_pec) %>% as.data.frame() %>% mutate(Host = Vectorize(get_host_from_sample_name)(.)) %>% pull(Host) %>% as.factor %>% as.numeric
+row_split <- rownames(cazyme_uniq_mat_pec) %>% as.data.frame() %>% left_join(cazy_df_annotated %>% select(feature, short_names) %>% filter(!is.na(short_names)) %>% unique, by = c("." = "feature")) %>% pull(short_names) %>% replace_na(., "Unknown") %>% as.factor %>% as.numeric
+col_fun = colorRamp2(c(0, 0.1, 1, 10, 1000), c(brewer.pal(9, "PuBu")[1], brewer.pal(9, "PuBu")[3], brewer.pal(9, "PuBu")[4], brewer.pal(9, "PuBu")[7], brewer.pal(9, "PuBu")[9]))
+heatmap_obj = Heatmap(cazyme_uniq_mat_pec,
+        # col = c("#e1ebf4", "#081d58"),
+        col = col_fun,
+        clustering_method_columns = 'ward.D2',
+        column_split = column_split,
+        row_split = row_split,
+        column_dend_side = "bottom",
+        column_title_gp = grid::gpar(fontsize = 0),
+        row_title_gp = grid::gpar(fontsize = 0),
+        # border = T,
+        heatmap_legend_param = list(title = "RPKM (Unique)"),
+        bottom_annotation = column_ba, 
+        # right_annotation = row_ra,
+        left_annotation = row_la,
+        # top_annotation = column_ha,
+        column_names_gp = grid::gpar(fontsize = 0),
+        row_names_gp = grid::gpar(fontsize = 7),
+          cluster_columns = F,
+          cluster_rows = F)
+draw(heatmap_obj, merge_legend = TRUE)
+pdf("results/figures/cazyme_uniq_rpkm.pdf", width = 15, height = 25)
+draw(heatmap_obj, merge_legend = TRUE)
+dev.off()
+
+
+# make_without unknown
+known_families <- cazy_df_annotated %>% select(feature, FUNCTION_AT_DESTINATION_3) %>% unique %>% filter(!is.na(FUNCTION_AT_DESTINATION_3)) %>% filter(FUNCTION_AT_DESTINATION_3 != "Unknown") %>% pull(feature)
+cazyme_uniq_mat_pec_no_na <- cazy_df_annotated %>%
+                        filter(feature %in% known_families) %>%
+                        select(sample, feature, uniq_rpkm) %>%
+                        pivot_wider(names_from = sample, values_from = uniq_rpkm) %>%
+                        column_to_rownames("feature") %>% as.matrix
+
+column_ba <- HeatmapAnnotation(Host = colnames(cazyme_uniq_mat_pec_no_na) %>% as.data.frame() %>% mutate(Host = Vectorize(get_host_from_sample_name)(.)) %>% pull(Host),
+                              col = list(Host = host_order_color
+                              ), border = T
+                          )
+glycan_anno_names <- rownames(cazyme_uniq_mat_pec_no_na) %>% as.data.frame() %>% left_join(cazy_df_annotated %>% select(feature, short_names) %>% filter(!is.na(short_names)) %>% unique, by = c("." = "feature")) %>% pull(short_names) %>% replace_na(., "Unknown")
+row_la <- rowAnnotation(Glycan = glycan_anno_names,
+                        col = list(Glycan = make_col_list(glycan_anno_names)
+                        ), border = T
+                    )
+column_split <- colnames(cazyme_uniq_mat_pec_no_na) %>% as.data.frame() %>% mutate(Host = Vectorize(get_host_from_sample_name)(.)) %>% pull(Host) %>% as.factor %>% as.numeric
+row_split <- rownames(cazyme_uniq_mat_pec_no_na) %>% as.data.frame() %>% left_join(cazy_df_annotated %>% select(feature, short_names) %>% filter(!is.na(short_names)) %>% unique, by = c("." = "feature")) %>% pull(short_names) %>% replace_na(., "Unknown") %>% as.factor %>% as.numeric
+col_fun = colorRamp2(c(0, 0.1, 1, 10, 1000), c(brewer.pal(9, "PuBu")[1], brewer.pal(9, "PuBu")[3], brewer.pal(9, "PuBu")[4], brewer.pal(9, "PuBu")[7], brewer.pal(9, "PuBu")[9]))
+heatmap_obj = Heatmap(cazyme_uniq_mat_pec_no_na,
+        # col = c("#e1ebf4", "#081d58"),
+        col = col_fun,
+        clustering_method_columns = 'ward.D2',
+        column_split = column_split,
+        row_split = row_split,
+        column_dend_side = "bottom",
+        column_title_gp = grid::gpar(fontsize = 0),
+        row_title_gp = grid::gpar(fontsize = 0),
+        # border = T,
+        heatmap_legend_param = list(title = "RPKM (Unique)"),
+        bottom_annotation = column_ba, 
+        # right_annotation = row_ra,
+        left_annotation = row_la,
+        # top_annotation = column_ha,
+        column_names_gp = grid::gpar(fontsize = 0),
+        row_names_gp = grid::gpar(fontsize = 7),
+          cluster_columns = F,
+          cluster_rows = F)
+draw(heatmap_obj, merge_legend = TRUE)
+pdf("results/figures/cazyme_uniq_rpkm_no_unknown.pdf", width = 15, height = 25)
+draw(heatmap_obj, merge_legend = TRUE)
+dev.off()
+
+```

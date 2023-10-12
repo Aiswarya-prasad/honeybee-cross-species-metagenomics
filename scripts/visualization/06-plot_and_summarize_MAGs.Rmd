@@ -397,11 +397,11 @@ all_genera <- vis_magOTUs_df %>%
   pull(Genus) %>% unique()
 system("mkdir -p results/figures/06-ANI_heatmaps")
 for (genus_iter in all_genera) {
-  pdf(paste0("results/figures/06-ANI_heatmaps/06-", genus_iter, "_ANI_heatmap.pdf"))
+  pdf(paste0("results/figures/06-ANI_heatmaps/06-", genus_iter, "_ANI_heatmap.pdf"), width = 15, height = 25)
   draw(pretty_ani_heatmaps(get_ani_matrix(genera_list = c(genus_iter)), col_fun = my_col_fun),
       merge_legend = T)
   dev.off()
-  pdf(paste0("results/figures/06-ANI_heatmaps/06-", genus_iter, "_ANI_heatmap_values.pdf"))
+  pdf(paste0("results/figures/06-ANI_heatmaps/06-", genus_iter, "_ANI_heatmap_values.pdf"), width = 15, height = 25)
   draw(pretty_ani_heatmaps(get_ani_matrix(genera_list = c(genus_iter)), col_fun = my_col_fun, add_values = T, value_size = 2),
       merge_legend = T)
   dev.off()

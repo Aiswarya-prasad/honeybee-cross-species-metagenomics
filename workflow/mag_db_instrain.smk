@@ -79,32 +79,82 @@ rule bwa_index_rep_db:
         bwa index {input.mag_rep_database} &> {log}
         """
 
-rule map_to_rep_MAGs:
+# rule map_to_rep_MAGs:
+#     input:
+#         reads1 = lambda wildcards: f"results/01_cleanreads/{wildcards.sample}_R1_repaired.fastq.gz",
+#         reads2 = lambda wildcards: f"results/01_cleanreads/{wildcards.sample}_R2_repaired.fastq.gz",
+#         bwa_index = multiext("results/10_instrain/00_prepare_mags/mag_rep_database.fa", ".amb", ".ann", ".bwt", ".pac", ".sa"),
+#         mag_rep_database = "results/10_instrain/00_prepare_mags/mag_rep_database.fa"
+#     output:
+#         bam = "results/10_instrain/01_mapping/{sample}/{sample}.bam",
+#         flagstat = "results/10_instrain/01_mapping/{sample}/{sample}_flagstat.tsv",
+#     params:
+#         mailto="aiswarya.prasad@unil.ch",
+#         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+#         jobname="{sample}_map_to_rep_MAGs",
+#         account="pengel_spirit",
+#         runtime_s=convertToSec("0-07:10:00"),
+#     resources:
+#         mem_mb = convertToMb("50G")
+#     threads: 4
+#     log: "results/10_instrain/01_mapping/{sample}/{sample}_map_to_rep_MAGs.log"
+#     benchmark: "results/10_instrain/01_mapping/{sample}/{sample}_map_to_rep_MAGs.benchmark"
+#     conda: "../config/envs/mapping-env.yaml"
+#     shell:
+#         """
+#         bwa mem -t {threads} {input.mag_rep_database} {input.reads1} {input.reads2} | samtools view -bh - | samtools sort - > {output.bam}
+#         samtools flagstat {output.bam} > {output.flagstat}
+#         """
+
+rule bowtie_index:
+    input:
+        mag_rep_database = "results/10_instrain/00_prepare_mags/mag_rep_database.fa"
+    output:
+        bowtie_index = multiext("results/10_instrain/00_prepare_mags/mag_rep_database.fa", ".1.bt2", ".2.bt2", ".3.bt2", ".4.bt2", ".rev.1.bt2", ".rev.2.bt2")
+    params:
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        jobname="bowtie_index",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-07:10:00"),
+    resources:
+        mem_mb = convertToMb("50G")
+    threads: 4
+    log: "results/10_instrain/00_prepare_mags/bowtie_index.log"
+    benchmark: "results/10_instrain/00_prepare_mags/bowtie_index.benchmark"
+    conda: "../config/envs/mapping-bowtie-env.yaml"
+    shell:
+        """
+        bowtie2-build {input.mag_rep_database} {input.mag_rep_database} &> {log}
+        """
+
+rule map_to_rep_MAGs_bowtie2:
     input:
         reads1 = lambda wildcards: f"results/01_cleanreads/{wildcards.sample}_R1_repaired.fastq.gz",
         reads2 = lambda wildcards: f"results/01_cleanreads/{wildcards.sample}_R2_repaired.fastq.gz",
         bwa_index = multiext("results/10_instrain/00_prepare_mags/mag_rep_database.fa", ".amb", ".ann", ".bwt", ".pac", ".sa"),
         mag_rep_database = "results/10_instrain/00_prepare_mags/mag_rep_database.fa"
     output:
-        bam = "results/10_instrain/01_mapping/{sample}/{sample}.bam",
-        flagstat = "results/10_instrain/01_mapping/{sample}/{sample}_flagstat.tsv",
+        bam = "results/10_instrain/01_mapping/{sample}/{sample}_bowtie.bam",
+        flagstat = "results/10_instrain/01_mapping/{sample}/{sample}_bowtie_flagstat.tsv",
     params:
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        jobname="{sample}_map_to_rep_MAGs",
+        jobname="{sample}_map_to_rep_MAGs_bowtie",
         account="pengel_spirit",
-        runtime_s=convertToSec("0-07:10:00"),
+        runtime_s=convertToSec("0-17:10:00"),
     resources:
         mem_mb = convertToMb("50G")
     threads: 4
-    log: "results/10_instrain/01_mapping/{sample}/{sample}_map_to_rep_MAGs.log"
-    benchmark: "results/10_instrain/01_mapping/{sample}/{sample}_map_to_rep_MAGs.benchmark"
-    conda: "../config/envs/mapping-env.yaml"
+    log: "results/10_instrain/01_mapping/{sample}/{sample}_map_to_rep_MAGs_bowtie.log"
+    benchmark: "results/10_instrain/01_mapping/{sample}/{sample}_map_to_rep_MAGs_bowtie.benchmark"
+    conda: "../config/envs/mapping-bowtie-env.yaml"
     shell:
         """
-        bwa mem -t {threads} {input.mag_rep_database} {input.reads1} {input.reads2} | samtools view -bh - | samtools sort - > {output.bam}
+        bowtie2 -X 1000 -x {input.mag_rep_database} -1 {input.reads1} -2 {input.reads2} | samtools view -bh - | samtools sort - > {output.bam}
         samtools flagstat {output.bam} > {output.flagstat}
         """
+
 
 # A .text file with two columns separated by tabs, 
 # where the first column is the name of a scaffold 
@@ -138,16 +188,17 @@ rule make_scaffold_to_bin_file:
 
 rule instrain_profile:
     input:
-        bam = "results/10_instrain/01_mapping/{sample}/{sample}.bam",
+        bam = "results/10_instrain/01_mapping/{sample}/{sample}_bowtie.bam",
+        # bam = "results/10_instrain/01_mapping/{sample}/{sample}.bam",
         mag_rep_database = "results/10_instrain/00_prepare_mags/mag_rep_database.fa",
         scaffold_to_bin_file = "results/10_instrain/00_prepare_mags/scaffold_to_bin_file.tsv",
         instrain_genes_file = "results/10_instrain/00_prepare_mags/mag_rep_database_genes.fna"
     output:
         # gene_info = "results/10_instrain/02_instrain_profile/{sample}/output/{sample}_gene_info.tsv",
-        # linkage = "results/10_instrain/02_instrain_profile/{sample}/output/{sample}_linkage.tsv.gz",
         # scaffold_info = "results/10_instrain/02_instrain_profile/{sample}/output/{sample}_scaffold_info.tsv",
         # mapping_info = "results/10_instrain/02_instrain_profile/{sample}/output/{sample}_mapping_info.tsv",
-        # SNVs = "results/10_instrain/02_instrain_profile/{sample}/output/{sample}_SNVs.tsv",
+        # genome_info = "results/10_instrain/02_instrain_profile/{sample}/output/{sample}_genome_info.tsv",
+        # SNVs = "results/10_instrain/02_instrain_profile/{sample}/output/{sample}_SNVs.tsv.gz",
         marker = touch("results/10_instrain/02_instrain_profile/{sample}_profile.done/")
     params:
         outdir = "results/10_instrain/02_instrain_profile/{sample}",
@@ -166,38 +217,13 @@ rule instrain_profile:
         """
         inStrain profile {input.bam} {input.mag_rep_database} -o {params.outdir} \
                 -p {threads} -g {input.instrain_genes_file} \
+                --max_insert_relative 5 \
                 -s {input.scaffold_to_bin_file}
-        """
-
-rule instrain_compare:
-    input:
-        markers = expand("results/10_instrain/02_instrain_profile/{sample}_profile.done/",  sample=SAMPLES),
-        scaffold_to_bin_file = "results/10_instrain/00_prepare_mags/scaffold_to_bin_file.tsv"
-    output:
-        # comparisonsTable = "results/10_instrain/03_instrain_compare/mag_rep_database/mag_rep_database_comparisonsTable.tsv.gz",
-        # genomeWide_compare = "results/10_instrain/03_instrain_compare/mag_rep_database/mag_rep_database_genomeWide_compare.tsv",
-        # strain_clusters = "results/10_instrain/03_instrain_compare/mag_rep_database/mag_rep_database_strain_clusters.tsv",
-        compare_marker = touch("results/10_instrain/03_instrain_compare/mag_rep_database_marker.done"),
-    params:
-        outdir = "results/10_instrain/03_instrain_compare/mag_rep_database",
-        profiles = [f"results/10_instrain/02_instrain_profile/{sample}" for sample in SAMPLES],
-        mailto="aiswarya.prasad@unil.ch",
-        account="pengel_spirit",
-        runtime_s=convertToSec("0-22:10:00"),
-    resources:
-        mem_mb = convertToMb("200G")
-    conda: "../config/envs/instrain_env.yaml"
-    log: "results/10_instrain/03_instrain_compare/instrain_compare.log"
-    benchmark: "results/10_instrain/03_instrain_compare/instrain_compare.benchmark"
-    threads: 4
-    shell:
-        """
-        inStrain compare -i {params.profiles} -s {input.scaffold_to_bin_file} -p {threads} -o {params.outdir}
+        touch {output.marker}
         """
 
 rule instrain_profile_plot:
     input:
-        # profile = "results/10_instrain/02_instrain_profile/{sample}_profile.IS/",
         marker = "results/10_instrain/02_instrain_profile/{sample}_profile.done/"
     output:
         done = touch("results/10_instrain/04_instrain_plot_marker/{sample}_profile_plots.done")
@@ -218,12 +244,43 @@ rule instrain_profile_plot:
         profile={input.marker}
         profile=${{profile/_profile.done/}}
         inStrain plot -i ${{profile}} -pl a -p {threads}
+        touch {output.done}
+        """
+
+# Do instrain compare for all samples but one genome at a time! - update the code
+# and run it later. Also needs profile to be done in database mode.. So maybe new rule for that
+
+rule instrain_compare:
+    input:
+        markers = expand("results/10_instrain/02_instrain_profile/{sample}_profile.done/",  sample=SAMPLES),
+        scaffold_to_bin_file = "results/10_instrain/00_prepare_mags/scaffold_to_bin_file.tsv"
+    output:
+        # comparisonsTable = "results/10_instrain/03_instrain_compare/mag_rep_database/mag_rep_database_comparisonsTable.tsv.gz",
+        # genomeWide_compare = "results/10_instrain/03_instrain_compare/mag_rep_database/mag_rep_database_genomeWide_compare.tsv",
+        # strain_clusters = "results/10_instrain/03_instrain_compare/mag_rep_database/mag_rep_database_strain_clusters.tsv",
+        compare_marker = touch("results/10_instrain/03_instrain_compare/20230313_compared.done"),
+    params:
+        outdir = "results/10_instrain/03_instrain_compare/mag_rep_database",
+        profiles = [f"results/10_instrain/02_instrain_profile/{sample}" for sample in SAMPLES],
+        mailto="aiswarya.prasad@unil.ch",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-22:10:00"),
+    resources:
+        mem_mb = convertToMb("200G")
+    conda: "../config/envs/instrain_env.yaml"
+    log: "results/10_instrain/03_instrain_compare/instrain_compare.log"
+    benchmark: "results/10_instrain/03_instrain_compare/instrain_compare.benchmark"
+    threads: 4
+    shell:
+        """
+        inStrain compare -i {params.profiles} -s {input.scaffold_to_bin_file} -p {threads} -o {params.outdir}
+        touch {output.compare_marker}
         """
 
 rule instrain_compare_plot:
     input:
         # profile = "results/10_instrain/02_instrain_profile/{sample}_profile.IS/",
-        marker = "results/10_instrain/03_instrain_compare/mag_rep_database_marker.done",
+        marker = "results/10_instrain/03_instrain_compare/20230313_compared.done",
     output:
         done = touch("results/10_instrain/04_instrain_plot_marker/compare_plots.done")
     params:
