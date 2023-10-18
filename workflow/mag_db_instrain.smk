@@ -250,54 +250,77 @@ rule instrain_profile_plot:
 # Do instrain compare for all samples but one genome at a time! - update the code
 # and run it later. Also needs profile to be done in database mode.. So maybe new rule for that
 
-rule instrain_compare:
+# get_rep_mags
+
+rule instrain_profile_db_mode:
     input:
-        markers = expand("results/10_instrain/02_instrain_profile/{sample}_profile.done/",  sample=SAMPLES),
-        scaffold_to_bin_file = "results/10_instrain/00_prepare_mags/scaffold_to_bin_file.tsv"
+        bam = "results/10_instrain/01_mapping/{sample}/{sample}_bowtie.bam",
+        mag_rep_database = "results/10_instrain/00_prepare_mags/mag_rep_database.fa",
+        scaffold_to_bin_file = "results/10_instrain/00_prepare_mags/scaffold_to_bin_file.tsv",
+        instrain_genes_file = "results/10_instrain/00_prepare_mags/mag_rep_database_genes.fna",
     output:
-        # comparisonsTable = "results/10_instrain/03_instrain_compare/mag_rep_database/mag_rep_database_comparisonsTable.tsv.gz",
-        # genomeWide_compare = "results/10_instrain/03_instrain_compare/mag_rep_database/mag_rep_database_genomeWide_compare.tsv",
-        # strain_clusters = "results/10_instrain/03_instrain_compare/mag_rep_database/mag_rep_database_strain_clusters.tsv",
-        compare_marker = touch("results/10_instrain/03_instrain_compare/20230313_compared.done"),
+        marker = touch("results/10_instrain/02_instrain_profile_db_mode/{sample}_profile_db_mode.done/")
     params:
-        outdir = "results/10_instrain/03_instrain_compare/mag_rep_database",
-        profiles = [f"results/10_instrain/02_instrain_profile/{sample}" for sample in SAMPLES],
+        outdir = "results/10_instrain/02_instrain_profile_db_mode/{sample}",
         mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        jobname="{sample}_instrain_profile_db_mode",
         account="pengel_spirit",
         runtime_s=convertToSec("0-22:10:00"),
     resources:
-        mem_mb = convertToMb("200G")
+        mem_mb = convertToMb("250G")
+    threads: 8
     conda: "../config/envs/instrain_env.yaml"
-    log: "results/10_instrain/03_instrain_compare/instrain_compare.log"
-    benchmark: "results/10_instrain/03_instrain_compare/instrain_compare.benchmark"
-    threads: 4
+    log: "results/10_instrain/02_instrain_profile_db_mode/{sample}_instrain_profile_db_mode.log"
+    benchmark: "results/10_instrain/02_instrain_profile_db_mode/{sample}_instrain_profile_db_mode.benchmark"
     shell:
         """
-        inStrain compare -i {params.profiles} -s {input.scaffold_to_bin_file} -p {threads} -o {params.outdir}
+        inStrain profile {input.bam} {input.mag_rep_database} -o {params.outdir} \
+                -p {threads} -g {input.instrain_genes_file} \
+                --max_insert_relative 5 --database_mode \
+                -s {input.scaffold_to_bin_file}
+        touch {output.marker}
+        """
+
+rule instrain_compare:
+    input:
+        markers = expand("results/10_instrain/02_instrain_profile_db_mode/{sample}_profile_db_mode.done/",  sample=SAMPLES_sub),
+        # repeat with all samples of interest later
+        scaffold_to_bin_file = "results/10_instrain/00_prepare_mags/scaffold_to_bin_file.tsv"
+    output:
+        compare_marker = touch("results/10_instrain/03_instrain_compare/log_files/{mag}_compared.done"),
+    params:
+        outdir = lambda wildcards: f"results/10_instrain/03_instrain_compare/{get_species_from_rep_mag(wildcards.mag)}",
+        profiles = [f"results/10_instrain/02_instrain_profile_db_mode/{sample}" for sample in SAMPLES],
+        mailto="aiswarya.prasad@unil.ch",
+        account="pengel_spirit",
+        runtime_s=convertToSec("3-00:00:00"),
+    resources:
+        mem_mb = convertToMb("200G")
+    conda: "../config/envs/instrain_env.yaml"
+    log: "results/10_instrain/03_instrain_compare/log_files/instrain_compare_{mag}.log"
+    benchmark: "results/10_instrain/03_instrain_compare/log_files/instrain_compare_{mag}.benchmark"
+    # log: lambda wildcards: f"results/10_instrain/03_instrain_compare/log_files/instrain_compare_{get_species_from_rep_mag(wildcards.mag)}.log"
+    # benchmark: lambda wildcards: f"results/10_instrain/03_instrain_compare/log_files/instrain_compare_{get_species_from_rep_mag(wildcards.mag)}.benchmark"
+    threads: 8
+    shell:
+        """
+        inStrain compare -i {params.profiles} -s {input.scaffold_to_bin_file} \
+                -p {threads} -o {params.outdir} \
+                --database_mode --genome {wildcards.mag} || touch {output.compare_marker}.singleton
         touch {output.compare_marker}
         """
 
-rule instrain_compare_plot:
+rule aggregate_compare:
     input:
-        # profile = "results/10_instrain/02_instrain_profile/{sample}_profile.IS/",
-        marker = "results/10_instrain/03_instrain_compare/20230313_compared.done",
+        markers = lambda wildcards: [f"results/10_instrain/03_instrain_compare/log_files/{mag}_compared.done" for mag in get_rep_mags(checkpoints.mag_metadata_summary.get().output.metadata)]
     output:
-        done = touch("results/10_instrain/04_instrain_plot_marker/compare_plots.done")
+        aggregate_marker = touch("results/10_instrain/03_instrain_compare/all_compared.done"),
     params:
         mailto="aiswarya.prasad@unil.ch",
-        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        jobname="instrain_compare_plot",
         account="pengel_spirit",
-        runtime_s=convertToSec("0-07:10:00"),
+        runtime_s=convertToSec("0-00:10:00"),
     resources:
-        mem_mb = convertToMb("100G")
-    threads: 16
-    log: "results/10_instrain/04_instrain_plot_marker/compare_plots.log"
-    benchmark: "results/10_instrain/04_instrain_plot_marker/compare_plots.benchmark"
-    conda: "../config/envs/instrain_env.yaml"
-    shell:
-        """
-        profile={input.marker}
-        profile=${{profile/_marker.done/}}
-        inStrain plot -i ${{profile}} -pl a -p {threads}
-        """
+        mem_mb = convertToMb("2G")
+    log: "results/10_instrain/03_instrain_compare/aggregate_compare.log"
+    benchmark: "results/10_instrain/03_instrain_compare/aggregate_compare.benchmark"

@@ -31,7 +31,6 @@ results/*
 results/*
 */.snakemake/*
 data/*
-*20230607_glycan_annotations_cleaned.xlsx*
 
 temp
 temp*

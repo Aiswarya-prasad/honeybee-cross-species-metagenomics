@@ -480,6 +480,8 @@ make_col_list <- function(my_vec, my_palette = "Spectral") {
   names(col_list) = uniq_names
   return(col_list)
 }
+handmade_species_names <- read.csv("config/Species_MAG_Cluster-names.txt", header = T, sep = "\t") %>% 
+                            mutate(cluster_name_instrain = paste0(MAG_species_Name_in_analysis, "-", RepMAG))
 my_col_fun <- colorRamp2(c(0.7, 0.9, 0.93, 0.94, 0.95, 1), c("#ffffe5", "#d9f0a3", "#4d9221", "#fddbc7", "#b2182b", "#67000d"))
 pretty_ani_heatmaps <- function(matrix, mags_info_df=vis_magOTUs_df, row_split = "magotus", add_values = F, value_size = 10, limit_l = 0.95, limit_h = 1, col_fun = colorRamp2(c(limit_l, limit_h), c("#9ecae1", "#08306b"))) {
   host_names <- rownames(matrix) %>% as.data.frame() %>%
@@ -544,6 +546,14 @@ pretty_ani_heatmaps <- function(matrix, mags_info_df=vis_magOTUs_df, row_split =
                                    )
   if (row_split == "magotus") {
     row_split = as.character(as.factor(magOTU_names))
+
+  }
+  if (row_split == "handmade") {
+    handmadespecies_names <- magOTU_names %>% 
+                              as.data.frame %>% 
+                                left_join(handmade_species_names %>% select(cluster, MAG_species_name_final), by = c("." = "cluster")) %>%
+                                  pull(MAG_species_name_final) %>% as.factor %>% as.character
+    row_split = as.character(as.factor(handmadespecies_names))
   }
   if (add_values) {
     cell_fun = function(j, i, x, y, width, height, fill) {
@@ -553,9 +563,9 @@ pretty_ani_heatmaps <- function(matrix, mags_info_df=vis_magOTUs_df, row_split =
             col = col_fun,
             # col = brewer.pal(2, "Pastel1"),
             # clustering_method_columns = 'ward.D2',
-            # top_annotation = anno_host_col,
-            right_annotation = anno_gtdb_row,
-            left_annotation = anno_host_row,
+            top_annotation = anno_gtdb_col,
+            right_annotation = anno_host_row,
+            left_annotation = anno_gtdb_row,
             column_names_gp = grid::gpar(fontsize = 0),
             row_names_gp = grid::gpar(fontsize = 0),
             heatmap_legend_param = list(title = "ANI", color_bar = "discrete", 
@@ -567,19 +577,21 @@ pretty_ani_heatmaps <- function(matrix, mags_info_df=vis_magOTUs_df, row_split =
             column_title_gp = grid::gpar(fontsize = 0),
             row_title_rot = 0,
             cell_fun = cell_fun,
-            cluster_columns = F,
             border = F,
             # row_dend_reorder = T,
-            cluster_rows = F
+            cluster_rows = T,
+            cluster_columns = T,
+            show_column_dend = F,
+            show_row_dend = F
             )
   } else {
     heatmap_obj = Heatmap(matrix, 
             col = col_fun,
             # col = brewer.pal(2, "Pastel1"),
             # clustering_method_columns = 'ward.D2',
-            # top_annotation = anno_host_col,
-            right_annotation = anno_gtdb_row,
-            left_annotation = anno_host_row,
+            top_annotation = anno_gtdb_col,
+            right_annotation = anno_host_row,
+            left_annotation = anno_gtdb_row,
             column_names_gp = grid::gpar(fontsize = 0),
             row_names_gp = grid::gpar(fontsize = 0),
             heatmap_legend_param = list(title = "ANI", color_bar = "discrete",
@@ -591,10 +603,12 @@ pretty_ani_heatmaps <- function(matrix, mags_info_df=vis_magOTUs_df, row_split =
             row_title_rot = 0,
             column_title_gp = grid::gpar(fontsize = 0),
             # cell_fun = cell_fun,
-            cluster_columns = F,
             border = F,
             # row_dend_reorder = T,
-            cluster_rows = F
+            cluster_rows = T,
+            cluster_columns = T,
+            show_column_dend = F,
+            show_row_dend = F
             )
   }
   return(heatmap_obj)
@@ -665,6 +679,9 @@ drep_gInformation <- read.csv("results/09_MAGs_collection/drep_output/data_table
 drep_Sdb <- read.csv("results/09_MAGs_collection/drep_output/data_tables/Sdb.csv", sep = ",")
 drep_Widb <- read.csv("results/09_MAGs_collection/drep_output/data_tables/Widb.csv", sep = ",")
 MAGs_collated <- read.csv("results/09_MAGs_collection/MAGs_metadata_summary.tsv", sep = "\t")
+MAGs_collated <- MAGs_collated %>%
+                  filter(!Sample %in% samples_to_exclude)
+                  # c("F4-5", "F5-1", "M6-2")
 colnames(MAGs_collated)
 # system("bash scripts/calc_genome_sizes.sh /scratch/aprasad/20230313_apis_species_comparison/results/09_MAGs_collection/MAGs_high_medium /scratch/aprasad/20230313_apis_species_comparison/results/figures/Genome_sizes_good_quality.csv fa")
 # system("bash scripts/calc_genome_sizes.sh /scratch/aprasad/20230313_apis_species_comparison/results/09_MAGs_collection/MAGs /scratch/aprasad/20230313_apis_species_comparison/results/figures/Genome_sizes.csv fa")
@@ -899,20 +916,20 @@ drep_dist <- drep_N %>%
 ```{r 07-func_def}
 get_genecount_matrix <- function(my_genus, scps_only = F, upper_count = 10, combined_info = combined_info_df, mags_info = vis_magOTUs_df, only_mags = T, with_isolates = F) {
   # change motupsn paths as needed!
-  if (with_isolates & !only_mags) {
-    OG_numbers_df <- read.csv(paste0("results/11_phylogenies/02_orthofinder_results/", my_genus, "/Results_", my_genus, "/Orthogroups/Orthogroups.GeneCount.tsv"), sep = "\t")
-    # motupan_out <- paste0("/scratch/aprasad/211018_Medgenome_india_samples/15_FurtherProcessing/motupan_test/",my_genus,"/mOTUpan.tsv")
-  }
+  OG_numbers_df <- read.csv(paste0("results/11_phylogenies/02_orthofinder_results/", my_genus, "/Results_", my_genus, "/Orthogroups/Orthogroups.GeneCount.tsv"), sep = "\t")
+  names(OG_numbers_df) <- gsub(x = names(OG_numbers_df), pattern = "\\.", replacement = "-")
+  motupan_out <- paste0("results/08_gene_content/07_OG_coreness/",my_genus,"_motupan_output.tsv")
   # if (!with_isolates && only_mags) {
   #   OG_numbers_df <- read.csv(paste0("database/MAGs_database_Orthofinder/", my_genus,"/Results_", my_genus, "/Orthogroups/Orthogroups.GeneCount.tsv"), sep = "\t")
-  #   # motupan_out <- paste0("/scratch/aprasad/211018_Medgenome_india_samples/15_FurtherProcessing/motupan_test/",my_genus,"/mOTUpan.tsv")
+  #   names(OG_numbers_df) <- gsub(x = names(OG_numbers_df), pattern = "\\.", replacement = "-")
+  #   motupan_out <- paste0("results/08_gene_content/07_OG_coreness/",my_genus,"_motupan_output.tsv")
   # }
-  # if (file.exists(motupan_out)) {
-  #   # motupan_df <- read.csv(motupan_out, skip = 16, sep = "\t") %>%
-  #                   column_to_rownames("trait_name") %>%
-  #                   select(type) %>%
-  #                   rownames_to_column("OG")
-  # }
+  if (file.exists(motupan_out)) {
+    motupan_df <- read.csv(motupan_out, skip = 16, sep = "\t") %>%
+                    column_to_rownames("trait_name") %>%
+                    select(type) %>%
+                    rownames_to_column("OG")
+  }
   single_copy_OGs <- OG_numbers_df %>%
                     select(!Total) %>%
                     filter(if_all(is.numeric, ~ .x <= 1)) %>%
@@ -925,9 +942,9 @@ get_genecount_matrix <- function(my_genus, scps_only = F, upper_count = 10, comb
                           rownames_to_column("OG") %>%
                           mutate(scp = ifelse(OG %in% single_copy_OGs, 1, 0)) %>%
                           mutate(core = scp) %>%
-                          # left_join(motupan_df) %>%
-                          # mutate(type_motupan = type) %>%
-                          # select(!type) %>%
+                          left_join(motupan_df) %>%
+                          mutate(type_motupan = type) %>%
+                          select(!type) %>%
                           select(!matches("MAG_"))
   if (scps_only) {
     OG_numbers_df_core_isolate <- OG_numbers_df %>%
@@ -983,7 +1000,6 @@ get_genecount_matrix <- function(my_genus, scps_only = F, upper_count = 10, comb
                   select(!core)
     return(list(matrix = OG_numbers_df_core_isolate, info = types_df))
 }
-
 pretty_orthogene_heatmaps <- function(matrix, do_motupan_anno = F, motupan_info = NA, combined_info=combined_info_df, ref_info=reference_genomes_info, mags_info = vis_magOTUs_df_all, row_split = "magotus", add_values = F, value_size = 10, limit_l = 0.95, limit_h = 1, col_fun ) {
   mag_completeness <- rownames(matrix) %>% as.data.frame() %>%
                         left_join(mags_info %>%
@@ -1002,19 +1018,20 @@ pretty_orthogene_heatmaps <- function(matrix, do_motupan_anno = F, motupan_info 
   magOTU_names <- rownames(matrix) %>% as.data.frame() %>%
                         left_join(combined_info_df %>%
                           ungroup() %>%
-                            select(ID, magOTU) %>%
+                            select(ID, species_name) %>%
                             unique(), by = c(. = "ID")) %>%
-                            mutate(magOTU = ifelse(is.na(magOTU), "Unknown", magOTU)) %>% 
-                            pull(magOTU)
+                            mutate(species_name = ifelse(is.na(species_name), "Unknown", species_name)) %>% 
+                            pull(species_name)
   host_names <- rownames(matrix) %>% as.data.frame() %>%
                         left_join(combined_info_df %>%
                           ungroup() %>%
                             select(ID, Host) %>%
                             unique(), by = c(. = "ID")) %>%
+                            mutate(Host = as.character(Host)) %>%
                             mutate(Host = ifelse(is.na(Host), "Unknown", Host)) %>% 
                             pull(Host)
   genome_types <- rownames(matrix) %>% as.data.frame() %>%
-                        mutate(Type = ifelse(startsWith(., "MAG_"), "MAG", "Isolate")) %>% pull(Type)
+                        mutate(Type = ifelse(. %in% vis_magOTUs_df_all$ID, "MAG", "Isolate")) %>% pull(Type)
   anno_completeness_ref_row = rowAnnotation(Completeness = mag_completeness,
                                           `Reference status` = Representative,
                                             col = list(Completeness = colorRamp2(c(0, 50, 100), c("#d73027", "#ffffbf", "#1a9850")),
@@ -1033,26 +1050,101 @@ pretty_orthogene_heatmaps <- function(matrix, do_motupan_anno = F, motupan_info 
                                                 ),
                                       border = TRUE
                           )
+  anno_type_host_magotu_row = rowAnnotation(Host = host_names,
+                                    # `Genome type` = genome_types,
+                                    Species = magOTU_names,
+                                      col = list(Host = host_order_color,
+                                                Species = make_col_list(magOTU_names, "Spectral")
+                                                ),
+                                      border = TRUE
+                          )
+  # row_split <- rownames(matrix) %>% as.data.frame() %>%
+  #                       left_join(combined_info_df %>%
+  #                         ungroup() %>%
+  #                           select(ID, Host) %>%
+  #                           unique(), by = c(. = "ID")) %>%
+  #                           mutate(Host = as.character(Host)) %>%
+  #                           mutate(Host = ifelse(is.na(Host), "Unknown", Host)) %>% 
+  #                           left_join(combined_info_df %>%
+  #                           ungroup() %>%
+  #                             select(ID, species_name) %>%
+  #                             unique(), by = c(. = "ID")) %>%
+  #                             mutate(species_name = ifelse(is.na(species_name), "Unknown", species_name)) %>% 
+  #                             # mutate(split_name = paste0(species_name,"-", Host)) %>%
+  #                             mutate(split_name = paste0(Host,"-", species_name)) %>%
+  #                             pull(split_name) %>% as.factor %>% as.character
+  # row_split  = as.character(as.factor(host_names))
   row_split  = as.character(as.factor(magOTU_names))
+  if (do_motupan_anno) {
+    scp_names <- colnames(matrix) %>% as.data.frame() %>%
+                        left_join(motupan_info %>% select(OG, scp), by = c("." = "OG")) %>%
+                          pull(scp)
+    type_names <- colnames(matrix) %>% as.data.frame() %>%
+                        left_join(motupan_info %>% select(OG, type), by = c("." = "OG")) %>%
+                          pull(type)
+    motupan_names <- colnames(matrix) %>% as.data.frame() %>%
+                        left_join(motupan_info %>% select(OG, type_motupan), by = c("." = "OG")) %>%
+                          pull(type_motupan)
+    anno_col = HeatmapAnnotation(`mOTUpan Inferred` = motupan_names,
+                                    col = list(`mOTUpan Inferred` = make_col_list(motupan_names, "Spectral")
+                                    ),
+                                    border = T
+                                  )
+    # anno_col = HeatmapAnnotation(`Single Copy` = scp_names,
+    #                                  `Inferred` = type_names,
+    #                                  `mOTUpan Inferred` = motupan_names,
+    #                                 col = list(`Single Copy` = make_col_list(scp_names, "Paired"),
+    #                                            `Inferred` = make_col_list(type_names, "Spectral"),
+    #                                            `mOTUpan Inferred` = make_col_list(motupan_names, "Spectral")
+    #                                 ),
+    #                                 border = T
+    #                               )
+    col_split = colnames(matrix) %>% as.data.frame() %>%
+                        left_join(motupan_info %>% select(OG, type_motupan), by = c("." = "OG")) %>%
+                        pull(type_motupan) %>%
+                        as.factor() %>%
+                        as.character()
+    heatmap_obj = Heatmap(matrix, 
+              col = col_fun,
+              # col = brewer.pal(3, "Set1")[1:2],
+              # clustering_method_columns = 'ward.D2',
+              top_annotation = anno_col,
+              right_annotation = anno_completeness_ref_row,
+              left_annotation = anno_type_host_magotu_row,
+              column_names_gp = grid::gpar(fontsize = 0),
+              row_names_gp = grid::gpar(fontsize = 0),
+              heatmap_legend_param = list(title = "Gene count"),
+              row_split = row_split,
+              row_title_rot = 0,
+              column_split = col_split,
+              row_title_gp = grid::gpar(fontsize = 10),
+              border = F,
+              cluster_columns = T,
+              show_column_dend = F,
+              cluster_rows = T
+              )
+    return(heatmap_obj)
+  } else {
     heatmap_obj = Heatmap(matrix, 
             col = col_fun,
             # col = brewer.pal(3, "Set1")[1:2],
             # clustering_method_columns = 'ward.D2',
             # top_annotation = anno_type_col,
             right_annotation = anno_completeness_ref_row,
-            left_annotation = anno_type_host_row,
+            left_annotation = anno_type_host_magotu_row,
             column_names_gp = grid::gpar(fontsize = 0),
             row_names_gp = grid::gpar(fontsize = 0),
             heatmap_legend_param = list(title = "Gene count"),
             row_split = row_split,
             row_title_rot = 0,
             row_title_gp = grid::gpar(fontsize = 10),
+            border = F,
             cluster_columns = T,
-            border = TRUE,
-            cluster_rows = F
+            show_column_dend = F,
+            cluster_rows = T
             )
   return(heatmap_obj)
-  draw(heatmap_obj, merge_legend = TRUE)
+  }
 }
 ```
 

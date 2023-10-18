@@ -224,10 +224,11 @@ rule run_orthofinder:
     input:
         faa_files = lambda wildcards: expand("results/11_phylogenies/01_orthofinder_input/{{genus}}/{genome}.faa", genome=get_mags_for_genus_phylogeny(wildcards.genus, checkpoints.make_phylo_metadata.get().output.phylo_metadata)),
     output:
-        trees = "results/11_phylogenies/02_orthofinder_results/{genus}/Results_{genus}/Species_Tree/SpeciesTree_rooted.txt",
+        trees = "results/11_phylogenies/02_orthofinder_results/{genus}/Results_{genus}/Species_Tree/SpeciesTree_rooted_node_labels.txt",
         orthofile = "results/11_phylogenies/02_orthofinder_results/{genus}/Results_{genus}/Orthogroups/Orthogroups.txt"
     params:
         outdir = "results/11_phylogenies/02_orthofinder_results/{genus}",
+        prev_outdir = "results/11_phylogenies/02_orthofinder_results/{genus}/Results_{genus}",
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         account="pengel_spirit",
@@ -242,19 +243,21 @@ rule run_orthofinder:
     shell:
         """
         # https://github.com/davidemms/OrthoFinder#running-orthofinder
-        rm -rf {params.outdir}
         orthofinder -ot -t {threads} -n {wildcards.genus} \
-        -f $(dirname {input.faa_files[0]}) -o {params.outdir} \
+        -ft {params.prev_outdir} -ot \
+        # -f $(dirname {input.faa_files[0]}) -o {params.outdir} \
         -M msa -T fasttree \
         2>&1 | tee -a {log}
         """
+        # since we are only resuming now, I have edited this but do this in a more robust way later
+        # ie decide if it is fresh or continued based on data in the output dir
 
 rule run_orthofinder_iqtree:
     input:
-        trees = "results/11_phylogenies/02_orthofinder_results/{genus}/Results_{genus}/Species_Tree/SpeciesTree_rooted.txt",
+        trees = "results/11_phylogenies/02_orthofinder_results/{genus}/Results_{genus}/Species_Tree/SpeciesTree_rooted_node_labels.txt",
         orthofile = "results/11_phylogenies/02_orthofinder_results/{genus}/Results_{genus}/Orthogroups/Orthogroups.txt"
     output:
-        trees = "results/11_phylogenies/02_orthofinder_results/{genus}/Results_{genus}_iqtree/Species_Tree/SpeciesTree_rooted.txt"
+        trees = "results/11_phylogenies/02_orthofinder_results/{genus}/Results_{genus}_iqtree/Species_Tree/SpeciesTree_rooted_node_labels.txt"
     params:
         prev_outdir = "results/11_phylogenies/02_orthofinder_results/{genus}/Results_{genus}",
         new_outdir = "results/11_phylogenies/02_orthofinder_results/{genus}/Results_{genus}_iqtree",
@@ -271,7 +274,7 @@ rule run_orthofinder_iqtree:
     shell:
         """
         rm -rf {params.new_outdir}
-        orthofinder -fg {params.prev_outdir} \
+        orthofinder -ft {params.prev_outdir} \
             -M msa -T iqtree -ot -t {threads} \
             -n {wildcards.genus}_iqtree 2>&1 | tee {log}
         """

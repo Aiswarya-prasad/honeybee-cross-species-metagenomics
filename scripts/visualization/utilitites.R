@@ -184,6 +184,9 @@ get_sample_name <- function(magname){
 # to mutate in dataframes
 get_host_name <- function(magname){
     sample_name = strsplit(magname, "_")[[1]][1]
+    if (sample_name %in% samples_to_exclude) {
+    return(NA)
+    }
     if (grepl("Dr|Gr", sample_name)) {
       return("Apis mellifera")
     }
@@ -213,6 +216,9 @@ get_host_name <- function(magname){
 # function to be used (with Vectorize)
 # to mutate in dataframes
 get_host_from_sample_name <- function(sample_name){
+  if (sample_name %in% samples_to_exclude) {
+    return(NA)
+  }
   if (grepl("Am", sample_name)) {
     return("Apis mellifera")
   }
@@ -447,6 +453,8 @@ read_comma_numbers <- function(x) {
 # define important vectors (manually done)
 ##############
 
+samples_to_exclude <- c("F4-5", "F5-1", "M6-2")
+
 samples_IN <- c("M1-1", "M1-2", "M1-3", "M1-4", "M1-5",
               "C1-1", "C1-2", "C1-3", "C1-4", "C1-5",
               "C2-1", "C2-2", "C2-3", "C2-4", "C2-5",
@@ -458,6 +466,7 @@ samples_IN <- c("M1-1", "M1-2", "M1-3", "M1-4", "M1-5",
               "F2-1","F2-2","F2-3","F2-4","F2-5",
               "F3-1","F3-2","F3-3","F3-4","F3-5"
             )
+samples_IN <- samples_IN[!samples_IN %in% samples_to_exclude]
 samples_KE <- c("AcCh01", "AcCh02", "AcCh03", "AcCh04", "AcCh05",
               "AcCh06", "AcCh07", "AcCh08", "AcCh09", "AcCh10",
               "AcKn01", "AcKn02", "AcKn03", "AcKn04", "AcKn05",
@@ -524,6 +533,7 @@ samples_MY <- c("M2-1", "M2-2", "M2-3", "M2-4", "M2-5",
               "A5-1","A5-2","A5-3","A5-4","A5-5",
               "A6-1","A6-2","A6-3","A6-4","A6-5"
             )
+samples_MY <- samples_MY[!samples_MY %in% samples_to_exclude]
 samples_AM <- c("M1-1", "M1-2", "M1-3", "M1-4", "M1-5",
               "M2-1", "M2-2", "M2-3", "M2-4", "M2-5",
               "M3-1", "M3-2", "M3-3", "M3-4", "M3-5",
@@ -543,6 +553,7 @@ samples_AM <- c("M1-1", "M1-2", "M1-3", "M1-4", "M1-5",
               "GrY2_N1", "GrY2_N2", "GrY2_N3", "GrY2_N4", "GrY2_N5", "GrY2_N6",
               "GrY2_W1", "GrY2_W2", "GrY2_W3", "GrY2_W4", "GrY2_W5", "GrY2_W6"
             )
+samples_AM <- samples_AM[!samples_AM %in% samples_to_exclude]
 samples_AC <- c("C1-1", "C1-2", "C1-3", "C1-4", "C1-5",
               "C2-1", "C2-2", "C2-3", "C2-4", "C2-5",
               "C3-1", "C3-2", "C3-3", "C3-4", "C3-5",
@@ -577,6 +588,7 @@ samples_AF <- c("F1-1","F1-2","F1-3","F1-4","F1-5",
               "F8-1","F8-2","F8-3","F8-4","F8-5",
               "F9-1","F9-2","F9-3","F9-4","F9-5"
             )
+samples_AF <- samples_AF[!samples_AF %in% samples_to_exclude]
 samples_AA <- c("A1-1","A1-2","A1-3","A1-4","A1-5",
               "A2-1","A2-2","A2-3","A2-4","A2-5",
               "A3-1","A3-2","A3-3","A3-4","A3-5",
@@ -625,6 +637,7 @@ samples_IN_MY <- c("M1-1", "M1-2", "M1-3", "M1-4", "M1-5",
               "A5-1","A5-2","A5-3","A5-4","A5-5",
               "A6-1","A6-2","A6-3","A6-4","A6-5"
             )     
+samples_IN_MY <- samples_IN_MY[!samples_IN_MY %in% samples_to_exclude]
 samples <- c(samples_AM, samples_AC, samples_AD, samples_AF, samples_AA)
 location_order <- c("Malaysia", "India", "Switzerland", "Japan")
 location_order_color <- c("Malaysia" = "#1f78b4", "India" = "#33a02c", "Switzerland" = "#e31a1c", "Japan" = "#fb9a99")

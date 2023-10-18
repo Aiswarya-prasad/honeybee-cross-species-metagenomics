@@ -398,14 +398,19 @@ all_genera <- vis_magOTUs_df %>%
 system("mkdir -p results/figures/06-ANI_heatmaps")
 for (genus_iter in all_genera) {
   pdf(paste0("results/figures/06-ANI_heatmaps/06-", genus_iter, "_ANI_heatmap.pdf"), width = 15, height = 25)
-  draw(pretty_ani_heatmaps(get_ani_matrix(genera_list = c(genus_iter)), col_fun = my_col_fun),
+  draw(pretty_ani_heatmaps(get_ani_matrix(genera_list = c(genus_iter)), col_fun = my_col_fun, row_split = "handmade"),
       merge_legend = T)
   dev.off()
-  pdf(paste0("results/figures/06-ANI_heatmaps/06-", genus_iter, "_ANI_heatmap_values.pdf"), width = 15, height = 25)
-  draw(pretty_ani_heatmaps(get_ani_matrix(genera_list = c(genus_iter)), col_fun = my_col_fun, add_values = T, value_size = 2),
-      merge_legend = T)
-  dev.off()
+  # pdf(paste0("results/figures/06-ANI_heatmaps/06-", genus_iter, "_ANI_heatmap_values.pdf"), width = 15, height = 25)
+  # draw(pretty_ani_heatmaps(get_ani_matrix(genera_list = c(genus_iter)), col_fun = my_col_fun, add_values = T, value_size = 2),
+  #     merge_legend = T)
+  # dev.off()
 }
+for (genus_iter in all_genera) {
+  matrix_ret <- get_ani_matrix(genera_list = c(genus_iter))
+  write.csv(matrix_ret, paste0("results/figures/06-ANI_heatmaps/06-", genus_iter, "_ANI_heatmap_values.csv"), quote = F, row.names = T)
+}
+
 ```
 
 # example of magOTU seperation, true species separation?
@@ -414,11 +419,11 @@ for (genus_iter in all_genera) {
 #                                               "MAG_C3.5_1", "MAG_C2.4_10", "MAG_C3.1_2", "MAG_C3.2_7")), col_fun = my_col_fun, add_values = T),
 #                                               merge_legend = TRUE)
 my_col_fun <- colorRamp2(c(0.7, 0.9, 0.93, 0.94, 0.95, 1), c("#ffffe5", "#d9f0a3", "#4d9221", "#fddbc7", "#b2182b", "#67000d"))
-draw(pretty_ani_heatmaps(get_ani_matrix(genera_list = c("g__Bifidobacterium")), col_fun = my_col_fun),
+draw(pretty_ani_heatmaps(get_ani_matrix(genera_list = c("g__Bombilactobacillus")), col_fun = my_col_fun, row_split = "handmade"),
                                               merge_legend = T)
-draw(pretty_ani_heatmaps(get_ani_matrix(genera_list = c("g__Lactobacillus")), col_fun = my_col_fun),
+draw(pretty_ani_heatmaps(get_ani_matrix(genera_list = c("g__Bifidobacterium")), col_fun = my_col_fun, row_split = "handmade"),
                                               merge_legend = T)
-draw(pretty_ani_heatmaps(get_ani_matrix(genera_list = c("g__Bombilactobacillus")), col_fun = my_col_fun),
+draw(pretty_ani_heatmaps(get_ani_matrix(genera_list = c("g__Lactobacillus")), col_fun = my_col_fun, row_split = "handmade"),
                                               merge_legend = T)
 ```
 

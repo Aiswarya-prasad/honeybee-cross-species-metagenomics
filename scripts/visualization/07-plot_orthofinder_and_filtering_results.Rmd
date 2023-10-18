@@ -49,36 +49,65 @@ Below is a summary of the number of genes used and how and where they occured.
 Code is below it saves heatmaps at `Figures/07-Orthogroup_heatmaps/*.pdf`.
 
 ```{r ortho_genes_heatmap}
+cluster_names_list <- handmade_species_names %>% pull(MAG_species_name_final, cluster)
+get_species_name <- function(magotu){
+  if (is.na(magotu)) {
+    return(NA)
+  }
+  return(cluster_names_list[magotu][[1]])
+}
 combined_info_df <- vis_magOTUs_df_all %>%
-                      mutate(Cluster = paste0(Genus, "_", magOTU))
-
-                      # select(colnames(reference_genomes_info)) %>%
-                        # rbind(reference_genomes_info)
+                        left_join(handmade_species_names %>% select(MAG_species_name_final, RepMAG), by = c("representative_genome" = "RepMAG")) %>%
+                        mutate(species_name = MAG_species_name_final) %>%
+                        mutate(Cluster = species_name) %>%
+                        select(!MAG_species_name_final)
+genus_iter <- "g__Apibacter"
+genus_iter <- "g__Bifidobacterium"
+combined_info_df %>%
+  filter(magOTU == "5_1") %>% view
 # rename these figures and remake them using the newly refurbished function get_genecount_matrix
-system('mkdir -p results/figures/07-Orthogroup_heatmaps')
+system('mkdir -p results/figures/07-MAG_OG_heatmap')
 for (genus_iter in genera) {
-  my_upper_count <- 20
-  pdf(paste0("results/figures/07-Orthogroup_heatmaps/", genus_iter, "_OG_counts.pdf"))
-  my_heatmap <- pretty_orthogene_heatmaps(get_genecount_matrix(my_genus=genus_iter, upper_count = my_upper_count), 
-    col_fun = colorRamp2(c(0, 1, 2, 5, my_upper_count), c("#e6f5d0", "#7fbc41", brewer.pal(9, "RdPu")[1], brewer.pal(9, "RdPu")[8], brewer.pal(9, "RdPu")[9])))
-  draw(my_heatmap, merge_legend = TRUE, column_title=paste0("Number of OG genes: ", ncol(my_heatmap)), column_title_gp=grid::gpar(fontsize=12))
-  dev.off()
+  OG_numbers_df <- paste0("results/11_phylogenies/02_orthofinder_results/", genus_iter, "/Results_", genus_iter, "/Orthogroups/Orthogroups.GeneCount.tsv")
+  if (file.exists(OG_numbers_df)) {
+    my_upper_count <- 20
+    pdf(paste0("results/figures/07-MAG_OG_heatmap/", genus_iter, "_OG_counts_accessory.pdf"), width = 15, height = 20)
+      out_mat <- get_genecount_matrix(my_genus=genus_iter, upper_count = my_upper_count)
+      matrix_to_plot <- out_mat$matrix
+      chosen_ogs <- out_mat$info %>% filter(type_motupan != "core") %>% pull(OG)
+      # chosen_ogs <- out_mat$info %>% filter(type_motupan == "core") %>% pull(OG)
+      genomes_of_interest <- rownames(matrix_to_plot) %>% 
+                              as.data.frame() %>%
+                              left_join(vis_magOTUs_df_all %>% ungroup() %>% select(ID, completeness), by = c(. = "ID")) %>%
+                              filter(completeness >= 75) %>% pull(".")
+      matrix_to_plot <- matrix_to_plot[, chosen_ogs]
+      matrix_to_plot <- matrix_to_plot[genomes_of_interest, ]
+      my_heatmap <- pretty_orthogene_heatmaps(matrix_to_plot, motupan_info = out_mat$info,
+        do_motupan_anno = T,
+        col_fun = colorRamp2(c(0, 1, 2, 5, my_upper_count), c("#e6f5d0", "#7fbc41", brewer.pal(9, "RdPu")[1], brewer.pal(9, "RdPu")[8], brewer.pal(9, "RdPu")[9])))
+      draw(my_heatmap, merge_legend = TRUE, column_title=paste0("Number of OG genes: ", ncol(my_heatmap)), column_title_gp=grid::gpar(fontsize=12))
+    dev.off()
+    pdf(paste0("results/figures/07-MAG_OG_heatmap/", genus_iter, "_OG_counts_core.pdf"), width = 15, height = 20)
+      out_mat <- get_genecount_matrix(my_genus=genus_iter, upper_count = my_upper_count)
+      matrix_to_plot <- out_mat$matrix
+      # chosen_ogs <- out_mat$info %>% filter(type_motupan != "core") %>% pull(OG)
+      chosen_ogs <- out_mat$info %>% filter(type_motupan == "core") %>% pull(OG)
+      genomes_of_interest <- rownames(matrix_to_plot) %>% 
+                              as.data.frame() %>%
+                              left_join(vis_magOTUs_df_all %>% ungroup() %>% select(ID, completeness), by = c(. = "ID")) %>%
+                              filter(completeness >= 75) %>% pull(".")
+      matrix_to_plot <- matrix_to_plot[, chosen_ogs]
+      matrix_to_plot <- matrix_to_plot[genomes_of_interest, ]
+      my_heatmap <- pretty_orthogene_heatmaps(matrix_to_plot, motupan_info = out_mat$info,
+        do_motupan_anno = T,
+        col_fun = colorRamp2(c(0, 1, 2, 5, my_upper_count), c("#e6f5d0", "#7fbc41", brewer.pal(9, "RdPu")[1], brewer.pal(9, "RdPu")[8], brewer.pal(9, "RdPu")[9])))
+      draw(my_heatmap, merge_legend = TRUE, column_title=paste0("Number of OG genes: ", ncol(my_heatmap)), column_title_gp=grid::gpar(fontsize=12))
+    dev.off()
+  }
 }
 ```
 
-```{r}
-genus_iter = "g__Lactobacillus"
-my_heatmap <- pretty_orthogene_heatmaps(matrix=get_motupan_matrix(scps_only = F, my_genus=genus_iter)$matrix,
-     do_motupan_anno = T, motupan_info = get_motupan_matrix(scps_only = F, my_genus=genus_iter)$info,
-     col_fun = colorRamp2(c(0, 1, 2, 5, my_upper_count), c("#e6f5d0", "#7fbc41", brewer.pal(9, "RdPu")[1], brewer.pal(9, "RdPu")[8], brewer.pal(9, "RdPu")[9])))
-  draw(my_heatmap, merge_legend = TRUE, column_title=paste0("Number of OG genes: ", ncol(my_heatmap)), column_title_gp=grid::gpar(fontsize=12))
-my_heatmap <- pretty_orthogene_heatmaps(matrix=get_motupan_matrix(scps_only = T, my_genus=genus_iter)$matrix,
-     do_motupan_anno = T, motupan_info = get_motupan_matrix(scps_only = T, my_genus=genus_iter)$info,
-     col_fun = colorRamp2(c(0, 1, 2, 5, my_upper_count), c("#e6f5d0", "#7fbc41", brewer.pal(9, "RdPu")[1], brewer.pal(9, "RdPu")[8], brewer.pal(9, "RdPu")[9])))
-  draw(my_heatmap, merge_legend = TRUE, column_title=paste0("Number of OG genes: ", ncol(my_heatmap)), column_title_gp=grid::gpar(fontsize=12))
-# Do this for all the genera (with motupan and add these annotations for orthofinder results)
-# Check for presence (core-ness) at the magOTU-level too also while filtering single copy cores
-```
+
 
 ```{r extra_plots}
 cluster_size_histogram <- ggplot(vis_magOTUs_df_all, aes(x = cluster_members, fill = factor(Genus, genera))) +

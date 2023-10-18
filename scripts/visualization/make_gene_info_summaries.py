@@ -224,24 +224,3 @@ log="results/08_gene_content/07_OG_coreness/${genus}_motupan.log"
 mOTUpan.py --gene_clusters_file ${output_cogfile} --boots 10 -o ${outfile} --checkm ${checkm_info} | tee ${log}
 '''
 
-# plot cazy profiling output
-# 'results/08_gene_content/06_cayman/C5-2.gene_counts.txt.gz'
-# 'results/08_gene_content/06_cayman/C5-2.cazy.txt.gz'
-# read gz file
-
-samples = [os.path.basename(x).split('.')[0] for x in glob.glob('results/08_gene_content/06_cayman/*cazy.txt.gz')]
-# get the gene counts
-cazy_counts = {}
-for sample in samples:
-    cazy_counts[sample] = pd.read_csv(f'results/08_gene_content/06_cayman/{sample}.cazy.txt.gz', compression='gzip', header=0, sep='\t')
-    # remove into a different dict the features, filtered_reads and total_reads
-    cazy_counts[sample] = cazy_counts[sample][cazy_counts[sample]['feature'] != 'filtered_reads']
-    cazy_counts[sample] = cazy_counts[sample][cazy_counts[sample]['feature'] != 'total_reads']
-
-# combine cazy df into one melted df for sample, feature, uniq_rpkm
-cazy_df = pd.DataFrame()
-for sample in samples:
-    cazy_df_sample = cazy_counts[sample].loc[:, ['feature', 'uniq_rpkm']]
-    cazy_df_sample['sample'] = sample
-    cazy_df = cazy_df._append(cazy_df_sample)
-cazy_df.to_csv('results/figures/cazy_df.tsv', sep='\t')

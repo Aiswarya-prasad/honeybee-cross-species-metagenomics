@@ -251,3 +251,19 @@ def get_genome_path(genome, metadata, type):
                 returned_path = ffn_path
         genome_path_dict = {"path": returned_path, "type": type}
         return genome_path_dict
+
+def get_species_from_rep_mag(mag):
+    if os.path.isfile('config/Species_MAG_Cluster-names.txt'):
+        pass
+    else:
+        print("Species_MAG_Cluster-names.txt not found in config folder")
+        sys.exit(1)
+    with open('config/Species_MAG_Cluster-names.txt', 'r') as f:
+    # MAG_species_name_final	MAG_species_Name_in_analysis	cluster	RepMAG  MAG_species_name_final_nospace
+        header = f.readline()
+        header = header.strip()
+        mag_ind = header.split("\t").index("RepMAG")
+        species_ind = header.split("\t").index("MAG_species_name_final_nospace")
+        for line in f:
+            if line.split("\t")[mag_ind] == mag:
+                return line.split("\t")[species_ind]
