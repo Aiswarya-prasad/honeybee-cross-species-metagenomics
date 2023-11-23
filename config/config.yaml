@@ -10,8 +10,7 @@ RawdataPaths:
   - "/work/FAC/FBM/DMF/pengel/spirit/aprasad/NGS_data/20170426_OBIWAN300/data"
   - "/work/FAC/FBM/DMF/pengel/spirit/aprasad/NGS_data/20170428_WINDU191/data"
   - "/work/FAC/FBM/DMF/pengel/spirit/aprasad/NGS_data/20211018_A01223-105-HC32VDSX2_India_samples_run1"
-  - "/work/FAC/FBM/DMF/pengel/spirit/aprasad/NGS_data/202111
-  02_A01223-109-HC2KGDSX2_India_samples_run2"
+  - "/work/FAC/FBM/DMF/pengel/spirit/aprasad/NGS_data/20211102_A01223-109-HC2KGDSX2_India_samples_run2"
 Adapters:
   SAMPLES_KE: "config/NexteraPE-PE.fa"
   SAMPLES_KE_CHOSEN: "config/NexteraPE-PE.fa"

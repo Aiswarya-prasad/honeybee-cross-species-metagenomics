@@ -247,11 +247,6 @@ rule instrain_profile_plot:
         touch {output.done}
         """
 
-# Do instrain compare for all samples but one genome at a time! - update the code
-# and run it later. Also needs profile to be done in database mode.. So maybe new rule for that
-
-# get_rep_mags
-
 rule instrain_profile_db_mode:
     input:
         bam = "results/10_instrain/01_mapping/{sample}/{sample}_bowtie.bam",
@@ -284,13 +279,13 @@ rule instrain_profile_db_mode:
 
 rule instrain_compare:
     input:
-        markers = expand("results/10_instrain/02_instrain_profile_db_mode/{sample}_profile_db_mode.done/",  sample=SAMPLES_sub),
+        markers = expand("results/10_instrain/02_instrain_profile_db_mode/{sample}_profile_db_mode.done/", sample=SAMPLES),
         # repeat with all samples of interest later
         scaffold_to_bin_file = "results/10_instrain/00_prepare_mags/scaffold_to_bin_file.tsv"
     output:
-        compare_marker = touch("results/10_instrain/03_instrain_compare/log_files/{mag}_compared.done"),
+        compare_marker = touch("results/10_instrain/03_instrain_compare/all_compared.done"),
     params:
-        outdir = lambda wildcards: f"results/10_instrain/03_instrain_compare/{get_species_from_rep_mag(wildcards.mag)}",
+        outdir = lambda wildcards: f"results/10_instrain/03_instrain_compare/20230313_MAGs_rep_db",
         profiles = [f"results/10_instrain/02_instrain_profile_db_mode/{sample}" for sample in SAMPLES],
         mailto="aiswarya.prasad@unil.ch",
         account="pengel_spirit",
@@ -298,8 +293,8 @@ rule instrain_compare:
     resources:
         mem_mb = convertToMb("200G")
     conda: "../config/envs/instrain_env.yaml"
-    log: "results/10_instrain/03_instrain_compare/log_files/instrain_compare_{mag}.log"
-    benchmark: "results/10_instrain/03_instrain_compare/log_files/instrain_compare_{mag}.benchmark"
+    log: "results/10_instrain/03_instrain_compare/log_files/instrain_compare_20230313_MAGs_rep_db.log"
+    benchmark: "results/10_instrain/03_instrain_compare/log_files/instrain_compare_20230313_MAGs_rep_db.benchmark"
     # log: lambda wildcards: f"results/10_instrain/03_instrain_compare/log_files/instrain_compare_{get_species_from_rep_mag(wildcards.mag)}.log"
     # benchmark: lambda wildcards: f"results/10_instrain/03_instrain_compare/log_files/instrain_compare_{get_species_from_rep_mag(wildcards.mag)}.benchmark"
     threads: 8
@@ -307,20 +302,63 @@ rule instrain_compare:
         """
         inStrain compare -i {params.profiles} -s {input.scaffold_to_bin_file} \
                 -p {threads} -o {params.outdir} \
-                --database_mode --genome {wildcards.mag} || touch {output.compare_marker}.singleton
+                --database_mode || touch {output.compare_marker}.singleton
         touch {output.compare_marker}
         """
 
-rule aggregate_compare:
-    input:
-        markers = lambda wildcards: [f"results/10_instrain/03_instrain_compare/log_files/{mag}_compared.done" for mag in get_rep_mags(checkpoints.mag_metadata_summary.get().output.metadata)]
-    output:
-        aggregate_marker = touch("results/10_instrain/03_instrain_compare/all_compared.done"),
-    params:
-        mailto="aiswarya.prasad@unil.ch",
-        account="pengel_spirit",
-        runtime_s=convertToSec("0-00:10:00"),
-    resources:
-        mem_mb = convertToMb("2G")
-    log: "results/10_instrain/03_instrain_compare/aggregate_compare.log"
-    benchmark: "results/10_instrain/03_instrain_compare/aggregate_compare.benchmark"
+"""
+Above is how it should have run... But something else happened
+basically, the run possibly started up from an earlier checkpoint and (or for some other reason) ended up ignoring
+the --genome parameter so, all the directories under all the species names have the same info and that is the info for all the
+genomes (redundant)
+
+Below is how it had run. After, manually editing the output makes it look 
+the way it does as it should have if the rule above ran
+even though files were renamed and rearranged manually
+log files might contain paths indicating otherwise...
+"""
+
+
+# rule instrain_compare:
+#     input:
+#         markers = expand("results/10_instrain/02_instrain_profile_db_mode/{sample}_profile_db_mode.done/", sample=SAMPLES),
+#         # repeat with all samples of interest later
+#         scaffold_to_bin_file = "results/10_instrain/00_prepare_mags/scaffold_to_bin_file.tsv"
+#     output:
+#         compare_marker = touch("results/10_instrain/03_instrain_compare/log_files/{mag}_compared.done"),
+#     params:
+#         outdir = lambda wildcards: f"results/10_instrain/03_instrain_compare/{get_species_from_rep_mag(wildcards.mag)}",
+#         profiles = [f"results/10_instrain/02_instrain_profile_db_mode/{sample}" for sample in SAMPLES],
+#         mailto="aiswarya.prasad@unil.ch",
+#         account="pengel_spirit",
+#         runtime_s=convertToSec("3-00:00:00"),
+#     resources:
+#         mem_mb = convertToMb("200G")
+#     conda: "../config/envs/instrain_env.yaml"
+#     log: "results/10_instrain/03_instrain_compare/log_files/instrain_compare_{mag}.log"
+#     benchmark: "results/10_instrain/03_instrain_compare/log_files/instrain_compare_{mag}.benchmark"
+#     # log: lambda wildcards: f"results/10_instrain/03_instrain_compare/log_files/instrain_compare_{get_species_from_rep_mag(wildcards.mag)}.log"
+#     # benchmark: lambda wildcards: f"results/10_instrain/03_instrain_compare/log_files/instrain_compare_{get_species_from_rep_mag(wildcards.mag)}.benchmark"
+#     threads: 8
+#     shell:
+#         """
+#         inStrain compare -i {params.profiles} -s {input.scaffold_to_bin_file} \
+#                 -p {threads} -o {params.outdir} \
+#                 --database_mode --genome {wildcards.mag} || touch {output.compare_marker}.singleton
+#         touch {output.compare_marker}
+#         """
+
+# rule aggregate_compare:
+#     input:
+#         markers = lambda wildcards: [f"results/10_instrain/03_instrain_compare/log_files/{mag}_compared.done" for mag in get_rep_mags(checkpoints.mag_metadata_summary.get().output.metadata)]
+#     output:
+#         aggregate_marker = touch("results/10_instrain/03_instrain_compare/all_compared.done"),
+#     params:
+#         mailto="aiswarya.prasad@unil.ch",
+#         account="pengel_spirit",
+#         runtime_s=convertToSec("0-00:10:00"),
+#     resources:
+#         mem_mb = convertToMb("2G")
+#     log: "results/10_instrain/03_instrain_compare/aggregate_compare.log"
+#     benchmark: "results/10_instrain/03_instrain_compare/aggregate_compare.benchmark"
+

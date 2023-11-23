@@ -688,6 +688,44 @@ pdf("results/figures/3-magotu_rohdes_with_host.pdf", width = 12, height = 15)
 grid.arrange(p_rohdes, p_hp_m, p_hp_c, p_hp_d, p_hp_f, p_hp_a, nrow = 1, widths = c(7,1,1,1,1,1))
 dev.off()
 
+df_rohdes_by_host <- df_rohdes %>%
+                      filter(type == "prev") %>%
+                      select(X_old, X, rohdes_index) %>%
+                      left_join(
+                        read.csv("results/figures/magotu_ab_ranks.csv") %>%
+                          pivot_longer(!X, names_to = "Host", values_to = "rank"),
+                        by = c("X_old" = "X")
+                      ) %>%
+                      mutate(Host = paste0("Apis ", Host)) %>%
+                      mutate(rank = as.factor(rank)) #%>%
+                      # filter(rank == "1") %>%
+                      # filter(X_old %in% (prevs_df %>% filter(prevalence_in_host >= 0.04) %>% pull(X)))
+
+ggplot(df_rohdes_by_host,
+       aes(x = factor(Host, levels = c("Apis mellifera", "Apis dorsata", "Apis cerana", "Apis florea", "Apis andreniformis")),
+           y = rohdes_index,
+           fill = factor(Host, levels = c("Apis mellifera", "Apis dorsata", "Apis cerana", "Apis florea", "Apis andreniformis")),
+          #  fill = factor(Host, levels = c(host_order)),
+         )
+     ) +
+  geom_boxplot() +
+  geom_jitter(width=0.1, size = 2) +
+  labs(y = "Rohde's index", x = "Host species", fill = "Host") +
+  facet_wrap(~rank, scales = "free") +
+    make_theme(leg_pos = "none", x_angle = 30, setFill = F, x_vj = 1, x_hj = 1, 
+               x_size = 15, y_size = 15, axis_x_title = 20, axis_y_title = 20
+              ) +
+      scale_fill_manual(values=host_order_color_dark) #+
+      # scale_y_continuous(trans = "log10", labels = function(x) parse(text=paste("10^",round(log10(x), 2)))) +
+      # geom_signif(comparisons = split(t(combn(levels(qpcr_plot_df$Host), 2)), seq(nrow(t(combn(levels(qpcr_plot_df$Host), 2))))), 
+      # geom_signif(comparisons = list(c("Apis florea", "Apis andreniformis"),
+      #                                c("Apis florea", "Apis cerana"),
+      #                                c("Apis cerana", "Apis dorsata"),
+      #                                c("Apis mellifera", "Apis dorsata")#,
+      #                               #  c("Apis mellifera", "Apis cerana"),
+      #                               #  c("Apis mellifera", "Apis florea")
+      #                               ), 
+      #         map_signif_level=TRUE, step_increase=0.05)
 
 abundance_df %>% select(sample, coverage) %>% filter(coverage > 0) %>% pull(sample) %>% unique %>% length
 abundance_df %>% select(sample, coverage, Host) %>%
@@ -1532,6 +1570,11 @@ pdf("results/figures/09-PCoA_sorensen_microbiome.pdf")
 pcoa_plot(dist_matrix_betapart$beta.sor, df_meta_complete %>% select(ID, Species), variable = "Species", color_add=T, color_list=host_order_color_dark)
 dev.off()
 
+dist_matrix_betapart <- beta.pair(df_magOTUs_vegan_pa, "jaccard")
+pdf("results/figures/09-PCoA_jaccard_microbiome.pdf")
+pcoa_plot(dist_matrix_betapart$beta.jac, df_meta_complete %>% select(ID, Species), variable = "Species", color_add=T, color_list=host_order_color_dark)
+dev.off()
+
 dist_matrix_atch <- vegdist(abundance_df_matrix_copies, method = "robust.aitchison")
 pdf("results/figures/09-PCoA_atchinson_microbiome.pdf")
 pcoa_plot(dist_matrix_atch, df_meta_complete %>% select(ID, Species), variable = "Species", color_add=T, color_list=host_order_color_dark)
@@ -1564,8 +1607,251 @@ dev.off()
 # pcoa_plot(dist_matrix_betapart$beta.jne, df_meta_complete, "Species", color_add=T, color_list=host_order_color_dark)
 # pcoa_plot(dist_matrix_betapart$beta.jtu, df_meta_complete, "Species", color_add=T, color_list=host_order_color_dark)
 
-dist_matrix_betapart_multi <- beta.multi(df_magOTUs_vegan_pa, "sorensen")
-str(dist_matrix_betapart_multi)
+# pcoa showing colony affiliation
+dist_matrix_betapart <- beta.pair(df_magOTUs_vegan_pa, "sorensen")
+my_colony_col_list2 <- c("M1" = "#fdae61",
+                        "M2" = "#fee08b",
+                        "M3" = "#ffffbf",
+                        "M4" = "#e6f598",
+                        "M5" = "#abdda4",
+                        "M6" = "#66c2a5",
+                        "M7" = "#3288bd",
+                        "C1" = "#d53e4f",
+                        "C2" = "#f46d43",
+                        "C3" = "#fdae61",
+                        "C4" = "#fee08b",
+                        "C5" = "#ffffbf",
+                        "C6" = "#e6f598",
+                        "C7" = "#abdda4",
+                        "C8" = "#66c2a5",
+                        "C9" = "#3288bd",
+                        "F1" = "#d53e4f",
+                        "F2" = "#f46d43",
+                        "F3" = "#fdae61",
+                        "F4" = "#fee08b",
+                        "F5" = "#ffffbf",
+                        "F6" = "#e6f598",
+                        "F7" = "#abdda4",
+                        "F8" = "#66c2a5",
+                        "F9" = "#3288bd",
+                        "D1" = "#d53e4f",
+                        "D2" = "#f46d43",
+                        "D3" = "#fdae61",
+                        "D4" = "#fee08b",
+                        "D5" = "#ffffbf",
+                        "D6" = "#e6f598",
+                        "D7" = "#abdda4",
+                        "D8" = "#66c2a5",
+                        "D9" = "#3288bd",
+                        "A1" = "#d53e4f",
+                        "A2" = "#fdae61",
+                        "A3" = "#e6f598",
+                        "A4" = "#abdda4",
+                        "A5" = "#66c2a5",
+                        "A6" = "#3288bd"
+                 )
+my_colony_col_list <- c("M1" = "#08306b",
+                        "M2" = "#08519c",
+                        "M3" = "#2171b5",
+                        "M4" = "#4292c6",
+                        "M5" = "#6baed6",
+                        "M6" = "#9ecae1",
+                        "M7" = "#08306b",
+                        "C1" = "#67000d",
+                        "C2" = "#a50f15",
+                        "C3" = "#cb181d",
+                        "C4" = "#ef3b2c",
+                        "C5" = "#fb6a4a",
+                        "C6" = "#fc9272",
+                        "C7" = "#67000d",
+                        "C8" = "#a50f15",
+                        "C9" = "#cb181d",
+                        "F1" = "#238b45",
+                        "F2" = "#006d2c",
+                        "F3" = "#00441b",
+                        "F4" = "#a1d99b",
+                        "F5" = "#74c476",
+                        "F6" = "#41ab5d",
+                        "F7" = "#238b45",
+                        "F8" = "#006d2c",
+                        "F9" = "#00441b",
+                        "D1" = "#6a51a3",
+                        "D2" = "#54278f",
+                        "D3" = "#3f007d",
+                        "D4" = "#bcbddc",
+                        "D5" = "#9e9ac8",
+                        "D6" = "#807dba",
+                        "D7" = "#6a51a3",
+                        "D8" = "#54278f",
+                        "D9" = "#3f007d",
+                        "A1" = "#fdae6b",
+                        "A2" = "#fd8d3c",
+                        "A3" = "#f16913",
+                        "A4" = "#d94801",
+                        "A5" = "#a63603",
+                        "A6" = "#7f2704"
+                 )
+pdf("results/figures/09-PCoA_sorensen_microbiome_w_colony.pdf", width = 10, height = 15) 
+pcoa_plot(dist_matrix_betapart$beta.sor, df_meta_complete %>% select(ID, Colony_ID, Species), variable = "Colony_ID", color_add=T, color_list=my_colony_col_list, shape_add = T, shape_var = "Species")
+dev.off()
+pdf("results/figures/09-PCoA_sorensen_microbiome_w_colony_and_spec.pdf", width = 10, height = 15) 
+pcoa_plot(dist_matrix_betapart$beta.sor, df_meta_complete %>% select(ID, Colony_ID, Species), variable = "Colony_ID", color_add=T, color_list=my_colony_col_list, shape_add = F, shape_var = "Species")
+dev.off()
+pdf("results/figures/09-PCoA_sorensen_microbiome_w_colony_and_country.pdf", width = 10, height = 15) 
+pcoa_plot(dist_matrix_betapart$beta.sor, df_meta_complete %>% select(ID, Colony_ID, Country), variable = "Colony_ID", color_add=T, color_list=my_colony_col_list, shape_add = T, shape_var = "Country")
+dev.off()
+pdf("results/figures/09-PCoA_sorensen_microbiome_w_colony_and_country_by_host.pdf", width = 10, height = 15) 
+pcoa_plot(dist_matrix_betapart$beta.sor, df_meta_complete %>% select(ID, Colony_ID, Country, Species), variable = "Colony_ID", color_add=T, color_list=my_colony_col_list2, shape_add = T, shape_var = "Country") +
+  facet_wrap(~Species, scales = "free")
+dev.off()
+
+
+# Test colony effect in mellifera and cerana
+df_magOTUs_vegan_pa_all <- abundance_df_matrix_pa_all %>%
+                      filter(rowSums(.) > 0) %>%
+                      filter(rownames(.) %in% c(samples_AM))
+                      # filter(rownames(.) %in% c(samples_AM, samples_AC))
+# df_pcoa <- dist_matrix_betapart$beta.sor
+dist_matrix_betapart <- beta.pair(df_magOTUs_vegan_pa_all, "sorensen")
+unique(df_pcoa_new$Country)
+my_shape_list <- c("Malaysia" = 20,
+                   "India" = 15,
+                   "Japan" = 17,
+                   "Switzerland" = 18
+)
+my_size_list <- c("Malaysia" = 8,
+                   "India" = 6,
+                   "Japan" = 6,
+                   "Switzerland" = 8
+)
+unique(df_pcoa_new$Colony_ID)
+my_colony_col_list3 <- c("M1" = "#e31a1c",
+                        "M2" = "#cab2d6",
+                        "M3" = "#6a3d9a",
+                        "M4" = "#41b6c4",
+                        "M5" = "#081d58",
+                        "M6" = "#225ea8",
+                        "M7" = "#3288bd",
+                        "AmAi" = "#b2df8a",
+                        "AmIu" = "#33a02c",
+                        "DrY1" = "#fb9a99",
+                        "DrY2" = "#fdbf6f",
+                        "GrY2" = "#ff7f00",
+                        "C1" = "#cab2d6",
+                        "C2" = "#6a3d9a",
+                        "C3" = "#54278f",
+                        "C4" = "#081d58",
+                        "C5" = "#225ea8",
+                        "C6" = "#b2df8a",
+                        "C7" = "#33a02c",
+                        "C8" = "#00441b",
+                        "C9" = "#7fcdbb",
+                        "AcKn" = "#fdbf6f",
+                        "AcCh" = "#ff7f00"
+
+)
+metadata <- df_meta_complete %>% select(ID, Colony_ID, Country, Species)
+matrix <- as.matrix(dist_matrix_betapart$beta.sor)
+dist <- as.dist(matrix)
+res_pcoa <- pcoa(dist)
+ev1 <- res_pcoa$vectors[,1]
+ev2 <- res_pcoa$vectors[,2]
+df_pcoa_new <- data.frame(cbind(ev1,ev2))
+df_pcoa_new$Sample <- rownames(df_pcoa_new)
+rownames(df_pcoa_new) <- NULL
+df_pcoa_new <- left_join(df_pcoa_new, metadata, by = c("Sample" = "ID"))
+perc_axis <- round(((res_pcoa$values$Relative_eig[c(1,2)])*100), digits=1)
+axis_x_title <- paste0("PCo1 (",perc_axis[1],"%)")
+axis_y_title <- paste0("PCo2 (",perc_axis[2],"%)")
+ggplot(df_pcoa_new, aes(x = ev1,
+                        y = ev2,
+                        shape = Country,
+                        size = Country,
+                        color = Colony_ID))+
+                geom_point(stat="identity") +
+                stat_ellipse(size = 1) +
+                  labs(x=axis_x_title, y = axis_y_title, color = "Colony", shape = "Country") +
+                  facet_wrap(~Species, scales = "free") +
+                    make_theme(setFill = F, setCol = F, guide_nrow = 3, leg_size = 10 ) +
+                      scale_color_manual(values = my_colony_col_list3) +
+                      scale_shape_manual(values = my_shape_list) +
+                      scale_size_manual(values = my_size_list)
+      ggsave("results/figures/09-PCoA_sorensen_microbiome_w_location_colony_AM.pdf", width = 10, height = 15)
+
+# test colony effect in mellifera
+adonis_res <- adonis2(dist_matrix_betapart$beta.sor ~ Colony_ID ,data =  df_pcoa_new, permutations = 999, by = "margin")
+adonis_OmegaSq(adonis_res)
+
+df_magOTUs_vegan_pa_all <- abundance_df_matrix_pa_all %>%
+                      filter(rowSums(.) > 0) %>%
+                      filter(rownames(.) %in% c(samples_AC))
+                      # filter(rownames(.) %in% c(samples_AM, samples_AC))
+# df_pcoa <- dist_matrix_betapart$beta.sor
+dist_matrix_betapart <- beta.pair(df_magOTUs_vegan_pa_all, "sorensen")
+metadata <- df_meta_complete %>% select(ID, Colony_ID, Country, Species)
+matrix <- as.matrix(dist_matrix_betapart$beta.sim)
+dist <- as.dist(matrix)
+res_pcoa <- pcoa(dist)
+ev1 <- res_pcoa$vectors[,1]
+ev2 <- res_pcoa$vectors[,2]
+df_pcoa_new <- data.frame(cbind(ev1,ev2))
+df_pcoa_new$Sample <- rownames(df_pcoa_new)
+rownames(df_pcoa_new) <- NULL
+df_pcoa_new <- left_join(df_pcoa_new, metadata, by = c("Sample" = "ID"))
+perc_axis <- round(((res_pcoa$values$Relative_eig[c(1,2)])*100), digits=1)
+axis_x_title <- paste0("PCo1 (",perc_axis[1],"%)")
+axis_y_title <- paste0("PCo2 (",perc_axis[2],"%)")
+ggplot(df_pcoa_new, aes(x = ev1,
+                        y = ev2,
+                        shape = Country,
+                        size = Country,
+                        color = Colony_ID))+
+                geom_point(stat="identity") +
+                  labs(x=axis_x_title, y = axis_y_title, color = "Colony", shape = "Country") +
+                  facet_wrap(~Species, scales = "free") +
+                    make_theme(setFill = F, setCol = F, guide_nrow = 3, leg_size = 10 ) +
+                      scale_color_manual(values = my_colony_col_list3) +
+                      scale_shape_manual(values = my_shape_list) +
+                      scale_size_manual(values = my_size_list)
+      ggsave("results/figures/09-PCoA_sorensen_microbiome_w_location_colony_AC.pdf", width = 10, height = 15)
+adonis_res <- adonis2(dist_matrix_betapart$beta.sor ~ Colony_ID ,data =  df_pcoa_new, permutations = 999, by = "margin")
+adonis_OmegaSq(adonis_res)
+
+df_magOTUs_vegan_pa_all <- abundance_df_matrix_pa_all %>%
+                      filter(rowSums(.) > 0) 
+# df_pcoa <- dist_matrix_betapart$beta.sor
+dist_matrix_betapart <- beta.pair(df_magOTUs_vegan_pa_all, "sorensen")
+metadata <- df_meta_complete %>% select(ID, Colony_ID, Country, Species)
+matrix <- as.matrix(dist_matrix_betapart$beta.sor)
+dist <- as.dist(matrix)
+res_pcoa <- pcoa(dist)
+ev1 <- res_pcoa$vectors[,1]
+ev2 <- res_pcoa$vectors[,2]
+df_pcoa_new <- data.frame(cbind(ev1,ev2))
+df_pcoa_new$Sample <- rownames(df_pcoa_new)
+rownames(df_pcoa_new) <- NULL
+df_pcoa_new <- left_join(df_pcoa_new, metadata, by = c("Sample" = "ID"))
+perc_axis <- round(((res_pcoa$values$Relative_eig[c(1,2)])*100), digits=1)
+axis_x_title <- paste0("PCo1 (",perc_axis[1],"%)")
+axis_y_title <- paste0("PCo2 (",perc_axis[2],"%)")
+ggplot(df_pcoa_new, aes(x = ev1,
+                        y = ev2,
+                        shape = Country,
+                        size = Country,
+                        color = Colony_ID))+
+                geom_point(stat="identity") +
+                  labs(x=axis_x_title, y = axis_y_title, color = "Colony", shape = "Country") +
+                  # facet_wrap(~Species, scales = "free") +
+                    make_theme(setFill = F, setCol = F, guide_nrow = 4, leg_size = 10 ) +
+                      scale_color_manual(values = my_colony_col_list3) +
+                      scale_shape_manual(values = my_shape_list) +
+                      scale_size_manual(values = my_size_list) +
+                      new_scale_color() +
+                      stat_ellipse(aes(group = Species, color = Species), size = 1) +
+                      scale_color_manual(values = host_order_color_dark)
+                      ggsave("results/figures/09-PCoA_sorensen_microbiome_w_location_colony_ALL.pdf", width = 10, height = 15)
+                      
+
 
 # beta.sim dist object, dissimilarity matrix accounting for spatial turnover (replacement),
 # measured as Simpson pair-wise dissimilarity
@@ -1821,7 +2107,7 @@ dissimilarities_df <- left_join(sample_bac_div_df, sample_host_div_df) %>%
                         group_by(Hosts_compared)
                         # filter(Sample %in% c("M1.2", "C1.2", "D1.2", "F1.2", "A1.2"))
 
-mantel(sample_host_div, sample_bac_div, method="pearson", permutations=1000)
+mantel(sample_host_div, sample_bac_div, method="pearson", permutations=999)
 
 ggplot() +
   geom_violin(data=dissimilarities_df,
@@ -1835,6 +2121,8 @@ ggplot() +
              position = "identity",
              alpha = 0.5
             ) +
+  geom_smooth(data = dissimilarities_df, aes(x = dist_h,
+                 y = dist_b), color = "#000000", method = "lm", se = FALSE) +
   geom_violin(data=dissimilarities_df,
              aes(x = dist_h,
                  y = dist_b,
@@ -1959,6 +2247,37 @@ cophyloplot(mag_tree_Lacto, collapse.singles(host_tree), assoc = associations_df
 # nodelabels.cophylo(..., which=c("left","right"))
 # edgelabels.cophylo(..., which=c("left","right"))
 # tiplabels.cophylo(..., which=c("left","right"))
+
+# Is phylogenetic distance correlated with presence/absence (rel ab) correlation?
+
+library(microbiome)
+library(corrplot)
+# do this by host species
+genus <- "Lactobacillus"
+df_mat_rel <- abundance_df_matrix_rel %>%
+            as.data.frame %>%
+            rownames_to_column("sample") %>%
+            mutate(host = Vectorize(get_host_from_sample_name)(sample)) %>%
+            filter(host %in% c("Apis mellifera")) %>%
+            select(!host) %>%
+            select_if(function(x) !all(x == 0)) %>%
+            column_to_rownames("sample") %>%
+            # remove columns with only 0s
+            t %>%
+            as.data.frame %>%
+            rownames_to_column("magOTU") %>%
+            left_join(species_names_df, by = "magOTU") %>%
+            mutate(magOTU = MAG_species_name_final) %>%
+            select(!MAG_species_name_final) %>%
+            filter(!is.na(magOTU)) %>%
+            filter(grepl(genus, magOTU)) %>%
+            select_if(function(x)  !all(x == 0)) %>%
+            column_to_rownames("magOTU") %>%
+              as.matrix %>%
+              t
+cor_data <- cor(df_mat_rel)
+
+
 ```
 
 # number of reads used for profiling and rarefaction curves
@@ -2053,6 +2372,8 @@ ggplot(df_plot) +
              y_angle=0 ,y_vj=0, y_hj=0, y_size=10)
 ggsave("results/figures/09-relative_abundance_sep.pdf")
 
+system("mkdir -p results/figures/Species_Relative_abundance")
+
 p_list <- list()
 for (genus in unique(df_plot$Genus)) {
   p <- ggplot(df_plot %>% filter(Genus == genus) %>% group_by(sample) %>% mutate(rel_cov = rel_cov/sum(rel_cov))) +
@@ -2070,6 +2391,7 @@ for (genus in unique(df_plot$Genus)) {
                setFill = F, setCol = F,
                x_angle=45 ,x_vj=1, x_hj=1, x_size=5,
                y_angle=0 ,y_vj=0, y_hj=0, y_size=10)
+  ggsave(paste0("results/figures/Species_Relative_abundance/",genus, "_spec_rel_abund.pdf"), plot = p, width = 20, height = 15)
   p_list[[genus]] <- p
 }
 
@@ -2078,7 +2400,7 @@ marrangeGrob(p_list, nrow = 2, ncol = 1)
 dev.off()
 
 
-# genus <- "g__Lactobacillus"
+# genus <- "g__Dysgonomonas"
 
 
 p_list <- list()
@@ -2091,7 +2413,7 @@ for (genus in unique(df_plot$Genus)) {
     facet_grid(~factor(Host, host_order), scale = "free_x") +
     ggtitle(genus) +
     labs(y = "Sample", x = "Relative abundance", fill = "Species") +
-    scale_fill_manual(values=make_col_list(df_plot$MAG_species_name_final)) +
+    scale_fill_manual(values=make_col_list(df_plot %>% filter(Genus == genus) %>% pull(MAG_species_name_final))) +
     # scale_fill_manual(values=genusColors) +
     make_theme(theme_name=theme_few(), leg_pos="right",
                guide_nrow = 10,
@@ -2100,6 +2422,7 @@ for (genus in unique(df_plot$Genus)) {
                x_angle=45 ,x_vj=1, x_hj=1, x_size=5,
                y_angle=0 ,y_vj=0, y_hj=0, y_size=10)
   p_list[[genus]] <- p
+  ggsave(paste0("results/figures/Species_Relative_abundance/",genus, "_spec_rel_abund_dist_colors.pdf"), plot = p, width = 20, height = 15)
 }
 
 pdf("results/figures/09-relative_abundance_by_genus_dist_colors.pdf", width = 15, height = 10)
@@ -2216,3 +2539,682 @@ ggplot(instrain_genomes_info_df %>%
             ggsave("results/figures/15b-percentage_variable_sites.pdf")
 
 ```
+
+```{r}
+# abundance_df_matrix_rel
+# abundance_df_matrix_pa
+# select gilli frisch
+species_names_df <- df_plot %>% select(MAG_species_name_final, magOTU) %>% unique
+ab_df_pa_gf <- abundance_df_matrix_pa %>% as.data.frame %>%
+                select(matches("g__Gilli|g__Frisch")) %>%
+                rownames_to_column("sample") %>%
+                pivot_longer(!sample, names_to = "magOTU", values_to = "abundance") %>%
+                left_join(species_names_df, by = "magOTU") %>%
+                mutate(magOTU = MAG_species_name_final) %>%
+                select(!MAG_species_name_final) %>%
+                pivot_wider(id_cols = sample, names_from = magOTU, values_from = abundance) %>%
+                column_to_rownames("sample") %>%
+                as.matrix
+ab_df_rel_gf <- abundance_df_matrix_rel %>% as.data.frame %>%
+                select(matches("g__Gilli|g__Frisch")) %>%
+                rownames_to_column("sample") %>%
+                pivot_longer(!sample, names_to = "magOTU", values_to = "abundance") %>%
+                left_join(species_names_df, by = "magOTU") %>%
+                mutate(magOTU = MAG_species_name_final) %>%
+                select(!MAG_species_name_final) %>%
+                pivot_wider(id_cols = sample, names_from = magOTU, values_from = abundance) %>%
+                column_to_rownames("sample") %>%
+                as.matrix
+
+host_names <- rownames(ab_df_pa_gf) %>% as.data.frame() %>% mutate(Host = Vectorize(get_host_from_sample_name)(.)) %>% pull(Host)
+col_split <- as.factor(host_names)
+genus_name <- colnames(ab_df_pa_gf) %>% as.data.frame() %>% 
+                mutate(Genus = ifelse(grepl("Gilli", .), "Gilliamella", NA)) %>% 
+                mutate(Genus = ifelse(grepl("Frisch", .), "Frischella", Genus)) %>% 
+                pull(Genus)
+row_split <- as.factor(genus_name)
+heatmap_obj = Heatmap(t(ab_df_pa_gf),
+            col = c("white", "black"),
+            # top_annotation = top_annotation_obj,
+            # bottom_annotation = bottom_annotation_obj,
+            # left_annotation = anno_host_row,
+            column_names_gp = grid::gpar(fontsize = 10),
+            row_names_gp = grid::gpar(fontsize = 10),
+            heatmap_legend_param = list(title = "Number genes copies"),
+            column_split = col_split,
+            row_split = row_split,
+            column_title_rot = 90,
+            column_title_gp = grid::gpar(fontsize = 10),
+            border = T,
+            # row_dend_reorder = T,
+            cluster_columns = T,
+            cluster_rows = T
+            )
+draw(heatmap_obj, merge_legend = TRUE)
+df_pa_gf <- abundance_df_matrix_pa %>% as.data.frame %>%
+                select(matches("g__Gilli|g__Frisch")) %>%
+                rownames_to_column("sample") %>%
+                pivot_longer(!sample, names_to = "magOTU", values_to = "abundance") %>%
+                left_join(species_names_df, by = "magOTU") %>%
+                mutate(magOTU = MAG_species_name_final) %>%
+                select(!MAG_species_name_final)
+df_rel_gf <- abundance_df_matrix_rel %>% as.data.frame %>%
+                select(matches("g__Gilli|g__Frisch")) %>%
+                rownames_to_column("sample") %>%
+                pivot_longer(!sample, names_to = "magOTU", values_to = "abundance") %>%
+                left_join(species_names_df, by = "magOTU") %>%
+                mutate(magOTU = MAG_species_name_final) %>%
+                select(!MAG_species_name_final)
+
+gilli_list <- unique(df_pa_gf %>% filter(grepl("Gilli", magOTU)) %>% pull(magOTU))
+# "Gilliamella sp019469185", "Gilliamella apicola_F"  
+# "Gilliamella SGB-76_1", "Gilliamella sp019469205"
+# "Gilliamella apicola_E", "Gilliamella apicola_I"  
+# "Gilliamella apicola_J", "Gilliamella SGB-78_2"   
+# "Gilliamella sp945271295", "Gilliamella apicola_L"  
+# "Gilliamella SGB-83_1", "Gilliamella SGB-82_1"   
+# "Gilliamella SGB-79_1", "Gilliamella apicola_N"  
+# "Gilliamella apicola", "Gilliamella apicola_Q"
+# "Gilliamella apis", "Gilliamella apis_A" 
+frisch_list <- unique(df_pa_gf %>% filter(grepl("Frisch", magOTU)) %>% pull(magOTU))
+# "Frischella japonica" "Frischella SGB-92_1" "Frischella SGB-94_1" "Frischella perrara"
+
+list_p <- list()
+for (magotu in c("Gilliamella apicola_Q", "Gilliamella apicola_N", "Gilliamella apicola",
+                 "Gilliamella apis", "Gilliamella apis_A")) {
+  print(magotu)
+  p <- ggplot(df_rel_gf %>%
+      mutate(Genus = ifelse(grepl("Gilli", magOTU), "Gilliamella", NA)) %>% 
+      mutate(Genus = ifelse(grepl("Frisch", magOTU), "Frischella", Genus)) %>%
+      filter(magOTU %in% c(magotu, "Frischella perrara")) %>%
+      mutate(host = Vectorize(get_host_from_sample_name)(sample)) %>%
+      filter(host %in% c("Apis mellifera")),
+      aes(x = magOTU, y = abundance, group = sample, color = host)) +
+  geom_point() +
+  geom_line() +
+  labs(x = "", y = "Log(rel. abundance)") +
+  scale_color_manual(values = host_order_color_dark) +
+  scale_fill_manual(values = host_order_color_dark) +
+  scale_y_continuous(trans = "pseudo_log") +
+  make_theme(setCol = F, setFill = F, x_angle = 50, x_hj = 1, x_vj = 1, leg_pos = "none")
+  list_p[[magotu]] <- p
+} 
+marrangeGrob(list_p, nrow = 3, ncol = 2)
+
+list_p <- list()
+for (magotu in c("Gilliamella apicola_E", "Gilliamella apicola_F", "Gilliamella apicola_I",
+                 "Gilliamella sp019469205", "Gilliamella sp019469185")) {
+  print(magotu)
+  p <- ggplot(df_rel_gf %>%
+      mutate(Genus = ifelse(grepl("Gilli", magOTU), "Gilliamella", NA)) %>% 
+      mutate(Genus = ifelse(grepl("Frisch", magOTU), "Frischella", Genus)) %>%
+      filter(magOTU %in% c(magotu, "Frischella japonica")) %>%
+      mutate(host = Vectorize(get_host_from_sample_name)(sample)) %>%
+      filter(host %in% c("Apis cerana")),
+      aes(x = magOTU, y = abundance, group = sample, color = host)) +
+  geom_point() +
+  geom_line() +
+  labs(x = "", y = "Log(rel. abundance)") +
+  scale_color_manual(values = host_order_color_dark) +
+  scale_fill_manual(values = host_order_color_dark) +
+  scale_y_continuous(trans = "pseudo_log") +
+  make_theme(setCol = F, setFill = F, x_angle = 50, x_hj = 1, x_vj = 1, leg_pos = "none")
+  list_p[[magotu]] <- p
+} 
+marrangeGrob(list_p, nrow = 3, ncol = 2)
+
+list_p <- list()
+for (magotu in c("Gilliamella apicola_E", "Gilliamella apicola_F", "Gilliamella apicola_I", "Gilliamella apicola_J",
+                 "Gilliamella  SGB-79_1", "Gilliamella  SGB-82_1", "Gilliamella  SGB-78_1", "Gilliamella  SGB-83_1", "Gilliamella  SGB-76_1",
+                 "Gilliamella apicola_L", "Gilliamella sp945271295",
+                 "Gilliamella sp019469205", "Gilliamella sp019469185")) {
+  print(magotu)
+  p <- ggplot(df_rel_gf %>%
+      mutate(Genus = ifelse(grepl("Gilli", magOTU), "Gilliamella", NA)) %>% 
+      mutate(Genus = ifelse(grepl("Frisch", magOTU), "Frischella", Genus)) %>%
+      filter(magOTU %in% c(magotu, "Frischella SGB-92_1")) %>%
+      mutate(host = Vectorize(get_host_from_sample_name)(sample)) %>%
+      filter(host %in% c("Apis dorsata")),
+      aes(x = magOTU, y = abundance, group = sample, color = host)) +
+  geom_point() +
+  geom_line() +
+  labs(x = "", y = "Log(rel. abundance)") +
+  scale_color_manual(values = host_order_color_dark) +
+  scale_fill_manual(values = host_order_color_dark) +
+  scale_y_continuous(trans = "pseudo_log") +
+  make_theme(setCol = F, setFill = F, x_angle = 50, x_hj = 1, x_vj = 1, leg_pos = "none")
+  list_p[[magotu]] <- p
+} 
+marrangeGrob(list_p, nrow = 4, ncol = 4)
+
+list_p <- list()
+for (magotu in c("Gilliamella apicola_E", "Gilliamella apicola_F", "Gilliamella apicola_I", "Gilliamella apicola_J",
+                 "Gilliamella  SGB-79_1", "Gilliamella  SGB-82_1", "Gilliamella  SGB-78_1", "Gilliamella  SGB-83_1", "Gilliamella  SGB-76_1",
+                 "Gilliamella apicola_L", "Gilliamella sp945271295",
+                 "Gilliamella sp019469205", "Gilliamella sp019469185")) {
+  print(magotu)
+  p <- ggplot(df_rel_gf %>%
+      mutate(Genus = ifelse(grepl("Gilli", magOTU), "Gilliamella", NA)) %>% 
+      mutate(Genus = ifelse(grepl("Frisch", magOTU), "Frischella", Genus)) %>%
+      filter(magOTU %in% c(magotu, "Frischella SGB-94_1")) %>%
+      mutate(host = Vectorize(get_host_from_sample_name)(sample)) %>%
+      filter(host %in% c("Apis dorsata"))) +
+  # geom_boxplot(aes(x = magOTU, y = abundance, fill = host), width = 0.5, alpha = 0.25) +
+  geom_point(aes(x = magOTU, y = abundance, group = sample, color = host)) +
+  geom_line(aes(x = magOTU, y = abundance, group = sample, color = host)) +
+  labs(x = "", y = "Log(rel. abundance)") +
+  scale_color_manual(values = host_order_color_dark) +
+  scale_fill_manual(values = host_order_color_dark) +
+  scale_y_continuous(trans = "pseudo_log") +
+  make_theme(setCol = F, setFill = F, x_angle = 50, x_hj = 1, x_vj = 1, leg_pos = "none")
+  list_p[[magotu]] <- p
+} 
+marrangeGrob(list_p, nrow = 4, ncol = 4)
+
+
+ggplot(df_rel_gf %>%
+      mutate(Genus = ifelse(grepl("Gilli", magOTU), "Gilliamella", NA)) %>% 
+      mutate(Genus = ifelse(grepl("Frisch", magOTU), "Frischella", Genus)) %>%
+      filter(magOTU %in% c("Frischella SGB-94_1", "Frischella SGB-92_1")) %>%
+      mutate(host = Vectorize(get_host_from_sample_name)(sample)) %>%
+      filter(host %in% c("Apis dorsata"))) +
+  geom_boxplot(aes(x = magOTU, y = abundance, fill = host), width = 0.1, alpha = 0.25) +
+  geom_point(aes(x = magOTU, y = abundance, group = sample, color = host)) +
+  geom_line(aes(x = magOTU, y = abundance, group = sample, color = host)) +
+  labs(x = "", y = "Log (rel. abundance)") +
+  scale_color_manual(values = host_order_color_dark) +
+  scale_fill_manual(values = host_order_color_dark) +
+  scale_y_continuous(trans = "pseudo_log") +
+  make_theme(setFill = F, setCol = F, x_angle = 50, x_hj = 1, x_vj = 1, leg_pos = "none")
+
+
+########################################################################################################################
+
+library(microbiome)
+library(corrplot)
+# do this by host species
+df_mat_rel <- abundance_df_matrix_rel %>%
+            as.data.frame %>%
+            rownames_to_column("sample") %>%
+            mutate(host = Vectorize(get_host_from_sample_name)(sample)) %>%
+            filter(host %in% c("Apis mellifera")) %>%
+            select(!host) %>%
+            select_if(function(x) !all(x == 0)) %>%
+            column_to_rownames("sample") %>%
+            # remove columns with only 0s
+            t %>%
+            as.data.frame %>%
+            rownames_to_column("magOTU") %>%
+            left_join(species_names_df, by = "magOTU") %>%
+            mutate(magOTU = MAG_species_name_final) %>%
+            select(!MAG_species_name_final) %>%
+            filter(!is.na(magOTU)) %>%
+            filter(grepl("Bifido", magOTU)) %>%
+            select_if(function(x)  !all(x == 0)) %>%
+            column_to_rownames("magOTU") %>%
+              as.matrix %>%
+              t
+cor_data <- cor(df_mat_rel)
+corrplot(cor_data, method = 'color', tl.srt = 45, tl.col = "#000000", tl.cex = 0.75, order = "AOE")
+
+df_mat_rel <- abundance_df_matrix_rel %>%
+            as.data.frame %>%
+            rownames_to_column("sample") %>%
+            mutate(host = Vectorize(get_host_from_sample_name)(sample)) %>%
+            filter(host %in% c("Apis mellifera")) %>%
+            select(!host) %>%
+            select_if(function(x) !all(x == 0)) %>%
+            column_to_rownames("sample") %>%
+            # remove columns with only 0s
+            t %>%
+            as.data.frame %>%
+            rownames_to_column("magOTU") %>%
+            left_join(species_names_df, by = "magOTU") %>%
+            mutate(magOTU = MAG_species_name_final) %>%
+            select(!MAG_species_name_final) %>%
+            filter(!is.na(magOTU)) %>%
+            filter(grepl("Lacto", magOTU)) %>%
+            select_if(function(x)  !all(x == 0)) %>%
+            column_to_rownames("magOTU") %>%
+              as.matrix %>%
+              t
+cor_data <- cor(df_mat_rel)
+corrplot(cor_data, method = 'color', tl.srt = 45, tl.col = "#000000", tl.cex = 0.75, order = "AOE", type = "lower")
+
+df_mat_rel <- abundance_df_matrix_rel %>%
+            as.data.frame %>%
+            rownames_to_column("sample") %>%
+            mutate(host = Vectorize(get_host_from_sample_name)(sample)) %>%
+            filter(host %in% c("Apis mellifera")) %>%
+            select(!host) %>%
+            select_if(function(x) !all(x == 0)) %>%
+            column_to_rownames("sample") %>%
+            # remove columns with only 0s
+            t %>%
+            as.data.frame %>%
+            rownames_to_column("magOTU") %>%
+            left_join(species_names_df, by = "magOTU") %>%
+            mutate(magOTU = MAG_species_name_final) %>%
+            select(!MAG_species_name_final) %>%
+            filter(!is.na(magOTU)) %>%
+            filter(grepl("Bombi", magOTU)) %>%
+            select_if(function(x)  !all(x == 0)) %>%
+            column_to_rownames("magOTU") %>%
+              as.matrix %>%
+              t
+cor_data <- cor(df_mat_rel)
+corrplot(cor_data, method = 'color', tl.srt = 45, tl.col = "#000000", tl.cex = 0.75, order = "AOE", type = "lower")
+
+df_mat_rel <- abundance_df_matrix_rel %>%
+            as.data.frame %>%
+            rownames_to_column("sample") %>%
+            mutate(host = Vectorize(get_host_from_sample_name)(sample)) %>%
+            filter(host %in% c("Apis mellifera")) %>%
+            select(!host) %>%
+            select_if(function(x) !all(x == 0)) %>%
+            column_to_rownames("sample") %>%
+            # remove columns with only 0s
+            t %>%
+            as.data.frame %>%
+            rownames_to_column("magOTU") %>%
+            left_join(species_names_df, by = "magOTU") %>%
+            mutate(magOTU = MAG_species_name_final) %>%
+            select(!MAG_species_name_final) %>%
+            filter(!is.na(magOTU)) %>%
+            filter(grepl("Gilli", magOTU)) %>%
+            select_if(function(x)  !all(x == 0)) %>%
+            column_to_rownames("magOTU") %>%
+              as.matrix %>%
+              t
+cor_data <- cor(df_mat_rel)
+corrplot(cor_data, method = 'color', tl.srt = 45, tl.col = "#000000", tl.cex = 0.75, order = "AOE", type = "lower")
+
+df_mat_rel <- abundance_df_matrix_rel %>%
+            as.data.frame %>%
+            rownames_to_column("sample") %>%
+            mutate(host = Vectorize(get_host_from_sample_name)(sample)) %>%
+            filter(host %in% c("Apis mellifera")) %>%
+            select(!host) %>%
+            select_if(function(x) !all(x == 0)) %>%
+            column_to_rownames("sample") %>%
+            # remove columns with only 0s
+            t %>%
+            as.data.frame %>%
+            rownames_to_column("magOTU") %>%
+            left_join(species_names_df, by = "magOTU") %>%
+            mutate(magOTU = MAG_species_name_final) %>%
+            select(!MAG_species_name_final) %>%
+            filter(!is.na(magOTU)) %>%
+            filter(grepl("Gilli", magOTU)) %>%
+            select_if(function(x)  !all(x == 0)) %>%
+            column_to_rownames("magOTU") %>%
+              as.matrix %>%
+              t
+cor_data <- cor(df_mat_rel)
+corrplot(cor_data, method = 'color', tl.srt = 45, tl.col = "#000000", tl.cex = 0.75, order = "AOE", type = "lower")
+
+df_mat_rel <- abundance_df_matrix_rel %>%
+            as.data.frame %>%
+            rownames_to_column("sample") %>%
+            mutate(host = Vectorize(get_host_from_sample_name)(sample)) %>%
+            filter(host %in% c("Apis mellifera")) %>%
+            select(!host) %>%
+            select_if(function(x) !all(x == 0)) %>%
+            column_to_rownames("sample") %>%
+            # remove columns with only 0s
+            t %>%
+            as.data.frame %>%
+            rownames_to_column("magOTU") %>%
+            left_join(species_names_df, by = "magOTU") %>%
+            mutate(magOTU = MAG_species_name_final) %>%
+            select(!MAG_species_name_final) %>%
+            filter(!is.na(magOTU)) %>%
+            filter(grepl("Snod", magOTU)) %>%
+            select_if(function(x)  !all(x == 0)) %>%
+            column_to_rownames("magOTU") %>%
+              as.matrix %>%
+              t
+cor_data <- cor(df_mat_rel)
+corrplot(cor_data, method = 'color', tl.srt = 45, tl.col = "#000000", tl.cex = 0.75, order = "AOE", type = "lower")
+
+
+########################################################################################################################
+
+df_mat_rel <- abundance_df_matrix_rel %>%
+            as.data.frame %>%
+            rownames_to_column("sample") %>%
+            mutate(host = Vectorize(get_host_from_sample_name)(sample)) %>%
+            filter(host %in% c("Apis cerana")) %>%
+            select(!host) %>%
+            select_if(function(x) !all(x == 0)) %>%
+            column_to_rownames("sample") %>%
+            # remove columns with only 0s
+            t %>%
+            as.data.frame %>%
+            rownames_to_column("magOTU") %>%
+            left_join(species_names_df, by = "magOTU") %>%
+            mutate(magOTU = MAG_species_name_final) %>%
+            select(!MAG_species_name_final) %>%
+            filter(!is.na(magOTU)) %>%
+            filter(grepl("Bifido", magOTU)) %>%
+            select_if(function(x)  !all(x == 0)) %>%
+            column_to_rownames("magOTU") %>%
+              as.matrix %>%
+              t
+cor_data <- cor(df_mat_rel)
+corrplot(cor_data, method = 'color', tl.srt = 45, tl.col = "#000000", tl.cex = 0.75, order = "AOE")
+
+df_mat_rel <- abundance_df_matrix_rel %>%
+            as.data.frame %>%
+            rownames_to_column("sample") %>%
+            mutate(host = Vectorize(get_host_from_sample_name)(sample)) %>%
+            filter(host %in% c("Apis cerana")) %>%
+            select(!host) %>%
+            select_if(function(x) !all(x == 0)) %>%
+            column_to_rownames("sample") %>%
+            # remove columns with only 0s
+            t %>%
+            as.data.frame %>%
+            rownames_to_column("magOTU") %>%
+            left_join(species_names_df, by = "magOTU") %>%
+            mutate(magOTU = MAG_species_name_final) %>%
+            select(!MAG_species_name_final) %>%
+            filter(!is.na(magOTU)) %>%
+            filter(grepl("Lacto", magOTU)) %>%
+            select_if(function(x)  !all(x == 0)) %>%
+            column_to_rownames("magOTU") %>%
+              as.matrix %>%
+              t
+cor_data <- cor(df_mat_rel)
+corrplot(cor_data, method = 'color', tl.srt = 45, tl.col = "#000000", tl.cex = 0.75, order = "AOE", type = "lower")
+
+df_mat_rel <- abundance_df_matrix_rel %>%
+            as.data.frame %>%
+            rownames_to_column("sample") %>%
+            mutate(host = Vectorize(get_host_from_sample_name)(sample)) %>%
+            filter(host %in% c("Apis cerana")) %>%
+            select(!host) %>%
+            select_if(function(x) !all(x == 0)) %>%
+            column_to_rownames("sample") %>%
+            # remove columns with only 0s
+            t %>%
+            as.data.frame %>%
+            rownames_to_column("magOTU") %>%
+            left_join(species_names_df, by = "magOTU") %>%
+            mutate(magOTU = MAG_species_name_final) %>%
+            select(!MAG_species_name_final) %>%
+            filter(!is.na(magOTU)) %>%
+            filter(grepl("Bombi", magOTU)) %>%
+            select_if(function(x)  !all(x == 0)) %>%
+            column_to_rownames("magOTU") %>%
+              as.matrix %>%
+              t
+cor_data <- cor(df_mat_rel)
+corrplot(cor_data, method = 'color', tl.srt = 45, tl.col = "#000000", tl.cex = 0.75, order = "AOE", type = "lower")
+
+df_mat_rel <- abundance_df_matrix_rel %>%
+            as.data.frame %>%
+            rownames_to_column("sample") %>%
+            mutate(host = Vectorize(get_host_from_sample_name)(sample)) %>%
+            filter(host %in% c("Apis cerana")) %>%
+            select(!host) %>%
+            select_if(function(x) !all(x == 0)) %>%
+            column_to_rownames("sample") %>%
+            # remove columns with only 0s
+            t %>%
+            as.data.frame %>%
+            rownames_to_column("magOTU") %>%
+            left_join(species_names_df, by = "magOTU") %>%
+            mutate(magOTU = MAG_species_name_final) %>%
+            select(!MAG_species_name_final) %>%
+            filter(!is.na(magOTU)) %>%
+            filter(grepl("Gilli", magOTU)) %>%
+            select_if(function(x)  !all(x == 0)) %>%
+            column_to_rownames("magOTU") %>%
+              as.matrix %>%
+              t
+cor_data <- cor(df_mat_rel)
+corrplot(cor_data, method = 'color', tl.srt = 45, tl.col = "#000000", tl.cex = 0.75, order = "AOE", type = "lower")
+
+df_mat_rel <- abundance_df_matrix_rel %>%
+            as.data.frame %>%
+            rownames_to_column("sample") %>%
+            mutate(host = Vectorize(get_host_from_sample_name)(sample)) %>%
+            filter(host %in% c("Apis cerana")) %>%
+            select(!host) %>%
+            select_if(function(x) !all(x == 0)) %>%
+            column_to_rownames("sample") %>%
+            # remove columns with only 0s
+            t %>%
+            as.data.frame %>%
+            rownames_to_column("magOTU") %>%
+            left_join(species_names_df, by = "magOTU") %>%
+            mutate(magOTU = MAG_species_name_final) %>%
+            select(!MAG_species_name_final) %>%
+            filter(!is.na(magOTU)) %>%
+            filter(grepl("Gilli", magOTU)) %>%
+            select_if(function(x)  !all(x == 0)) %>%
+            column_to_rownames("magOTU") %>%
+              as.matrix %>%
+              t
+cor_data <- cor(df_mat_rel)
+corrplot(cor_data, method = 'color', tl.srt = 45, tl.col = "#000000", tl.cex = 0.75, order = "AOE", type = "lower")
+
+df_mat_rel <- abundance_df_matrix_rel %>%
+            as.data.frame %>%
+            rownames_to_column("sample") %>%
+            mutate(host = Vectorize(get_host_from_sample_name)(sample)) %>%
+            filter(host %in% c("Apis cerana")) %>%
+            select(!host) %>%
+            select_if(function(x) !all(x == 0)) %>%
+            column_to_rownames("sample") %>%
+            # remove columns with only 0s
+            t %>%
+            as.data.frame %>%
+            rownames_to_column("magOTU") %>%
+            left_join(species_names_df, by = "magOTU") %>%
+            mutate(magOTU = MAG_species_name_final) %>%
+            select(!MAG_species_name_final) %>%
+            filter(!is.na(magOTU)) %>%
+            filter(grepl("Snod", magOTU)) %>%
+            select_if(function(x)  !all(x == 0)) %>%
+            column_to_rownames("magOTU") %>%
+              as.matrix %>%
+              t
+cor_data <- cor(df_mat_rel)
+corrplot(cor_data, method = 'color', tl.srt = 45, tl.col = "#000000", tl.cex = 0.75, order = "AOE", type = "lower")
+
+
+########################################################################################################################
+
+df_mat_rel <- abundance_df_matrix_rel %>%
+            as.data.frame %>%
+            rownames_to_column("sample") %>%
+            mutate(host = Vectorize(get_host_from_sample_name)(sample)) %>%
+            filter(host %in% c("Apis dorsata")) %>%
+            select(!host) %>%
+            select_if(function(x) !all(x == 0)) %>%
+            column_to_rownames("sample") %>%
+            # remove columns with only 0s
+            t %>%
+            as.data.frame %>%
+            rownames_to_column("magOTU") %>%
+            left_join(species_names_df, by = "magOTU") %>%
+            mutate(magOTU = MAG_species_name_final) %>%
+            select(!MAG_species_name_final) %>%
+            filter(!is.na(magOTU)) %>%
+            filter(grepl("Bifido", magOTU)) %>%
+            select_if(function(x)  !all(x == 0)) %>%
+            column_to_rownames("magOTU") %>%
+              as.matrix %>%
+              t
+cor_data <- cor(df_mat_rel)
+corrplot(cor_data, method = 'color', tl.srt = 45, tl.col = "#000000", tl.cex = 0.75, order = "AOE")
+
+df_mat_rel <- abundance_df_matrix_rel %>%
+            as.data.frame %>%
+            rownames_to_column("sample") %>%
+            mutate(host = Vectorize(get_host_from_sample_name)(sample)) %>%
+            filter(host %in% c("Apis dorsata")) %>%
+            select(!host) %>%
+            select_if(function(x) !all(x == 0)) %>%
+            column_to_rownames("sample") %>%
+            # remove columns with only 0s
+            t %>%
+            as.data.frame %>%
+            rownames_to_column("magOTU") %>%
+            left_join(species_names_df, by = "magOTU") %>%
+            mutate(magOTU = MAG_species_name_final) %>%
+            select(!MAG_species_name_final) %>%
+            filter(!is.na(magOTU)) %>%
+            filter(grepl("Lacto", magOTU)) %>%
+            select_if(function(x)  !all(x == 0)) %>%
+            column_to_rownames("magOTU") %>%
+              as.matrix %>%
+              t
+cor_data <- cor(df_mat_rel)
+corrplot(cor_data, method = 'color', tl.srt = 45, tl.col = "#000000", tl.cex = 0.75, order = "AOE", type = "lower")
+
+df_mat_rel <- abundance_df_matrix_rel %>%
+            as.data.frame %>%
+            rownames_to_column("sample") %>%
+            mutate(host = Vectorize(get_host_from_sample_name)(sample)) %>%
+            filter(host %in% c("Apis dorsata")) %>%
+            select(!host) %>%
+            select_if(function(x) !all(x == 0)) %>%
+            column_to_rownames("sample") %>%
+            # remove columns with only 0s
+            t %>%
+            as.data.frame %>%
+            rownames_to_column("magOTU") %>%
+            left_join(species_names_df, by = "magOTU") %>%
+            mutate(magOTU = MAG_species_name_final) %>%
+            select(!MAG_species_name_final) %>%
+            filter(!is.na(magOTU)) %>%
+            filter(grepl("Bombi", magOTU)) %>%
+            select_if(function(x)  !all(x == 0)) %>%
+            column_to_rownames("magOTU") %>%
+              as.matrix %>%
+              t
+cor_data <- cor(df_mat_rel)
+corrplot(cor_data, method = 'color', tl.srt = 45, tl.col = "#000000", tl.cex = 0.75, order = "AOE", type = "lower")
+
+df_mat_rel <- abundance_df_matrix_rel %>%
+            as.data.frame %>%
+            rownames_to_column("sample") %>%
+            mutate(host = Vectorize(get_host_from_sample_name)(sample)) %>%
+            filter(host %in% c("Apis dorsata")) %>%
+            select(!host) %>%
+            select_if(function(x) !all(x == 0)) %>%
+            column_to_rownames("sample") %>%
+            # remove columns with only 0s
+            t %>%
+            as.data.frame %>%
+            rownames_to_column("magOTU") %>%
+            left_join(species_names_df, by = "magOTU") %>%
+            mutate(magOTU = MAG_species_name_final) %>%
+            select(!MAG_species_name_final) %>%
+            filter(!is.na(magOTU)) %>%
+            filter(grepl("Gilli", magOTU)) %>%
+            select_if(function(x)  !all(x == 0)) %>%
+            column_to_rownames("magOTU") %>%
+              as.matrix %>%
+              t
+cor_data <- cor(df_mat_rel)
+corrplot(cor_data, method = 'color', tl.srt = 45, tl.col = "#000000", tl.cex = 0.75, order = "AOE", type = "lower")
+
+df_mat_rel <- abundance_df_matrix_rel %>%
+            as.data.frame %>%
+            rownames_to_column("sample") %>%
+            mutate(host = Vectorize(get_host_from_sample_name)(sample)) %>%
+            filter(host %in% c("Apis dorsata")) %>%
+            select(!host) %>%
+            select_if(function(x) !all(x == 0)) %>%
+            column_to_rownames("sample") %>%
+            # remove columns with only 0s
+            t %>%
+            as.data.frame %>%
+            rownames_to_column("magOTU") %>%
+            left_join(species_names_df, by = "magOTU") %>%
+            mutate(magOTU = MAG_species_name_final) %>%
+            select(!MAG_species_name_final) %>%
+            filter(!is.na(magOTU)) %>%
+            filter(grepl("Gilli|Frisch", magOTU)) %>%
+            select_if(function(x)  !all(x == 0)) %>%
+            column_to_rownames("magOTU") %>%
+              as.matrix %>%
+              t
+cor_data <- cor(df_mat_rel)
+corrplot(cor_data, method = 'color', tl.srt = 45, tl.col = "#000000", tl.cex = 0.75, order = "AOE", type = "lower")
+
+df_mat_rel <- abundance_df_matrix_rel %>%
+            as.data.frame %>%
+            rownames_to_column("sample") %>%
+            mutate(host = Vectorize(get_host_from_sample_name)(sample)) %>%
+            filter(host %in% c("Apis dorsata")) %>%
+            select(!host) %>%
+            select_if(function(x) !all(x == 0)) %>%
+            column_to_rownames("sample") %>%
+            # remove columns with only 0s
+            t %>%
+            as.data.frame %>%
+            rownames_to_column("magOTU") %>%
+            left_join(species_names_df, by = "magOTU") %>%
+            mutate(magOTU = MAG_species_name_final) %>%
+            select(!MAG_species_name_final) %>%
+            filter(!is.na(magOTU)) %>%
+            filter(grepl("Snod", magOTU)) %>%
+            select_if(function(x)  !all(x == 0)) %>%
+            column_to_rownames("magOTU") %>%
+              as.matrix %>%
+              t
+cor_data <- cor(df_mat_rel)
+corrplot(cor_data, method = 'color', tl.srt = 45, tl.col = "#000000", tl.cex = 0.75, order = "AOE", type = "lower")
+
+df_mat_rel <- abundance_df_matrix_rel %>%
+            as.data.frame %>%
+            rownames_to_column("sample") %>%
+            mutate(host = Vectorize(get_host_from_sample_name)(sample)) %>%
+            filter(host %in% c("Apis dorsata")) %>%
+            select(!host) %>%
+            select_if(function(x) !all(x == 0)) %>%
+            column_to_rownames("sample") %>%
+            # remove columns with only 0s
+            t %>%
+            as.data.frame %>%
+            rownames_to_column("magOTU") %>%
+            left_join(species_names_df, by = "magOTU") %>%
+            mutate(magOTU = MAG_species_name_final) %>%
+            select(!MAG_species_name_final) %>%
+            filter(!is.na(magOTU)) %>%
+            filter(grepl("Dysg", magOTU)) %>%
+            select_if(function(x)  !all(x == 0)) %>%
+            column_to_rownames("magOTU") %>%
+              as.matrix %>%
+              t
+cor_data <- cor(df_mat_rel)
+corrplot(cor_data, method = 'color', tl.srt = 45, tl.col = "#000000", tl.cex = 0.75, order = "AOE", type = "lower")
+
+df_mat_rel <- abundance_df_matrix_rel %>%
+            as.data.frame %>%
+            rownames_to_column("sample") %>%
+            mutate(host = Vectorize(get_host_from_sample_name)(sample)) %>%
+            filter(host %in% c("Apis dorsata")) %>%
+            select(!host) %>%
+            select_if(function(x) !all(x == 0)) %>%
+            column_to_rownames("sample") %>%
+            # remove columns with only 0s
+            t %>%
+            as.data.frame %>%
+            rownames_to_column("magOTU") %>%
+            left_join(species_names_df, by = "magOTU") %>%l
+            mutate(magOTU = MAG_species_name_final) %>%
+            select(!MAG_species_name_final) %>%
+            filter(!is.na(magOTU)) %>%
+            filter(grepl("Frisch", magOTU)) %>%
+            select_if(function(x)  !all(x == 0)) %>%
+            column_to_rownames("magOTU") %>%
+              as.matrix %>%
+              t
+cor_data <- cor(df_mat_rel)
+corrplot(cor_data, method = 'color', tl.srt = 45, tl.col = "#000000", tl.cex = 0.75, order = "AOE", type = "lower")

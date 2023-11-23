@@ -17,3 +17,492 @@ output:
 # Initialization
 
 To intialize complete all of or relevant sections of `scripts/visualization/Load_data.R`.
+
+I aim to make a PCoA plot with distance based on popANI on the all
+extend to ...core and accessory genes...
+
+The instrain compare outputs are not what is expected from the code.
+Basically, the run possibly started up from an earlier checkpoint and (or for some other reason) ended up ignoring
+the --genome parameter so, all the directories under all the species names have the same info and that is the info for all the
+genomes (redundant).
+At the moment I do not do anything to change anything about the output - code is up to date to avoid this error. In the future this is important to remember. For parsing for example...
+
+
+```{r}
+clean_bam_name <- function(name){
+  return(strsplit(name, split = "_bowtie.bam")[[1]][1])
+}
+# view(handmade_species_names)
+# all the results (species name) are the same!!!
+
+df_comp <- read.csv("results/10_instrain/03_instrain_compare/Bombilactobacillus_mellis/output/Bombilactobacillus_mellis_genomeWide_compare.tsv", sep = "\t") %>%
+              filter(percent_compared > 0.25) %>%
+              left_join(handmade_species_names %>% select(RepMAG, MAG_species_name_final, MAG_species_name_final_nospace, cluster_name_instrain), by = c("genome" = "RepMAG")) %>%
+              mutate(name1 = Vectorize(clean_bam_name)(name1)) %>%
+              mutate(name2 = Vectorize(clean_bam_name)(name2))
+
+# spec <- "Bombilactobacillus mellis"
+# sort(handmade_species_names$MAG_species_name_final)
+for (spec in c(# "Acinetobacter pollinis",
+                # "Apibacter adventoris",
+                # "Apibacter sp002964915",
+                # "Apilactobacillus apinorum",
+                # "Apilactobacillus bombintestini",
+                # "Apilactobacillus SGB-72_1",
+                # "Apilactobacillus waqarii",
+                # "Apilactobacillus zhangqiuensis",
+                # "Bartonella_A apis",
+                # "Bartonella_A SGB-62_2",
+                # "Bartonella_A SGB-65_1",
+                # "Bartonella_A SGB-66_1",
+                # "Bartonella_A SGB-66_2",
+                # "Bartonella_A SGB-67_0",
+                # "Bartonella_A SGB-68_0",
+                # "Bartonella_A SGB-69_1",
+                # "Bartonella_A SGB-70_1",
+                # "Bartonella_A sp016100455",
+                # "Bartonella_A sp016102285",
+                # "Bartonella_A sp945277285",
+                # "Bartonella_A sp945285915",
+                # "Bifidobacterium apousia",
+                # "Bifidobacterium asteroides_A",
+                #   "Bifidobacterium asteroides_I",
+                #   "Bifidobacterium choladohabitans",
+                # "Bifidobacterium indicum",
+                # "Bifidobacterium mizhiense",
+                # "Bifidobacterium polysaccharolyticum",
+                # "Bifidobacterium SGB-4_1",
+                "Bifidobacterium SGB-4_2",
+                "Bifidobacterium SGB-5_1",
+                "Bifidobacterium SGB-5_2",
+                "Bifidobacterium SGB-6_3",
+                "Bifidobacterium SGB-6_4",
+                "Bifidobacterium SGB-6_8",
+                "Bifidobacterium SGB-6_9",
+                "Bifidobacterium SGB-61_0",
+                  "Bifidobacterium SGB-7_1",
+                "Bifidobacterium SGB-8_2",
+                "Bifidobacterium sp000499285",
+                "Bifidobacterium sp945269915",
+                "Bombella SGB-9_1",
+                "Bombella SGB-9_2",
+                "Bombilactobacillus mellifer",
+                "Bombilactobacillus mellifer-22_1",
+                  "Bombilactobacillus mellifer-22_2",
+                  "Bombilactobacillus mellis",
+                "Bombilactobacillus mellis-36_2",
+                  "Bombilactobacillus SGB-22_3",
+                "Bombilactobacillus SGB-35_1",
+                "Bombilactobacillus SGB-37_0",
+                "CALYQJ01 SGB-38_1",
+                  "CALYQJ01 sp945273735",
+                "CALYQJ01 sp945285405",
+                "CALYQQ01 SGB-104_1",
+                "CALYQQ01 SGB-105_1",
+                "CALYQQ01 SGB-105_2",
+                "Commensalibacter SGB-12_0",
+                "Commensalibacter SGB-13_0",
+                "Commensalibacter sp003202795",
+                  "Commensalibacter sp945266285",
+                  "Corynebacterium provencense",
+                "Corynebacterium sp022712275",
+                "Dysgonomonas SGB-15_1",
+                  "Dysgonomonas SGB-17_1",
+                  "Dysgonomonas SGB-17_2",
+                  "Dysgonomonas SGB-18_1",
+                  "Dysgonomonas SGB-20_1",
+                  "Dysgonomonas sp945273835",
+                  "Dysgonomonas sp945292135",
+                  "Enterobacter bugandensis",
+                  "Enterobacter hormaechei_A",
+                "Enterobacter roggenkampii",
+                "Enterobacter vonholyi",
+                  "Entomomonas SGB-51_0",
+                "Entomomonas SGB-52_0",
+                "Entomomonas sp945283395",
+                "Escherichia coli",
+                "Floricoccus SGB-41_0",
+                "Frischella japonica",
+                  "Frischella perrara",
+                "Frischella SGB-92_1",
+                  "Frischella SGB-94_1",
+                  "Fructobacillus pseudoficulneus",
+                  "Gilliamella apicola",
+                  "Gilliamella apicola_E",
+                  "Gilliamella apicola_F",
+                  "Gilliamella apicola_I",
+                  "Gilliamella apicola_J",
+                  "Gilliamella apicola_K",
+                  "Gilliamella apicola_L",
+                  "Gilliamella apicola_N",
+                  "Gilliamella apicola_Q",
+                  "Gilliamella apis",
+                "Gilliamella apis_A",
+                "Gilliamella SGB-76_1",
+                "Gilliamella SGB-78_2",
+                "Gilliamella SGB-79_1",
+                "Gilliamella SGB-82_1",
+                "Gilliamella SGB-83_1",
+                "Gilliamella SGB-86_0",
+                "Gilliamella sp019469185",
+                "Gilliamella sp019469205",
+                "Gilliamella sp945271295",
+                "Hafnia paralvei",
+                "JAATFO01 SGB-106_0",
+                "KAACC-21507 SGB-14_0",
+                "Klebsiella pneumoniae",
+                "Kosakonia oryzae",
+                "Lactobacillus apis",
+                "Lactobacillus helsingborgensis",
+                "Lactobacillus huangpiensis",
+                "Lactobacillus kimbladii_A",
+                "Lactobacillus laiwuensis",
+                "Lactobacillus melliventris",
+                "Lactobacillus panisapium",
+                "Lactobacillus SGB-23_1",
+                "Lactobacillus SGB-28_1",
+                "Lactobacillus SGB-29_1",
+                "Lactobacillus SGB-29_2",
+                "Lactobacillus SGB-30_0",
+                "Lactobacillus SGB-31_1",
+                "Lactobacillus SGB-32_1",
+                "Lactobacillus SGB-33_1",
+                "Lactobacillus SGB-34_1",
+                "Lactobacillus sp016100975",
+                "Lactobacillus sp945290125",
+                "Melissococcus plutonius",
+                "Pantoea dispersa",
+                "Pantoea vagans",
+                "Parolsenella SGB-60_1",
+                "Pectinatus SGB-54_1",
+                "Pluralibacter SGB-98_1",
+                "Q3-R57-64 SGB-48_1",
+                "Rosenbergiella epipactidis",
+                "Saezia SGB-47_1",
+                "Saezia SGB-49_1",
+                "Snodgrassella alvi",
+                "Snodgrassella alvi_E",
+                "Snodgrassella alvi_G",
+                "Snodgrassella SGB-56_2",
+                "Snodgrassella SGB-58_1",
+                "Snodgrassella sp945267035",
+                "Spiroplasma melliferum",
+                "WRHT01 SGB-1_1",
+                "Zymobacter SGB-110_0",
+                "Zymobacter SGB-42_0",
+                "Zymobacter SGB-43_0",
+                "Zymobacter SGB-44_0"
+                )
+            ) {
+  spec_formatted <- str_replace(spec, "\ ", "\\\\ ")
+  # sort(unique(df_comp$MAG_species_name_final))
+  df_com_spec <- df_comp %>%
+                  filter(MAG_species_name_final == spec)
+  if (dim(df_com_spec)[[1]] <= 3) {
+    next
+  }
+  write.csv(df_com_spec, paste0("results/figures/instrain_comp_mat/", spec, "_instrain_comp_info.csv"), row.names = F, quote = F)
+  system(paste0("source ~/.bashrc && conda activate 20230313_scripts_env && python3 scripts/visualization/parse_popani_mat.py -i results/figures/instrain_comp_mat/", spec_formatted, "_instrain_comp_info.csv"))
+  df_mat <- read.csv(paste0("results/figures/instrain_comp_mat/", spec, "_instrain_comp_info_parsed.csv"), stringsAsFactors = F, check.names= F)
+  colnames(df_mat) <- c("row", colnames(df_mat)[-1])
+  df_mat <-  df_mat %>%
+              column_to_rownames("row")
+  spec_mat <- df_mat %>% 
+              # filter(row.names(.) %in% samples_IN_MY) %>%
+              filter(row.names(.) %in% samples) %>%
+                as.matrix
+  spec_mat <- spec_mat[, rownames(spec_mat)]
+  host_names <- rownames(spec_mat) %>% as.data.frame() %>% mutate(host = Vectorize(get_host_from_sample_name)(.)) %>% pull(host)
+  colony_names <- rownames(spec_mat) %>% as.data.frame() %>% left_join(df_meta_complete %>% select(ID, Colony_ID), by = c("." = "ID")) %>% pull(Colony_ID)
+  get_colony_num <- function(x) {
+    if (grepl("AcCh", x)) {
+      return("AcCh")
+    }
+    if (grepl("AcKn", x)) {
+      return("AcCh")
+    }
+    if (grepl("AmAi", x)) {
+      return("AmAi")
+    }
+    if (grepl("AmIu", x)) {
+      return("AmIu")
+    }
+    if (grepl("DrY1", x)) {
+      return("DrY1")
+    }
+    if (grepl("DrY2", x)) {
+      return("DrY2")
+    }
+    if (grepl("GrY2", x)) {
+      return("GrY2")
+    }
+    return(strsplit(x, "-")[[1]][[2]])
+  }
+  colony_num_names <- rownames(spec_mat) %>% as.data.frame() %>% left_join(df_meta_complete %>% select(ID, Colony_ID), by = c("." = "ID")) %>% mutate(Colony_ID = Vectorize(get_colony_num)(.)) %>% pull(Colony_ID)
+  anno_host_col = HeatmapAnnotation(Host = host_names,
+                                          col = list(Host = host_order_color),
+                                          border = T
+                                    )
+  colony_color_list <- c("C1" = "#E31A1C",
+                        "C2" = "#E63335",
+                        "C3" = "#E94C4E",
+                        "C4" = "#EC6667",
+                        "C5" = "#EF7F80",
+                        "C6" = "#F2999A",
+                        "C7" = "#F5B2B3",
+                        "C8" = "#F8CCCC",
+                        "C9" = "#FBE5E5",
+                        "AcKn" = "#FB9A99",
+                        "AcCh" = "#FCBBBB",
+                        "M1" = "#1F78B4",
+                        "M2" = "#3787BC",
+                        "M3" = "#5096C4",
+                        "M4" = "#69A4CD",
+                        "M5" = "#82B3D5",
+                        "M6" = "#9BC3DD",
+                        "M7" = "#B4D2E6",
+                        "M8" = "#CDE1EE",
+                        "M9" = "#E6F0F6",
+                        "AmAi" = "#AFD3E6",
+                        "AmIu" = "#5096C4",
+                        "DrY1" = "#69A4CD",
+                        "DrY2" = "#82B3D5",
+                        "GrY2" = "#CDE1EE",
+                        "D1" = "#6A3D9A",
+                        "D2" = "#7A52A5",
+                        "D3" = "#8B68B0",
+                        "D4" = "#9B7DBB",
+                        "D5" = "#AC93C6",
+                        "D6" = "#BCA8D2",
+                        "D7" = "#CDBEDD",
+                        "D8" = "#DDD3E8",
+                        "D9" = "#EEE9F3",
+                        "F1" = "#33A02C",
+                        "F2" = "#49AA43",
+                        "F3" = "#60B55A",
+                        "F4" = "#77BF72",
+                        "F5" = "#8DCA89",
+                        "F6" = "#A4D4A1",
+                        "F7" = "#BBDFB8",
+                        "F8" = "#D1E9D0",
+                        "F9" = "#E8F4E7",
+                        "A1" = "#FF7F00",
+                        "A2" = "#FF8D1C",
+                        "A3" = "#FF9B38",
+                        "A4" = "#FFA955",
+                        "A5" = "#FFB771",
+                        "A6" = "#FFC68D",
+                        "A7" = "#FFD4AA",
+                        "A8" = "#FFE2C6",
+                        "A9" = "#FFF0E2"
+            )
+  anno_colony_col = rowAnnotation(Colony = colony_names,
+                                  Host = host_names,
+                                          col = list(Colony = colony_color_list,
+                                                    Host = host_order_color
+                                          ),
+                                          border = T
+                                    )
+  heatmap_obj = Heatmap(spec_mat,
+              col = colorRamp2(c(0.05, 0), c("#ffffff", "#08306b")),
+              na_col = "#999999",
+              top_annotation = anno_host_col,
+              bottom_annotation = anno_host_col,
+              left_annotation = anno_colony_col,
+              column_names_gp = grid::gpar(fontsize = 8),
+              row_names_gp = grid::gpar(fontsize = 8),
+              heatmap_legend_param = list(title = "Number genes copies"),
+              # column_split = column_split,
+              column_title = paste0(spec),
+              column_title_rot = 0,
+              column_title_gp = grid::gpar(fontsize = 20),
+              border = T,
+              # row_dend_reorder = T,
+              cluster_rows = T,
+              cluster_columns = T
+      )
+  draw(heatmap_obj, merge_legend = TRUE)
+  pdf(paste0("results/figures/10-strain_nmds/", spec,"_heatmap.pdf"), width = 10, height = 15)
+  draw(heatmap_obj, merge_legend = TRUE)
+  dev.off()
+  # remove zero sum rows and cols
+  spec_mat_red <- df_mat %>% 
+                    as.matrix
+  # spec_mat_red[is.na(spec_mat_red)] = 1
+  spec_mat_red <- spec_mat_red[rowSums(is.na(spec_mat_red))==0 , colSums(is.na(spec_mat_red))==0]
+  if (spec_mat_red == 0) {
+    next
+  }
+  if (dim(spec_mat_red)[[1]] <= 3) {
+    next
+  }
+  nmds = metaMDS(spec_mat_red, distance = "bray")
+  df_pcoa_new <- as.data.frame(scores(nmds))
+  metadata <- df_meta_complete %>% select(ID, Colony_ID, Country, Species)
+  df_pcoa_new$Sample <- rownames(df_pcoa_new)
+  rownames(df_pcoa_new) <- NULL
+  df_pcoa_new <- left_join(df_pcoa_new, metadata, by = c("Sample" = "ID"))
+  ggplot(df_pcoa_new, aes(x = NMDS1,
+                          y = NMDS2,
+                          color = Species))+
+                  geom_point(stat="identity", size = 4, aes(shape = Country)) +
+                  ggtitle(paste0(spec)) +
+                  # stat_ellipse(size = 1) +
+                    # labs(x=axis_x_title, y = axis_y_title, color = "Host") +
+                      scale_color_manual(values = host_order_color_dark) +
+                      make_theme(setFill = F, setCol = F, guide_nrow = 5, leg_size = 10, leg_pos =  "right")
+  ggsave(paste0("results/figures/10-strain_nmds/", spec,"_nmds.pdf"), width = 10, height = 10)
+}
+```
+
+
+
+<!-- "Acinetobacter pollinis",
+"Apibacter adventoris",
+"Apibacter sp002964915",
+"Apilactobacillus apinorum",
+"Apilactobacillus bombintestini",
+"Apilactobacillus SGB-72_1",
+"Apilactobacillus waqarii",
+"Apilactobacillus zhangqiuensis",
+"Bartonella_A apis",
+ "Bartonella_A SGB-62_2",
+ "Bartonella_A SGB-65_1",
+ "Bartonella_A SGB-66_1",
+ "Bartonella_A SGB-66_2",
+ "Bartonella_A SGB-67_0",
+ "Bartonella_A SGB-68_0",
+ "Bartonella_A SGB-69_1",
+ "Bartonella_A SGB-70_1",
+ "Bartonella_A sp016100455",
+ "Bartonella_A sp016102285",
+ "Bartonella_A sp945277285",
+ "Bartonella_A sp945285915",
+ "Bifidobacterium apousia",
+ "Bifidobacterium asteroides_A",
+  "Bifidobacterium asteroides_I",
+  "Bifidobacterium choladohabitans",
+ "Bifidobacterium indicum",
+ "Bifidobacterium mizhiense",
+ "Bifidobacterium polysaccharolyticum",
+ "Bifidobacterium SGB-4_1",
+ "Bifidobacterium SGB-4_2",
+ "Bifidobacterium SGB-5_1",
+ "Bifidobacterium SGB-5_2",
+ "Bifidobacterium SGB-6_3",
+ "Bifidobacterium SGB-6_4",
+ "Bifidobacterium SGB-6_8",
+ "Bifidobacterium SGB-6_9",
+ "Bifidobacterium SGB-61_0",
+  "Bifidobacterium SGB-7_1",
+ "Bifidobacterium SGB-8_2",
+ "Bifidobacterium sp000499285",
+ "Bifidobacterium sp945269915",
+ "Bombella SGB-9_1",
+ "Bombella SGB-9_2",
+ "Bombilactobacillus mellifer",
+ "Bombilactobacillus mellifer-22_1",
+  "Bombilactobacillus mellifer-22_2",
+  "Bombilactobacillus mellis",
+ "Bombilactobacillus mellis-36_2",
+  "Bombilactobacillus SGB-22_3",
+ "Bombilactobacillus SGB-35_1",
+ "Bombilactobacillus SGB-37_0",
+ "CALYQJ01 SGB-38_1",
+  "CALYQJ01 sp945273735",
+ "CALYQJ01 sp945285405",
+ "CALYQQ01 SGB-104_1",
+ "CALYQQ01 SGB-105_1",
+ "CALYQQ01 SGB-105_2",
+ "Commensalibacter SGB-12_0",
+ "Commensalibacter SGB-13_0",
+ "Commensalibacter sp003202795",
+  "Commensalibacter sp945266285",
+  "Corynebacterium provencense",
+ "Corynebacterium sp022712275",
+ "Dysgonomonas SGB-15_1",
+  "Dysgonomonas SGB-17_1",
+  "Dysgonomonas SGB-17_2",
+  "Dysgonomonas SGB-18_1",
+  "Dysgonomonas SGB-20_1",
+  "Dysgonomonas sp945273835",
+  "Dysgonomonas sp945292135",
+  "Enterobacter bugandensis",
+  "Enterobacter hormaechei_A",
+ "Enterobacter roggenkampii",
+ "Enterobacter vonholyi",
+  "Entomomonas SGB-51_0",
+ "Entomomonas SGB-52_0",
+ "Entomomonas sp945283395",
+ "Escherichia coli",
+ "Floricoccus SGB-41_0",
+ "Frischella japonica",
+  "Frischella perrara",
+ "Frischella SGB-92_1",
+  "Frischella SGB-94_1",
+  "Fructobacillus pseudoficulneus",
+  "Gilliamella apicola",
+  "Gilliamella apicola_E",
+  "Gilliamella apicola_F",
+  "Gilliamella apicola_I",
+  "Gilliamella apicola_J",
+  "Gilliamella apicola_K",
+  "Gilliamella apicola_L",
+  "Gilliamella apicola_N",
+  "Gilliamella apicola_Q",
+  "Gilliamella apis",
+ "Gilliamella apis_A",
+ "Gilliamella SGB-76_1",
+ "Gilliamella SGB-78_2",
+ "Gilliamella SGB-79_1",
+ "Gilliamella SGB-82_1",
+"Gilliamella SGB-83_1",
+"Gilliamella SGB-86_0",
+"Gilliamella sp019469185",
+"Gilliamella sp019469205",
+"Gilliamella sp945271295",
+"Hafnia paralvei",
+"JAATFO01 SGB-106_0",
+"KAACC-21507 SGB-14_0",
+"Klebsiella pneumoniae",
+"Kosakonia oryzae",
+"Lactobacillus apis",
+"Lactobacillus helsingborgensis",
+"Lactobacillus huangpiensis",
+"Lactobacillus kimbladii_A",
+"Lactobacillus laiwuensis",
+"Lactobacillus melliventris",
+"Lactobacillus panisapium",
+"Lactobacillus SGB-23_1",
+"Lactobacillus SGB-28_1",
+"Lactobacillus SGB-29_1",
+"Lactobacillus SGB-29_2",
+"Lactobacillus SGB-30_0",
+"Lactobacillus SGB-31_1",
+"Lactobacillus SGB-32_1",
+"Lactobacillus SGB-33_1",
+"Lactobacillus SGB-34_1",
+"Lactobacillus sp016100975",
+"Lactobacillus sp945290125",
+"Melissococcus plutonius",
+"Pantoea dispersa",
+"Pantoea vagans",
+"Parolsenella SGB-60_1",
+"Pectinatus SGB-54_1",
+"Pluralibacter SGB-98_1",
+"Q3-R57-64 SGB-48_1",
+"Rosenbergiella epipactidis",
+"Saezia SGB-47_1",
+"Saezia SGB-49_1",
+"Snodgrassella alvi",
+"Snodgrassella alvi_E",
+"Snodgrassella alvi_G",
+"Snodgrassella SGB-56_2",
+"Snodgrassella SGB-58_1",
+"Snodgrassella sp945267035",
+"Spiroplasma melliferum",
+"WRHT01 SGB-1_1",
+"Zymobacter SGB-110_0",
+"Zymobacter SGB-42_0",
+"Zymobacter SGB-43_0",
+"Zymobacter SGB-44_0" -->

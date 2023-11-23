@@ -308,6 +308,7 @@ rule profile_genes:
         samtools coverage {output.bam} > {output.coverage}
         samtools coverage -m {output.bam} > {output.hist}
         """
+        # awk '$6 > 50' {input_f} > {output_f}
 
 rule run_kaiju_genes:
     input:

@@ -1,9 +1,9 @@
 import os
+import sys
+import io
 import json
 import gzip
-from Bio import SeqIO
-# from Bio.KEGG import REST
-# from Bio.KEGG.KGML import KGML_parser
+import math
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -15,6 +15,9 @@ import pickle
 from collections import Counter
 from itertools import combinations
 from pprint import pprint
+from Bio import SeqIO
+# from Bio.KEGG import REST
+# from Bio.KEGG.KGML import KGML_parser
 
 
 '''
@@ -53,31 +56,185 @@ OG refers to the orthogroup ID
 (not thinking about CD-hit for now)    
 '''
 
-def sample_of_gene(gene_id):
-    return gene_id.split('_NODE')[0]
+def scaffold_from_geneid(geneid):
+    return '_'.join(geneid.split('_')[:-1])
 
-def contig_of_gene(gene_id):
-    return '_'.join(gene_id.split('_')[1:-1])
-
-def scaffold_from_geneid(gene_id):
-    return '_'.join(gene_id.split('_')[:-1])
-
-# get the mag the gene is in
-all_scaffolds_info = pd.read_csv('results/09_MAGs_collection/all_scaffold_to_bin.tsv', sep='\t')
 # get the mag info for the scaffold
 def get_mag_of_gene(gene):
     try:
-        all_scaffolds_info[all_scaffolds_info['scaffold'] == scaffold_from_geneid(gene)]['mag'].values[0]
+        mag = all_scaffolds_info[all_scaffolds_info['scaffold'] == scaffold_from_geneid(gene)]['mag'].values[0]
     except:
-        'unbinned'
+        mag = 'unbinned'
+    return(mag)
 
-samples = [os.path.basename(x).split('.')[0] for x in glob.glob('results/08_gene_content/06_cayman/*cazy.txt.gz')]
-# get the gene counts
-gene_counts = {}
-for sample in samples:
-    gene_counts[sample] = pd.read_csv(f'results/08_gene_content/06_cayman/{sample}.gene_counts.txt.gz', compression='gzip', header=0, sep='\t')
-def get_gene_counts(gene, sample):
-    gene_counts[sample][gene_counts[sample]['gene'] == gene]['uniq_rpkm'].values[0]
+def get_gene_id_num(gene):
+    return gene.split('_')[-1]
+
+def og_gene_id(gene):
+    mag = get_mag_of_gene(gene)
+    if mag == 'unbinned':
+        return(None)
+    else:
+        return f'{mag}_{get_gene_id_num(gene)}'
+
+# for this we need to find out if the gene is in a MAG and whether the mag is in the OG analysis and then what the OG is
+# get the MAGs that are in the OG analysis
+phylo_metadata = pd.read_csv('results/11_phylogenies/phylo_genomes_metadata.tsv', sep='\t')
+
+gene_og_dict = {}
+for group in phylo_metadata['Phylogeny_group'].unique():
+    og_file = f'results/11_phylogenies/02_orthofinder_results/{group}/Results_{group}/Orthogroups/Orthogroups.txt'
+    if not os.path.isfile(og_file):
+        print(f'{og_file} does not exist, skipping')
+        continue
+    for line in open(og_file, 'r'):
+        if line.startswith('OG'):
+            line = line.strip()
+            og = line.split(': ')[0]
+            genes = line.split(' ')[1:]
+            for gene in genes:
+                gene_og_dict[gene] = f'{group}--{og}'
+
+og_coreness = {}
+for group in phylo_metadata['Phylogeny_group'].unique():
+    motupan_file = f'results/08_gene_content/07_OG_coreness/{group}_motupan_output.tsv'
+    header_read = False
+    if os.path.exists(motupan_file):    
+        with open(motupan_file, 'r') as f:
+            for line in f:
+                line = line.strip()
+                if line.startswith('#') or line == '':
+                    continue
+                if not header_read:
+                    header_read = True
+                    header = line
+                    continue
+                else:
+                    og = line.split('\t')[0]
+                    coreness = line.split('\t')[1]
+                    og_coreness[f'{group}--{og}'] = coreness
+
+# combine gene_og_dict and og_coreness and write as a table
+with open('results/08_gene_content/07_OG_coreness/gene_og_coreness.tsv', 'w') as out_fh:
+    out_fh.write('gene\tog\tcoreness\n')
+    for gene in gene_og_dict:
+        if gene_og_dict[gene] not in og_coreness:
+            coreness = "NA"
+        else:
+            coreness = og_coreness[gene_og_dict[gene]]
+        out_fh.write(f'{gene}\t{gene_og_dict[gene]}\t{coreness}\n')
+
+# samples = [x.split('/')[-2] for x in glob.glob('results/10_instrain/02_instrain_profile/*/')]
+# gene_info_dfs = {}
+# for sample in samples:
+#     gene_info_dfs[sample] = pd.read_csv(f"results/10_instrain/02_instrain_profile/{sample}/output/{sample}_gene_info.tsv", sep = "\t")
+
+
+'''
+define a class to read and handle clusters. Each cluster represents a list of genes and is represented
+'''
+class cdhit_cluster:
+    def __init__(self, name):
+        self.name = name #cluster name
+        self.genes = [] # list of genes in the cluster
+        self.lengths = {} # list of lengths of the genes in the cluster
+        self.identity = {} # list of perc identity to rep gene
+        self.strandedness = {} # strandedness wrt rep
+        self.rep_gene = '' # representative gene for the cluster
+    
+    def add_info(self, gene_to_add, length, is_rep, strand='+', perc=100):
+        self.genes.append(gene_to_add)
+        self.lengths[gene_to_add] = length
+        self.identity[gene_to_add] = perc
+        self.strandedness[gene_to_add] = strand
+        if is_rep:
+            self.rep_gene = gene_to_add
+    
+    def __repr__(self):
+        return f'Cluster--{self.name}:\n  rep gene:{self.rep_gene}\n    genes: {self.genes}\n    lengths: {self.lengths}\n    identity: {self.identity}'
+
+    def __str__(self):
+        return f'Cluster--{self.name}:\n  rep gene:{self.rep_gene}\n    genes: {self.genes}\n    lengths: {self.lengths}\n    identity: {self.identity}'
+
+# cluster_file = "results/08_gene_content/00_cdhit_clustering/20230313_gene_catalog_cdhit9590.fasta.clstr"
+# clusters = {}
+# cluster_num = 0
+# with open(cluster_file, 'r') as f:
+#     for line in f:
+#         line = line.strip()
+#         if line.startswith('>'):
+#             cluster_num = line.split('>Cluster ')[1]
+#             clust_obj = cdhit_cluster(cluster_num)
+#             clusters[cluster_num] = clust_obj
+#         else:
+#             length = int(line.split()[1].split('nt')[0])
+#             gene = line.split()[2].split('>')[1].split('...')[0]
+#             rep_char = line.split()[3]
+#             if rep_char == '*':
+#                 clusters[cluster_num].add_info(gene, length, True)
+#             else:
+#                 strand = line.split()[4].split('/')[1]
+#                 perc = float(line.split()[4].split('/')[2].split('%')[0])
+#                 clusters[cluster_num].add_info(gene, length, False, strand, perc)
+# with open('results/figures/clusters_objects_collection.pkl', "wb") as pkl_fh:
+#         pickle.dump(clusters, pkl_fh)
+clusters = pd.read_pickle('results/figures/clusters_objects_collection.pkl')
+gene_cluster_dict = {}
+for cluster in clusters:
+    for gene in clusters[cluster].genes:
+        gene_cluster_dict[gene] = cluster
+
+'''
+all_scaffold_to_bin.tsv contains the following columns
+scaffold	mag	size	completeness	contamination	genus	species	magotu
+compiled from across all scaffolds and includes information about the mag it belongs to
+and the respective information of the mag collected using a temporary script not in this
+to be recovered or rewritten later... (magotu is in the numerical form coming straight from dRep)
+''' 
+all_scaffolds_info = pd.read_csv('results/09_MAGs_collection/all_scaffold_to_bin.tsv', sep='\t')
+
+cazy_dict = pd.read_csv('data/cayman_gene_db/20230313_gene_catalog_filtered_filtered_merged_CORRECT_fold_stuff.csv').set_index('sequenceID').to_dict()['family']
+# get functional information about each gene
+anno_files = glob.glob(f'results/08_gene_content/02_DRAM_annotations/*/annotations.tsv')
+rank_dict = {}
+kegg_dict = {}
+dram_cazy_dict = {}
+pfam_dict = {}
+for file in anno_files:
+    with open(file, 'r') as f:
+        header_read = False
+        gene_ind = 0
+        ko_ind = 0
+        kegg_ind = 0
+        cazy_ind = 0
+        pfam_ind = 0
+        for line in f:
+            line = line.strip()
+            if not header_read:
+                header = line
+                header_read = True
+                try:
+                    gene_ind = header.split('\t').index('fasta')
+                    ko_ind = header.split('\t').index('ko_id')
+                    kegg_ind = header.split('\t').index('kegg_hit')
+                    cazy_ind = header.split('\t').index('cazy_best_hit')
+                    pfam_ind = header.split('\t').index('pfam_hits')
+                except:
+                    print(f'could not find one of the columns in {file}')
+                continue
+            gene = line.split('\t')[gene_ind]
+            if ko_ind != 0:
+                ko = line.split('\t')[ko_ind]
+                rank_dict[gene] = ko
+            if kegg_ind != 0:
+                kegg = line.split('\t')[kegg_ind]
+                kegg_dict[gene] = kegg
+            if cazy_ind != 0:
+                cazy = line.split('\t')[cazy_ind].split('.hmm')[0]
+                dram_cazy_dict[gene] = cazy
+            if pfam_ind != 0:
+                pfam = line.split('\t')[pfam_ind]
+                pfam_dict[gene] = pfam
 
 # prepare the disctionary to get kegg ortholog information
 current_a = ''
@@ -108,119 +265,175 @@ with open('data/KEGG_info/ko00001.keg', 'r') as f:
             ko = line.split('D      ')[1].split(' ')[0]
             kegg_info_dict[ko] = {'A': current_a, 'B': current_b, 'C': current_c}
 
-
-# make an iterator for all the genes from the catalog headers
 gene_catalog = 'results/08_gene_content/20230313_gene_catalog.ffn'
-genes = SeqIO.parse(gene_catalog, 'fasta')
-
 total_genes = 0
 genes_per_sample = Counter()
 gene_per_host = Counter()
-for gene in genes:
+all_genes = SeqIO.parse(gene_catalog, 'fasta')
+for gene in all_genes:
     total_genes += 1
     genes_per_sample[gene.id.split('_NODE')[0]] += 1
     gene_per_host[gene.id[0]] += 1
+# total_genes
+# 4,911,821
+len([kegg_dict[x] for x in kegg_dict if kegg_dict[x] != ''])
+# 2,772,118
+len([dram_cazy_dict[x] for x in dram_cazy_dict if dram_cazy_dict[x] != ''])
+# 122,164
+len(cazy_dict) # from cayman
+# 150,832
+len([pfam_dict[x] for x in pfam_dict if pfam_dict[x] != ''])
+# 259,590
+binned_scaffolds = set(all_scaffolds_info['scaffold'])
+in_mag = 0
+all_genes = SeqIO.parse(gene_catalog, 'fasta')
+for gene in all_genes:
+    if scaffold_from_geneid(gene.id) in binned_scaffolds:
+        in_mag += 1
+# 3,678,762
+in_og = len(gene_og_dict)
+# 2,511,732
 
-print(f'Total genes: {total_genes}')
-print(f'Genes per host: {gene_per_host}')
-print(f'Genes per sample: {genes_per_sample}')
+'''
+At this point, multiple approaches are possible.
+    Using presence-absence based on a certain breadth and coverage threshold and the counting
+        the number of genes for that feature in each sample
+    Making a matrix of counts (summed gene coverage) of feature across each samples
+    Number of clusters for each feature per sample - this is KE's approach
+
+Make tables, matrices etc. from that can be read and plotted in R
+'''
+
+handmade_spec_names = pd.read_csv('results/figures/handmade_species_names.csv')
+handmade_spec_names['magotu'] = handmade_spec_names['cluster'].astype(str)
+all_scaffolds_info = all_scaffolds_info.merge(handmade_spec_names, on='magotu', how='left')
+
+'''
+# summarize the gene clusters
+Since they will be used as a unit to consider the representation of functional categories
+instead of number of genes....
+'''
+
+len(clusters)
+# 710497 in total
+
+# show a bar plot with x axis the number of hosts that the cluster is found in and y axis the number of clusters
+# that are found in that many hosts
+
+# get the number of hosts that each cluster is found in
+singletons = 0
+cluster_size_dict = {}
+for cluster in clusters:
+    cluster_size_dict[cluster] = len(clusters[cluster].genes)
+    if len(clusters[cluster].genes) == 1:
+        singletons += 1
+
+plt.hist(cluster_size_dict.values(), bins=100)
+plt.savefig('results/figures/visualize_temp/cluster_size_hist.png')
+plt.close()
+
+cluster_host_dict = {}
+for cluster in clusters:
+    if len(clusters[cluster].genes) == 1:
+        continue
+    hosts_seen = Counter([x[0] for x in clusters[cluster].genes])
+    cluster_host_dict[cluster] = len(hosts_seen.keys())
+plt.hist(cluster_host_dict.values(), bins = 5)
+plt.savefig('results/figures/visualize_temp/cluster_host_hist.png')
+plt.close()
+
+# do the above but using mapping result to tell if a cluster has been detected
+'''
+A cluster is considered detected if any gene in the cluster is found at a coverage > 0
+and breadth > 0.75 in the sample
+To find this, for each sample, 
+'''
+
+samples = [x.split('/')[-1].split('_mapped')[0] for x in glob.glob('results/08_gene_content/01_profiling/*_mapped.coverage')]
+for sample in samples:
+    input_f = f'results/08_gene_content/01_profiling/{sample}_mapped.coverage'
+    output_f = f'results/08_gene_content/01_profiling/{sample}_mapped.coverage.filtered'
+    # use awk to filter the coverage file
+    os.system(f"awk '$6 > 50' {input_f} > {output_f}")
+
+coverage_outputs_filt = {}
+for sample in samples:
+    coverage_output_filt = pd.read_csv(f'results/08_gene_content/01_profiling/{sample}_mapped.coverage.filtered', sep='\t')
+    coverage_outputs_filt[sample] = coverage_output_filt
+
+# write a table with the number of genes per sample
+genes_per_sample = {}
+for sample in samples:
+    genes_per_sample[sample] = len(coverage_outputs_filt[sample])
+with open('results/figures/visualize_temp/genes_per_sample.tsv', 'w') as out_fh:
+    out_fh.write('sample\tgenes\n')
+    for sample in genes_per_sample:
+        out_fh.write(f'{sample}\t{genes_per_sample[sample]}\n')
+
+# now number of clusters per sample
+clusters_per_sample = {}
+for sample in samples:
+
+    clusters_per_sample[sample] = len(set([gene_cluster_dict[x] for x in coverage_outputs_filt[sample]['gene'].values]))
+
+with open('results/figures/visualize_temp/clusters_per_sample.tsv', 'w') as out_fh:
+    out_fh.write('sample\tclusters\n')
+    for sample in clusters_per_sample:
+        out_fh.write(f'{sample}\t{clusters_per_sample[sample]}\n')
+
+# intermediate files in 'results/figures/functional_analysis_data'
+
+#### KEGG category level A
+kegg_dict_A = {}
+for gene in kegg_dict.keys():
+    if kegg_dict[gene] == '':
+        kegg_dict_A[gene] = ''
+    else:
+        kegg_dict_A[gene] = kegg_info_dict[kegg_dict[gene]]['A']
+
+### summarize across samples
+# 2. #clusters
+#       count the number of clusters per category for each sample to
+#       make a table of the form:
+#           sample  category    #clusters
 
 
-# for this we need to find out if the gene is in a MAG and whether the mag is in the OG analysis and then what the OG is
-# get the MAGs that are in the OG analysis
-phylo_metadata = pd.read_csv('results/11_phylogenies/phylo_genomes_metadata.tsv', sep='\t')
+
+
+# 1. #genes
+#       count the number of genes per category for each sample to
+#       make a table of the form:
+#           sample  category    #genes
+
+
+
+
+pprint(clusters)
+# find a good way to summarize this information as a table
+pprint(gene_og_dict)
+pprint(og_coreness)
+# combine gene_og_dict and og_coreness and write as a table
+with open('results/figures/gene_og_coreness.tsv', 'w') as out_fh:
+    out_fh.write('gene\tog\tcoreness\n')
+    for gene in gene_og_dict:
+        if gene_og_dict[gene] not in og_coreness:
+            coreness = "NA"
+        else:
+            coreness = og_coreness[gene_og_dict[gene]]
+        out_fh.write(f'{gene}\t{gene_og_dict[gene]}\t{coreness}\n')
+
+pprint(gene_cluster_dict)
+pprint(rank_dict)
+pprint(kegg_dict)
+pprint(dram_cazy_dict)
+pprint(pfam_dict)
+pprint(kegg_info_dict)
+
 og_mags = set(phylo_metadata['ID'])
 
-# retrive og_gene_id for each gene_id in the gene catalog
-gene_og_gene_id_dict = {}
-og_gene_id_dict = {}
-for group in phylo_metadata['Phylogeny_group'].unique():
-    gene_og_gene_id_dict[group] = {}
-    og_gene_id_dict[group] = {}
-    motupan_file = f'results/08_gene_content/07_OG_coreness/{group}_motupan_output.tsv'
-    header_read = False
-    if os.path.exists(motupan_file):    
-        with open(motupan_file, 'r') as f:
-            for line in f:
-                line = line.strip()
-                if line.startswith('#') or line == '':
-                    continue
-                if not header_read:
-                    header_read = True
-                    header = line
-                    continue
-                else:
-                    og = line.split('\t')[0]
-                    coreness = line.split('\t')[1].split(';')
-                    genes = line.split('\t')[5].strip().split(';')
-                    for gene in genes:
-                        gene_og_gene_id_dict[group][gene] = og
-                        if og in og_gene_id_dict[group]:
-                            og_gene_id_dict[group][og].add(gene)
-                        else:
-                            og_gene_id_dict[group][og] = set(gene)
 
-# pickle.dump(gene_og_gene_id_dict, open('results/08_gene_content/07_OG_coreness/gene_og_gene_id_dict.p', 'wb'))
-# pickle.dump(og_gene_id_dict, open('results/08_gene_content/07_OG_coreness/og_gene_id_dict.p', 'wb'))
-
-
-
-# for genus in [os.path.basename('/'.join(x.split('/')[:-1])) for x in glob.glob('results/11_phylogenies/02_orthofinder_results/*/')]:
-#     '''
-#     IMPLEMENT more checks or a better way to get genera!
-#     '''
-#     if '.bak' in genus:
-#         continue
-#     input_orthofile = f'results/11_phylogenies/02_orthofinder_results/{genus}/Results_{genus}/Orthogroups/Orthogroups.GeneCount.tsv'
-#     output_cogfile = f'results/08_gene_content/07_OG_coreness/{genus}_motupan_input.tsv'
-#     if os.path.exists(output_cogfile):
-#         print(f'{output_cogfile} already exists, skipping')
-
-#     ortho_df = pd.read_csv(input_orthofile, sep = '\t')
-#     ortho_df = ortho_df.set_index('Orthogroup')
-#     ortho_df.index.names = [None]
-#     cog_df = {}
-#     for genome in ortho_df.keys():
-#         if genome == 'Total':
-#             continue
-#         cog_df[genome] = [x for x in ortho_df.index[ortho_df[genome] > 0]]
-
-#     with open(output_cogfile, 'w') as out_fh:
-#         for genome in cog_df:
-#             out_list = '\t'.join(cog_df[genome])
-#             out_fh.write(f'{genome}\t{out_list}\n')
-# 
-'''
-ran motupan using,
-genus="g__Gilliamella"
-genus="g__Frischella"
-genus="g__Entomomonas"
-genus="g__Dysgonomonas"
-genus="g__Lactobacillus"
-genus="g__Bombilactobacillus"
-genus="g__Snodgrassella"
-genus="g__Bifidobacterium"
-genus="g__Q3-R57-64"
-genus="g__Pectinatus"
-genus="g__Bartonella_A"
-genus="g__Apibacter"
-genus="g__WRHT01"
-genus="g__CALYQJ01"
-genus="g__Enterobacter"
-genus="g__Melissococcus"
-genus="g__Spiroplasma"
-genus="g__Saezia"
-genus="g__Pluralibacter"
-genus="g__CALYQQ01"
-genus="g__Commensalibacter"
-genus="g__Klebsiella"
-genus="g__Apilactobacillus"
-
-
-output_cogfile="results/08_gene_content/07_OG_coreness/${genus}_motupan_input.tsv"
-checkm_info="results/09_MAGs_collection/checkm_merged.tsv"
-outfile="results/08_gene_content/07_OG_coreness/${genus}_motupan_output.tsv"
-log="results/08_gene_content/07_OG_coreness/${genus}_motupan.log"
-mOTUpan.py --gene_clusters_file ${output_cogfile} --boots 10 -o ${outfile} --checkm ${checkm_info} | tee ${log}
-'''
-
+# # get a histogram of coverages
+# plt.hist(gene_info_dfs['A1-1'].coverage, bins=10000)
+# plt.xlim(0, 1)
+# plt.savefig('results/figures/visualize_temp/coverage_hist.png')
+# plt.close()

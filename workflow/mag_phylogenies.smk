@@ -278,3 +278,28 @@ rule run_orthofinder_iqtree:
             -M msa -T iqtree -ot -t {threads} \
             -n {wildcards.genus}_iqtree 2>&1 | tee {log}
         """
+
+rule rerun_tree:
+    input:
+        msa = "results/11_phylogenies/02_orthofinder_results/{genus}/Results_{genus}/MultipleSequenceAlignments/SpeciesTreeAlignment.fa"
+    output:
+        # tree = "results/11_phylogenies/03_iqtree_trees/{genus}/{genus}.treefile",
+        done = "results/11_phylogenies/03_iqtree_trees/{genus}.done"
+    params:
+        outdir = "results/11_phylogenies/03_iqtree_trees/{genus}",
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=lambda wildcards: convertToSec("2-00:00:00"),
+    resources:
+        mem_mb = convertToMb("150G")
+    threads: 4
+    log: "results/11_phylogenies/03_iqtree_trees/logs/{genus}_rerun_tree.log"
+    benchmark: "results/11_phylogenies/03_iqtree_trees/logs/{genus}_rerun_tree.benchmark"
+    conda: "../config/envs/phylogenies-env.yaml"
+    shell:
+        """
+        mkdir -p {params.outdir}
+        iqtree -s {input.msa} -st AA -nt {threads} -bb 10000 -seed 1234 -m TEST -pre {params.outdir}/{wildcards.genus} 2>&1 | tee {log}
+        touch {output.done}
+        """

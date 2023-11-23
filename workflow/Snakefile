@@ -51,25 +51,25 @@ LARGE_SAMPLES = ["A2-2", "A2-3", "A3-4", "A4-4", "D2-1", "D2-2", "D2-4", "D2-5",
 
 rule targets:
     input:
-        raw_files = get_all_input_files(raw_paths_dict),
+        # raw_files = get_all_input_files(raw_paths_dict),
         # html_qc_raw = [f"results/00_rawreads/fastqc/{x.split('.fastq.gz')[0]}_fastqc.html" for x in get_list_of_values(get_renamed_input_files(raw_paths_dict))],
         # all_reads_assemblies = [f"results/00_trimmedreads/{x.split('.fastq.gz')[0]}_trim.fastq.gz" for x in get_list_of_values(get_renamed_input_files(raw_paths_dict))],
         # html_qc_trim = [f"results/00_trimmedreads/fastqc/{x.split('.fastq.gz')[0]}_trim_fastqc.html" for x in get_list_of_values(get_renamed_input_files(raw_paths_dict))],
         # concat_reads = expand("results/01_trimmedconcatreads/{sample}_{read}.fastq.gz", sample = SAMPLES, read = ["R1", "R2"]),
         reads1 = expand("results/01_cleanreads/{sample}_R1_repaired.fastq.gz", sample = SAMPLES),
         reads2 = expand("results/01_cleanreads/{sample}_R2_repaired.fastq.gz", sample = SAMPLES),
-        # Mapping to DBs
-        flagstat_hM = expand("results/04_MapToDBs/{sample}/{sample}_host_unmapd_map_MAGs_rep.flagstat", sample=SAMPLES_INDIA+SAMPLES_MY),
-        reads1_host_unmpd_MAGs_rep_unmapd = expand("results/04_MapToDBs/{sample}/{sample}_R1_host_unmapd_map_MAGs_rep_unmapped.fastq.gz", sample=SAMPLES_INDIA+SAMPLES_MY),
-        reads2_host_unmpd_MAGs_rep_unmapd = expand("results/04_MapToDBs/{sample}/{sample}_R2_host_unmapd_map_MAGs_rep_unmapped.fastq.gz", sample=SAMPLES_INDIA+SAMPLES_MY),
-        flagstat_Mh = expand("results/04_MapToDBs/{sample}/{sample}_unmapd_rep_MAGs_host_mapping.flagstat", sample=SAMPLES_INDIA+SAMPLES_MY),
-        reads1_MAGs_rep_unmpd_host_unmapd = expand("results/04_MapToDBs/{sample}/{sample}_R1_unmapd_rep_MAGs_host_unmapd.fastq.gz", sample=SAMPLES_INDIA+SAMPLES_MY),
-        reads2_MAGs_rep_unmpd_host_unmapd = expand("results/04_MapToDBs/{sample}/{sample}_R2_unmapd_rep_MAGs_host_unmapd.fastq.gz", sample=SAMPLES_INDIA+SAMPLES_MY),
-        reads1_unmapd_rep_MAGs = expand("results/04_MapToDBs/{sample}/{sample}_R1_unmapd_rep_MAGs.fastq.gz", sample=SAMPLES_INDIA+SAMPLES_MY),
-        reads2_unmapd_rep_MAGs = expand("results/04_MapToDBs/{sample}/{sample}_R2_unmapd_rep_MAGs.fastq.gz", sample=SAMPLES_INDIA+SAMPLES_MY),
+        # # Mapping to DBs - done but only kept in backup
+        # flagstat_hM = expand("results/04_MapToDBs/{sample}/{sample}_host_unmapd_map_MAGs_rep.flagstat", sample=SAMPLES_INDIA+SAMPLES_MY),
+        # reads1_host_unmpd_MAGs_rep_unmapd = expand("results/04_MapToDBs/{sample}/{sample}_R1_host_unmapd_map_MAGs_rep_unmapped.fastq.gz", sample=SAMPLES_INDIA+SAMPLES_MY),
+        # reads2_host_unmpd_MAGs_rep_unmapd = expand("results/04_MapToDBs/{sample}/{sample}_R2_host_unmapd_map_MAGs_rep_unmapped.fastq.gz", sample=SAMPLES_INDIA+SAMPLES_MY),
+        # flagstat_Mh = expand("results/04_MapToDBs/{sample}/{sample}_unmapd_rep_MAGs_host_mapping.flagstat", sample=SAMPLES_INDIA+SAMPLES_MY),
+        # reads1_MAGs_rep_unmpd_host_unmapd = expand("results/04_MapToDBs/{sample}/{sample}_R1_unmapd_rep_MAGs_host_unmapd.fastq.gz", sample=SAMPLES_INDIA+SAMPLES_MY),
+        # reads2_MAGs_rep_unmpd_host_unmapd = expand("results/04_MapToDBs/{sample}/{sample}_R2_unmapd_rep_MAGs_host_unmapd.fastq.gz", sample=SAMPLES_INDIA+SAMPLES_MY),
+        # reads1_unmapd_rep_MAGs = expand("results/04_MapToDBs/{sample}/{sample}_R1_unmapd_rep_MAGs.fastq.gz", sample=SAMPLES_INDIA+SAMPLES_MY),
+        # reads2_unmapd_rep_MAGs = expand("results/04_MapToDBs/{sample}/{sample}_R2_unmapd_rep_MAGs.fastq.gz", sample=SAMPLES_INDIA+SAMPLES_MY),
         flagstat = expand("results/03_host_mapping/{sample}_flagstat.txt", sample=SAMPLES_INDIA+SAMPLES_MY),
-        # Motus
-        motus_merged = "results/02_motus_profile/samples_merged.motus",
+        # # Motus - done but only kept in backup
+        # motus_merged = "results/02_motus_profile/samples_merged.motus",
         # assembly
         scaffolds = expand("results/05_assembly/all_reads_assemblies/{sample}_scaffolds.fasta", sample = SAMPLES_INDIA+SAMPLES_MY),
         spades_log = expand("results/05_assembly/all_reads_assemblies/{sample}_spades.log", sample = SAMPLES_INDIA+SAMPLES_MY),
@@ -86,7 +86,7 @@ rule targets:
         dram_annotation = expand("results/08_gene_content/02_DRAM_annotations/{sample}/annotations.tsv", sample=SAMPLES_INDIA+SAMPLES_MY),
         mag_metadata = "results/09_MAGs_collection/MAGs_metadata_summary.tsv",
         profile_plots = expand("results/10_instrain/04_instrain_plot_marker/{sample}_profile_plots.done", sample=SAMPLES),
-        compare_plots = "results/10_instrain/03_instrain_compare/all_compared.done",
+        # compare_plots = "results/10_instrain/03_instrain_compare/all_compared.done",
         # 
         # orthofinder_out = lambda wildcards: expand("results/11_phylogenies/02_orthofinder_results/{genus}/Results_{genus}/Species_Tree/SpeciesTree_rooted_node_labels.txt", genus = get_significant_genera(checkpoints.mag_metadata_summary.get().output.metadata)),
         # orthofinder_out_iqtree = lambda wildcards: expand("results/11_phylogenies/02_orthofinder_results/{genus}/Results_{genus}_iqtree/Species_Tree/SpeciesTree_rooted_node_labels.txt", genus = get_significant_genera(checkpoints.mag_metadata_summary.get().output.metadata)),
@@ -99,6 +99,7 @@ rule targets:
         # contig_fates = "results/05_assembly/contig_fates/{sample}_contig_fates.tsv",
         bowtie_2_index = multiext("results/10_instrain/00_prepare_mags/mag_rep_database.fa", ".1.bt2", ".2.bt2", ".3.bt2", ".4.bt2", ".rev.1.bt2", ".rev.2.bt2"),
         cayman_profile = expand("results/08_gene_content/06_cayman/{sample}.cazy.txt.gz", sample = SAMPLES),
+        tree = lambda wildcards: expand("results/11_phylogenies/03_iqtree_trees/{genus}.done", genus = get_significant_genera(checkpoints.mag_metadata_summary.get().output.metadata))
 
 
 include: "trim-qc.smk"

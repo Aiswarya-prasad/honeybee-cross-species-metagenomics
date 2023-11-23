@@ -61,10 +61,8 @@ combined_info_df <- vis_magOTUs_df_all %>%
                         mutate(species_name = MAG_species_name_final) %>%
                         mutate(Cluster = species_name) %>%
                         select(!MAG_species_name_final)
-genus_iter <- "g__Apibacter"
-genus_iter <- "g__Bifidobacterium"
-combined_info_df %>%
-  filter(magOTU == "5_1") %>% view
+
+
 # rename these figures and remake them using the newly refurbished function get_genecount_matrix
 system('mkdir -p results/figures/07-MAG_OG_heatmap')
 for (genus_iter in genera) {
@@ -105,8 +103,42 @@ for (genus_iter in genera) {
     dev.off()
   }
 }
+
+genus_iter <- "g__Snodgrassella"
+pdf(paste0("results/figures/07-MAG_OG_heatmap/edited-", genus_iter, "_OG_counts_accessory.pdf"), width = 15, height = 20)
+      out_mat <- get_genecount_matrix(my_genus=genus_iter, upper_count = my_upper_count)
+      matrix_to_plot <- out_mat$matrix
+      chosen_ogs <- out_mat$info %>% filter(type_motupan != "core") %>% pull(OG)
+      # chosen_ogs <- out_mat$info %>% filter(type_motupan == "core") %>% pull(OG)
+      genomes_of_interest <- rownames(matrix_to_plot) %>% 
+                              as.data.frame() %>%
+                              left_join(vis_magOTUs_df_all %>% ungroup() %>% select(ID, completeness), by = c(. = "ID")) %>%
+                              filter(completeness >= 75) %>% pull(".")
+      matrix_to_plot <- matrix_to_plot[, chosen_ogs]
+      matrix_to_plot <- matrix_to_plot[genomes_of_interest, ]
+      my_heatmap <- pretty_orthogene_heatmaps(matrix_to_plot, motupan_info = out_mat$info,
+        do_motupan_anno = T,
+        col_fun = colorRamp2(c(0, 1, 2, 4, 5), c("#ffffff", "#023858", brewer.pal(9, "RdPu")[1], brewer.pal(9, "RdPu")[8], brewer.pal(9, "RdPu")[9])))
+      draw(my_heatmap, merge_legend = TRUE, column_title=paste0("Number of OG genes: ", ncol(my_heatmap)), column_title_gp=grid::gpar(fontsize=12))
+    dev.off()
+
 ```
 
+```{r}
+
+
+my_genus <- "g__Bombilactobacillus"
+motupan_out <- paste0("results/08_gene_content/07_OG_coreness/",my_genus,"_motupan_output.tsv")
+if (file.exists(motupan_out)) {
+    motupan_df <- read.csv(motupan_out, skip = 16, sep = "\t") %>%
+                    column_to_rownames("trait_name") %>%
+                    select(type) %>%
+                    rownames_to_column("OG")
+  }
+
+table(motupan_df$type)
+2118 / 1001+2118
+```
 
 
 ```{r extra_plots}

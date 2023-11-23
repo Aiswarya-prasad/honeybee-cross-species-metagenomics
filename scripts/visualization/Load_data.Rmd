@@ -480,9 +480,9 @@ make_col_list <- function(my_vec, my_palette = "Spectral") {
   names(col_list) = uniq_names
   return(col_list)
 }
-handmade_species_names <- read.csv("config/Species_MAG_Cluster-names.txt", header = T, sep = "\t") %>% 
-                            mutate(cluster_name_instrain = paste0(MAG_species_Name_in_analysis, "-", RepMAG))
-my_col_fun <- colorRamp2(c(0.7, 0.9, 0.93, 0.94, 0.95, 1), c("#ffffe5", "#d9f0a3", "#4d9221", "#fddbc7", "#b2182b", "#67000d"))
+
+# my_col_fun <- colorRamp2(c(0.7, 0.9, 0.93, 0.94, 0.95, 1), c("#ffffe5", "#d9f0a3", "#4d9221", "#fddbc7", "#b2182b", "#67000d"))
+my_col_fun <- colorRamp2(c(0.7, 0.9, 0.93, 0.94, 0.95, 1), viridis(5, option = "D"))
 pretty_ani_heatmaps <- function(matrix, mags_info_df=vis_magOTUs_df, row_split = "magotus", add_values = F, value_size = 10, limit_l = 0.95, limit_h = 1, col_fun = colorRamp2(c(limit_l, limit_h), c("#9ecae1", "#08306b"))) {
   host_names <- rownames(matrix) %>% as.data.frame() %>%
                   as.data.frame() %>%
@@ -494,12 +494,18 @@ pretty_ani_heatmaps <- function(matrix, mags_info_df=vis_magOTUs_df, row_split =
                         left_join(mags_info_df %>%
                           ungroup() %>%
                             select(ID, magOTU), by = c(. = "ID")) %>% pull(magOTU)
+  handmadespecies_names <- magOTU_names %>% 
+                              as.data.frame %>% 
+                                left_join(handmade_species_names %>% select(cluster, MAG_species_name_final), by = c("." = "cluster")) %>%
+                                  pull(MAG_species_name_final) %>% as.factor %>% as.character
+  species_names <- unique(handmadespecies_names)
+  species_indices <- sapply(species_names, function(x) which(handmadespecies_names == x)[1]) %>% as.numeric
   Genus_names <- rownames(matrix) %>% 
                     as.data.frame() %>%
                       left_join(mags_info_df %>%
                         ungroup() %>%
                           select(ID, Genus), by = c(. = "ID")) %>% pull(Genus)
-  species_names <- rownames(matrix) %>% 
+  gtdb_species_names <- rownames(matrix) %>% 
                     as.data.frame() %>%
                       left_join(mags_info_df %>%
                         ungroup() %>%
@@ -520,39 +526,28 @@ pretty_ani_heatmaps <- function(matrix, mags_info_df=vis_magOTUs_df, row_split =
                                     col = list(`GTDB Species` = make_col_list(species_names, "Spectral")),
                                     border = TRUE
                           )
-  anno_magotu_col = HeatmapAnnotation(`magOTU` = magOTU_names,
-                                col = list(`magOTU` = make_col_list(magOTU_names, "Spectral")
+  anno_magotu_col = HeatmapAnnotation(`magOTU` = handmadespecies_names,
+                                col = list(`magOTU` = make_col_list(handmadespecies_names, "Spectral")
                                           ),
                                           border = TRUE
                           )
-  anno_magotu_row = rowAnnotation(`magOTU` = magOTU_names,
-                                col = list(`magOTU` = make_col_list(magOTU_names, "Spectral")
+  anno_magotu_row = rowAnnotation(`magOTU` = handmadespecies_names,
+                                col = list(`magOTU` = make_col_list(handmadespecies_names, "Spectral")
                                           ),
                                           border = TRUE
                           )
-  anno_tax_col = HeatmapAnnotation(`GTDB Species` = species_names,
-                                   `magOTU` = magOTU_names,
-                                   col = list(`magOTU` = make_col_list(magOTU_names, "Spectral"),
-                                              `GTDB Species` = make_col_list(species_names, "Spectral")
-                                             ),
-                                             border = TRUE
-                                   )
-  anno_tax_row = rowAnnotation(`GTDB Species` = species_names,
-                                   `magOTU` = magOTU_names,
-                                   col = list(`magOTU` = make_col_list(magOTU_names, "Spectral"),
-                                              `GTDB Species` = make_col_list(species_names, "Spectral")
-                                             ),
-                                             border = TRUE
-                                   )
+  anno_magotu_text_row = rowAnnotation(names = anno_mark(at = species_indices, side = "left",
+                                                          labels = species_names),
+                                       `magOTU` = handmadespecies_names,
+                                col = list(`magOTU` = make_col_list(handmadespecies_names, "Spectral")
+                                          ),
+                                          border = TRUE
+                          )
   if (row_split == "magotus") {
     row_split = as.character(as.factor(magOTU_names))
 
   }
   if (row_split == "handmade") {
-    handmadespecies_names <- magOTU_names %>% 
-                              as.data.frame %>% 
-                                left_join(handmade_species_names %>% select(cluster, MAG_species_name_final), by = c("." = "cluster")) %>%
-                                  pull(MAG_species_name_final) %>% as.factor %>% as.character
     row_split = as.character(as.factor(handmadespecies_names))
   }
   if (add_values) {
@@ -563,17 +558,17 @@ pretty_ani_heatmaps <- function(matrix, mags_info_df=vis_magOTUs_df, row_split =
             col = col_fun,
             # col = brewer.pal(2, "Pastel1"),
             # clustering_method_columns = 'ward.D2',
-            top_annotation = anno_gtdb_col,
+            top_annotation = anno_magotu_col,
             right_annotation = anno_host_row,
-            left_annotation = anno_gtdb_row,
+            left_annotation = anno_magotu_text_row,
             column_names_gp = grid::gpar(fontsize = 0),
             row_names_gp = grid::gpar(fontsize = 0),
-            heatmap_legend_param = list(title = "ANI", color_bar = "discrete", 
+            heatmap_legend_param = list(title = "ANI", color_bar = "continuous", 
                                         at = c(0.7, 0.9, 0.93, 0.94, 0.95, 1), labels = c("0.7", "0.9", "0.93", "0.94", "0.95", "1"),
                                         legend_height = unit(6, "cm")
                                         ),
-            row_split = row_split,
-            column_split = row_split,
+            # row_split = row_split,
+            # column_split = row_split,
             column_title_gp = grid::gpar(fontsize = 0),
             row_title_rot = 0,
             cell_fun = cell_fun,
@@ -589,17 +584,17 @@ pretty_ani_heatmaps <- function(matrix, mags_info_df=vis_magOTUs_df, row_split =
             col = col_fun,
             # col = brewer.pal(2, "Pastel1"),
             # clustering_method_columns = 'ward.D2',
-            top_annotation = anno_gtdb_col,
+            top_annotation = anno_magotu_col,
             right_annotation = anno_host_row,
-            left_annotation = anno_gtdb_row,
+            left_annotation = anno_magotu_text_row,
             column_names_gp = grid::gpar(fontsize = 0),
             row_names_gp = grid::gpar(fontsize = 0),
-            heatmap_legend_param = list(title = "ANI", color_bar = "discrete",
+            heatmap_legend_param = list(title = "ANI", color_bar = "continuous",
                                         at = c(0.7, 0.9, 0.93, 0.94, 0.95, 1), labels = c("0.7", "0.9", "0.93", "0.94", "0.95", "1"),
                                         legend_height = unit(6, "cm")
                                         ),
-            row_split = row_split,
-            column_split = row_split,
+            # row_split = row_split,
+            # column_split = row_split,
             row_title_rot = 0,
             column_title_gp = grid::gpar(fontsize = 0),
             # cell_fun = cell_fun,
@@ -612,7 +607,6 @@ pretty_ani_heatmaps <- function(matrix, mags_info_df=vis_magOTUs_df, row_split =
             )
   }
   return(heatmap_obj)
-  # draw(heatmap_obj, merge_legend = TRUE)
 }
 get_ani_matrix <- function(genera_list = c(), mag_names = c(), magOTUs = c(), mags_info_df=vis_magOTUs_df) {
   if (length(genera_list) > 0) {
@@ -625,45 +619,48 @@ get_ani_matrix <- function(genera_list = c(), mag_names = c(), magOTUs = c(), ma
                       # mutate(querry = paste0(magOTU, "_", Genus, "_", querry)) %>%
                       arrange(Genus, magOTU, Host, Species) %>%
                       select(!c(Genus, magOTU)) %>%
+                      filter(!is.na(Host)) %>%
                         pivot_wider(names_from=querry, values_from=ani) %>%
                           replace(is.na(.), 0.7) %>%
                             column_to_rownames("reference") %>%
                             select(rownames(.)) %>%
                                 as.matrix
   }
-  if (length(mag_names) > 0) {
-    matrix <- drep_N %>%
-                  select(reference, querry, ani) %>%
-                  filter(reference %in% mags_info_df$ID) %>%
-                    right_join(mags_info_df %>% ungroup() %>% select(ID, Cluster, Host, Species, Genus), by = c("reference" = "ID")) %>%
-                      filter(reference %in% mag_names) %>%
-                      # filter(reference %in% mag_names | querry %in% mag_names) %>%
-                      # mutate(reference = paste0(Cluster, "_", Genus, "_", reference)) %>%
-                      # mutate(querry = paste0(Cluster, "_", Genus, "_", querry)) %>%
-                      arrange(Genus, Cluster, Host, Species) %>%
-                      select(!c(Genus, Cluster)) %>%
-                        pivot_wider(names_from=querry, values_from=ani) %>%
-                          replace(is.na(.), 0.7) %>%
-                            column_to_rownames("reference") %>%
-                            select(rownames(.)) %>%
-                                as.matrix  
-  }
-  if (length(magOTUs) > 0) {
-    matrix <- drep_N %>%
-                  select(reference, querry, ani) %>%
-                  filter(reference %in% mags_info_df$ID) %>%
-                    right_join(mags_info_df %>% ungroup() %>% select(ID, Cluster, Host, Genus), by = c("reference" = "ID")) %>%
-                      filter(Cluster %in% genera_list) %>%
-                      # mutate(reference = paste0(Cluster, "_", Genus, "_", reference)) %>%
-                      # mutate(querry = paste0(Cluster, "_", Genus, "_", querry)) %>%
-                      arrange(Genus, Cluster, Host, Species) %>%
-                      select(!c(Genus, Cluster)) %>%
-                        pivot_wider(names_from=querry, values_from=ani) %>%
-                          replace(is.na(.), 0.7) %>%
-                            column_to_rownames("reference") %>%
-                            select(rownames(.)) %>%
-                                as.matrix  
-  }
+  # if (length(mag_names) > 0) {
+  #   matrix <- drep_N %>%
+  #                 select(reference, querry, ani) %>%
+  #                 filter(reference %in% mags_info_df$ID) %>%
+  #                   right_join(mags_info_df %>% ungroup() %>% select(ID, Cluster, Host, Species, Genus), by = c("reference" = "ID")) %>%
+  #                     filter(reference %in% mag_names) %>%
+  #                     # filter(reference %in% mag_names | querry %in% mag_names) %>%
+  #                     # mutate(reference = paste0(Cluster, "_", Genus, "_", reference)) %>%
+  #                     # mutate(querry = paste0(Cluster, "_", Genus, "_", querry)) %>%
+  #                     arrange(Genus, Cluster, Host, Species) %>%
+  #                     select(!c(Genus, Cluster)) %>%
+  #                     filter(!is.na(Host)) %>%
+  #                       pivot_wider(names_from=querry, values_from=ani) %>%
+  #                         replace(is.na(.), 0.7) %>%
+  #                           column_to_rownames("reference") %>%
+  #                           select(rownames(.)) %>%
+  #                               as.matrix  
+  # }
+  # if (length(magOTUs) > 0) {
+  #   matrix <- drep_N %>%
+  #                 select(reference, querry, ani) %>%
+  #                 filter(reference %in% mags_info_df$ID) %>%
+  #                   right_join(mags_info_df %>% ungroup() %>% select(ID, Cluster, Host, Genus), by = c("reference" = "ID")) %>%
+  #                     filter(Cluster %in% genera_list) %>%
+  #                     # mutate(reference = paste0(Cluster, "_", Genus, "_", reference)) %>%
+  #                     # mutate(querry = paste0(Cluster, "_", Genus, "_", querry)) %>%
+  #                     arrange(Genus, Cluster, Host, Species) %>%
+  #                     select(!c(Genus, Cluster)) %>%
+  #                     filter(!is.na(Host)) %>%
+  #                       pivot_wider(names_from=querry, values_from=ani) %>%
+  #                         replace(is.na(.), 0.7) %>%
+  #                           column_to_rownames("reference") %>%
+  #                           select(rownames(.)) %>%
+  #                               as.matrix  
+  # }
   return(matrix)
 }
 ```
@@ -679,9 +676,13 @@ drep_gInformation <- read.csv("results/09_MAGs_collection/drep_output/data_table
 drep_Sdb <- read.csv("results/09_MAGs_collection/drep_output/data_tables/Sdb.csv", sep = ",")
 drep_Widb <- read.csv("results/09_MAGs_collection/drep_output/data_tables/Widb.csv", sep = ",")
 MAGs_collated <- read.csv("results/09_MAGs_collection/MAGs_metadata_summary.tsv", sep = "\t")
+# MAGs_metadata_summary was modified by hand to combine clusters that are not justifiably different species for
+#     the figures etc.
+# MAGs_collated <- read.csv("results/figures/MAGs_metadata_summary_modified.tsv", sep = "\t")
+handmade_species_names <- read.csv("config/Species_MAG_Cluster-names.txt", header = T, sep = "\t") %>% 
+                            mutate(cluster_name_instrain = paste0(MAG_species_Name_in_analysis, "-", RepMAG))
 MAGs_collated <- MAGs_collated %>%
                   filter(!Sample %in% samples_to_exclude)
-                  # c("F4-5", "F5-1", "M6-2")
 colnames(MAGs_collated)
 # system("bash scripts/calc_genome_sizes.sh /scratch/aprasad/20230313_apis_species_comparison/results/09_MAGs_collection/MAGs_high_medium /scratch/aprasad/20230313_apis_species_comparison/results/figures/Genome_sizes_good_quality.csv fa")
 # system("bash scripts/calc_genome_sizes.sh /scratch/aprasad/20230313_apis_species_comparison/results/09_MAGs_collection/MAGs /scratch/aprasad/20230313_apis_species_comparison/results/figures/Genome_sizes.csv fa")
@@ -2268,4 +2269,5 @@ df_cdhit_clusters_info <- read.csv("results/08_gene_content/00_cdhit_clustering/
 #                                   mutate(Prevalence_host = ifelse(Host=="Apis dorsata",Present/length(samples_ad), Prevalence_host)) %>%
 #                                   mutate(Prevalence_host = ifelse(Host=="Apis florea",Present/length(samples_af), Prevalence_host)) %>%
 #                                   mutate(Prevalence_host = ifelse(Host=="Apis andreniformis",Present/length(samples_aa), Prevalence_host))
+# write.csv(handmade_species_names, "results/figures/handmade_species_names.csv", row.names = F, quote = F)
 ```

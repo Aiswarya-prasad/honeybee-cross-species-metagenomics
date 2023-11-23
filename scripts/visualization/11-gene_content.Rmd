@@ -18,6 +18,38 @@ output:
 
 To intialize complete all of or relevant sections of `scripts/visualization/Load_data.R`.
 
+
+
+```{r}
+df_genes_per_sample <- read.csv("results/figures/visualize_temp/genes_per_sample.tsv", sep = "\t") %>%
+                          mutate(host = Vectorize(get_host_from_sample_name)(sample)) %>%
+                          mutate(location = Vectorize(get_location_from_sample_name)(sample)) %>%
+                            filter(sample %in% samples)
+
+ggplot(df_genes_per_sample) +
+  geom_bar(aes(y = factor(sample, samples), x = genes, fill = factor(host)), stat = "identity") +
+  scale_fill_manual(values = host_order_color) +
+  make_theme(setFill = FALSE, leg_pos = "bottom", 
+             x_angle = 90, x_size = 0,
+             x_hj = 10, x_vj = 1,
+             y_size = 10, y_hj = 1)
+
+ggplot(df_genes_per_sample) +
+  geom_boxplot(aes(y = genes, x = host, fill = factor(host))) +
+  geom_point(aes(y = genes, x = host, group = host,
+                 shape = location, fill = factor(host)), 
+              size = 4,
+              position = position_jitterdodge(0.75)) +
+  scale_fill_manual(values = host_order_color) +
+  make_theme(setFill = FALSE, leg_pos = "bottom", 
+             x_angle = 90, x_size = 0,
+             x_hj = 10, x_vj = 1,
+             y_size = 10, y_hj = 1)
+ggsave("results/figures/Number_of_genes_per_sample.pdf")
+```
+
+
+
 ```{r}
 df_cdhit_clusters_info <- read.csv("results/08_gene_content/00_cdhit_clustering/cluster_info.tsv", sep = "\t")
 hist(df_cdhit_clusters_info %>% pull(num_genes))
@@ -125,7 +157,6 @@ pcoa_plot(distance_mat_gh, df_meta_complete, "Species", color_add = T, color_lis
 
 view(distance_mat)
 view(df_meta_complete)
-
 
 all_gene_counts <- read.csv("/scratch/aprasad/20230313_apis_species_comparison/results/08_gene_content/03_gene_counts/all_genes_matrix.txt", sep = "\t", stringsAsFactors = FALSE, na.strings=0)
 colnames(all_gene_counts) = c("gene_ID", unlist(lapply(colnames(df_ko_counts)[-1], function(x) convert_sample_name(x))))
@@ -418,4 +449,209 @@ pdf("results/figures/cazyme_uniq_rpkm_no_unknown.pdf", width = 15, height = 25)
 draw(heatmap_obj, merge_legend = TRUE)
 dev.off()
 
+```
+
+```{r}
+# do this later using python!!!!!!!!!!!!!!!!!
+# read gz sample file
+df_gene_counts <- data.frame()
+for (sample in samples_IN_MY) {
+  print(paste0("reading ", sample, " gene counts"))
+  # df_gene_counts_iter <- read.csv(gzfile(paste0("/scratch/aprasad/20230313_apis_species_comparison/results/08_gene_content/06_cayman/", sample, ".gene_counts.txt.gz")
+  #                             ),
+  #                             sep = "\t") %>%
+  #                               select(gene, uniq_rpkm) %>%
+  #                               mutate(uniq_rpkm = as.numeric(uniq_rpkm))
+  df_gene_counts_iter <- read.csv(paste0("results/08_gene_content/01_profiling/", sample, "_mapped.coverage"), sep = "\t") %>%
+                                select(`#rname`, meandepth) %>%
+                                mutate(meandepth = as.numeric(meandepth))
+  names(df_gene_counts_iter) <- c("gene", "depth")
+  if (dim(df_gene_counts)[[1]] == 0) {
+    df_gene_counts <- df_gene_counts_iter 
+  } else {
+    df_gene_counts <- left_join(df_gene_counts, df_gene_counts_iter, by = "gene")
+  }
+}
+all_scaffolds_info <- read.csv("results/09_MAGs_collection/all_scaffold_to_bin.tsv", sep = "\t")
+
+get_scaffold_from_gene <- function(gene_name){
+  # get everything but the stuff after the last underscore
+  scaff <- paste(strsplit(gene_name, "_")[[1]][1:(length(strsplit(gene_name, "_")[[1]]) - 1)], collapse = "_")
+  return(scaff)
+}
+
+get_index_from_gene <- function(gene_name){
+  # get everything the num after the last underscore
+  ind <- strsplit(gene_name, "_")[[1]][length(strsplit(gene_name, "_")[[1]])]
+  return(ind)
+}
+parse_out_og_id <- function(og) {
+  return(strsplit(og, "--")[[1]][2])
+}
+gene_cazyme_info <- read.csv("data/cayman_gene_db/20230313_gene_catalog_db.tsv", header = F, sep = "\t")
+names(gene_cazyme_info) <- c("gene", "a", "b", "cazyme_family")
+gene_cazyme_info <- gene_cazyme_info %>%
+                      select(gene, cazyme_family) %>%
+                        mutate(duplicated = duplicated(gene)) %>%
+                          filter(duplicated == F & !grepl("_", cazyme_family))
+og_gene_df <- read.csv("results/08_gene_content/07_OG_coreness/gene_og_coreness.tsv", sep = "\t") %>%
+                mutate(og_id = Vectorize(parse_out_og_id)(og))
+mag_species_info <- vis_magOTUs_df %>%
+  left_join(handmade_species_names %>% select(cluster, MAG_species_name_final), by = c("magOTU" = "cluster"))
+all_genes <- read.csv("results/figures/20230313_gene_catalog_list.txt", header = F, sep = "\t") %>%
+                pull(V1)
+# genes_info <- data.frame("gene" = df_gene_counts$gene) %>%
+genes_info <- data.frame("gene" = all_genes) %>%
+  mutate(scaffold = Vectorize(get_scaffold_from_gene)(gene)) %>%
+  mutate(gene_ind = Vectorize(get_index_from_gene)(gene)) %>%
+    left_join(all_scaffolds_info %>% select(scaffold, mag), by = "scaffold") %>%
+      left_join(mag_species_info, by = c("mag" = "ID")) %>%
+        left_join(gene_cazyme_info, by = "gene") %>%
+          mutate(id_in_OG_analysis = paste0(mag,"_", gene_ind)) %>%
+          left_join(og_gene_df, by = c("id_in_OG_analysis" = "gene"))
+write.csv(genes_info, "results/figures/gene_info.csv", row.names = FALSE, quote = FALSE)
+```
+
+```{r}
+# [1] "gene"                      "scaffold"                 
+# [3] "gene_ind"                  "mag"                      
+# [5] "Completeness"              "Contamination"            
+# [7] "Size"                      "scaffolds"                
+# [9] "contigs"                   "N50_scaffolds"            
+# [11] "N50_contigs"               "Mean_scaffold_length"     
+# [13] "Mean_contig_length"        "Longest_scaffold"         
+# [15] "Longest_contig"            "genes"                    
+# [17] "Size_readable"             "Sample"                   
+# [19] "Type"                      "Quality"                  
+# [21] "Domain"                    "Phylum"                   
+# [23] "Class"                     "Order"                    
+# [25] "Family"                    "Genus"                    
+# [27] "Species"                   "Score"                    
+# [29] "magOTU"                    "closest_cluster_member"   
+# [31] "furthest_cluster_member.x" "Representative"           
+# [33] "completeness"              "contamination"            
+# [35] "length"                    "N50"                      
+# [37] "Completeness_quality"      "Contamination_quality"    
+# [39] "N50_quality"               "Host"                     
+# [41] "Num_mags"                  "score_representative"     
+# [43] "cluster_members"           "furthest_cluster_member.y"
+# [45] "representative_genome"     "score"                    
+# [47] "MAG_species_name_final"    "cazyme_family"            
+# [49] "id_in_OG_analysis"         "og"                       
+# [51] "coreness"                  "og_id"     
+genes_of_interest <- genes_info %>%
+                      filter(!is.na(mag)) %>%
+                      filter(!is.na(cazyme_family)) %>%
+                      filter(Genus == "g__Dysgonomonas") %>%
+                      # filter(Genus == "g__Bombilactobacillus") %>%
+                      pull(gene)
+# replace NAs with 0s
+matrix_to_plot <- df_gene_counts %>%
+                    filter(gene %in% genes_of_interest) %>%
+                      column_to_rownames("gene") %>%
+                          as.matrix %>%
+                            replace(is.na(.), 0)
+dim(matrix_to_plot)
+matrix_to_plot <- matrix_to_plot[apply(matrix_to_plot, 1, function(x) sum(x > 0, na.rm = T)) > 10,]
+dim(matrix_to_plot)
+genes_of_interest <- rownames(matrix_to_plot)
+genus_names <- genes_of_interest %>%
+                as.data.frame() %>%
+                left_join(genes_info %>% select(gene, Genus), by = c("." = "gene")) %>%
+                  pull(Genus)
+species_names <- genes_of_interest %>%
+                as.data.frame() %>%
+                left_join(genes_info %>% select(gene, MAG_species_name_final), by = c("." = "gene")) %>%
+                  pull(MAG_species_name_final)
+cazy_names <- genes_of_interest %>%
+                as.data.frame() %>%
+                left_join(genes_info %>% select(gene, cazyme_family), by = c("." = "gene")) %>%
+                  pull(cazyme_family)
+coreness_names <- genes_of_interest %>%
+                as.data.frame() %>%
+                left_join(genes_info %>% select(gene, coreness), by = c("." = "gene")) %>%
+                  pull(coreness)
+species_names_to_mark <- unique(species_names)
+species_indices <- sapply(species_names_to_mark, function(x) which(species_names == x)[1]) %>% as.numeric
+species_names_to_mark <- species_names_to_mark[order(species_indices)]
+anno_species_row <- rowAnnotation(Species = species_names,
+                        col = list(Species = make_col_list(species_names)
+                        ), border = T, show_legend = c(F)
+                    )
+anno_species_text_row <- rowAnnotation(Spec_labales = anno_mark(at = species_indices, side = "left",
+                                                          labels = species_names_to_mark),
+                                       Species = species_names,
+                        col = list(Species = make_col_list(species_names)
+                        ), border = T, show_legend = c(F)
+                    )
+anno_cazyme_row <- rowAnnotation(Cazyme = cazy_names,
+                                 coreness = coreness_names,
+                        col = list(Cazyme = make_col_list(cazy_names),
+                                    coreness = make_col_list(coreness_names)
+                        ), border = T, show_legend = c(F, T)
+                    )
+anno_coreness_row <- rowAnnotation(coreness = coreness_names,
+                        col = list(coreness = make_col_list(coreness_names)
+                        ), border = T
+                    )
+anno_genus_row <- rowAnnotation(Genus = genus_names,
+                        col = list(Genus = make_col_list(genus_names)
+                        ), border = T, show_legend = c(F)
+                    )
+anno_host_col <- HeatmapAnnotation(Host = colnames(matrix_to_plot) %>% as.data.frame() %>% mutate(Host = Vectorize(get_host_from_sample_name)(.)) %>% pull(Host),
+                              col = list(Host = host_order_color
+                              ), border = T
+                          )
+row_split <- as.character(as.factor(cazy_names))
+row_split <- as.character(as.factor(coreness_names))
+# remove rows with all 0s and / or NAs
+heatmap_obj = Heatmap(matrix_to_plot,
+        # col = c("#e1ebf4", "#081d58"),
+        col = colorRamp2(c(0, 0.1, 1, 10, 1000), c(brewer.pal(9, "PuBu")[1], brewer.pal(9, "PuBu")[3], brewer.pal(9, "PuBu")[4], brewer.pal(9, "PuBu")[7], brewer.pal(9, "PuBu")[9])),
+        clustering_method_columns = 'ward.D2',
+        column_dend_side = "bottom",
+        column_title_gp = grid::gpar(fontsize = 0),
+        row_title_gp = grid::gpar(fontsize = 12),
+        row_title_rot = 0,
+        row_split = row_split,
+        # border = T,
+        heatmap_legend_param = list(title = "RPKM (Unique)"),
+        left_annotation = anno_cazyme_row,
+        right_annotation = anno_species_row,
+        bottom_annotation = anno_host_col, 
+        # top_annotation = column_ha,
+        column_names_gp = grid::gpar(fontsize = 0),
+        row_names_gp = grid::gpar(fontsize = 0),
+          cluster_columns = F,
+          cluster_rows = F)
+draw(heatmap_obj, merge_legend = TRUE)
+
+gene_compiled <- df_gene_counts %>%
+        pivot_longer(!gene, names_to = "sample", values_to = "uniq_rpkm") %>%
+        left_join(genes_info, by = "gene")
+head(gene_compiled)
+
+```
+
+```{r}
+clusters_host <- read.csv("results/figures/visualize_temp/cluster_host_barplot.tsv", sep = "\t") %>%
+                  mutate(variable = ifelse(variable == "M", "Apis mellifera", variable)) %>%
+                  mutate(variable = ifelse(variable == "C", "Apis cerana", variable)) %>%
+                  mutate(variable = ifelse(variable == "D", "Apis dorsata", variable)) %>%
+                  mutate(variable = ifelse(variable == "F", "Apis florea", variable)) %>%
+                  mutate(variable = ifelse(variable == "A", "Apis andreniformis", variable)) %>%
+                  mutate(index = as.factor(index))
+index_order <- clusters_host %>%
+                  group_by(index) %>%
+                  summarise(count = sum(value)) %>%
+                  arrange(desc(count)) %>%
+                  pull(index)
+ggplot(clusters_host) +
+  geom_bar(aes(y = factor(index, index_order), x = value, fill = variable), stat = "identity") +
+  scale_fill_manual(values = host_order_color) +
+  make_theme(setFill = F)
+
+```
+
+```{r}
 ```
