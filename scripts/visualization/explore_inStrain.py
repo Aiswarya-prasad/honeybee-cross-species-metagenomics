@@ -16,3 +16,24 @@ genes_SNP_count_df = genes_SNP_count_df[genes_SNP_count_df['mm'] <= 5]
 genes_SNP_count_df = genes_SNP_count_df.sort_values('mm')\
             .drop_duplicates(subset=['gene'], keep='last')\
             .sort_index().drop(columns=['mm'])
+
+'''
+# aim to get a cumulative curve of SNPs for each species across samples
+x-axis: number of samples
+y-axis: number of SNPs
+For this we need a table with the following columns:
+iteration, number of samples, number of SNPs
+we need to first get the positions that have SNPs in a given sample and count them
+then add to it the number of positions not already counted in previous samples
+having snps
+'''
+
+# get variable sites for A2-2
+IS = inStrain.SNVprofile.SNVprofile('results/10_instrain/02_instrain_profile/A2-2')
+snv_table = IS.get_nonredundant_snv_table()
+snv_table = snv_table[snv_table['class'] != 'SNS']
+snv_table['class'].value_counts()
+snv_table['position'].value_counts()
+# identify positions uniquely as a combination of scaffold and position - consider the format scaffold@position
+# call this position_id
+snv_table['position_id'] = snv_table['scaffold'] + '@' + snv_table['position'].astype(str)

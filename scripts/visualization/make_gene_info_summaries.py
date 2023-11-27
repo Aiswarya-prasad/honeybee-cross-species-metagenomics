@@ -349,6 +349,8 @@ and breadth > 0.75 in the sample
 To find this, for each sample, 
 '''
 
+# RESUME HERE
+
 samples = [x.split('/')[-1].split('_mapped')[0] for x in glob.glob('results/08_gene_content/01_profiling/*_mapped.coverage')]
 for sample in samples:
     input_f = f'results/08_gene_content/01_profiling/{sample}_mapped.coverage'
@@ -358,8 +360,11 @@ for sample in samples:
 
 coverage_outputs_filt = {}
 for sample in samples:
-    coverage_output_filt = pd.read_csv(f'results/08_gene_content/01_profiling/{sample}_mapped.coverage.filtered', sep='\t')
-    coverage_outputs_filt[sample] = coverage_output_filt
+    try:
+        coverage_output_filt = pd.read_csv(f'results/08_gene_content/01_profiling/{sample}_mapped.coverage.filtered', sep='\t')
+        coverage_outputs_filt[sample] = coverage_output_filt
+    except:
+        pass
 
 # write a table with the number of genes per sample
 genes_per_sample = {}
@@ -437,3 +442,41 @@ og_mags = set(phylo_metadata['ID'])
 # plt.xlim(0, 1)
 # plt.savefig('results/figures/visualize_temp/coverage_hist.png')
 # plt.close()
+
+
+# '''
+# copying some files for future use
+# '''
+
+# with open('results/export/magOTU_handmade_names.csv', 'r') as f:
+#     header = f.readline()
+#     for line in f:
+#         line = line.strip()
+#         mag = line.split(',')[0]
+#         mag_name = line.split(',')[1]
+#         faa_path = line.split(',')[5]
+#         gff_path = line.split(',')[6]
+#         print(mag)
+#         out_faa=f'results/export/MAGs_annotation_faa/{mag_name}.faa'
+#         out_gff=f'results/export/MAGs_annotation_gff/{mag_name}.gff'
+#         out_faa_nas=f'/nas/FAC/FBM/DMF/pengel/spirit/D2c/aprasad/20211018_aprasad_ApisCrossSpeciesAnalysis/Analysis/MAGs_collection/MAGs_faa/{mag_name}.faa'
+#         out_gff_nas=f'/nas/FAC/FBM/DMF/pengel/spirit/D2c/aprasad/20211018_aprasad_ApisCrossSpeciesAnalysis/Analysis/MAGs_collection/MAGs_gff/{mag_name}.gff'
+#         os.system(f'cp {faa_path} {out_faa}')
+#         os.system(f'cp {gff_path} {out_gff}')
+#         os.system(f'cp {faa_path} {out_faa_nas}')
+#         os.system(f'cp {gff_path} {out_gff_nas}')
+
+
+'''
+more notes:
+    there are 3 ways to consider coverage of a gene
+        one, is directly from the back-mapping to the contig but this is 
+        tedious and potentially suffers from read stealing by host contigs
+        second, mapping to the MAGs this give a breadth and coverage 
+        for each gene that is in the rep. MAGs but means that there is information
+        missing for others so this is not the most useful here
+        third, is from mapping to the set of all filtered genes (gene catalog) this is
+        the approach we will use right now and consider a gene of the gene catalog
+        detected if it has a coverage of > 0 and breadth > 0.75 
+        (reconsider the threshold later)
+'''

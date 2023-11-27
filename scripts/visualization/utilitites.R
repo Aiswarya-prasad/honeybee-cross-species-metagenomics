@@ -2,7 +2,7 @@
 # load libraries
 ##############
 
-working_dir <- "/scratch/aprasad/20230313_apis_species_comparison"
+working_dir <- "/work/FAC/FBM/DMF/pengel/spirit/aprasad/BACKUP_current/20230313_apis_species_comparison"
 setwd(working_dir)
 
 library(ggsignif)

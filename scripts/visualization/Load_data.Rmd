@@ -92,9 +92,9 @@ If there are any specific changes to functions be sure to re-write the RData obj
 # library(picante)
 # library(ggpubr) - version confilct
 # Previously saved env data not clean - redo next time
-# save.image("/scratch/aprasad/20230313_apis_species_comparison/results/figures/workspace_generaldata_chunks_20230611.RData")
-# load("/scratch/aprasad/20230313_apis_species_comparison/results/figures/workspace_generaldata_chunks_20230611.RData")
-source('/scratch/aprasad/20230313_apis_species_comparison/scripts/visualization/utilitites.R')
+# save.image("/work/FAC/FBM/DMF/pengel/spirit/aprasad/BACKUP_current/20230313_apis_species_comparison/results/figures/workspace_generaldata_chunks_20230611.RData")
+# load("/work/FAC/FBM/DMF/pengel/spirit/aprasad/BACKUP_current/20230313_apis_species_comparison/results/figures/workspace_generaldata_chunks_20230611.RData")
+source('/work/FAC/FBM/DMF/pengel/spirit/aprasad/BACKUP_current/20230313_apis_species_comparison/scripts/visualization/utilitites.R')
 ```
 
 ### Read metadata and parse into dataframe
@@ -684,9 +684,9 @@ handmade_species_names <- read.csv("config/Species_MAG_Cluster-names.txt", heade
 MAGs_collated <- MAGs_collated %>%
                   filter(!Sample %in% samples_to_exclude)
 colnames(MAGs_collated)
-# system("bash scripts/calc_genome_sizes.sh /scratch/aprasad/20230313_apis_species_comparison/results/09_MAGs_collection/MAGs_high_medium /scratch/aprasad/20230313_apis_species_comparison/results/figures/Genome_sizes_good_quality.csv fa")
-# system("bash scripts/calc_genome_sizes.sh /scratch/aprasad/20230313_apis_species_comparison/results/09_MAGs_collection/MAGs /scratch/aprasad/20230313_apis_species_comparison/results/figures/Genome_sizes.csv fa")
-# system("bash scripts/calc_genome_sizes.sh /scratch/aprasad/20230313_apis_species_comparison/results/11_phylogenies/downloads /scratch/aprasad/20230313_apis_species_comparison/results/figures/Genome_sizes_refs.csv fna")
+# system("bash scripts/calc_genome_sizes.sh /work/FAC/FBM/DMF/pengel/spirit/aprasad/BACKUP_current/20230313_apis_species_comparison/results/09_MAGs_collection/MAGs_high_medium /work/FAC/FBM/DMF/pengel/spirit/aprasad/BACKUP_current/20230313_apis_species_comparison/results/figures/Genome_sizes_good_quality.csv fa")
+# system("bash scripts/calc_genome_sizes.sh /work/FAC/FBM/DMF/pengel/spirit/aprasad/BACKUP_current/20230313_apis_species_comparison/results/09_MAGs_collection/MAGs /work/FAC/FBM/DMF/pengel/spirit/aprasad/BACKUP_current/20230313_apis_species_comparison/results/figures/Genome_sizes.csv fa")
+# system("bash scripts/calc_genome_sizes.sh /work/FAC/FBM/DMF/pengel/spirit/aprasad/BACKUP_current/20230313_apis_species_comparison/results/11_phylogenies/downloads /work/FAC/FBM/DMF/pengel/spirit/aprasad/BACKUP_current/20230313_apis_species_comparison/results/figures/Genome_sizes_refs.csv fna")
 genome_lengths_df <- read.csv("results/figures/Genome_sizes.csv")
 genome_lengths_df_hq <- read.csv("results/figures/Genome_sizes_good_quality.csv")
 genome_lengths_df_ref <- read.csv("results/figures/Genome_sizes_refs.csv")
@@ -2006,7 +2006,7 @@ ps <- phyloseq(sample_data(sample_data_mat),
 # Apis dorsata	Thailand	AP018369
 # Apis mellifera	carnica N/A	MN250878
 # Apis cerana	Borneo Island	AP018149
-host_tree_path <- "/scratch/aprasad/20230313_apis_species_comparison/data/host_tree_published.tree"
+host_tree_path <- "/work/FAC/FBM/DMF/pengel/spirit/aprasad/BACKUP_current/20230313_apis_species_comparison/data/host_tree_published.tree"
 host_tree <- read.tree(host_tree_path)
 
 # print samples not in rownames(abundance_df_matrix)
@@ -2270,4 +2270,38 @@ df_cdhit_clusters_info <- read.csv("results/08_gene_content/00_cdhit_clustering/
 #                                   mutate(Prevalence_host = ifelse(Host=="Apis florea",Present/length(samples_af), Prevalence_host)) %>%
 #                                   mutate(Prevalence_host = ifelse(Host=="Apis andreniformis",Present/length(samples_aa), Prevalence_host))
 # write.csv(handmade_species_names, "results/figures/handmade_species_names.csv", row.names = F, quote = F)
+```
+```{r}
+# make a collection of mags renamed with handmade species names so they can be explored later
+
+mod_mag_ID_for_checkm_out <- function(id) {
+  sample = str_split(id, "_", simplify = TRUE)[,1]
+  num = str_split(id, "_", simplify = TRUE)[,2]
+  return(paste0(sample, ".", num))
+}
+
+vis_magOTUs_df %>%
+  ungroup() %>%
+  select(ID, magOTU, Genus, Family, Order, Sample) %>%
+  mutate(Genus = as.character(Genus)) %>%
+  mutate(Family = as.character(Family)) %>%
+  mutate(Order = as.character(Order)) %>%
+  left_join(handmade_species_names %>% select(cluster, MAG_species_name_final_nospace), by = c("magOTU" = "cluster")) %>%
+  mutate(MAG_species_name_final_nospace = ifelse(is.na(MAG_species_name_final_nospace), Genus, MAG_species_name_final_nospace)) %>%
+  mutate(MAG_species_name_final_nospace = ifelse(MAG_species_name_final_nospace == "g__", Family, MAG_species_name_final_nospace)) %>%
+  mutate(MAG_species_name_final_nospace = ifelse(MAG_species_name_final_nospace == "f__", Order, MAG_species_name_final_nospace)) %>%
+  mutate(new_mag_group = MAG_species_name_final_nospace) %>%
+  mutate(new_mag_name = paste0(MAG_species_name_final_nospace, "-", ID)) %>%
+  mutate(mag_path = paste0("/work/FAC/FBM/DMF/pengel/spirit/aprasad/BACKUP_current/20230313_apis_species_comparison/results/09_MAGs_collection/MAGs/", ID, ".fa")) %>%
+  mutate(out_path_rel = paste0("results/export/MAGs_collected/", new_mag_name, ".fa")) %>%
+  mutate(ID_mod = Vectorize(mod_mag_ID_for_checkm_out)(ID)) %>%
+  mutate(anno_path_faa = paste0("/work/FAC/FBM/DMF/pengel/spirit/aprasad/BACKUP_current/20230313_apis_species_comparison/results/07_MAG_binng_QC/03_checkm_results/", Sample, "/bins/", ID_mod, "/genes.faa")) %>%
+  mutate(out_path_faa = paste0("results/export/MAGs_annotation_faa/", new_mag_name, ".fa")) %>%
+  mutate(anno_path_gff = paste0("/work/FAC/FBM/DMF/pengel/spirit/aprasad/BACKUP_current/20230313_apis_species_comparison/results/07_MAG_binng_QC/03_checkm_results/", Sample, "/bins/", ID_mod, "/genes.gff")) %>%
+  mutate(out_path_gff = paste0("results/export/MAGs_annotation_gff/", new_mag_name, ".fa")) %>%
+  select(ID, new_mag_name, new_mag_group, mag_path, out_path_rel, anno_path_faa, anno_path_gff) %>%
+    write.csv("results/export/magOTU_handmade_names.csv", row.names = F, quote = F)
+  # mutate(MAG_species_name_final_nospace = ifelse(MAG_species_name_final_nospace == "f__", paste0(Order,"-",magOTU), MAG_species_name_final_nospace))
+
+
 ```
