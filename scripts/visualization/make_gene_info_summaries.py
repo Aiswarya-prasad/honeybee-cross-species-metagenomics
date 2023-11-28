@@ -16,8 +16,190 @@ from collections import Counter
 from itertools import combinations
 from pprint import pprint
 from Bio import SeqIO
+import random
 # from Bio.KEGG import REST
 # from Bio.KEGG.KGML import KGML_parser
+
+host_species = ['Apis mellifera', 'Apis cerana',
+                'Apis dorsata', 'Apis florea', 'Apis andreniformis']
+
+def host_of_sample(sample_name):
+    if sample_name:
+        if sample_name.startswith('M') or sample_name.startswith('Dr') or sample_name.startswith('Gr') or sample_name.startswith('Am'):
+            return 'Apis mellifera'
+        if sample_name.startswith('C') or sample_name.startswith('Ac'):
+            return 'Apis cerana'
+        if sample_name.startswith('D'):
+            return 'Apis dorsata'
+        if sample_name.startswith('F'):
+            return 'Apis florea'
+        if sample_name.startswith('A'):
+            return 'Apis andreniformis'
+
+samples = [x.split('/')[-1].split('_mapped')[0] for x in glob.glob('results/08_gene_content/01_profiling/*_mapped.coverage')]
+for i, sample in enumerate(samples):
+    # get a list of genes that are detected in each sample
+    # this comes from either a countin tool
+    # or selecting the genes that have a good enough
+    # mapping score, coverage and breadth from the read against whole
+    # assembly read mapping. Then see how much of the "detected" genes
+    # are annotated by DRAM with a KEGG ID and how many of those are
+    # in the gene catalog / cd-hit clustering output anything that is
+    # not in the gene catalog is not considered because it must have
+    # been in a contig that was filtered out (by whokaryote or kaiju)
+    # so the list of detected genes should be restricted to the gene
+    # catalog explore the genes that were detected but not in the gene
+    # catalog later ..
+    # to do this we can count just the genes specified in the output of
+    # prodigal_filt_orfs which is located in:
+    # results/06_metagenomicORFs/{sample}/filt_orfs/{sample}.gff
+    # RESUME HERE
+# write a table with the number of genes per sample
+genes_per_sample = {}
+for sample in samples:
+    genes_detected = pd.read_csv(f'results/08_gene_content/01_profiling/{sample}_mapped.coverage.filtered', sep = '\t')['#rname'].to_list()
+    genes_per_sample[sample] = len(genes_detected)
+with open('results/figures/visualize_temp/genes_per_sample.tsv', 'w') as out_fh:
+    out_fh.write('sample\tgenes\n')
+    for sample in genes_per_sample:
+        out_fh.write(f'{sample}\t{genes_per_sample[sample]}\n')
+
+# genes_detected_sets = {sample: set() for sample in samples}
+# for sample in samples:
+#     genes_detected = pd.read_csv(f'results/08_gene_content/01_profiling/{sample}_mapped.coverage.filtered', sep = '\t')['#rname'].to_list()
+#     genes_detected_sets[sample].update(genes_detected)
+# pickle.dump(genes_detected_sets, open('results/figures/visualize_temp/genes_detected_sets.pkl', 'wb'))
+genes_detected_sets = pickle.load(open('results/figures/visualize_temp/genes_detected_sets.pkl', 'rb'))
+
+with open('results/figures/visualize_temp/genes_cum_curve.tsv', 'w+') as out_fh:
+    out_fh.write(f'host\titeration\nsize\tgenes\n')
+    for i, host in enumerate(host_species):
+        print(f'working on {host}')
+        samples_host = [x for x in samples if host_of_sample(x) == host and not x.startswith('Am') and not x.startswith('Dr') and not x.startswith('Gr') and not x.startswith('Ac')]
+        for iteration in range(10):
+            for j, sample_size in enumerate([x for x in range(len(samples_host)) if x > 0]):
+                print(f'working om iteration {iteration}/11 and sample size {j}/{len(samples_host)}', end = '\r')
+                cum_genes = 0
+                samples_iter = random.sample(samples_host, sample_size)
+                genes_detected = set()
+                for sample in samples_iter:
+                    genes_detected.update(genes_detected_sets[sample])
+                    cum_genes += len(genes_detected)
+                n = out_fh.write(f'{host}\t{iteration}\t{sample_size}\t{cum_genes}\n')
+
+# with open('results/figures/visualize_temp/genes_cum_curve_extended.tsv', 'w+') as out_fh:
+#     out_fh.write(f'host\titeration\nsize\tgenes\n')
+#     for i, host in enumerate(host_species):
+#         print(f'working on {host}')
+#         samples_host = [x for x in samples if host_of_sample(x) == host and not x.startswith('Am') and not x.startswith('Dr') and not x.startswith('Gr') and not x.startswith('Ac')]
+#         for iteration in range(10):
+#             for j, sample_size in enumerate([x for x in range(len(samples_host)) if x > 0]):
+#                 print(f'working om iteration {iteration}/11 and sample size {j}/{len(samples_host)}', end = '\r')
+#                 cum_genes = 0
+#                 samples_iter = random.sample(samples_host, sample_size)
+#                 genes_detected = set()
+#                 for sample in samples_iter:
+#                     genes_detected.update(genes_detected_sets[sample])
+#                     cum_genes += len(genes_detected)
+#                 n = out_fh.write(f'{host}\t{iteration}\t{sample_size}\t{cum_genes}\n')
+
+# now number of clusters per sample
+'''
+define a class to read and handle clusters. Each cluster represents a list of genes and is represented
+'''
+
+class cdhit_cluster:
+    def __init__(self, name):
+        self.name = name #cluster name
+        self.genes = [] # list of genes in the cluster
+        self.lengths = {} # list of lengths of the genes in the cluster
+        self.identity = {} # list of perc identity to rep gene
+        self.strandedness = {} # strandedness wrt rep
+        self.rep_gene = '' # representative gene for the cluster
+    
+    def add_info(self, gene_to_add, length, is_rep, strand='+', perc=100):
+        self.genes.append(gene_to_add)
+        self.lengths[gene_to_add] = length
+        self.identity[gene_to_add] = perc
+        self.strandedness[gene_to_add] = strand
+        if is_rep:
+            self.rep_gene = gene_to_add
+    
+    def __repr__(self):
+        return f'Cluster--{self.name}:\n  rep gene:{self.rep_gene}\n    genes: {self.genes}\n    lengths: {self.lengths}\n    identity: {self.identity}'
+
+    def __str__(self):
+        return f'Cluster--{self.name}:\n  rep gene:{self.rep_gene}\n    genes: {self.genes}\n    lengths: {self.lengths}\n    identity: {self.identity}'
+
+# cluster_file = "results/08_gene_content/00_cdhit_clustering/20230313_gene_catalog_cdhit9590.fasta.clstr"
+# clusters = {}
+# cluster_num = 0
+# with open(cluster_file, 'r') as f:
+#     for line in f:
+#         line = line.strip()
+#         if line.startswith('>'):
+#             cluster_num = line.split('>Cluster ')[1]
+#             clust_obj = cdhit_cluster(cluster_num)
+#             clusters[cluster_num] = clust_obj
+#         else:
+#             length = int(line.split()[1].split('nt')[0])
+#             gene = line.split()[2].split('>')[1].split('...')[0]
+#             rep_char = line.split()[3]
+#             if rep_char == '*':
+#                 clusters[cluster_num].add_info(gene, length, True)
+#             else:
+#                 strand = line.split()[4].split('/')[1]
+#                 perc = float(line.split()[4].split('/')[2].split('%')[0])
+#                 clusters[cluster_num].add_info(gene, length, False, strand, perc)
+# with open('results/figures/clusters_objects_collection.pkl', "wb") as pkl_fh:
+#         pickle.dump(clusters, pkl_fh)
+genes_detected_strict = {sample: set() for sample in samples}
+for sample in samples:
+    genes_detected = pd.read_csv(f'results/08_gene_content/01_profiling/{sample}_mapped.coverage.filtered', sep = '\t')['#rname'].to_list()
+    genes_detected_strict[sample].update(genes_detected)
+pickle.dump(genes_detected_strict, open('results/figures/visualize_temp/genes_detected_strict.pkl', 'wb'))
+# genes_detected_strict = pickle.load(open('results/figures/visualize_temp/genes_detected_strict.pkl', 'rb'))
+clusters = pd.read_pickle('results/figures/clusters_objects_collection.pkl')
+# gene_cluster_dict = {}
+# for cluster in clusters:
+#     for gene in clusters[cluster].genes:
+#         gene_cluster_dict[gene] = cluster
+clusters_per_sample = {sample: set() for sample in samples}
+for sample in samples:
+    for cluster in clusters:
+        for gene in clusters[cluster].genes:
+            if gene in genes_detected_strict[sample]:
+                clusters_per_sample[sample].add(cluster)
+                break
+
+with open('results/figures/visualize_temp/clusters_per_sample.tsv', 'w') as out_fh:
+    out_fh.write('sample\tclusters\n')
+    for sample in clusters_per_sample:
+        out_fh.write(f'{sample}\t{len(clusters_per_sample[sample])}\n')
+
+# intermediate files in 'results/figures/functional_analysis_data'
+
+#### KEGG category level A
+# kegg_dict_A = {}
+# for gene in kegg_dict.keys():
+#     if kegg_dict[gene] == '':
+#         kegg_dict_A[gene] = ''
+#     else:
+#         kegg_dict_A[gene] = kegg_info_dict[kegg_dict[gene]]['A']
+
+### summarize across samples
+# 2. #clusters
+#       count the number of clusters per category for each sample to
+#       make a table of the form:
+#           sample  category    #clusters
+
+
+
+
+# 1. #genes
+#       count the number of genes per category for each sample to
+#       make a table of the form:
+#           sample  category    #genes
 
 
 '''
@@ -129,61 +311,6 @@ with open('results/08_gene_content/07_OG_coreness/gene_og_coreness.tsv', 'w') as
 # for sample in samples:
 #     gene_info_dfs[sample] = pd.read_csv(f"results/10_instrain/02_instrain_profile/{sample}/output/{sample}_gene_info.tsv", sep = "\t")
 
-
-'''
-define a class to read and handle clusters. Each cluster represents a list of genes and is represented
-'''
-class cdhit_cluster:
-    def __init__(self, name):
-        self.name = name #cluster name
-        self.genes = [] # list of genes in the cluster
-        self.lengths = {} # list of lengths of the genes in the cluster
-        self.identity = {} # list of perc identity to rep gene
-        self.strandedness = {} # strandedness wrt rep
-        self.rep_gene = '' # representative gene for the cluster
-    
-    def add_info(self, gene_to_add, length, is_rep, strand='+', perc=100):
-        self.genes.append(gene_to_add)
-        self.lengths[gene_to_add] = length
-        self.identity[gene_to_add] = perc
-        self.strandedness[gene_to_add] = strand
-        if is_rep:
-            self.rep_gene = gene_to_add
-    
-    def __repr__(self):
-        return f'Cluster--{self.name}:\n  rep gene:{self.rep_gene}\n    genes: {self.genes}\n    lengths: {self.lengths}\n    identity: {self.identity}'
-
-    def __str__(self):
-        return f'Cluster--{self.name}:\n  rep gene:{self.rep_gene}\n    genes: {self.genes}\n    lengths: {self.lengths}\n    identity: {self.identity}'
-
-# cluster_file = "results/08_gene_content/00_cdhit_clustering/20230313_gene_catalog_cdhit9590.fasta.clstr"
-# clusters = {}
-# cluster_num = 0
-# with open(cluster_file, 'r') as f:
-#     for line in f:
-#         line = line.strip()
-#         if line.startswith('>'):
-#             cluster_num = line.split('>Cluster ')[1]
-#             clust_obj = cdhit_cluster(cluster_num)
-#             clusters[cluster_num] = clust_obj
-#         else:
-#             length = int(line.split()[1].split('nt')[0])
-#             gene = line.split()[2].split('>')[1].split('...')[0]
-#             rep_char = line.split()[3]
-#             if rep_char == '*':
-#                 clusters[cluster_num].add_info(gene, length, True)
-#             else:
-#                 strand = line.split()[4].split('/')[1]
-#                 perc = float(line.split()[4].split('/')[2].split('%')[0])
-#                 clusters[cluster_num].add_info(gene, length, False, strand, perc)
-# with open('results/figures/clusters_objects_collection.pkl', "wb") as pkl_fh:
-#         pickle.dump(clusters, pkl_fh)
-clusters = pd.read_pickle('results/figures/clusters_objects_collection.pkl')
-gene_cluster_dict = {}
-for cluster in clusters:
-    for gene in clusters[cluster].genes:
-        gene_cluster_dict[gene] = cluster
-
 '''
 all_scaffold_to_bin.tsv contains the following columns
 scaffold	mag	size	completeness	contamination	genus	species	magotu
@@ -265,34 +392,34 @@ with open('data/KEGG_info/ko00001.keg', 'r') as f:
             ko = line.split('D      ')[1].split(' ')[0]
             kegg_info_dict[ko] = {'A': current_a, 'B': current_b, 'C': current_c}
 
-gene_catalog = 'results/08_gene_content/20230313_gene_catalog.ffn'
-total_genes = 0
-genes_per_sample = Counter()
-gene_per_host = Counter()
-all_genes = SeqIO.parse(gene_catalog, 'fasta')
-for gene in all_genes:
-    total_genes += 1
-    genes_per_sample[gene.id.split('_NODE')[0]] += 1
-    gene_per_host[gene.id[0]] += 1
-# total_genes
-# 4,911,821
-len([kegg_dict[x] for x in kegg_dict if kegg_dict[x] != ''])
-# 2,772,118
-len([dram_cazy_dict[x] for x in dram_cazy_dict if dram_cazy_dict[x] != ''])
-# 122,164
-len(cazy_dict) # from cayman
-# 150,832
-len([pfam_dict[x] for x in pfam_dict if pfam_dict[x] != ''])
-# 259,590
-binned_scaffolds = set(all_scaffolds_info['scaffold'])
-in_mag = 0
-all_genes = SeqIO.parse(gene_catalog, 'fasta')
-for gene in all_genes:
-    if scaffold_from_geneid(gene.id) in binned_scaffolds:
-        in_mag += 1
-# 3,678,762
-in_og = len(gene_og_dict)
-# 2,511,732
+# gene_catalog = 'results/08_gene_content/20230313_gene_catalog.ffn'
+# total_genes = 0
+# genes_per_sample = Counter()
+# gene_per_host = Counter()
+# all_genes = SeqIO.parse(gene_catalog, 'fasta')
+# for gene in all_genes:
+#     total_genes += 1
+#     genes_per_sample[gene.id.split('_NODE')[0]] += 1
+#     gene_per_host[gene.id[0]] += 1
+# # total_genes
+# # 4,911,821
+# len([kegg_dict[x] for x in kegg_dict if kegg_dict[x] != ''])
+# # 2,772,118
+# len([dram_cazy_dict[x] for x in dram_cazy_dict if dram_cazy_dict[x] != ''])
+# # 122,164
+# len(cazy_dict) # from cayman
+# # 150,832
+# len([pfam_dict[x] for x in pfam_dict if pfam_dict[x] != ''])
+# # 259,590
+# binned_scaffolds = set(all_scaffolds_info['scaffold'])
+# in_mag = 0
+# all_genes = SeqIO.parse(gene_catalog, 'fasta')
+# for gene in all_genes:
+#     if scaffold_from_geneid(gene.id) in binned_scaffolds:
+#         in_mag += 1
+# # 3,678,762
+# in_og = len(gene_og_dict)
+# # 2,511,732
 
 '''
 At this point, multiple approaches are possible.
@@ -315,32 +442,32 @@ instead of number of genes....
 '''
 
 len(clusters)
-# 710497 in total
+# 710,497 in total
 
 # show a bar plot with x axis the number of hosts that the cluster is found in and y axis the number of clusters
 # that are found in that many hosts
 
 # get the number of hosts that each cluster is found in
-singletons = 0
-cluster_size_dict = {}
-for cluster in clusters:
-    cluster_size_dict[cluster] = len(clusters[cluster].genes)
-    if len(clusters[cluster].genes) == 1:
-        singletons += 1
+# singletons = 0
+# cluster_size_dict = {}
+# for cluster in clusters:
+#     cluster_size_dict[cluster] = len(clusters[cluster].genes)
+#     if len(clusters[cluster].genes) == 1:
+#         singletons += 1
 
-plt.hist(cluster_size_dict.values(), bins=100)
-plt.savefig('results/figures/visualize_temp/cluster_size_hist.png')
-plt.close()
+# plt.hist(cluster_size_dict.values(), bins=100)
+# plt.savefig('results/figures/visualize_temp/cluster_size_hist.png')
+# plt.close()
 
-cluster_host_dict = {}
-for cluster in clusters:
-    if len(clusters[cluster].genes) == 1:
-        continue
-    hosts_seen = Counter([x[0] for x in clusters[cluster].genes])
-    cluster_host_dict[cluster] = len(hosts_seen.keys())
-plt.hist(cluster_host_dict.values(), bins = 5)
-plt.savefig('results/figures/visualize_temp/cluster_host_hist.png')
-plt.close()
+# cluster_host_dict = {}
+# for cluster in clusters:
+#     if len(clusters[cluster].genes) == 1:
+#         continue
+#     hosts_seen = Counter([x[0] for x in clusters[cluster].genes])
+#     cluster_host_dict[cluster] = len(hosts_seen.keys())
+# plt.hist(cluster_host_dict.values(), bins = 5)
+# plt.savefig('results/figures/visualize_temp/cluster_host_hist.png')
+# plt.close()
 
 # do the above but using mapping result to tell if a cluster has been detected
 '''
@@ -348,69 +475,6 @@ A cluster is considered detected if any gene in the cluster is found at a covera
 and breadth > 0.75 in the sample
 To find this, for each sample, 
 '''
-
-# RESUME HERE
-
-samples = [x.split('/')[-1].split('_mapped')[0] for x in glob.glob('results/08_gene_content/01_profiling/*_mapped.coverage')]
-for sample in samples:
-    input_f = f'results/08_gene_content/01_profiling/{sample}_mapped.coverage'
-    output_f = f'results/08_gene_content/01_profiling/{sample}_mapped.coverage.filtered'
-    # use awk to filter the coverage file
-    os.system(f"awk '$6 > 50' {input_f} > {output_f}")
-
-coverage_outputs_filt = {}
-for sample in samples:
-    try:
-        coverage_output_filt = pd.read_csv(f'results/08_gene_content/01_profiling/{sample}_mapped.coverage.filtered', sep='\t')
-        coverage_outputs_filt[sample] = coverage_output_filt
-    except:
-        pass
-
-# write a table with the number of genes per sample
-genes_per_sample = {}
-for sample in samples:
-    genes_per_sample[sample] = len(coverage_outputs_filt[sample])
-with open('results/figures/visualize_temp/genes_per_sample.tsv', 'w') as out_fh:
-    out_fh.write('sample\tgenes\n')
-    for sample in genes_per_sample:
-        out_fh.write(f'{sample}\t{genes_per_sample[sample]}\n')
-
-# now number of clusters per sample
-clusters_per_sample = {}
-for sample in samples:
-
-    clusters_per_sample[sample] = len(set([gene_cluster_dict[x] for x in coverage_outputs_filt[sample]['gene'].values]))
-
-with open('results/figures/visualize_temp/clusters_per_sample.tsv', 'w') as out_fh:
-    out_fh.write('sample\tclusters\n')
-    for sample in clusters_per_sample:
-        out_fh.write(f'{sample}\t{clusters_per_sample[sample]}\n')
-
-# intermediate files in 'results/figures/functional_analysis_data'
-
-#### KEGG category level A
-kegg_dict_A = {}
-for gene in kegg_dict.keys():
-    if kegg_dict[gene] == '':
-        kegg_dict_A[gene] = ''
-    else:
-        kegg_dict_A[gene] = kegg_info_dict[kegg_dict[gene]]['A']
-
-### summarize across samples
-# 2. #clusters
-#       count the number of clusters per category for each sample to
-#       make a table of the form:
-#           sample  category    #clusters
-
-
-
-
-# 1. #genes
-#       count the number of genes per category for each sample to
-#       make a table of the form:
-#           sample  category    #genes
-
-
 
 
 pprint(clusters)

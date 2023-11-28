@@ -209,7 +209,6 @@ rule parse_clustering_file:
         python3 scripts/parse_cluster_file.py --cluster_file {input.cdhit_clustering} --cluster_out {output.cdhit_clusters}
         """
 
-
 rule dram_annotate_orfs:
     input:
         dram_config = "config/dram_config.json",
@@ -271,18 +270,77 @@ rule index_nr_gene_catalog:
         """
         bwa index {input.gene_catalog} &> {log}
         """
+# We do not use this anymore because it is better to get covarage
+# from mapping to the assembly
+# rule profile_genes:
+#     input:
+#         reads1 = lambda wildcards: f"results/01_cleanreads/{wildcards.sample}_R1_repaired.fastq.gz",
+#         reads2 = lambda wildcards: f"results/01_cleanreads/{wildcards.sample}_R2_repaired.fastq.gz",
+#         gene_catalog = "results/08_gene_content/20230313_gene_catalog.ffn",
+#         bwa_index = multiext("results/08_gene_content/20230313_gene_catalog.ffn", ".amb", ".ann", ".bwt", ".pac", ".sa"),
+#     output:
+#         bam = temp("results/08_gene_content/01_profiling/{sample}_mapped.bam"),
+#         flagstat = "results/08_gene_content/01_profiling/{sample}_mapped.flagstat",
+#         coverage = "results/08_gene_content/01_profiling/{sample}_mapped.coverage",
+#         hist = "results/08_gene_content/01_profiling/{sample}_mapped.hist",
+#     params:
+#         match_length = 50,
+#         edit_distance = 5, # methods in microbiomics recommends 95 perc identity
+#         # since reads are 150 bp long, 5 mismatches is 3.3% mismatch which is almost as instrain recommends
+#         # even less chances of strains mismapping
+#         filter_script = "scripts/filter_bam.py",
+#         mailto="aiswarya.prasad@unil.ch",
+#         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+#         jobname="{sample}_profile_genes",
+#         account="pengel_spirit",
+#         runtime_s=convertToSec("0-25:10:00"),
+#     resources:
+#         mem_mb = convertToMb("40G")
+#     threads: 4
+#     log: "results/08_gene_content/01_profiling/{sample}_profile_genes.log"
+#     benchmark: "results/08_gene_content/01_profiling/{sample}_profile_genes.benchmark"
+#     conda: "../config/envs/mapping-env.yaml"
+#     shell:
+#         """
+#         bwa mem -a -t {threads} {input.gene_catalog} {input.reads1} {input.reads2} \
+#         | samtools view -F 4 -h - |  python3 {params.filter_script} -e 5 -m 50 | samtools sort -O bam -@ {threads} > {output.bam}
+#         samtools flagstat -@ {threads} {output.bam} > {output.flagstat}
+#         samtools coverage {output.bam} > {output.coverage}
+#         samtools coverage -m {output.bam} > {output.hist}
+#         """
+#         # awk '$6 > 50' {input_f} > {output_f}
 
-rule profile_genes:
+rule bowtie2_build:
+    input:
+        assembly = "results/05_assembly/all_reads_assemblies/{sample}_scaffolds.fasta",
+    output:
+        bowtie_index = multiext("results/05_assembly/all_reads_assemblies/{sample}_scaffolds.fasta", ".1.bt2", ".2.bt2", ".3.bt2", ".4.bt2", ".rev.1.bt2", ".rev.2.bt2"),
+    params:
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-5:10:00"),
+    resources:
+        mem_mb = 8000
+    threads: 4
+    log: "results/08_gene_content/01_profiling_bowtie2/{sample}_bowtie2_build.log"
+    benchmark: "results/08_gene_content/01_profiling_bowtie2/{sample}_bowtie2_build.benchmark"
+    conda: "../config/envs/mapping-bowtie-env.yaml"
+    shell:
+        """
+        bowtie2-build {input.assembly} {input.assembly}
+        """
+
+rule map_to_assembly:
     input:
         reads1 = lambda wildcards: f"results/01_cleanreads/{wildcards.sample}_R1_repaired.fastq.gz",
         reads2 = lambda wildcards: f"results/01_cleanreads/{wildcards.sample}_R2_repaired.fastq.gz",
-        gene_catalog = "results/08_gene_content/20230313_gene_catalog.ffn",
-        bwa_index = multiext("results/08_gene_content/20230313_gene_catalog.ffn", ".amb", ".ann", ".bwt", ".pac", ".sa"),
+        assembly = "results/05_assembly/all_reads_assemblies/{sample}_scaffolds.fasta",
+        bowtie_index = multiext("results/05_assembly/all_reads_assemblies/{sample}_scaffolds.fasta", ".1.bt2", ".2.bt2", ".3.bt2", ".4.bt2", ".rev.1.bt2", ".rev.2.bt2"),
     output:
-        bam = temp("results/08_gene_content/01_profiling/{sample}_mapped.bam"),
-        flagstat = "results/08_gene_content/01_profiling/{sample}_mapped.flagstat",
-        coverage = "results/08_gene_content/01_profiling/{sample}_mapped.coverage",
-        hist = "results/08_gene_content/01_profiling/{sample}_mapped.hist",
+        bam = temp("results/08_gene_content/01_profiling_bowtie2/{sample}_mapped.bam"),
+        flagstat = "results/08_gene_content/01_profiling_bowtie2/{sample}_mapped.flagstat",
+        hist = "results/08_gene_content/01_profiling_bowtie2/{sample}_mapped.hist",
     params:
         match_length = 50,
         edit_distance = 5, # methods in microbiomics recommends 95 perc identity
@@ -291,24 +349,142 @@ rule profile_genes:
         filter_script = "scripts/filter_bam.py",
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-        jobname="{sample}_profile_genes",
         account="pengel_spirit",
-        runtime_s=convertToSec("0-25:10:00"),
+        runtime_s=convertToSec("0-15:10:00"),
     resources:
-        mem_mb = convertToMb("40G")
+        mem_mb = convertToMb("50G")
     threads: 4
-    log: "results/08_gene_content/01_profiling/{sample}_profile_genes.log"
-    benchmark: "results/08_gene_content/01_profiling/{sample}_profile_genes.benchmark"
-    conda: "../config/envs/mapping-env.yaml"
+    log: "results/08_gene_content/01_profiling_bowtie2/{sample}_map_to_assembly.log"
+    benchmark: "results/08_gene_content/01_profiling_bowtie2/{sample}_map_to_assembly.benchmark"
+    conda: "../config/envs/mapping-bowtie-env.yaml"
     shell:
         """
-        bwa mem -a -t {threads} {input.gene_catalog} {input.reads1} {input.reads2} \
+        bowtie2 -x {input.assembly} -1 {input.reads1} -2 {input.reads2} -p {threads} \
         | samtools view -F 4 -h - |  python3 {params.filter_script} -e 5 -m 50 | samtools sort -O bam -@ {threads} > {output.bam}
         samtools flagstat -@ {threads} {output.bam} > {output.flagstat}
         samtools coverage {output.bam} > {output.coverage}
         samtools coverage -m {output.bam} > {output.hist}
         """
-        # awk '$6 > 50' {input_f} > {output_f}
+
+rule get_sorted_genes:
+    input:
+        gff = "results/06_metagenomicORFs/{sample}/filt_orfs/{sample}.gff",
+    output:
+        bed = "results/08_gene_content/01_profiling_bowtie2/{sample}_filt_genes.bed",
+        gff = "results/08_gene_content/01_profiling_bowtie2/{sample}_filt_genes.gff"
+    params:
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-00:30:00"),
+    resources:
+        mem_mb = convertToMb("50G")
+    log: "results/08_gene_content/01_profiling_bowtie2/{sample}_get_sorted_genes.log"
+    benchmark: "results/08_gene_content/01_profiling_bowtie2/{sample}_get_sorted_genes.benchmark"
+    conda: "../config/envs/genes-env.yaml"
+    shell:
+        """
+        # remove the sample name from the headers
+        bedtools sort -i {input.gff} | sed -e 's/{wildcards.sample}_//' > {output.gff}
+        python3 scripts/gff_to_bed.py --remove {wildcards.sample}_ --gff {output.gff} --bed {output.bed}
+        """
+
+rule filter_bam_by_qual:
+    input:
+        bam = "results/08_gene_content/01_profiling_bowtie2/{sample}_mapped.bam",
+    output:
+        bam = "results/08_gene_content/01_profiling_bowtie2/{sample}_mapped_Q20.bam",
+        flagstat = "results/08_gene_content/01_profiling_bowtie2/{sample}_mapped_Q20.flagstat",
+    params:
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-00:30:00"),
+    resources:
+        mem_mb = convertToMb("50G")
+    log: "results/08_gene_content/01_profiling_bowtie2/{sample}_filter_bam_by_qual.log"
+    benchmark: "results/08_gene_content/01_profiling_bowtie2/{sample}_filter_bam_by_qual.benchmark"
+    conda: "../config/envs/genes-env.yaml"
+    shell:
+        """
+        samtools view -q 20 -b {input.bam} > {output.bam}
+        samtools flagstat -@ {threads} {output.bam} > {output.flagstat}
+        """
+
+rule gene_counts_coverage:
+    input:
+        bam = "results/08_gene_content/01_profiling_bowtie2/{sample}_mapped_Q20.bam",
+        bed = "results/08_gene_content/01_profiling_bowtie2/{sample}_filt_genes.bed"
+    output:
+        coverage = "results/08_gene_content/01_profiling_bowtie2/{sample}_gene_coverage.txt",
+    params:
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-00:30:00"),
+    resources:
+        mem_mb = convertToMb("50G")
+    log: "results/08_gene_content/01_profiling_bowtie2/{sample}_filter_bam_by_qual.log"
+    benchmark: "results/08_gene_content/01_profiling_bowtie2/{sample}_filter_bam_by_qual.benchmark"
+    conda: "../config/envs/genes-env.yaml"
+    shell:
+        """
+        bedtools coverage -a {input.bed} -b {input.bam} > {output.coverage}
+        """
+
+
+# rule gffquant_index:
+#     input:
+#         gff = "results/08_gene_content/01_profiling_bowtie2/{sample}_filt_genes.gff"
+#     output:
+#         gff_index = "results/08_gene_content/01_profiling_bowtie2/{sample}_filt_genes.gff.index",
+#     params:
+#         mailto="aiswarya.prasad@unil.ch",
+#         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+#         account="pengel_spirit",
+#         runtime_s=convertToSec("0-5:10:00"),
+#     resources:
+#         mem_mb = convertToMb("50G")
+#     threads: 4
+#     log: "results/08_gene_content/01_profiling_bowtie2/{sample}_gffquant_index.log"
+#     benchmark: "results/08_gene_content/01_profiling_bowtie2/{sample}_gffquant_index.benchmark"
+#     conda: "../config/envs/cayman-env.yaml"
+#     shell:
+#         """
+#         # use gff quant - pip3 installed "manually from github" into cayman-env
+#         # /work/FAC/FBM/DMF/pengel/spirit/aprasad/snakemake-conda-envs/ed99f9781f3071c19a86cec650b3a864_
+#         python3 scripts/gff_quantifier/util/gff_indexer.py {input.gff}
+#         """
+
+# rule gffquant_count:
+#     input:
+#         bam = "results/08_gene_content/01_profiling_bowtie2/{sample}_mapped.bam",
+#         bed = "results/08_gene_content/01_profiling_bowtie2/{sample}_filt_genes.bed",
+#         gff = "results/08_gene_content/01_profiling_bowtie2/{sample}_filt_genes.gff",
+#         # gff_index = "results/08_gene_content/01_profiling_bowtie2/{sample}_filt_genes.gff.index",
+#     output:
+#         marker = "results/08_gene_content/01_profiling_bowtie2/{sample}.done",
+#         # gene_counts = "results/08_gene_content/01_profiling_bowtie2/{sample}_gene_counts.txt.gz"
+#     params:
+#         mailto="aiswarya.prasad@unil.ch",
+#         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+#         account="pengel_spirit",
+#         runtime_s=convertToSec("0-5:10:00"),
+#     resources:
+#         mem_mb = convertToMb("50G")
+#     threads: 4
+#     log: "results/08_gene_content/01_profiling_bowtie2/{sample}_gffquant_count.log"
+#     benchmark: "results/08_gene_content/01_profiling_bowtie2/{sample}_gffquant_count.benchmark"
+#     conda: "../config/envs/cayman-env.yaml"
+#     shell:
+#         """
+#         # use gff quant - pip3 installed "manually from github" into cayman-env
+#         # at /work/FAC/FBM/DMF/pengel/spirit/aprasad/snakemake-conda-envs/ed99f9781f3071c19a86cec650b3a864_
+#         prefix={output.marker}
+#         gffquant -t 4 {input.gff} --bam {input.bam} -o ${{prefix/.done/}}/ -m genome --ambig_mode 1overN \
+#                     --min_identity 0.97 --min_seqlen 50 --restrict_metrics "raw,lnorm,scaled,rpkm"
+#         touch {output.marker}
+#         """
 
 rule run_kaiju_genes:
     input:
@@ -414,7 +590,8 @@ rule cayman_profiling:
     conda: "../config/envs/cayman-env.yaml"
     shell:
         """
-        # pip3 installed into /work/FAC/FBM/DMF/pengel/spirit/aprasad/snakemake-conda-envs/78089992c6f27e235e9cb6bb5c91607c_
+        # pip3 installed into /work/FAC/FBM/DMF/pengel/spirit/aprasad/snakemake-conda-envs/ed99f9781f3071c19a86cec650b3a864_
+        # # pip3 installed into /work/FAC/FBM/DMF/pengel/spirit/aprasad/snakemake-conda-envs/2180282797a509891b25d4637ca406cc_
         # better yet check if it is in path and if not, set it up
         # for now this fix is ok
         cayman -t {threads} --db_separator , --db_coordinates hmmer \

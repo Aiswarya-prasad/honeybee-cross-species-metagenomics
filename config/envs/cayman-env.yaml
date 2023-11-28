@@ -5,10 +5,11 @@ channels:
   - bioconda
 
 dependencies:
+  - python=3.10
   - bwa
   - numpy==1.24.2
   - pandas==1.5.3
   - pysam
-  # - gqlib>=2.14.0
+  # - gqlib=2.14.2
   - intervaltree
   - sqlalchemy
