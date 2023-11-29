@@ -19,7 +19,7 @@ from Bio import SeqIO
 import random
 # from Bio.KEGG import REST
 # from Bio.KEGG.KGML import KGML_parser
-
+# os.chdir('/work/FAC/FBM/DMF/pengel/spirit/aprasad/BACKUP_current/20230313_apis_species_comparison')
 host_species = ['Apis mellifera', 'Apis cerana',
                 'Apis dorsata', 'Apis florea', 'Apis andreniformis']
 
@@ -36,72 +36,43 @@ def host_of_sample(sample_name):
         if sample_name.startswith('A'):
             return 'Apis andreniformis'
 
-samples = [x.split('/')[-1].split('_mapped')[0] for x in glob.glob('results/08_gene_content/01_profiling/*_mapped.coverage')]
+samples = [x.split('/')[-1].split('_gene_coverage')[0] for x in glob.glob('results/08_gene_content/01_profiling_bowtie2/*_gene_coverage.txt')]
+genes_detected = {sample: set() for sample in samples}
 for i, sample in enumerate(samples):
-    # get a list of genes that are detected in each sample
-    # this comes from either a countin tool
-    # or selecting the genes that have a good enough
-    # mapping score, coverage and breadth from the read against whole
-    # assembly read mapping. Then see how much of the "detected" genes
-    # are annotated by DRAM with a KEGG ID and how many of those are
-    # in the gene catalog / cd-hit clustering output anything that is
-    # not in the gene catalog is not considered because it must have
-    # been in a contig that was filtered out (by whokaryote or kaiju)
-    # so the list of detected genes should be restricted to the gene
-    # catalog explore the genes that were detected but not in the gene
-    # catalog later ..
-    # to do this we can count just the genes specified in the output of
-    # prodigal_filt_orfs which is located in:
-    # results/06_metagenomicORFs/{sample}/filt_orfs/{sample}.gff
-    # RESUME HERE
-# write a table with the number of genes per sample
+        # get a list of genes that are detected in each sample
+        # this comes from either a countin tool
+        # or selecting the genes that have a good enough
+        # mapping score, coverage and breadth from the read against whole
+        # assembly read mapping. Then see how much of the "detected" genes
+        # are annotated by DRAM with a KEGG ID and how many of those are
+        # in the gene catalog / cd-hit clustering output anything that is
+        # not in the gene catalog is not considered because it must have
+        # been in a contig that was filtered out (by whokaryote or kaiju)
+        # so the list of detected genes should be restricted to the gene
+        # catalog explore the genes that were detected but not in the gene
+        # catalog later ..
+        # to do this we can count just the genes specified in the output of
+        # prodigal_filt_orfs which is located in:
+        # results/06_metagenomicORFs/{sample}/filt_orfs/{sample}.gff
+        # The output in results/08_gene_content/01_profiling_bowtie2/{sample}_gene_coverage.txt'
+        # contains the columns scaffold, start, end, <NODE-ID>_<gene_id>, number of alignments in that region,
+        # number of non-zero covered bases, length of region and fraction covered
+    # write a table with the number of genes per sample
+    print(f'collecting genes in {sample}')
+    genes_df = pd.read_csv(f'results/08_gene_content/01_profiling_bowtie2/{sample}_gene_coverage.txt', sep = '\t', header = None)
+    genes_df.columns = ['scaffold', 'start', 'end', 'id', 'num_reads', 'num_bases', 'length', 'cov_fraction']
+    genes_df['gene'] = [f'{sample}_']*len(genes_df['scaffold']) + genes_df['scaffold'].apply(lambda x: str(x)) + ['_']*len(genes_df['id']) + genes_df['id'].apply(lambda x: x.split('_')[1])
+    # only consider a gene detected if there are >5 reads (1000/150) and at least 90% of the bases in the gene are covered
+    genes_detected[sample] = set(genes_df.loc[(genes_df['num_reads'] > 5) & (genes_df['cov_fraction'] > 0.90)]['gene'].values)
+
+
 genes_per_sample = {}
 for sample in samples:
-    genes_detected = pd.read_csv(f'results/08_gene_content/01_profiling/{sample}_mapped.coverage.filtered', sep = '\t')['#rname'].to_list()
-    genes_per_sample[sample] = len(genes_detected)
+    genes_per_sample[sample] = len(genes_detected[sample])
 with open('results/figures/visualize_temp/genes_per_sample.tsv', 'w') as out_fh:
     out_fh.write('sample\tgenes\n')
     for sample in genes_per_sample:
         out_fh.write(f'{sample}\t{genes_per_sample[sample]}\n')
-
-# genes_detected_sets = {sample: set() for sample in samples}
-# for sample in samples:
-#     genes_detected = pd.read_csv(f'results/08_gene_content/01_profiling/{sample}_mapped.coverage.filtered', sep = '\t')['#rname'].to_list()
-#     genes_detected_sets[sample].update(genes_detected)
-# pickle.dump(genes_detected_sets, open('results/figures/visualize_temp/genes_detected_sets.pkl', 'wb'))
-genes_detected_sets = pickle.load(open('results/figures/visualize_temp/genes_detected_sets.pkl', 'rb'))
-
-with open('results/figures/visualize_temp/genes_cum_curve.tsv', 'w+') as out_fh:
-    out_fh.write(f'host\titeration\nsize\tgenes\n')
-    for i, host in enumerate(host_species):
-        print(f'working on {host}')
-        samples_host = [x for x in samples if host_of_sample(x) == host and not x.startswith('Am') and not x.startswith('Dr') and not x.startswith('Gr') and not x.startswith('Ac')]
-        for iteration in range(10):
-            for j, sample_size in enumerate([x for x in range(len(samples_host)) if x > 0]):
-                print(f'working om iteration {iteration}/11 and sample size {j}/{len(samples_host)}', end = '\r')
-                cum_genes = 0
-                samples_iter = random.sample(samples_host, sample_size)
-                genes_detected = set()
-                for sample in samples_iter:
-                    genes_detected.update(genes_detected_sets[sample])
-                    cum_genes += len(genes_detected)
-                n = out_fh.write(f'{host}\t{iteration}\t{sample_size}\t{cum_genes}\n')
-
-# with open('results/figures/visualize_temp/genes_cum_curve_extended.tsv', 'w+') as out_fh:
-#     out_fh.write(f'host\titeration\nsize\tgenes\n')
-#     for i, host in enumerate(host_species):
-#         print(f'working on {host}')
-#         samples_host = [x for x in samples if host_of_sample(x) == host and not x.startswith('Am') and not x.startswith('Dr') and not x.startswith('Gr') and not x.startswith('Ac')]
-#         for iteration in range(10):
-#             for j, sample_size in enumerate([x for x in range(len(samples_host)) if x > 0]):
-#                 print(f'working om iteration {iteration}/11 and sample size {j}/{len(samples_host)}', end = '\r')
-#                 cum_genes = 0
-#                 samples_iter = random.sample(samples_host, sample_size)
-#                 genes_detected = set()
-#                 for sample in samples_iter:
-#                     genes_detected.update(genes_detected_sets[sample])
-#                     cum_genes += len(genes_detected)
-#                 n = out_fh.write(f'{host}\t{iteration}\t{sample_size}\t{cum_genes}\n')
 
 # now number of clusters per sample
 '''
@@ -131,53 +102,126 @@ class cdhit_cluster:
     def __str__(self):
         return f'Cluster--{self.name}:\n  rep gene:{self.rep_gene}\n    genes: {self.genes}\n    lengths: {self.lengths}\n    identity: {self.identity}'
 
-# cluster_file = "results/08_gene_content/00_cdhit_clustering/20230313_gene_catalog_cdhit9590.fasta.clstr"
-# clusters = {}
-# cluster_num = 0
-# with open(cluster_file, 'r') as f:
-#     for line in f:
-#         line = line.strip()
-#         if line.startswith('>'):
-#             cluster_num = line.split('>Cluster ')[1]
-#             clust_obj = cdhit_cluster(cluster_num)
-#             clusters[cluster_num] = clust_obj
-#         else:
-#             length = int(line.split()[1].split('nt')[0])
-#             gene = line.split()[2].split('>')[1].split('...')[0]
-#             rep_char = line.split()[3]
-#             if rep_char == '*':
-#                 clusters[cluster_num].add_info(gene, length, True)
-#             else:
-#                 strand = line.split()[4].split('/')[1]
-#                 perc = float(line.split()[4].split('/')[2].split('%')[0])
-#                 clusters[cluster_num].add_info(gene, length, False, strand, perc)
-# with open('results/figures/clusters_objects_collection.pkl', "wb") as pkl_fh:
-#         pickle.dump(clusters, pkl_fh)
-genes_detected_strict = {sample: set() for sample in samples}
-for sample in samples:
-    genes_detected = pd.read_csv(f'results/08_gene_content/01_profiling/{sample}_mapped.coverage.filtered', sep = '\t')['#rname'].to_list()
-    genes_detected_strict[sample].update(genes_detected)
-pickle.dump(genes_detected_strict, open('results/figures/visualize_temp/genes_detected_strict.pkl', 'wb'))
-# genes_detected_strict = pickle.load(open('results/figures/visualize_temp/genes_detected_strict.pkl', 'rb'))
 clusters = pd.read_pickle('results/figures/clusters_objects_collection.pkl')
-# gene_cluster_dict = {}
-# for cluster in clusters:
-#     for gene in clusters[cluster].genes:
-#         gene_cluster_dict[gene] = cluster
+# for each cluster read the names of genes in cluster 
+# if any of them are among the genes detected in the sample,
+# add the cluster to the set of clusters detected in that sample
 clusters_per_sample = {sample: set() for sample in samples}
-for sample in samples:
+for i, sample in enumerate(samples):
+    print(f'working on {sample} {i}/{len(samples)}', end = '\r')
     for cluster in clusters:
         for gene in clusters[cluster].genes:
-            if gene in genes_detected_strict[sample]:
+            if gene in genes_detected[sample]:
                 clusters_per_sample[sample].add(cluster)
                 break
-
+pickle.dump(clusters_per_sample, open('results/figures/visualize_temp/clusters_per_sample.pkl', 'wb'))
+clusters_per_sample = pd.read_pickle('results/figures/visualize_temp/clusters_per_sample.pkl')
 with open('results/figures/visualize_temp/clusters_per_sample.tsv', 'w') as out_fh:
     out_fh.write('sample\tclusters\n')
     for sample in clusters_per_sample:
         out_fh.write(f'{sample}\t{len(clusters_per_sample[sample])}\n')
 
-# intermediate files in 'results/figures/functional_analysis_data'
+
+with open('results/figures/visualize_temp/cluster_cum_curve.tsv', 'w+') as out_fh:
+    out_fh.write(f'host\titeration\tsize\tgenes\n')
+    for i, host in enumerate(host_species):
+        print(f'working on {host} {i}/5 ')
+        samples_host = [x for x in samples if host_of_sample(x) == host and not x.startswith('Am') and not x.startswith('Dr') and not x.startswith('Gr') and not x.startswith('Ac')]
+        for iteration in range(10):
+            for j, sample_size in enumerate([x for x in range(len(samples_host)) if x > 0]):
+                print(f'working om iteration {iteration}/11 and sample size {j}/{len(samples_host)}', end = '\r')
+                cum_clusters = 0
+                samples_iter = random.sample(samples_host, sample_size)
+                clusters_detected_iter = set()
+                for sample in samples_iter:
+                    clusters_detected_iter.update(clusters_per_sample[sample])
+                cum_clusters = len(clusters_detected_iter)
+                n = out_fh.write(f'{host}\t{iteration}\t{sample_size}\t{cum_clusters}\n')
+
+# get functional information about each gene
+rank_dict = {}
+kegg_dict = {}
+dram_cazy_dict = {}
+pfam_dict = {}
+for sample in samples:
+    file = f'results/08_gene_content/02_DRAM_annotations/{sample}/annotations.tsv'
+    with open(file, 'r') as f:
+        header_read = False
+        gene_ind = 0
+        ko_ind = 0
+        kegg_ind = 0
+        cazy_ind = 0
+        pfam_ind = 0
+        for line in f:
+            line = line.strip()
+            if not header_read:
+                header = line
+                header_read = True
+                try:
+                    gene_ind = header.split('\t').index('fasta')
+                    ko_ind = header.split('\t').index('ko_id')
+                    kegg_ind = header.split('\t').index('kegg_hit')
+                    cazy_ind = header.split('\t').index('cazy_best_hit')
+                    pfam_ind = header.split('\t').index('pfam_hits')
+                except:
+                    print(f'could not find one of the columns in {file}')
+                continue
+            gene = line.split('\t')[gene_ind]
+            if ko_ind != 0:
+                ko = line.split('\t')[ko_ind]
+                rank_dict[gene] = ko
+            if kegg_ind != 0:
+                kegg = line.split('\t')[kegg_ind]
+                kegg_dict[gene] = kegg
+            if cazy_ind != 0:
+                cazy = line.split('\t')[cazy_ind].split('.hmm')[0]
+                dram_cazy_dict[gene] = cazy
+            if pfam_ind != 0:
+                pfam = line.split('\t')[pfam_ind]
+                pfam_dict[gene] = pfam
+
+# prepare the disctionary to get kegg ortholog information
+current_a = ''
+current_b = ''
+current_c = ''
+kegg_info_dict = {}
+with open('data/KEGG_info/ko00001.keg', 'r') as f:
+    for line in f:
+        if line.startswith('#') or line.startswith('+') or line.startswith('!'):
+            continue
+        first_B = True
+        if line.startswith('A'):
+            current_a = ' '.join(line.strip().split(' ')[1:])
+            print(current_a)
+            first_B = True
+        # B for some reason has a B followed by an empty line and then the next line is a B with the info
+        if line.startswith('B'):
+            if line == 'B\n':
+                continue
+            line = line.strip()
+            current_b = ' '.join(line.split('B  ')[1].split(' ')[1:])
+        if line.startswith('C'):
+            line = line.strip()
+            current_c = ' '.join(line.split('C    ')[1].split(' ')[1:])
+            # current_c_num = current_c.split(' [PATH:')[0]
+        if line.startswith('D'):
+            line = line.strip()
+            ko = line.split('D      ')[1].split(' ')[0]
+            kegg_info_dict[ko] = {'A': current_a, 'B': current_b, 'C': current_c}
+
+# count the number of kos and under each category
+
+# cum curve of #ko and #category
+
+# beta div compare ko
+
+# pick up enriched kos and / categories
+
+# which taxa contributes?
+
+# is it core?
+
+# intermediate files in 'results/figures/visualize_temp'
 
 #### KEGG category level A
 # kegg_dict_A = {}
@@ -187,19 +231,6 @@ with open('results/figures/visualize_temp/clusters_per_sample.tsv', 'w') as out_
 #     else:
 #         kegg_dict_A[gene] = kegg_info_dict[kegg_dict[gene]]['A']
 
-### summarize across samples
-# 2. #clusters
-#       count the number of clusters per category for each sample to
-#       make a table of the form:
-#           sample  category    #clusters
-
-
-
-
-# 1. #genes
-#       count the number of genes per category for each sample to
-#       make a table of the form:
-#           sample  category    #genes
 
 
 '''
@@ -321,76 +352,7 @@ to be recovered or rewritten later... (magotu is in the numerical form coming st
 all_scaffolds_info = pd.read_csv('results/09_MAGs_collection/all_scaffold_to_bin.tsv', sep='\t')
 
 cazy_dict = pd.read_csv('data/cayman_gene_db/20230313_gene_catalog_filtered_filtered_merged_CORRECT_fold_stuff.csv').set_index('sequenceID').to_dict()['family']
-# get functional information about each gene
-anno_files = glob.glob(f'results/08_gene_content/02_DRAM_annotations/*/annotations.tsv')
-rank_dict = {}
-kegg_dict = {}
-dram_cazy_dict = {}
-pfam_dict = {}
-for file in anno_files:
-    with open(file, 'r') as f:
-        header_read = False
-        gene_ind = 0
-        ko_ind = 0
-        kegg_ind = 0
-        cazy_ind = 0
-        pfam_ind = 0
-        for line in f:
-            line = line.strip()
-            if not header_read:
-                header = line
-                header_read = True
-                try:
-                    gene_ind = header.split('\t').index('fasta')
-                    ko_ind = header.split('\t').index('ko_id')
-                    kegg_ind = header.split('\t').index('kegg_hit')
-                    cazy_ind = header.split('\t').index('cazy_best_hit')
-                    pfam_ind = header.split('\t').index('pfam_hits')
-                except:
-                    print(f'could not find one of the columns in {file}')
-                continue
-            gene = line.split('\t')[gene_ind]
-            if ko_ind != 0:
-                ko = line.split('\t')[ko_ind]
-                rank_dict[gene] = ko
-            if kegg_ind != 0:
-                kegg = line.split('\t')[kegg_ind]
-                kegg_dict[gene] = kegg
-            if cazy_ind != 0:
-                cazy = line.split('\t')[cazy_ind].split('.hmm')[0]
-                dram_cazy_dict[gene] = cazy
-            if pfam_ind != 0:
-                pfam = line.split('\t')[pfam_ind]
-                pfam_dict[gene] = pfam
 
-# prepare the disctionary to get kegg ortholog information
-current_a = ''
-current_b = ''
-current_c = ''
-kegg_info_dict = {}
-with open('data/KEGG_info/ko00001.keg', 'r') as f:
-    for line in f:
-        if line.startswith('#') or line.startswith('+') or line.startswith('!'):
-            continue
-        first_B = True
-        if line.startswith('A'):
-            current_a = ' '.join(line.strip().split(' ')[1:])
-            print(current_a)
-            first_B = True
-        # B for some reason has a B followed by an empty line and then the next line is a B with the info
-        if line.startswith('B'):
-            if line == 'B\n':
-                continue
-            line = line.strip()
-            current_b = ' '.join(line.split('B  ')[1].split(' ')[1:])
-        if line.startswith('C'):
-            line = line.strip()
-            current_c = ' '.join(line.split('C    ')[1].split(' ')[1:])
-            # current_c_num = current_c.split(' [PATH:')[0]
-        if line.startswith('D'):
-            line = line.strip()
-            ko = line.split('D      ')[1].split(' ')[0]
-            kegg_info_dict[ko] = {'A': current_a, 'B': current_b, 'C': current_c}
 
 # gene_catalog = 'results/08_gene_content/20230313_gene_catalog.ffn'
 # total_genes = 0

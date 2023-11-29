@@ -664,7 +664,9 @@ ggplot(df_num_genes %>% filter(sample %in% samples)) +
              stat = "identity"
   ) +
   scale_fill_manual(values = host_order_color_dark) +
+  labs(x = "# Genes", y = "Sample", color = "Host") +
   make_theme(setFill = F)
+
 ggplot(df_num_genes %>% filter(sample %in% samples)) +
   geom_boxplot(aes(x = factor(host, host_order),
                y = genes,
@@ -678,32 +680,63 @@ ggplot(df_num_genes %>% filter(sample %in% samples)) +
              width = 0.1,
              color = "#000000"
   ) +
-  scale_fill_manual(values = host_order_color_dark)
+  scale_fill_manual(values = host_order_color_dark) +
+  labs(x = "Host", y = "# Genes", color = "Host") +
+  make_theme(setFill = F, x_hj = 1, x_vj = 1, x_angle = 30)
+```
+
+```{r}
+df_num_clusters <- read.csv("results/figures/visualize_temp/clusters_per_sample.tsv", sep = "\t") %>%
+                  mutate(host = Vectorize(get_host_from_sample_name)(sample))
+ggplot(df_num_clusters %>% filter(sample %in% samples)) +
+  geom_bar(aes(y = factor(sample, samples),
+               x = clusters,
+               fill = host
+             ),
+             stat = "identity"
+  ) +
+  scale_fill_manual(values = host_order_color_dark) +
+  labs(x = "# Genes", y = "Sample", color = "Host") +
+  make_theme(setFill = F)
+
+ggplot(df_num_clusters %>% filter(sample %in% samples)) +
+  geom_boxplot(aes(x = factor(host, host_order),
+               y = clusters,
+               fill = host
+             ),
+             outlier.shape = NA
+  ) +
+  geom_jitter(aes(x = factor(host, host_order),
+               y = clusters
+             ),
+             width = 0.1,
+             color = "#000000"
+  ) +
+  scale_fill_manual(values = host_order_color_dark) +
+  labs(x = "Host", y = "# Genes", color = "Host") +
+  make_theme(setFill = F, x_hj = 1, x_vj = 1, x_angle = 30)
+```
+
+```{r}
+df_gene_clust <- df_num_genes %>%
+                    left_join(df_num_clusters %>% select(sample, clusters)) %>%
+                      pivot_longer(!c(sample, host), names_to = "type", values_to = "num")
+ggplot(df_gene_clust %>% filter(sample %in% samples)) +
+  geom_bar(aes(y = factor(sample, samples),
+               x = num,
+               fill = type
+             ),
+             stat = "identity", position = "dodge"
+  ) +
+  facet_wrap(~host, scales = "free_y") +
+  labs(x = "# Genes", y = "Sample", color = "Type") +
   make_theme(setFill = F)
 ```
 
 ```{r}
 # plot cumulative curves
-df_cum_data <- read.csv("results/figures/visualize_temp/genes_cum_curve.tsv", sep = "\t")
 
-ggplot() +
-  geom_smooth(data = df_cum_data %>% filter(host == "Apis mellifera"), aes(x = genes, y = genes, color = host), method = "loess", se = T) +
-  geom_point(data = df_cum_data %>% filter(host == "Apis mellifera"), aes(x = genes, y = genes, color = host)) +
-  geom_smooth(data = df_cum_data %>% filter(host == "Apis cerana"), aes(x = genes, y = genes, color = host), method = "loess", se = T) +
-  geom_point(data = df_cum_data %>% filter(host == "Apis cerana"), aes(x = genes, y = genes, color = host)) +
-  geom_smooth(data = df_cum_data %>% filter(host == "Apis dorsata"), aes(x = genes, y = genes, color = host), method = "loess", se = T) +
-  geom_point(data = df_cum_data %>% filter(host == "Apis dorsata"), aes(x = genes, y = genes, color = host)) +
-  geom_smooth(data = df_cum_data %>% filter(host == "Apis florea"), aes(x = genes, y = genes, color = host), method = "loess", se = T) +
-  geom_point(data = df_cum_data %>% filter(host == "Apis florea"), aes(x = genes, y = genes, color = host)) +
-  geom_smooth(data = df_cum_data %>% filter(host == "Apis andreniformis"), aes(x = genes, y = genes, color = host), method = "loess", se = T) +
-  geom_point(data = df_cum_data %>% filter(host == "Apis andreniformis"), aes(x = genes, y = genes, color = host)) +
-  scale_color_manual(values = host_order_color) +
-  scale_y_continuous(trans = "log10") +
-  facet_wrap(~host) +
-  make_theme(setFill = F, setCol = F)
-
-df_cum_data <- read.csv("results/figures/visualize_temp/genes_cum_curve_extended.tsv", sep = "\t")
-
+df_cum_data <- read.csv("results/figures/visualize_temp/cluster_cum_curve.tsv", sep = "\t")
 ggplot() +
   geom_smooth(data = df_cum_data %>% filter(host == "Apis mellifera"), aes(x = size, y = genes, color = host), method = "loess", se = T) +
   geom_point(data = df_cum_data %>% filter(host == "Apis mellifera"), aes(x = size, y = genes, color = host)) +
@@ -716,24 +749,8 @@ ggplot() +
   geom_smooth(data = df_cum_data %>% filter(host == "Apis andreniformis"), aes(x = size, y = genes, color = host), method = "loess", se = T) +
   geom_point(data = df_cum_data %>% filter(host == "Apis andreniformis"), aes(x = size, y = genes, color = host)) +
   scale_color_manual(values = host_order_color_dark) +
-  # scale_y_continuous(trans = "log10") +
-  # facet_wrap(~host) +
-  make_theme(setFill = F, setCol = F)
-ggplot() +
-  geom_smooth(data = df_cum_data %>% filter(host == "Apis mellifera"), aes(x = size, y = genes, color = host), method = "loess", se = T) +
-  geom_point(data = df_cum_data %>% filter(host == "Apis mellifera"), aes(x = size, y = genes, color = host)) +
-  geom_smooth(data = df_cum_data %>% filter(host == "Apis cerana"), aes(x = size, y = genes, color = host), method = "loess", se = T) +
-  geom_point(data = df_cum_data %>% filter(host == "Apis cerana"), aes(x = size, y = genes, color = host)) +
-  geom_smooth(data = df_cum_data %>% filter(host == "Apis dorsata"), aes(x = size, y = genes, color = host), method = "loess", se = T) +
-  geom_point(data = df_cum_data %>% filter(host == "Apis dorsata"), aes(x = size, y = genes, color = host)) +
-  geom_smooth(data = df_cum_data %>% filter(host == "Apis florea"), aes(x = size, y = genes, color = host), method = "loess", se = T) +
-  geom_point(data = df_cum_data %>% filter(host == "Apis florea"), aes(x = size, y = genes, color = host)) +
-  geom_smooth(data = df_cum_data %>% filter(host == "Apis andreniformis"), aes(x = size, y = genes, color = host), method = "loess", se = T) +
-  geom_point(data = df_cum_data %>% filter(host == "Apis andreniformis"), aes(x = size, y = genes, color = host)) +
-  scale_color_manual(values = host_order_color_dark) +
-  scale_y_continuous(trans = "log10") +
-  # facet_wrap(~host) +
-  make_theme(setFill = F, setCol = F)
+  labs(x = "# Bees", y = "# Clusters", color = "Host") +
+  make_theme(setFill = F, setCol = F, guide_nrow = 1)
 ```
 
 ```{r}

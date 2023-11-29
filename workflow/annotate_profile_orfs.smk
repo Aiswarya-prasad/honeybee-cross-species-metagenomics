@@ -386,7 +386,7 @@ rule get_sorted_genes:
         """
         # remove the sample name from the headers
         bedtools sort -i {input.gff} | sed -e 's/{wildcards.sample}_//' > {output.gff}
-        python3 scripts/gff_to_bed.py --remove {wildcards.sample}_ --gff {output.gff} --bed {output.bed}
+        python3 scripts/gff_to_bed.py --gff {output.gff} --bed {output.bed}
         """
 
 rule filter_bam_by_qual:
@@ -421,70 +421,16 @@ rule gene_counts_coverage:
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         account="pengel_spirit",
-        runtime_s=convertToSec("0-00:30:00"),
+        runtime_s=convertToSec("0-01:00:00"),
     resources:
-        mem_mb = convertToMb("50G")
-    log: "results/08_gene_content/01_profiling_bowtie2/{sample}_filter_bam_by_qual.log"
-    benchmark: "results/08_gene_content/01_profiling_bowtie2/{sample}_filter_bam_by_qual.benchmark"
+        mem_mb = lambda wildcards: convertToMb("350G") if wildcards.sample != "A4-4" else convertToMb("550G") # this bam was 11GB big
+    log: "results/08_gene_content/01_profiling_bowtie2/{sample}_gene_counts_coverage.log"
+    benchmark: "results/08_gene_content/01_profiling_bowtie2/{sample}_gene_counts_coverage.benchmark"
     conda: "../config/envs/genes-env.yaml"
     shell:
         """
         bedtools coverage -a {input.bed} -b {input.bam} > {output.coverage}
         """
-
-
-# rule gffquant_index:
-#     input:
-#         gff = "results/08_gene_content/01_profiling_bowtie2/{sample}_filt_genes.gff"
-#     output:
-#         gff_index = "results/08_gene_content/01_profiling_bowtie2/{sample}_filt_genes.gff.index",
-#     params:
-#         mailto="aiswarya.prasad@unil.ch",
-#         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-#         account="pengel_spirit",
-#         runtime_s=convertToSec("0-5:10:00"),
-#     resources:
-#         mem_mb = convertToMb("50G")
-#     threads: 4
-#     log: "results/08_gene_content/01_profiling_bowtie2/{sample}_gffquant_index.log"
-#     benchmark: "results/08_gene_content/01_profiling_bowtie2/{sample}_gffquant_index.benchmark"
-#     conda: "../config/envs/cayman-env.yaml"
-#     shell:
-#         """
-#         # use gff quant - pip3 installed "manually from github" into cayman-env
-#         # /work/FAC/FBM/DMF/pengel/spirit/aprasad/snakemake-conda-envs/ed99f9781f3071c19a86cec650b3a864_
-#         python3 scripts/gff_quantifier/util/gff_indexer.py {input.gff}
-#         """
-
-# rule gffquant_count:
-#     input:
-#         bam = "results/08_gene_content/01_profiling_bowtie2/{sample}_mapped.bam",
-#         bed = "results/08_gene_content/01_profiling_bowtie2/{sample}_filt_genes.bed",
-#         gff = "results/08_gene_content/01_profiling_bowtie2/{sample}_filt_genes.gff",
-#         # gff_index = "results/08_gene_content/01_profiling_bowtie2/{sample}_filt_genes.gff.index",
-#     output:
-#         marker = "results/08_gene_content/01_profiling_bowtie2/{sample}.done",
-#         # gene_counts = "results/08_gene_content/01_profiling_bowtie2/{sample}_gene_counts.txt.gz"
-#     params:
-#         mailto="aiswarya.prasad@unil.ch",
-#         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
-#         account="pengel_spirit",
-#         runtime_s=convertToSec("0-5:10:00"),
-#     resources:
-#         mem_mb = convertToMb("50G")
-#     threads: 4
-#     log: "results/08_gene_content/01_profiling_bowtie2/{sample}_gffquant_count.log"
-#     benchmark: "results/08_gene_content/01_profiling_bowtie2/{sample}_gffquant_count.benchmark"
-#     conda: "../config/envs/cayman-env.yaml"
-#     shell:
-#         """
-#         # use gff quant - pip3 installed "manually from github" into cayman-env
-#         # at /work/FAC/FBM/DMF/pengel/spirit/aprasad/snakemake-conda-envs/ed99f9781f3071c19a86cec650b3a864_
-#         prefix={output.marker}
-#         gffquant -t 4 {input.gff} --bam {input.bam} -o ${{prefix/.done/}}/ -m genome --ambig_mode 1overN \
-#                     --min_identity 0.97 --min_seqlen 50 --restrict_metrics "raw,lnorm,scaled,rpkm"
-#         touch {output.marker}
-#         """
 
 rule run_kaiju_genes:
     input:
