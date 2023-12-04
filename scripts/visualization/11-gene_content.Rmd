@@ -745,11 +745,12 @@ ggplot() +
   geom_smooth(data = df_cum_data %>% filter(host == "Apis dorsata"), aes(x = size, y = genes, color = host), method = "loess", se = T) +
   geom_point(data = df_cum_data %>% filter(host == "Apis dorsata"), aes(x = size, y = genes, color = host)) +
   geom_smooth(data = df_cum_data %>% filter(host == "Apis florea"), aes(x = size, y = genes, color = host), method = "loess", se = T) +
-  geom_point(data = df_cum_data %>% filter(host == "Apis florea"), aes(x = size, y = genes, color = host)) +
+  geom_point(data = df_cum_data %>% filter(host == "Apis florea"), aes(x =ize, y = genes, color = host)) +
   geom_smooth(data = df_cum_data %>% filter(host == "Apis andreniformis"), aes(x = size, y = genes, color = host), method = "loess", se = T) +
   geom_point(data = df_cum_data %>% filter(host == "Apis andreniformis"), aes(x = size, y = genes, color = host)) +
   scale_color_manual(values = host_order_color_dark) +
   labs(x = "# Bees", y = "# Clusters", color = "Host") +
+  scale_y_continuous(labels = label_number(suffix = " K", scale = 1e-3)) +
   make_theme(setFill = F, setCol = F, guide_nrow = 1)
 ```
 
@@ -819,22 +820,503 @@ ggplot() +
   # scale_y_continuous(trans = "log10") +
   # facet_wrap(~host) +
   make_theme(setFill = F, setCol = F)
-ggplot() +
-  geom_smooth(data = df_cum_data %>% filter(host == "Apis mellifera"), aes(x = size, y = genes, color = host), method = "loess", se = T) +
-  geom_point(data = df_cum_data %>% filter(host == "Apis mellifera"), aes(x = size, y = genes, color = host)) +
-  geom_smooth(data = df_cum_data %>% filter(host == "Apis cerana"), aes(x = size, y = genes, color = host), method = "loess", se = T) +
-  geom_point(data = df_cum_data %>% filter(host == "Apis cerana"), aes(x = size, y = genes, color = host)) +
-  geom_smooth(data = df_cum_data %>% filter(host == "Apis dorsata"), aes(x = size, y = genes, color = host), method = "loess", se = T) +
-  geom_point(data = df_cum_data %>% filter(host == "Apis dorsata"), aes(x = size, y = genes, color = host)) +
-  geom_smooth(data = df_cum_data %>% filter(host == "Apis florea"), aes(x = size, y = genes, color = host), method = "loess", se = T) +
-  geom_point(data = df_cum_data %>% filter(host == "Apis florea"), aes(x = size, y = genes, color = host)) +
-  geom_smooth(data = df_cum_data %>% filter(host == "Apis andreniformis"), aes(x = size, y = genes, color = host), method = "loess", se = T) +
-  geom_point(data = df_cum_data %>% filter(host == "Apis andreniformis"), aes(x = size, y = genes, color = host)) +
-  scale_color_manual(values = host_order_color_dark) +
-  scale_y_continuous(trans = "log10") +
-  # facet_wrap(~host) +
-  make_theme(setFill = F, setCol = F)
+
 ```
 
 ```{r}
+df_ko_counts <- read.csv("results/figures/visualize_temp/kos_per_sample.tsv", sep = "\t") %>%
+                  pivot_longer(!sample, names_to = "type", values_to = "num") %>%
+                  mutate(host = Vectorize(get_host_from_sample_name)(sample))
+ggplot(df_ko_counts %>% filter(sample %in% samples)) +
+  geom_bar(aes(y = factor(sample, samples),
+               x = num,
+               fill = type
+             ),
+             stat = "identity", position = "stack"
+  ) +
+  facet_wrap(~host, scales = "free_y") +
+  labs(x = "# Genes", y = "Sample", color = "Type") +
+  scale_fill_manual(labels = c("kos" = "annotated"), 
+                    values = c("kos" = brewer.pal(11, 'Spectral')[4],
+                               "unannotated" = brewer.pal(11, 'Spectral')[1]
+                    )
+  ) +
+  make_theme(setFill = F)
+
+ggplot(df_ko_counts %>% filter(sample %in% samples)) +
+  geom_boxplot(aes(y = num,
+               x = host,
+               fill = type
+             )
+  ) +
+  # geom_jitter(aes(y = num,
+  #              x = host,
+  #              color = type
+  #            )
+  # ) +
+  labs(x = "Host", y = "# Genes", color = "Type") +
+  scale_fill_manual(labels = c("kos" = "annotated"), 
+                    values = c("kos" = brewer.pal(11, 'Spectral')[4],
+                               "unannotated" = brewer.pal(11, 'Spectral')[1]
+                    )
+  ) +
+  scale_color_manual(labels = c("kos" = "annotated"), 
+                    values = c("kos" = brewer.pal(11, 'Spectral')[4],
+                               "unannotated" = brewer.pal(11, 'Spectral')[1]
+                    )
+  ) +
+  make_theme(setFill = F, setCol = F)
+
+df_kos_per_sample <- read.csv("results/figures/visualize_temp/kos_per_sample.tsv", sep = "\t") %>%
+                      mutate(host = Vectorize(get_host_from_sample_name)(sample))
+ggplot(df_kos_per_sample %>% filter(sample %in% samples)) +
+  geom_bar(aes(y = factor(sample, samples),
+               x = kos,
+               fill = host
+             ),
+             stat = "identity"
+  ) +
+  scale_fill_manual(values = host_order_color_dark) +
+  make_theme(setFill = F)
+ggplot(df_kos_per_sample %>% filter(sample %in% samples)) +
+  geom_boxplot(aes(x = factor(host, host_order),
+               y = kos,
+               fill = host
+             ),
+             outlier.shape = NA
+  ) +
+  geom_jitter(aes(x = factor(host, host_order),
+               y = kos
+             ),
+             width = 0.1,
+             color = "#000000"
+  ) +
+  scale_fill_manual(values = host_order_color_dark)
+  make_theme(setFill = F)
+```
+
+```{r}
+df_ko_cum_data <- read.csv("results/figures/visualize_temp/KO_cum_curve.tsv", sep = "\t")
+ggplot() +
+  geom_smooth(data = df_ko_cum_data %>% filter(host == "Apis mellifera"), aes(x = size, y = kos, color = host), method = "loess", se = T) +
+  geom_point(data = df_ko_cum_data %>% filter(host == "Apis mellifera"), aes(x = size, y = kos, color = host)) +
+  geom_smooth(data = df_ko_cum_data %>% filter(host == "Apis cerana"), aes(x = size, y = kos, color = host), method = "loess", se = T) +
+  geom_point(data = df_ko_cum_data %>% filter(host == "Apis cerana"), aes(x = size, y = kos, color = host)) +
+  geom_smooth(data = df_ko_cum_data %>% filter(host == "Apis dorsata"), aes(x = size, y = kos, color = host), method = "loess", se = T) +
+  geom_point(data = df_ko_cum_data %>% filter(host == "Apis dorsata"), aes(x = size, y = kos, color = host)) +
+  geom_smooth(data = df_ko_cum_data %>% filter(host == "Apis florea"), aes(x = size, y = kos, color = host), method = "loess", se = T) +
+  geom_point(data = df_ko_cum_data %>% filter(host == "Apis florea"), aes(x = size, y = kos, color = host)) +
+  geom_smooth(data = df_ko_cum_data %>% filter(host == "Apis andreniformis"), aes(x = size, y = kos, color = host), method = "loess", se = T) +
+  geom_point(data = df_ko_cum_data %>% filter(host == "Apis andreniformis"), aes(x = size, y = kos, color = host)) +
+  scale_color_manual(values = host_order_color_dark) +
+  labs(x = "# Bees", y = "# KOs", color = "Host") +
+  scale_y_continuous(labels = label_number(suffix = " K", scale = 1e-3)) +
+  make_theme(setFill = F, setCol = F, guide_nrow = 1)
+```
+
+```{r}
+df_ko_cat_B_data <- read.csv("results/figures/visualize_temp/kos_B_per_sample.tsv", sep = "\t") %>%
+                      mutate(host = Vectorize(get_host_from_sample_name)(sample)) %>%
+                      filter(sample %in% samples)
+ggplot(df_ko_cat_B_data) +
+  geom_bar(aes(x = sample,
+               y = count,
+               fill = kos
+  ), color = "#000000", linewidth = 0.1,
+  stat = "identity", position = "stack"
+  ) +
+  make_theme(max_colors = length(unique(df_ko_cat_B_data$kos)))
+
+df_ko_cat_B_data_sub <- df_ko_cat_B_data %>%
+        filter(!is.na(kos)) %>% 
+        filter(kos != "Poorly characterized") %>%
+        mutate(kos = ifelse(grepl("genetic information processing", kos), "genetic information processing", kos)) %>%
+        mutate(kos = ifelse(grepl("signaling and cellular processes", kos), "genetic information processing", kos)) %>%
+        mutate(kos = ifelse(grepl("etabolism", kos), "Metabolism", kos))
+ggplot(df_ko_cat_B_data_sub) +
+  geom_bar(aes(x = sample,
+               y = count,
+               fill = kos
+  ), color = "#000000", linewidth = 0.1,
+  stat = "identity", position = "stack"
+  ) +
+  facet_wrap(~host, scales = "free_x") +
+  make_theme(leg_pos = 'right', guide_nrow = 40,
+      max_colors = length(unique(df_ko_cat_B_data_sub$kos))
+  )
+df_ko_cat_B_data_sub <- df_ko_cat_B_data_sub %>%
+                          group_by(kos) %>%
+                          mutate(tot_count = sum(count)) %>%
+                          filter(tot_count > 5) %>%
+                          select(!tot_count) %>%
+                          ungroup()
+ggplot(df_ko_cat_B_data_sub) +
+  geom_tile(aes(y = sample,
+               fill = count,
+               x = kos
+  )) +
+  scale_fill_gradient(trans = "log") +
+  make_theme(setCol = F, setFill = F,
+      leg_pos = 'right', guide_nrow = 40,
+      modify_guide = F,
+      x_angle = 30, x_hj = 1, x_vj = 1,
+      max_colors = length(unique(df_ko_cat_B_data_sub$kos))
+  )
+
+df_mat_ko_B <- read.csv("results/figures/visualize_temp/kos_B_per_sample.tsv", sep = "\t", stringsAsFactors = F) %>%
+              filter(sample %in% samples) %>%
+              mutate(count = as.numeric(count)) %>%
+              pivot_wider(id_cols = sample, names_from = kos, values_from = count)
+```
+
+```{r}
+
+ko_info_table <- read.csv("results/figures/08-summarize_functions/kegg_info_dict.txt", sep = "\t")
+
+df_ko_cat_C_data <- read.csv("results/figures/visualize_temp/kos_C_per_sample.tsv", sep = "\t") %>%
+                      mutate(host = Vectorize(get_host_from_sample_name)(sample)) %>%
+                    filter(sample %in% samples)
+df_ko_cat_C_data_sub <- df_ko_cat_C_data %>%
+        filter(!is.na(kos)) %>% 
+        filter(kos != "Poorly characterized")
+df_ko_cat_C_data_sub <- df_ko_cat_C_data_sub %>%
+                          group_by(kos) %>%
+                          mutate(tot_count = sum(count)) %>%
+                          filter(tot_count > 10) %>%
+                          select(!tot_count) %>%
+                          ungroup()
+ggplot(df_ko_cat_C_data_sub) +
+  geom_tile(aes(y = sample,
+               fill = count,
+               x = kos
+  )) +
+  scale_fill_gradient(trans = "log") +
+  make_theme(setCol = F, setFill = F,
+      leg_pos = 'right', guide_nrow = 40,
+      modify_guide = F,
+      x_angle = 30, x_hj = 1, x_vj = 1,
+      max_colors = length(unique(df_ko_cat_C_data_sub$kos))
+  )
+
+df_mat_ko_C <- read.csv("results/figures/visualize_temp/kos_C_per_sample.tsv", sep = "\t", stringsAsFactors = F) %>%
+              filter(sample %in% samples) %>%
+              mutate(count = as.numeric(count)) %>%
+              pivot_wider(id_cols = sample, names_from = kos, values_from = count)
+```
+
+```{r}
+ko_df <- read.csv("results/figures/08-summarize_functions/feature_matrices/ko_feature_matrix.tsv")
+# make a heatmap of the KOs
+```
+
+```{r}
+all_sample_genes_df <- data.frame()
+for (sample in samples) {
+  print(paste0("reading ", sample, " gene info"))
+  sample_info_path <- paste0("results/figures/08-summarize_functions/gene_info_tables/", sample, "_df_detected_genes_info.csv")
+  if (file.exists(sample_info_path)) {
+    sample_genes_df_iter <- read.csv(sample_info_path) %>%
+                                mutate(sample = sample)
+    if (dim(all_sample_genes_df)[[1]] == 0) {
+      all_sample_genes_df <- sample_genes_df_iter 
+    } else {
+      all_sample_genes_df <- rbind(all_sample_genes_df, sample_genes_df_iter)
+    }
+  }
+}
+split_og_name <- function(og_name) {
+  return(strsplit(og_name, "--")[[1]][2])
+}
+all_sample_genes_df <- all_sample_genes_df %>%
+                        mutate(og_id = Vectorize(split_og_name)(og))
+write.csv(all_sample_genes_df, "results/figures/all_sample_genes_df.csv", row.names = FALSE, quote = FALSE)
+
+
+ko_mat <- read.csv("results/figures/08-summarize_functions/ko_matrix.csv") %>%
+            filter(sample %in% samples) %>%
+            column_to_rownames("sample")
+# plot pcoa of ko matrix
+pcoa_plot(vegdist(ko_mat, "robust.aitchison"), df_meta_complete, "Species", color_add=T, color_list=host_order_color_dark)
+pcoa_plot(vegdist(ko_mat, "robust.aitchison"), df_meta_complete, "Species", color_add=T, shape_add=T, shape_var= "Country", color_list=host_order_color_dark)
+
+
+
+ko_mat <- all_sample_genes_df %>%
+            filter(sample %in% samples) %>%
+            # filter(species == "Bombilactobacillus mellis") %>%
+            filter(grepl("Bombilactobacillus", species)) %>%
+            filter(!is.na(ko)) %>%
+            filter(ko != "") %>%
+            select(sample, ko) %>%
+            group_by(sample, ko) %>%
+            summarise(count = n()) %>%
+            pivot_wider(id_cols = sample, names_from = ko, values_from = count) %>%
+            # replace NAs with 0s
+            column_to_rownames("sample") %>%
+            as.matrix %>%
+            replace(is.na(.), 0)
+# convert to a presence-absence numeric matrix of 1 and 0
+ko_mat <- ko_mat > 0
+ko_mat <- ko_mat * 1
+anno_host_row <- rowAnnotation(Host = rownames(ko_mat) %>% as.data.frame() %>% mutate(Host = Vectorize(get_host_from_sample_name)(.)) %>% pull(Host),
+                              col = list(Host = host_order_color_dark
+                              ), border = T
+                          )
+Heatmap(ko_mat,
+        col = c("#e1ebf4", "#081d58"),
+        # col = colorRamp2(c(0, 0.1, 1, 10, 1000), c(brewer.pal(9, "PuBu")[1], brewer.pal(9, "PuBu")[3], brewer.pal(9, "PuBu")[4], brewer.pal(9, "PuBu")[7], brewer.pal(9, "PuBu")[9])),
+        clustering_method_columns = 'ward.D2',
+        column_dend_side = "bottom",
+        column_title_gp = grid::gpar(fontsize = 0),
+        row_title_gp = grid::gpar(fontsize = 12),
+        row_title_rot = 0,
+        # row_split = row_split,
+        # border = T,
+        left_annotation = anno_host_row,    
+        column_names_gp = grid::gpar(fontsize = 8),
+        row_names_gp = grid::gpar(fontsize = 8),
+          cluster_columns = T,
+          cluster_rows = T)
+# plot pcoa of ko matrix
+pcoa_plot(vegdist(ko_mat, "jaccard"), df_meta_complete, "Species", color_add=T, color_list=host_order_color_dark)
+pcoa_plot(vegdist(ko_mat, "jaccard"), df_meta_complete, "Species", color_add=T, shape_add=T, shape_var= "Country", color_list=host_order_color_dark)
+
+
+og_mat <- all_sample_genes_df %>%
+            filter(sample %in% samples) %>%
+            filter(species == "Bombilactobacillus mellifer") %>%
+            # filter(grepl("Bombilactobacillus", species)) %>%
+            filter(!is.na(og)) %>%
+            filter(og != "") %>%
+            select(sample, og) %>%
+            group_by(sample, og) %>%
+            summarise(count = n()) %>%
+            pivot_wider(id_cols = sample, names_from = og, values_from = count) %>%
+            # replace NAs with 0s
+            column_to_rownames("sample") %>%
+            as.matrix %>%
+            replace(is.na(.), 0)
+og_mat <- og_mat > 0
+og_mat <- og_mat * 1
+# remove columns with only 0s
+og_mat <- og_mat[,apply(og_mat, 2, function(x) sum(x > 0, na.rm = T)) > 5]
+anno_host_row <- rowAnnotation(Host = rownames(og_mat) %>% as.data.frame() %>% mutate(Host = Vectorize(get_host_from_sample_name)(.)) %>% pull(Host),
+                              col = list(Host = host_order_color_dark
+                              ), border = T
+                          )
+Heatmap(og_mat,
+        col = c("#ffffff", "#081d58"),
+        # col = colorRamp2(c(0, 0.1, 1, 10, 1000), c(brewer.pal(9, "PuBu")[1], brewer.pal(9, "PuBu")[3], brewer.pal(9, "PuBu")[4], brewer.pal(9, "PuBu")[7], brewer.pal(9, "PuBu")[9])),
+        clustering_method_columns = 'ward.D2',
+        column_dend_side = "bottom",
+        column_title_gp = grid::gpar(fontsize = 0),
+        row_title_gp = grid::gpar(fontsize = 12),
+        row_title_rot = 0,
+        # row_split = row_split,
+        # border = T,
+        left_annotation = anno_host_row,    
+        column_names_gp = grid::gpar(fontsize = 0),
+        row_names_gp = grid::gpar(fontsize = 8),
+          cluster_columns = T,
+          cluster_rows = T)
+# plot pcoa of og matrix
+pcoa_plot(vegdist(og_mat, "jaccard"), df_meta_complete, "Species", color_add=T, color_list=host_order_color_dark)
+pcoa_plot(vegdist(og_mat, "jaccard"), df_meta_complete, "Species", color_add=T, shape_add=T, shape_var= "Country", color_list=host_order_color_dark)
+pcoa_plot(beta.pair(og_mat, "sorensen")$beta.sim, df_meta_complete, "Species", color_add=T, shape_add=T, shape_var= "Country", color_list=host_order_color_dark)
+
+ko_mat <- all_sample_genes_df %>%
+            filter(sample %in% samples) %>%
+            # filter(species == "Bombilactobacillus mellifer") %>%
+            filter(grepl("Bombilactobacillus", species)) %>%
+            filter(!is.na(ko)) %>%
+            filter(ko != "") %>%
+            select(sample, ko) %>%
+            group_by(sample, ko) %>%
+            summarise(count = n()) %>%
+            pivot_wider(id_cols = sample, names_from = ko, values_from = count) %>%
+            # replace NAs with 0s
+            column_to_rownames("sample") %>%
+            as.matrix %>%
+            replace(is.na(.), 0)
+ko_mat <- ko_mat > 0
+ko_mat <- ko_mat * 1
+# remove columns with only 0s
+ko_mat <- ko_mat[,apply(ko_mat, 2, function(x) sum(x > 0, na.rm = T)) > 5]
+anno_host_row <- rowAnnotation(Host = rownames(ko_mat) %>% as.data.frame() %>% mutate(Host = Vectorize(get_host_from_sample_name)(.)) %>% pull(Host),
+                              col = list(Host = host_order_color_dark
+                              ), border = T
+                          )
+Heatmap(ko_mat,
+        col = c("#ffffff", "#081d58"),
+        # col = colorRamp2(c(0, 0.1, 1, 10, 1000), c(brewer.pal(9, "PuBu")[1], brewer.pal(9, "PuBu")[3], brewer.pal(9, "PuBu")[4], brewer.pal(9, "PuBu")[7], brewer.pal(9, "PuBu")[9])),
+        clustering_method_columns = 'ward.D2',
+        column_dend_side = "bottom",
+        column_title_gp = grid::gpar(fontsize = 0),
+        row_title_gp = grid::gpar(fontsize = 12),
+        row_title_rot = 0,
+        # row_split = row_split,
+        # border = T,
+        left_annotation = anno_host_row,    
+        column_names_gp = grid::gpar(fontsize = 0),
+        row_names_gp = grid::gpar(fontsize = 8),
+          cluster_columns = T,
+          cluster_rows = T)
+# plot pcoa of ko matrix
+pcoa_plot(vegdist(ko_mat, "jaccard"), df_meta_complete, "Species", color_add=T, color_list=host_order_color_dark)
+pcoa_plot(vegdist(ko_mat, "jaccard"), df_meta_complete, "Species", color_add=T, shape_add=T, shape_var= "Country", color_list=host_order_color_dark)
+pcoa_plot(beta.pair(ko_mat, "sorensen")$beta.sim, df_meta_complete, "Species", color_add=T, shape_add=T, shape_var= "Country", color_list=host_order_color_dark)
+
+
+ko_mat <- all_sample_genes_df %>%
+            filter(sample %in% samples) %>%
+            filter(grepl("Gilliamella", species)) %>%
+            filter(!is.na(ko)) %>%
+            filter(ko != "") %>%
+            select(sample, ko) %>%
+            group_by(sample, ko) %>%
+            summarise(count = n()) %>%
+            pivot_wider(id_cols = sample, names_from = ko, values_from = count) %>%
+            # replace NAs with 0s
+            column_to_rownames("sample") %>%
+            as.matrix %>%
+            replace(is.na(.), 0)
+ko_mat <- ko_mat > 0
+ko_mat <- ko_mat * 1
+
+# remove columns with only 0s
+# ko_mat <- ko_mat[,apply(ko_mat, 2, function(x) sum(x > 0, na.rm = T)) > 5]
+anno_host_row <- rowAnnotation(Host = rownames(ko_mat) %>% as.data.frame() %>% mutate(Host = Vectorize(get_host_from_sample_name)(.)) %>% pull(Host),
+                              col = list(Host = host_order_color_dark
+                              ), border = T
+                          )
+categories <- colnames(ko_mat) %>% as.data.frame() %>% left_join(ko_info_table %>% select(ko, B), by = c("." = "ko")) %>% pull(B)
+anno_ko_column <- HeatmapAnnotation(Category = categories,
+                              col = list(Category = make_col_list(categories)
+                              ), border = T
+                          
+                          )
+Heatmap(ko_mat,
+        col = c("#ffffff", "#081d58"),
+        # col = colorRamp2(c(0, 0.1, 1, 10, 1000), c(brewer.pal(9, "PuBu")[1], brewer.pal(9, "PuBu")[3], brewer.pal(9, "PuBu")[4], brewer.pal(9, "PuBu")[7], brewer.pal(9, "PuBu")[9])),
+        clustering_method_columns = 'ward.D2',
+        column_dend_side = "bottom",
+        column_title_gp = grid::gpar(fontsize = 0),
+        row_title_gp = grid::gpar(fontsize = 12),
+        row_title_rot = 0,
+        # row_split = row_split,
+        column_split = categories %>% as.factor,
+        # border = T,
+        left_annotation = anno_host_row,    
+        top_annotation = anno_ko_column,
+        column_names_gp = grid::gpar(fontsize = 0),
+        row_names_gp = grid::gpar(fontsize = 8),
+          cluster_columns = T,
+          cluster_rows = T)
+# plot pcoa of ko matrix
+pcoa_plot(vegdist(ko_mat, "jaccard"), df_meta_complete, "Species", color_add=T, color_list=host_order_color_dark)
+pcoa_plot(vegdist(ko_mat, "jaccard"), df_meta_complete, "Species", color_add=T, shape_add=T, shape_var= "Country", color_list=host_order_color_dark)
+pcoa_plot(beta.pair(ko_mat, "sorensen")$beta.sim, df_meta_complete, "Species", color_add=T, shape_add=T, shape_var= "Country", color_list=host_order_color_dark)
+
+
+ko_mat <- all_sample_genes_df %>%
+            filter(sample %in% samples) %>%
+            filter(grepl("Frischella", species)) %>%
+            filter(!is.na(ko)) %>%
+            filter(ko != "") %>%
+            select(sample, ko) %>%
+            group_by(sample, ko) %>%
+            summarise(count = n()) %>%
+            pivot_wider(id_cols = sample, names_from = ko, values_from = count) %>%
+            # replace NAs with 0s
+            column_to_rownames("sample") %>%
+            as.matrix %>%
+            replace(is.na(.), 0)
+ko_mat <- ko_mat > 0
+ko_mat <- ko_mat * 1
+# remove columns with only 0s
+# ko_mat <- ko_mat[,apply(ko_mat, 2, function(x) sum(x > 0, na.rm = T)) > 5]
+anno_host_row <- rowAnnotation(Host = rownames(ko_mat) %>% as.data.frame() %>% mutate(Host = Vectorize(get_host_from_sample_name)(.)) %>% pull(Host),
+                              col = list(Host = host_order_color_dark
+                              ), border = T
+                          )
+categories <- colnames(ko_mat) %>% as.data.frame() %>% left_join(ko_info_table %>% select(ko, B), by = c("." = "ko")) %>% pull(B)
+anno_ko_column <- HeatmapAnnotation(Category = categories,
+                              col = list(Category = make_col_list(categories)
+                              ), border = T
+                          
+                          )
+Heatmap(ko_mat,
+        col = c("#ffffff", "#081d58"),
+        # col = colorRamp2(c(0, 0.1, 1, 10, 1000), c(brewer.pal(9, "PuBu")[1], brewer.pal(9, "PuBu")[3], brewer.pal(9, "PuBu")[4], brewer.pal(9, "PuBu")[7], brewer.pal(9, "PuBu")[9])),
+        clustering_method_columns = 'ward.D2',
+        column_dend_side = "bottom",
+        column_title_gp = grid::gpar(fontsize = 0),
+        row_title_gp = grid::gpar(fontsize = 12),
+        row_title_rot = 0,
+        # row_split = row_split,
+        column_split = categories %>% as.factor,
+        # border = T,
+        left_annotation = anno_host_row,    
+        top_annotation = anno_ko_column,
+        column_names_gp = grid::gpar(fontsize = 0),
+        row_names_gp = grid::gpar(fontsize = 8),
+          cluster_columns = T,
+          cluster_rows = T)
+# plot pcoa of ko matrix
+pcoa_plot(vegdist(ko_mat, "jaccard"), df_meta_complete, "Species", color_add=T, color_list=host_order_color_dark)
+pcoa_plot(vegdist(ko_mat, "jaccard"), df_meta_complete, "Species", color_add=T, shape_add=T, shape_var= "Country", color_list=host_order_color_dark)
+pcoa_plot(beta.pair(ko_mat, "sorensen")$beta.sim, df_meta_complete, "Species", color_add=T, shape_add=T, shape_var= "Country", color_list=host_order_color_dark)
+
+
+ko_mat <- all_sample_genes_df %>%
+            filter(sample %in% samples) %>%
+            filter(grepl("Snodgrassella", species)) %>%
+            filter(!is.na(ko)) %>%
+            filter(ko != "") %>%
+            select(sample, ko) %>%
+            group_by(sample, ko) %>%
+            summarise(count = n()) %>%
+            pivot_wider(id_cols = sample, names_from = ko, values_from = count) %>%
+            # replace NAs with 0s
+            column_to_rownames("sample") %>%
+            as.matrix %>%
+            replace(is.na(.), 0)
+ko_mat <- ko_mat > 0
+ko_mat <- ko_mat * 1
+# remove columns with only 0s
+# ko_mat <- ko_mat[,apply(ko_mat, 2, function(x) sum(x > 0, na.rm = T)) > 5]
+anno_host_row <- rowAnnotation(Host = rownames(ko_mat) %>% as.data.frame() %>% mutate(Host = Vectorize(get_host_from_sample_name)(.)) %>% pull(Host),
+                              col = list(Host = host_order_color_dark
+                              ), border = T
+                          )
+categories <- colnames(ko_mat) %>% as.data.frame() %>% left_join(ko_info_table %>% select(ko, B), by = c("." = "ko")) %>% pull(B)
+anno_ko_column <- HeatmapAnnotation(Category = categories,
+                              col = list(Category = make_col_list(categories)
+                              ), border = T
+                          
+                          )
+Heatmap(ko_mat,
+        col = c("#ffffff", "#081d58"),
+        # col = colorRamp2(c(0, 0.1, 1, 10, 1000), c(brewer.pal(9, "PuBu")[1], brewer.pal(9, "PuBu")[3], brewer.pal(9, "PuBu")[4], brewer.pal(9, "PuBu")[7], brewer.pal(9, "PuBu")[9])),
+        clustering_method_columns = 'ward.D2',
+        column_dend_side = "bottom",
+        column_title_gp = grid::gpar(fontsize = 0),
+        row_title_gp = grid::gpar(fontsize = 12),
+        row_title_rot = 0,
+        # row_split = row_split,
+        column_split = categories %>% as.factor,
+        # border = T,
+        left_annotation = anno_host_row,    
+        top_annotation = anno_ko_column,
+        column_names_gp = grid::gpar(fontsize = 0),
+        row_names_gp = grid::gpar(fontsize = 8),
+          cluster_columns = T,
+          cluster_rows = T)
+# plot pcoa of ko matrix
+pcoa_plot(vegdist(ko_mat, "jaccard"), df_meta_complete, "Species", color_add=T, color_list=host_order_color_dark)
+pcoa_plot(vegdist(ko_mat, "jaccard"), df_meta_complete, "Species", color_add=T, shape_add=T, shape_var= "Country", color_list=host_order_color_dark)
+pcoa_plot(beta.pair(ko_mat, "sorensen")$beta.sim, df_meta_complete, "Species", color_add=T, shape_add=T, shape_var= "Country", color_list=host_order_color_dark)
+
+
+
 ```
