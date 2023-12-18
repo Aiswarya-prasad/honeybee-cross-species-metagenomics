@@ -76,7 +76,7 @@ ggplot() +
   labs(fill = "16S region copy numbers") +
   scale_fill_gradient(low = "#ffffd9", high = "#08519c",
                       trans = "log10", labels = function(x) parse(text=paste("10^",round(log10(x), 2)))) +
-  geom_rect(data = left_join(df_to_plot, qpcr_plot_df, by = c("Sample" = "Sample.Name", "Host")) %>%
+  geom_rect(data = left_join(df_to_plot %>% select(Host, Sample), qpcr_plot_df, by = c("Sample" = "Sample.Name", "Host")) %>%
                       select(Sample, Host, copy_num) %>%
                       unique() %>%
                       group_by(Host) %>%
@@ -323,7 +323,7 @@ ggplot() +
                              "MAGs_DB_hf" = "Mapped to MAGs-\n(after host filtering)"
                             )
                    ) +
-  facet_wrap(~factor(Host, host_order), scale = "free_x") +
+  facet_wrap(~factor(Host, host_order), scale = "free") +
   # new_scale_fill() +
   # geom_bar(data = df_reads_plot %>% filter(Type == "Raw"),
   #          aes(x=factor(Sample, levels = samples_chosen),
@@ -461,7 +461,7 @@ ggplot() +
                              "MAGs_DB_mf" = "Mapped to MAGs-\n(after host filtering)"
                             )
                    ) +
-  facet_wrap(~factor(Host, host_order), scale = "free_x") +
+  facet_wrap(~factor(Host, host_order), scale = "free") +
   # new_scale_fill() +
   # geom_bar(data = df_reads_plot %>% filter(Type == "Total_clean"),
   #          aes(x=factor(Sample, levels = samples_chosen),
@@ -1048,3 +1048,105 @@ ggplot() +
   ggsave("results/figures/01-Sequencing_depth_summary_MY.pdf")
 ```
 
+```{r plot_GTF_sequencing_depths_4}
+samples_chosen <- samples_IN_MY
+df_to_plot <- df_reads_plot %>%
+                filter(Sample %in% samples_chosen & Type %in% c("MAGs_DB_hf", "Unmapped_hf", "Host_mapped_hf")) %>%
+                pivot_wider(names_from = Type, values_from = Number) %>%
+                mutate("non_MAG" = Unmapped_hf + Host_mapped_hf) %>%
+                select(!Unmapped_hf) %>%
+                select(!Host_mapped_hf) %>%
+                pivot_longer(cols = c("MAGs_DB_hf", "non_MAG"), names_to = "Type", values_to = "Number") %>%
+                mutate(Location = Vectorize(get_location_from_sample_name)(Sample))
+ggplot() +
+  geom_bar(data = filter(df_to_plot, Sample %in% samples_chosen & Type %in% c("MAGs_DB_hf", "non_MAG")),
+           aes(x=factor(Sample, levels = samples_chosen),
+               y=Number,
+               fill = factor(Type, levels = c("non_MAG", "MAGs_DB_hf"))
+              ),
+           stat="identity", position = "stack") +
+  labs(x = "Sample",
+       y = "Number of reads",
+       fill = "Type") +
+  scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
+  scale_fill_manual(values=c("non_MAG" = brewer.pal(9, "Pastel1")[1],
+                             "MAGs_DB_hf" = brewer.pal(9, "Pastel1")[3]
+                            ),
+                    labels=c("Unmapped to MAGs",
+                             "Mapped to MAGs"
+                            )
+                   ) +
+  facet_wrap(~factor(Host, host_order), scale = "free") +  
+  new_scale_fill() +
+  geom_rect(data = left_join(df_to_plot, df_reads_updated) %>%
+                    select(Sample, Host, MAGs_DB_range) %>%
+                    unique() %>%
+                    group_by(Host) %>%
+                      mutate(SampleID = row_number()), 
+            aes(xmin=SampleID - 0.5,
+                xmax=SampleID + 0.5,
+                ymin = -10e+06,
+                ymax = -20e+06,
+                fill = factor(MAGs_DB_range, levels = c("Low", "Sufficient", "High")))
+          ) +
+  geom_hline(yintercept = 10e+06, linetype = "dotted", color = "black") +
+  labs(fill = "Reads Mapped to MAGs DB\n(after host filtering)") +
+  scale_fill_manual(values=c("Low" = brewer.pal(9, "Paired")[6],
+                             "Sufficient" = brewer.pal(9, "Paired")[3],
+                             "High" = brewer.pal(9, "Paired")[4]
+                            ),
+                    labels=c("Low (< 15M)",
+                             "Sufficient (15M - 30M)",
+                             "High (> 30M)"
+                            ),
+                   ) +
+  new_scale_fill() +
+  labs(fill = "16S region copy numbers") +
+  scale_fill_gradient(low = "#ffffd9", high = "#08519c",
+                      trans = "log10", labels = function(x) parse(text=paste("10^",round(log10(x), 2)))) +
+  geom_rect(data = left_join(df_to_plot %>% select(Host, Sample), qpcr_plot_df, by = c("Sample" = "Sample.Name", "Host")) %>%
+                      select(Sample, Host, copy_num) %>%
+                      unique() %>%
+                      group_by(Host) %>%
+                      mutate(SampleID = row_number()), 
+            aes(xmin=SampleID - 0.5,
+                xmax=SampleID + 0.5,
+                ymin = 0e+06,
+                ymax = -10e+06,
+                fill = copy_num)
+                ) +
+  make_theme(theme_name=theme_few(), leg_pos="right",
+             setFill = F, setCol = F,
+             guide_nrow = 1,
+             modify_guide = F,
+             x_angle=45 ,x_vj=1.2, x_hj=1, x_size=0,
+             y_angle=0 ,y_vj=0, y_hj=0, y_size=12)
+  ggsave("results/figures/01-Sequencing_depth_summary_IN_MY.pdf")
+```
+
+```{r}
+df_reads_plot %>%
+  filter(Sample %in% samples_chosen & Type %in% c("MAGs_DB_hf", "Unmapped_hf", "Host_mapped_hf")) %>%
+  # filter(Type == "MAGs_DB_hf") %>% pull(Number, Sample) %>% view %>% format(big.mark=",")
+  filter(Type == "MAGs_DB_hf") %>% pull(Number) %>% mean %>% format(big.mark=",")
+df_reads_plot %>%
+  filter(Sample %in% samples_chosen & Type %in% c("MAGs_DB_hf", "Unmapped_hf", "Host_mapped_hf")) %>%
+  filter(Type == "MAGs_DB_hf") %>% pull(Number) %>% max %>% format(big.mark=",")
+# mean 
+# 19,202,788
+# 53,253,634
+# 2,252,750
+# 4 samples less than this
+df_reads_plot %>%
+  # filter(Sample %in% samples_chosen & Type %in% c("MAGs_DB_hf", "Unmapped_hf", "Host_mapped_hf")) %>%
+  filter(!is.na(Number)) %>%
+  mutate(Number = as.numeric(Number)) %>%
+  filter(Type == "Total_clean") %>% pull(Number) %>% mean() %>% format(big.mark=",")
+df_reads_plot %>%
+  # filter(Sample %in% samples_chosen & Type %in% c("MAGs_DB_hf", "Unmapped_hf", "Host_mapped_hf")) %>%
+  filter(!is.na(Number)) %>%
+  mutate(Number = as.numeric(Number)) %>%
+  filter(Type == "Total_clean") %>% pull(Number) %>% min() %>% format(big.mark=",")
+# 265,205,198
+# 18,777,034
+```

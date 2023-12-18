@@ -303,3 +303,79 @@ rule rerun_tree:
         iqtree -s {input.msa} -st AA -nt {threads} -bb 10000 -seed 1234 -m TEST -pre {params.outdir}/{wildcards.genus} 2>&1 | tee {log}
         touch {output.done}
         """
+
+rule dram_annotate_mags:
+    input:
+        dram_config = "config/dram_config.json",
+        filt_faa = "results/09_MAGs_collection/prodigal_output/renamed_for_pangenome/{mag}/{mag}.faa",
+    output:
+        dram_annotations = "results/09_MAGs_collection/dram_output/{mag}/annotations.tsv",
+    params:
+        dram_outdir = lambda wildcards: os.path.join("results/09_MAGs_collection/dram_output/", wildcards.mag),
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-10:00:00")
+    resources:
+        mem_mb = convertToMb("100G")
+    threads: 8
+    log: "results/09_MAGs_collection/dram_output/logs/{mag}_dram_annotate.log"
+    benchmark: "results/09_MAGs_collection/dram_output/logs/{mag}_dram_annotate.benchmark"
+    conda: "../config/envs/dram-env.yaml"
+    shell:
+        """
+        which DRAM.py &>> {log}
+        dram_annotations={output.dram_annotations} &>> {log}
+        dram_outdir=${{dram_annotations/annotations.tsv}} &>> {log}
+        rm -rf ${{dram_outdir}} &>> {log} # snakemake creates it but DRAM will complain
+        DRAM-setup.py import_config --config_loc {input.dram_config} &>> {log}
+        DRAM.py annotate_genes -i {input.filt_faa} -o ${{dram_outdir}} \
+                --config_loc {input.dram_config} \
+                --threads {threads} --verbose &>> {log}
+        """
+
+rule dram_annotate_concat_mags:
+    input:
+        dram_annotations = lambda wildcards: expand("results/09_MAGs_collection/dram_output/{mag}/annotations.tsv", mag = get_medium_mags(checkpoints.mag_metadata_summary.get().output.metadata)),
+    output:
+        dram_annotation_merged = "results/09_MAGs_collection/dram_distill/annotations.tsv"
+    params:
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-00:15:00")
+    log: "results/09_MAGs_collection/dram_output/logs/dram_annotate_concat_mags.log"
+    benchmark: "results/09_MAGs_collection/dram_output/logs/dram_annotate_concat_mags.benchmark"
+    conda: "../config/envs/dram-env.yaml"
+    shell:
+        """
+        cat {input.dram_annotations[0]} | head -1 > {output.dram_annotation_merged}
+        for f in {input.dram_annotations}
+        do
+            cat $f | tail -n +2 >> {output.dram_annotation_merged}
+        done
+        """
+
+rule dram_distill_mags:
+    input:
+        dram_config = "config/dram_config.json",
+        dram_annotation_merged = "results/09_MAGs_collection/dram_distill/annotations.tsv",
+    output:
+        dram_distilled = "results/09_MAGs_collection/dram_distill/output/product.html",
+    params:
+        dram_outdir = lambda wildcards: os.path.join("results/09_MAGs_collection/dram_distill/output/"),
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-10:00:00")
+    resources:
+        mem_mb = convertToMb("100G")
+    threads: 8
+    log: "results/09_MAGs_collection/dram_output/logs/dram_distill_mags.log"
+    benchmark: "results/09_MAGs_collection/dram_output/logs/dram_distill_mags.benchmark"
+    conda: "../config/envs/dram-env.yaml"
+    shell:
+        """
+        rm -rf {params.dram_outdir}
+        DRAM.py distill -i {input.dram_annotation_merged} -o {params.dram_outdir} --config_loc {input.dram_config}
+        """

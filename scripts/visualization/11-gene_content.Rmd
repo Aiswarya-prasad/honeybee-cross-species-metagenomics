@@ -1320,3 +1320,237 @@ pcoa_plot(beta.pair(ko_mat, "sorensen")$beta.sim, df_meta_complete, "Species", c
 
 
 ```
+
+```{r}
+
+# # devtools::install_github("noriakis/ggkegg", dependencies=F)
+# library(ggkegg)
+# library(ggfx)
+# library(igraph)
+# library(tidygraph)
+# library(dplyr)
+
+
+# pathway("ko00071") |>
+# pathway("ko00020") |>
+# pathway("ko01100") |>
+#     process_line() |>
+#     # highlight_module(module("M00021")) |>
+#     # highlight_module(module("M00338")) |>
+#     ggraph(x=x, y=y) +
+#         geom_node_point(size=1, aes(color=I(fgcolor),
+#             filter=fgcolor!="none" & type!="line")) +
+#         geom_edge_link0(width=0.1, aes(color=I(fgcolor),
+#             filter=type=="line"& fgcolor!="none")) +
+#         # with_outer_glow(
+#         #     geom_edge_link0(width=1,
+#         #         aes(color=I(fgcolor),
+#         #             filter=(M00021 | M00338))),
+#         #     colour="red", expand=5
+#         # ) +
+#         # with_outer_glow(
+#         #     geom_node_point(size=1.5,
+#         #         aes(color=I(fgcolor),
+#         #             filter=(M00021 | M00338))),
+#         #     colour="red", expand=5
+#         # ) +
+#         geom_node_text(size=2,
+#             aes(x=x, y=y,
+#                 label=graphics_name,
+#                 filter=name=="path:ko00270"),
+#             repel=TRUE, family="sans", bg.colour="white") +
+#         theme_void()
+
+# export_kos <- all_sample_genes_df %>%
+#             filter(sample %in% c("C3-2")) %>%
+#             filter(grepl("Snodgrassella", species)) %>%
+#             filter(!is.na(ko)) %>%
+#             filter(ko != "") %>%
+#             pull(ko)
+#             # select(gene, ko)
+
+
+# pathway("ko01100") |>
+#     process_line() |>
+#     ggraph(x=x, y=y) +
+#         geom_node_point(size=1, aes(color=I(fgcolor),
+#             filter=fgcolor!="none" & type!="line")) +
+#         geom_edge_link0(width=0.1, aes(color=I(fgcolor),
+#             filter=type=="line"& fgcolor!="none")) +
+#         geom_node_text(size=12,
+#             aes(x=x, y=y,
+#                 label=graphics_name,
+#                 filter=name=="path:00020"),
+#             repel=TRUE, family="sans", bg.colour="white") +
+#         theme_void()
+
+# # K04343 - AMR in melli snod
+
+# write.table(export_kos, "results/figures/visualize_temp/KOs.csv", row.names = FALSE, quote = FALSE)
+```
+
+```{r}
+df_by_sample <- read.csv("results/figures/visualize_temp/microbeannotator_out/by_sample_module_completeness.tab", check.names = F, sep = "\t") %>%
+                  mutate(name = abbreviate(name, 55))
+format_colnames <- function(list_cols) {
+  sapply(list_cols, function(x) if (x %in% c("name", "module", "pathway group")) {return(x)} else {return(strsplit(x, "_kos.csv")[[1]][1])})
+}
+colnames(df_by_sample) <- df_by_sample %>% colnames %>% format_colnames
+by_sample_mat <- df_by_sample %>% 
+  select(!c(module, `pathway group`), ) %>%
+  column_to_rownames("name") %>% as.matrix
+# remove sparse rows
+by_sample_mat <- by_sample_mat[apply(by_sample_mat, 1, function(x) sum(x > 0, na.rm = T)) > 10,]
+anno_top_host <- HeatmapAnnotation(Host = by_sample_mat %>% colnames %>% as.data.frame() %>% mutate(Host = Vectorize(get_host_from_sample_name)(.)) %>% pull(Host),
+                              col = list(Host = host_order_color_dark
+                              ), border = T
+                          )
+anno_left_module <- rowAnnotation(Group = by_sample_mat %>% rownames %>% as.data.frame() %>% left_join(df_by_sample %>% select(name, `pathway group`), by = c("." = "name")) %>% pull(`pathway group`),
+                              col = list(Group = make_col_list(by_sample_mat %>% rownames %>% as.data.frame() %>% left_join(df_by_sample %>% select(name, `pathway group`), by = c("." = "name")) %>% pull(`pathway group`), "Set3")
+                              ), border = T,
+                              show_legend = c(F)
+                          )
+row_split <- by_sample_mat %>% rownames %>% as.data.frame() %>% left_join(df_by_sample %>% select(name, `pathway group`), by = c("." = "name")) %>% pull(`pathway group`) %>% as.factor
+column_split <- by_sample_mat %>% colnames %>% as.data.frame() %>% mutate(Host = Vectorize(get_host_from_sample_name)(.)) %>% pull(Host) %>% as.factor
+col_fun = colorRamp2(c(0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100), rev(colorRampPalette(c(brewer.pal(9, "Blues")[9], "#FFFFFF"))(11)))
+hp <- Heatmap(by_sample_mat,
+        col = col_fun,
+        clustering_method_columns = 'ward.D2',
+        column_split = column_split,
+        row_split = row_split,
+        column_title_gp = grid::gpar(fontsize = 0),
+        row_title_gp = grid::gpar(fontsize = 12),
+        row_title_rot = 0,
+        # border = T,
+        heatmap_legend_param = list(title = "Completeness (%)"),
+        top_annotation = anno_top_host,
+        left_annotation = anno_left_module,
+        # bottom_annotation = column_ba, 
+        # right_annotation = row_ra,
+        column_names_gp = grid::gpar(fontsize = 0),
+        row_names_gp = grid::gpar(fontsize = 5),
+        cluster_columns = T,
+        cluster_rows = T
+        # column_dend_side = "bottom",
+)
+pdf("results/figures/11-gene_function/heatmap_by_sample_module_completeness.pdf", width = 15, height = 20)
+draw(hp, heatmap_legend_side = "top", merge_legend = TRUE)
+dev.off()
+hp <- Heatmap(by_sample_mat,
+        col = col_fun,
+        clustering_method_columns = 'ward.D2',
+        # column_split = column_split,
+        row_split = row_split,
+        column_title_gp = grid::gpar(fontsize = 0),
+        row_title_gp = grid::gpar(fontsize = 12),
+        row_title_rot = 0,
+        # border = T,
+        heatmap_legend_param = list(title = "Completeness (%)"),
+        top_annotation = anno_top_host,
+        left_annotation = anno_left_module,
+        # bottom_annotation = column_ba, 
+        # right_annotation = row_ra,
+        column_names_gp = grid::gpar(fontsize = 0),
+        row_names_gp = grid::gpar(fontsize = 5),
+        cluster_columns = T,
+        cluster_rows = T
+        # column_dend_side = "bottom",
+)
+pdf("results/figures/11-gene_function/heatmap_by_sample_module_completeness_clust.pdf", width = 15, height = 20)
+draw(hp, heatmap_legend_side = "top", merge_legend = TRUE)
+dev.off()
+```
+
+```{r}
+# genus <- "g__Gilliamella"
+for (genus in c(genera, "g__Saezia_snod")) {
+  if (file.exists(paste0("results/figures/visualize_temp/microbeannotator_out/by_genus/", genus, "/", genus,"__module_completeness.tab"))) {
+    if (1==1) {
+    # if (!dir.exists(paste0("results/figures/11-gene_function/by_genus/", genus))) {
+      dir.create(paste0("results/figures/11-gene_function/by_genus/", genus))
+      df_by_genus <- read.csv(paste0("results/figures/visualize_temp/microbeannotator_out/by_genus/", genus, "/", genus,"__module_completeness.tab"), check.names = F, sep = "\t") %>%
+                        mutate(name = abbreviate(name, 55))
+      format_colnames <- function(list_cols) {
+        sapply(list_cols, function(x) if (x %in% c("name", "module", "pathway group")) {return(x)} else {return(strsplit(x, "_kos.csv")[[1]][1])})
+      }
+      colnames(df_by_genus) <- df_by_genus %>% colnames %>% format_colnames
+      by_genus_mat <- df_by_genus %>% 
+        select(!c(module, `pathway group`), ) %>%
+        column_to_rownames("name") %>% as.matrix
+      # for each species / genus get a set of samples that have enough coverage of the species / genus to proceed
+      # subset those columns here - for now only removing "samples_to_exclude"
+      by_genus_mat <- by_genus_mat[, colnames(by_genus_mat) %in% samples]
+      # remove sparse rows
+      min <- 10
+      if (dim(by_genus_mat)[[2]] < 10) {
+        min <- 1
+      }
+      by_genus_mat <- by_genus_mat[apply(by_genus_mat, 1, function(x) sum(x > 0, na.rm = T)) > min,]
+      anno_top_host <- HeatmapAnnotation(Host = by_genus_mat %>% colnames %>% as.data.frame() %>% mutate(Host = Vectorize(get_host_from_sample_name)(.)) %>% pull(Host),
+                                    col = list(Host = host_order_color_dark
+                                    ), border = T
+                                )
+      anno_left_module <- rowAnnotation(Group = by_genus_mat %>% rownames %>% as.data.frame() %>% left_join(df_by_genus %>% select(name, `pathway group`), by = c("." = "name")) %>% pull(`pathway group`),
+                                    col = list(Group = make_col_list(by_genus_mat %>% rownames %>% as.data.frame() %>% left_join(df_by_genus %>% select(name, `pathway group`), by = c("." = "name")) %>% pull(`pathway group`), "Set3")
+                                    ), border = T,
+                                    show_legend = c(F)
+                                )
+      row_split <- by_genus_mat %>% rownames %>% as.data.frame() %>% left_join(df_by_genus %>% select(name, `pathway group`), by = c("." = "name")) %>% pull(`pathway group`) %>% as.factor
+      column_split <- by_genus_mat %>% colnames %>% as.data.frame() %>% mutate(Host = Vectorize(get_host_from_sample_name)(.)) %>% pull(Host) %>% as.factor
+      col_fun = colorRamp2(c(0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100), rev(colorRampPalette(c(brewer.pal(9, "Blues")[9], "#FFFFFF"))(11)))
+      hp <- Heatmap(by_genus_mat,
+              col = col_fun,
+              clustering_method_columns = 'ward.D2',
+              column_split = column_split,
+              row_split = row_split,
+              column_title_gp = grid::gpar(fontsize = 0),
+              row_title_gp = grid::gpar(fontsize = 12),
+              row_title_rot = 0,
+              # border = T,
+              heatmap_legend_param = list(title = "Completeness (%)"),
+              top_annotation = anno_top_host,
+              left_annotation = anno_left_module,
+              # bottom_annotation = column_ba, 
+              # right_annotation = row_ra,
+              column_names_gp = grid::gpar(fontsize = 0),
+              row_names_gp = grid::gpar(fontsize = 5),
+              cluster_columns = T,
+              cluster_rows = T
+              # column_dend_side = "bottom",
+      )
+      draw(hp, heatmap_legend_side = "bottom", merge_legend = TRUE, column_title = paste0(genus, " module completeness"))
+      pdf(paste0("results/figures/11-gene_function/by_genus/", genus, "/", genus, "_module_completeness.pdf"), width = 15, height = 20)
+      draw(hp, heatmap_legend_side = "bottom", merge_legend = TRUE, column_title = paste0(genus, " module completeness"))
+      dev.off()
+      hp <- Heatmap(by_genus_mat,
+              col = col_fun,
+              clustering_method_columns = 'ward.D2',
+              # column_split = column_split,
+              row_split = row_split,
+              column_title_gp = grid::gpar(fontsize = 0),
+              row_title_gp = grid::gpar(fontsize = 12),
+              row_title_rot = 0,
+              # border = T,
+              heatmap_legend_param = list(title = "Completeness (%)"),
+              top_annotation = anno_top_host,
+              left_annotation = anno_left_module,
+              # bottom_annotation = column_ba, 
+              # right_annotation = row_ra,
+              column_names_gp = grid::gpar(fontsize = 0),j
+              row_names_gp = grid::gpar(fontsize = 5),
+              cluster_columns = T,
+              cluster_rows = T
+              # column_dend_side = "bottom",
+      )
+      draw(hp, heatmap_legend_side = "bottom", merge_legend = TRUE, column_title = paste0(genus, " module completeness"))
+      pdf(paste0("results/figures/11-gene_function/by_genus/", genus, "/", genus, "_module_completeness_clust.pdf"), width = 15, height = 20)
+      draw(hp, heatmap_legend_side = "bottom", merge_legend = TRUE, column_title = paste0(genus, " module completeness"))
+      dev.off()
+    } else {
+      print(paste0("directory already exists for ", genus))
+    }
+  } else {
+    print(paste0("no file for ", genus, " at ", paste0("results/figures/visualize_temp/microbeannotator_out/by_genus/", genus, "/", genus,"__module_completeness.tab")))
+  }
+}
+```

@@ -28,7 +28,6 @@
 *.o
 
 results/*
-results/*
 */.snakemake/*
 data/*
 

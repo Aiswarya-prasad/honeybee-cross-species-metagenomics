@@ -6,7 +6,7 @@ channels:
   - pwwang
 
 dependencies:
-  - r-base
+  - r-base>=4.3.0
   - r-rmarkdown
   - r-ggplot2
   - r-codetools
@@ -45,6 +45,37 @@ dependencies:
   - r-factominer
   - r-factoextra
   - pandoc
+  - r-beeswarm
+  - r-ade4
+  - r-bookdown
+  - r-circlize
+  - r-igraph
+  - r-dbi
+  - r-ggfittext
+  - r-dendextend
+  - r-devtools
+  - r-ggfx
+  - r-ggpubr
+  - r-ggsignif
+  - r-htmltools
+  - r-htmlwidgets
+  - r-rstatix
+  - r-tidygraph
   - bioconductor-phyloseq
   - bioconductor-biostrings
   - bioconductor-complexheatmap
+  - bioconductor-genomeinfodb
+  - bioconductor-microbiome
+  - bioconductor-phyloseq
+  - bioconductor-annotationdbi
+  - bioconductor-biocfilecache
+  - bioconductor-keggrest
+  - bioconductor-org.hs.eg.db
+  - r-filelock
+  - r-patchwork
+  - r-plogr
+  - r-rsqlite
+  - r-shadowtext
+  - r-xml
+  - cairo
+  - r-cairo

@@ -998,7 +998,7 @@ plot_corr_species_num <- df_reads %>%
 
 ggplot(plot_corr_species_num, aes(x = MAGs_DB_mf, y = rowsum)) +
   geom_point() +
-  geom_smooth(method = "lm", se = FALSE) +
+  geom_smooth(color = "#000000", method = "lm", se = FALSE) +
   stat_cor(digits = 3, size = 5) +
   scale_color_manual(values=host_order_color) +
   scale_x_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
@@ -1106,6 +1106,72 @@ heatmap_obj = Heatmap(t(abundance_df_matrix_pa),
 draw(heatmap_obj, merge_legend = TRUE)
 
 dev.off()
+
+pdf("results/figures/09-presence_absence_heatmap_cluster.pdf", width = 10, height = 15)
+
+heatmap_obj = Heatmap(t(abundance_df_matrix_pa),
+        col = c("#e1ebf4", "#081d58"),
+        clustering_method_columns = "ward.D2",
+        clustering_method_rows = "ward.D2",
+        # column_split = column_split,
+        # row_split = row_split,
+        column_dend_side = "bottom",
+        column_title_gp = grid::gpar(fontsize = 0),
+        row_title_gp = grid::gpar(fontsize = 0),
+        border = T,
+        heatmap_legend_param = list(title = "Presence"),
+        # top_annotation = column_ba, 
+        # right_annotation = row_ra,
+        left_annotation = row_la,
+        bottom_annotation = column_ha,
+        column_names_gp = grid::gpar(fontsize = 0),
+        row_names_gp = grid::gpar(fontsize = 0),
+        cluster_columns = T,
+          cluster_rows = T)
+draw(heatmap_obj, merge_legend = TRUE)
+
+for (genus in genera) {
+  pdf(paste("results/figures/09-presence_absence_heatmap_cluster_sep/", genus, "_heatmap.pdf"), width = 10, height = 15)
+  abundance_df_matrix_plot <- abundance_df_matrix_pa %>% 
+                                select(matches(genus)) %>%
+                                as.matrix
+  if (dim(abundance_df_matrix_plot)[2] == 0) {
+    next
+  }
+  row_la = rowAnnotation(Genus = colnames(abundance_df_matrix_plot) %>% as.data.frame() %>% left_join(magOTU_tax_info %>% ungroup(), by = c(. = "magOTU")) %>% pull(Genus),
+                       col = list(Genus = unlist(genusColors)), border = T
+                    )
+  column_ha = HeatmapAnnotation(Host = rownames(abundance_df_matrix_plot) %>% as.data.frame() %>% mutate(Host = Vectorize(get_host_from_sample_name)(.)) %>% pull(Host),
+                              col = list(Host = host_order_color
+                              ), border = T
+                          )
+  row_split <- colnames(abundance_df_matrix_plot) %>% as.data.frame() %>% left_join(magOTU_tax_info, by = c(. = "magOTU")) %>% pull(Genus) %>% as.factor %>% as.numeric
+  heatmap_obj = Heatmap(t(abundance_df_matrix_plot),
+          col = c("#e1ebf4", "#081d58"),
+          clustering_method_columns = "ward.D2",
+          clustering_method_rows = "ward.D2",
+          # column_split = column_split,
+          row_split = row_split,
+          column_dend_side = "bottom",
+          column_title_gp = grid::gpar(fontsize = 0),
+          row_title_gp = grid::gpar(fontsize = 0),
+          border = T,
+          heatmap_legend_param = list(title = "Presence"),
+          # top_annotation = column_ba, 
+          # right_annotation = row_ra,
+          left_annotation = row_la,
+          bottom_annotation = column_ha,
+          column_names_gp = grid::gpar(fontsize = 0),
+          row_names_gp = grid::gpar(fontsize = 0),
+          cluster_row_slices = F,
+          cluster_column_slices = F,
+          cluster_columns = T,
+            cluster_rows = T)
+  draw(heatmap_obj, merge_legend = TRUE, column_title = genus)
+  dev.off()
+}
+
+
 
 pdf("results/figures/09-presence_absence_heatmap_by_location.pdf", width = 10, height = 15)
 
@@ -2540,6 +2606,47 @@ ggplot(instrain_genomes_info_df %>%
 
 ```
 
+# "timescale" of evolution
+
+```{r}
+genus <- "Snodgrassella"
+df_phy_dist <- read.csv(paste0("results/figures/12-phylo_distances/", genus,"/bact_host_dists.tsv"), sep = "\t") %>%
+                mutate(spec_comb = ifelse(Species1 == Species2, "Same", "Diff")) %>%
+                filter(Host1 != "Other") %>%
+                filter(Host2 != "Other")
+colnames(df_phy_dist)
+df_phy_dist %>%
+  group_by(Species1) %>%
+  summarise(n = n())
+# for a given species as species1 and species2, plot  Host_dist in x axis and Bact_dist in y axis
+df_phy_dist_same_spec <- df_phy_dist %>% filter(Species1 == Species2)
+
+ggplot(df_phy_dist_same_spec,
+       aes(x = Host_dist, y = Bact_dist)) +
+  geom_point() +
+  facet_wrap(~Species1, scales = "free") +
+  geom_smooth(method = "lm", se = T) +
+  labs(x = "Host divergence", y = "Bacteria divergence") +
+  make_theme(theme_name=theme_few(), leg_pos="none",
+             # guide_nrow = 6,
+             setFill = F, setCol = F,
+             x_angle=45 ,x_vj=1, x_hj=1, x_size=5,
+             y_angle=0 ,y_vj=0, y_hj=0, y_size=10)
+
+ggplot(df_phy_dist,
+       aes(x = Host_dist, y = Bact_dist)) +
+  geom_point() +
+  facet_wrap(~spec_comb, scales = "free") +
+  geom_smooth(color = "#000000", method = "lm", formula = y ~ x, se = F) +
+  labs(x = "Host divergence", y = "Bacteria divergence") +
+  make_theme(theme_name=theme_few(), leg_pos="top",
+             # guide_nrow = 6,
+             setFill = F, setCol = F,
+             x_angle=45 ,x_vj=1, x_hj=1, x_size=5,
+             y_angle=0 ,y_vj=0, y_hj=0, y_size=10)
+  
+```
+
 ```{r}
 # abundance_df_matrix_rel
 # abundance_df_matrix_pa
@@ -3218,3 +3325,4 @@ df_mat_rel <- abundance_df_matrix_rel %>%
               t
 cor_data <- cor(df_mat_rel)
 corrplot(cor_data, method = 'color', tl.srt = 45, tl.col = "#000000", tl.cex = 0.75, order = "AOE", type = "lower")
+```

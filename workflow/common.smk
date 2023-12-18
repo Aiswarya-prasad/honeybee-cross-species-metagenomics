@@ -96,7 +96,7 @@ def get_renamed_input_files(paths_dict):
         renamed_paths_dict[sample] = renamed_sample_paths
     return(renamed_paths_dict)
 
-def get_all_mags():
+def get_all_mags(metadata):
     with open(metadata, "r") as f:
         header = f.readline()
         header = header.strip()

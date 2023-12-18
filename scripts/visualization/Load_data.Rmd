@@ -93,8 +93,8 @@ If there are any specific changes to functions be sure to re-write the RData obj
 # library(ggpubr) - version confilct
 # Previously saved env data not clean - redo next time
 # save.image("/work/FAC/FBM/DMF/pengel/spirit/aprasad/BACKUP_current/20230313_apis_species_comparison/results/figures/workspace_generaldata_chunks_20230611.RData")
-# load("/work/FAC/FBM/DMF/pengel/spirit/aprasad/BACKUP_current/20230313_apis_species_comparison/results/figures/workspace_generaldata_chunks_20230611.RData")
 source('/work/FAC/FBM/DMF/pengel/spirit/aprasad/BACKUP_current/20230313_apis_species_comparison/scripts/visualization/utilitites.R')
+load("/work/FAC/FBM/DMF/pengel/spirit/aprasad/BACKUP_current/20230313_apis_species_comparison/results/figures/workspace_generaldata_chunks_20230611.RData")
 ```
 
 ### Read metadata and parse into dataframe
@@ -113,7 +113,7 @@ df_meta_complete <- df_meta_complete %>%
                             mutate(Species = Vectorize(get_host_from_sample_name)(ID)) %>%
                             mutate(Country = Vectorize(get_location_from_sample_name)(ID))
 df_meta_complete %>% select(Species, ID)
-
+# write.table(df_meta_complete, "results/figures/df_meta_complete.tsv", sep = "\t", row.names = F, quote = F)
 ```
 
 ## Initialization for 00a plot DNA concentration

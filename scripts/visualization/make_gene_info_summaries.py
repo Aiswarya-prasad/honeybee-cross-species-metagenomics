@@ -473,7 +473,7 @@ def og_gene_id(gene):
 all_scaffolds_info = pd.read_csv('results/09_MAGs_collection/all_scaffold_to_bin.tsv', sep='\t')
 handmade_spec_names = pd.read_csv('results/figures/handmade_species_names.csv')
 handmade_spec_names['magotu'] = handmade_spec_names['cluster'].astype(str)
-all_scaffolds_info = all_scaffolds_info.merge(handmade_spec_names, on='magotu', how='left')all_scaffolds_info.columns
+all_scaffolds_info = all_scaffolds_info.merge(handmade_spec_names, on='magotu', how='left')
 
 mag_genus_dict = all_scaffolds_info.set_index('mag').to_dict()['genus']
 mag_species_dict = all_scaffolds_info.set_index('mag').to_dict()['MAG_species_name_final']
@@ -545,9 +545,11 @@ for i, sample in enumerate(samples):
         if og_gene_id(gene) is not None and og_gene_id(gene) in gene_og_dict.keys():
             og_info_dict[gene] = gene_og_dict[og_gene_id(gene)]
     df_detected_genes_info['og'] = df_detected_genes_info['gene'].map(og_info_dict)
-    df_detected_genes_info['coreness'] = df_detected_genes_info['gene'].map(og_coreness)
+    df_detected_genes_info['coreness'] = df_detected_genes_info['og'].map(og_coreness)
     df_detected_genes_info['cluster'] = df_detected_genes_info['gene'].map(gene_cd_hit_dict)
     df_detected_genes_info.to_csv(f'results/figures/08-summarize_functions/gene_info_tables/{sample}_df_detected_genes_info.csv')
+print('completed all samples')
+
 
 del mag_species_dict
 del mag_genus_dict
@@ -724,3 +726,7 @@ To find this, for each sample,
 #         os.system(f'cp {gff_path} {out_gff}')
 #         os.system(f'cp {faa_path} {out_faa_nas}')
 #         os.system(f'cp {gff_path} {out_gff_nas}')
+
+
+# from enrichm
+
