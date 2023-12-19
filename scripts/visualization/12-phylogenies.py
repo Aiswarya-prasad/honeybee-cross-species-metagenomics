@@ -452,6 +452,80 @@ for clade in rerooted:
     fig = permuted.get_figure()
     fig.savefig(f'results/figures/12-cophylogeny_test/{clade}/permuted_nodes.pdf')
 
+clade = 'Lactobacillus'
+df_res = pd.read_csv(f'results/figures/12-cophylogeny_test/{clade}/host_signodes.txt', sep = '\t')
+df_res = df_res.sort_values(by='r', ascending=False)
+tree = ete3.Tree(df_res['sym_subtree'][0])
+print(tree)
+tree = ete3.Tree(df_res['sym_subtree'][12])
+print(tree)
+tree = ete3.Tree(df_res['sym_subtree'][14])
+print(tree)
+tree = ete3.Tree(df_res['sym_subtree'][7])
+print(tree)
+
+clade = 'Frischella'
+df_res = pd.read_csv(f'results/figures/12-cophylogeny_test/{clade}/host_signodes.txt', sep = '\t')
+df_res = df_res.sort_values(by='r', ascending=False)
+print(df_res)
+tree = ete3.Tree(df_res['sym_subtree'][0])
+print(tree)
+tree = ete3.Tree(df_res['sym_subtree'][3])
+print(tree)
+tree = ete3.Tree(df_res['sym_subtree'][1])
+print(tree)
+
+
+clade = 'Gilliamella'
+df_res = pd.read_csv(f'results/figures/12-cophylogeny_test/{clade}/host_signodes.txt', sep = '\t')
+df_res = df_res.sort_values(by='r', ascending=False)
+print(df_res)
+tree = ete3.Tree(df_res['sym_subtree'][4])
+print(tree)
+
+
+clade = 'Snodgrassella'
+df_res = pd.read_csv(f'results/figures/12-cophylogeny_test/{clade}/host_signodes.txt', sep = '\t')
+df_res = df_res.sort_values(by='r', ascending=False)
+print(df_res)
+tree = ete3.Tree(df_res['sym_subtree'][0])
+print(tree)
+
+
+clade = 'Dysgonomonas'
+df_res = pd.read_csv(f'results/figures/12-cophylogeny_test/{clade}/host_signodes.txt', sep = '\t')
+df_res = df_res.sort_values(by='r', ascending=False)
+print(df_res)
+tree = ete3.Tree(df_res['sym_subtree'][0])
+print(tree)
+
+
+clade = 'Bombilactobacillus'
+df_res = pd.read_csv(f'results/figures/12-cophylogeny_test/{clade}/host_signodes.txt', sep = '\t')
+df_res = df_res.sort_values(by='r', ascending=False)
+print(df_res)
+tree = ete3.Tree(df_res['sym_subtree'][17])
+print(tree)
+tree = ete3.Tree(df_res['sym_subtree'][18])
+print(tree)
+tree = ete3.Tree(df_res['sym_subtree'][20])
+print(tree)
+
+
+clade = 'Bifidobacterium'
+df_res = pd.read_csv(f'results/figures/12-cophylogeny_test/{clade}/host_signodes.txt', sep = '\t')
+df_res = df_res.sort_values(by='r', ascending=False)
+print(df_res)
+tree = ete3.Tree(df_res['sym_subtree'][0])
+print(tree)
+tree = ete3.Tree(df_res['sym_subtree'][1])
+print(tree)
+tree = ete3.Tree(df_res['sym_subtree'][19])
+print(tree)
+tree = ete3.Tree(df_res['sym_subtree'][20])
+print(tree)
+
+
 '''
 Rates of sequence evolution were estimated using a linear regression of the genetic distance calculated between each pair 
 of MAGs and the evolutionary divergence time of their respective hosts
@@ -475,23 +549,35 @@ def host_from_tip(tipname):
 def species_from_tip(tipename):
     return tipename.split('--')[0]
 
-# for each genus, (only makes sense if found in > 3 hosts)
-# calculate the genetic distance between each pair of MAGs
-# calculate the evolutionary divergence time of their respective hosts
-# iterate through each pair of MAGs hat are tips of the bact tree using combinations
-# and calculate the slope of the linear regression
-host_tree = TreeNode.read('results/figures/visualize_temp/host_tree.treefile', convert_underscores=False)
-for tip in host_tree.tips():
-    tip.name = tip.name.replace('A_', 'Apis ')
-print(host_tree.ascii_art())
+# # for each genus, (only makes sense if found in > 3 hosts)
+# # calculate the genetic distance between each pair of MAGs
+# # calculate the evolutionary divergence time of their respective hosts
+# # iterate through each pair of MAGs hat are tips of the bact tree using combinations
+# # and calculate the slope of the linear regression
+def host_divergence(a, b, type = 'dist'):
+    # Carr, S. M. Multiple mitogenomes indicate Things Fall Apart with Out of Africa or Asia hypotheses for the phylogeographic evolution of Honey Bees (Apis mellifera). Sci Rep 13, 9386 (2023).
+    host_tree = TreeNode.read(
+        StringIO('(Bombus_ignitus:1938, ((A_florea:553, A_andreniformis:593):421, ((A_dorsata:608, A_laboriosa:579):346, (A_mellifera:651, (A_koschevnikovi:634, (A_nuluensis:419, (A_cerana:338, A_nigrocincta:379):161):381):262):335):312):107);')
+        )
+    for tip in host_tree.tips():
+        tip.name = tip.name.replace('A_', 'Apis ')
+        tip.name = tip.name.replace('A ', 'Apis ')
+    host_dists = host_tree.tip_tip_distances().to_data_frame()
+    if type == 'dist':
+        return host_dists.loc[a, b]
+    if type == 'time':
+        return (host_dists.loc[a, b]/11043)/0.0115
+    # from literature https://static-content.springer.com/esm/art%3A10.1038%2Fs41598-023-35937-4/MediaObjects/41598_2023_35937_MOESM6_ESM.jpg
+    # 0.0115 substitutions/site/Myr (Brower 1994 in Ref.31)
+    # 11043 sites in mitogenome
+    
+
 
 for clade in rerooted:
     makedirs(f'results/figures/12-phylo_distances/{clade}', exist_ok=True)
     print(clade)
     bact_tree = rerooted[clade]
     bact_tips = [x.name for x in bact_tree.tips()]
-    host_tips = [x.name for x in host_tree.tips()]
-    host_dists = host_tree.tip_tip_distances().to_data_frame()
     bact_dists = bact_tree.tip_tip_distances().to_data_frame()
     # get pairwise the distance between each pair of MAGs
     # from bact_dist
@@ -509,10 +595,12 @@ for clade in rerooted:
         f.write(header)
     for pair in combinations(bact_tips, 2):
         if host_from_tip(pair[0]) == 'Other' or host_from_tip(pair[1]) == 'Other':
-            host_dist = host_dists.max().max()
+            continue
         else:
-            host_dist = host_dists.loc[host_from_tip(pair[0]), host_from_tip(pair[1])]
-        host_time = host_dist/11000 * 0.0115
+            host_dist = host_divergence(host_from_tip(pair[0]), host_from_tip(pair[1]), 'dist')
+        # https://www.nature.com/articles/s41598-023-35937-4#Sec2
+        # host_time = host_dist/11043 * 0.0115
+        host_time = host_divergence(host_from_tip(pair[0]), host_from_tip(pair[1]), 'time')
         bact_dist = bact_dists.loc[pair[0], pair[1]]
         with open(f'results/figures/12-phylo_distances/{clade}/bact_host_dists.tsv', 'a') as f:
             success = f.write(f'{pair[0]}\t{pair[1]}\t{host_from_tip(pair[0])}\t{host_from_tip(pair[1])}\t{species_from_tip(pair[0])}\t{species_from_tip(pair[1])}\t{host_dist}\t{bact_dist}\t{host_time}\n')

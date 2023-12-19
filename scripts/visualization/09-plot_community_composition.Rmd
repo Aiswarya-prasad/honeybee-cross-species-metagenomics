@@ -2609,41 +2609,70 @@ ggplot(instrain_genomes_info_df %>%
 # "timescale" of evolution
 
 ```{r}
-genus <- "Snodgrassella"
-df_phy_dist <- read.csv(paste0("results/figures/12-phylo_distances/", genus,"/bact_host_dists.tsv"), sep = "\t") %>%
-                mutate(spec_comb = ifelse(Species1 == Species2, "Same", "Diff")) %>%
-                filter(Host1 != "Other") %>%
-                filter(Host2 != "Other")
-colnames(df_phy_dist)
-df_phy_dist %>%
-  group_by(Species1) %>%
-  summarise(n = n())
-# for a given species as species1 and species2, plot  Host_dist in x axis and Bact_dist in y axis
-df_phy_dist_same_spec <- df_phy_dist %>% filter(Species1 == Species2)
-
-ggplot(df_phy_dist_same_spec,
-       aes(x = Host_dist, y = Bact_dist)) +
-  geom_point() +
-  facet_wrap(~Species1, scales = "free") +
-  geom_smooth(method = "lm", se = T) +
-  labs(x = "Host divergence", y = "Bacteria divergence") +
-  make_theme(theme_name=theme_few(), leg_pos="none",
-             # guide_nrow = 6,
-             setFill = F, setCol = F,
-             x_angle=45 ,x_vj=1, x_hj=1, x_size=5,
-             y_angle=0 ,y_vj=0, y_hj=0, y_size=10)
-
-ggplot(df_phy_dist,
-       aes(x = Host_dist, y = Bact_dist)) +
-  geom_point() +
-  facet_wrap(~spec_comb, scales = "free") +
-  geom_smooth(color = "#000000", method = "lm", formula = y ~ x, se = F) +
-  labs(x = "Host divergence", y = "Bacteria divergence") +
-  make_theme(theme_name=theme_few(), leg_pos="top",
-             # guide_nrow = 6,
-             setFill = F, setCol = F,
-             x_angle=45 ,x_vj=1, x_hj=1, x_size=5,
-             y_angle=0 ,y_vj=0, y_hj=0, y_size=10)
+get_stat_label <- function(df_in) {
+  lm_res <- lm(Bact_dist ~ Host_time, data = df_in)
+  slope_coef = coef(lm_res)[2]
+  r2 = summary(lm_res)$adj.r.squared
+  p = summary(lm_res)$coefficients[,4][2]
+  x_max <- max(df_in$Host_time)/2
+  y_max <- max(df_in$Bact_dist)
+  return(list("x" = x_max, "y" = y_max, "slope" = slope_coef, "r" = r2, "p" = p))
+}
+# genus <- "Snodgrassella"
+for (genus in genera_clean) {
+  if (!file.exists(paste0("results/figures/12-phylo_distances/", genus,"/bact_host_dists.tsv"))) {
+    next
+  }
+  df_phy_dist <- read.csv(paste0("results/figures/12-phylo_distances/", genus,"/bact_host_dists.tsv"), sep = "\t") %>%
+                  mutate(spec_comb = ifelse(Species1 == Species2, "Same", "Diff")) %>%
+                  filter(Host1 != "Other") %>%
+                  filter(Host2 != "Other")
+  # for a given species as species1 and species2, plot  Host_dist in x axis and Bact_dist in y axis
+  df_phy_dist_same_spec <- df_phy_dist %>% filter(Species1 == Species2)
+  p_list <- list()
+  for (species in unique(df_phy_dist_same_spec$Species1)) {
+    df_plot <- df_phy_dist_same_spec %>% filter(Species1 == species)
+    if (length(unique(df_plot$Host1)) == 1) {
+      next
+    }
+    p <- ggplot(df_plot) +
+      geom_point(aes(x = Host_time,
+                    y = Bact_dist,
+                    fill = Host2,
+                    color = Host1),
+                  shape = 21, size = 3, stroke = 3
+                  ) +
+      # geom_point(aes(x = Host_time,
+      #               y = Bact_dist,
+      #               color = Host1),
+      #             shape = "\u25D2", size = 3, stroke = 3
+      #             ) +
+      # geom_point(aes(x = Host_time,
+      #               y = Bact_dist,
+      #               color = Host2),
+      #             shape = "\u25D3", size = 3, stroke = 3
+      #             ) +
+      geom_smooth(aes(x = Host_time,
+                    y = Bact_dist), color = "#000000", method = "lm", se = F) +
+      annotate("text", x = get_stat_label(df_plot)[["x"]],
+                    y = get_stat_label(df_plot)[["y"]],
+                    size = 5,
+        label = paste0("r2 = ", round(get_stat_label(df_plot)[["r"]], 4), ", p = ", round(get_stat_label(df_plot)[["r"]], 3), ", Slope = ", round(get_stat_label(df_plot)[["slope"]], 3))) +
+      labs(x = "Host divergence", y = "Bacteria divergence", title = paste0(species)) +
+      scale_color_manual(values = host_order_color_dark) +
+      scale_fill_manual(values = host_order_color_dark) +
+      scale_x_continuous(labels=unit_format(unit = "Mya", scale = 1)) +
+      make_theme(theme_name=theme_few(), leg_pos="none",
+                # guide_nrow = 6,
+                setFill = F, setCol = F,
+                x_angle=45 ,x_vj=1, x_hj=1, x_size=10,
+                y_angle=0 ,y_vj=0, y_hj=0, y_size=10)
+    p_list[[species]] <- p
+  }
+  pdf(paste0("results/figures/12-phylo_distances/", genus,"/bact_host_dists_same_species.pdf"), width = 15, height = 10)
+  print(marrangeGrob(p_list, nrow = 2, ncol = 2))
+  dev.off()
+}
   
 ```
 
