@@ -5,7 +5,6 @@ from glob import glob
 from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
-from Bio.Alphabet import generic_dna
 
 
 '''
@@ -66,3 +65,4 @@ for j, marker in enumerate(marker_genes):
                 with open(f'results/11_phylogenies/05_MAG_bac120_nucleotide_trees/bac120_sequences/{marker}.fa', 'a') as f:
                     success = f.write(f'>{mag}\n{record.seq}\n')
                 break
+

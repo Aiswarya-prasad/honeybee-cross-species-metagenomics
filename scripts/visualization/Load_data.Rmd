@@ -2303,5 +2303,8 @@ vis_magOTUs_df %>%
     write.csv("results/export/magOTU_handmade_names.csv", row.names = F, quote = F)
   # mutate(MAG_species_name_final_nospace = ifelse(MAG_species_name_final_nospace == "f__", paste0(Order,"-",magOTU), MAG_species_name_final_nospace))
 
+colnames(vis_magOTUs_df_all)
+
+
 
 ```

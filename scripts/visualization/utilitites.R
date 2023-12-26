@@ -755,6 +755,47 @@ genusColors <- list("g__Bombilactobacillus" = head(colorRampPalette(c(brewer.pal
                     "g__Floricoccus" = head(colorRampPalette(c(brewer.pal(11, "PiYG")[2], "#FFFFFF"))(10), -1)[8],
                     "g__" = "#000000"
 )
+genusColorsClean <- list("Bombilactobacillus" = head(colorRampPalette(c(brewer.pal(11, "Spectral")[1], "#FFFFFF"))(10), -1)[1],
+                    "Lactobacillus" = head(colorRampPalette(c(brewer.pal(11, "Spectral")[1], "#FFFFFF"))(10), -1)[4],
+                    "CALYQJ01" = head(colorRampPalette(c(brewer.pal(11, "Spectral")[1], "#FFFFFF"))(10), -1)[4],
+                    "Dysgonomonas" = brewer.pal(11, "Spectral")[2],
+                    "Bifidobacterium" = brewer.pal(11, "Spectral")[3],
+                    "Apibacter" = brewer.pal(11, "Spectral")[4],
+                    "Bombella" = brewer.pal(11, "Spectral")[5],
+                    "Commensalibacter" = brewer.pal(11, "Spectral")[6],
+                    "Bartonella" = brewer.pal(11, "Spectral")[7],
+                    "Frischella" = brewer.pal(11, "Spectral")[8],
+                    "Apilactobacillus" = brewer.pal(11, "Spectral")[9],
+                    "Snodgrassella" = brewer.pal(11, "Spectral")[10],
+                    "Gilliamella" = brewer.pal(11, "Spectral")[11],
+                    "CALYQQ01" = brewer.pal(11, "Spectral")[11],
+                    "Spiroplasma" = brewer.pal(8, "Set1")[8],
+                    "Pectinatus" = brewer.pal(8, "Dark2")[1],
+                    "WRHT01" = brewer.pal(8, "Dark2")[3],
+                    "Saezia" = brewer.pal(8, "Dark2")[6],
+                    "Enterobacter" = head(colorRampPalette(c(brewer.pal(11, "BrBG")[2], "#FFFFFF"))(10), -1)[1],
+                    "Q3-R57-64" = head(colorRampPalette(c(brewer.pal(11, "BrBG")[2], "#FFFFFF"))(10), -1)[1],
+                    "Zymobacter" = head(colorRampPalette(c(brewer.pal(11, "BrBG")[2], "#FFFFFF"))(10), -1)[2],
+                    "Entomomonas"= head(colorRampPalette(c(brewer.pal(11, "BrBG")[2], "#FFFFFF"))(10), -1)[4],
+                    "Escherichia" = head(colorRampPalette(c(brewer.pal(11, "BrBG")[2], "#FFFFFF"))(10), -1)[6],
+                    "Klebsiella" = head(colorRampPalette(c(brewer.pal(11, "BrBG")[2], "#FFFFFF"))(10), -1)[6],
+                    "Parolsenella" = head(colorRampPalette(c(brewer.pal(11, "BrBG")[2], "#FFFFFF"))(10), -1)[8],
+                    "Cronobacter" = head(colorRampPalette(c(brewer.pal(11, "PiYG")[2], "#FFFFFF"))(10), -1)[2],
+                    "Pluralibacter" = head(colorRampPalette(c(brewer.pal(11, "PiYG")[2], "#FFFFFF"))(10), -1)[4],
+                    "Rosenbergiella" = head(colorRampPalette(c(brewer.pal(11, "PiYG")[2], "#FFFFFF"))(10), -1)[5],
+                    "Melissococcus" = head(colorRampPalette(c(brewer.pal(11, "PiYG")[2], "#FFFFFF"))(10), -1)[6],
+                    "KAACC-21507" = head(colorRampPalette(c(brewer.pal(11, "PiYG")[2], "#FFFFFF"))(10), -1)[7],
+                    "Pantoea" = head(colorRampPalette(c(brewer.pal(11, "PiYG")[2], "#FFFFFF"))(10), -1)[8],
+                    "Acinetobacter" = head(colorRampPalette(c(brewer.pal(11, "PiYG")[2], "#FFFFFF"))(10), -1)[8],
+                    "Corynebacterium" = head(colorRampPalette(c(brewer.pal(11, "PiYG")[2], "#FFFFFF"))(10), -1)[8],
+                    "Kosakonia" = head(colorRampPalette(c(brewer.pal(11, "PiYG")[2], "#FFFFFF"))(10), -1)[8],
+                    "JAATFO01" = head(colorRampPalette(c(brewer.pal(11, "PiYG")[2], "#FFFFFF"))(10), -1)[8],
+                    "Hafnia" = head(colorRampPalette(c(brewer.pal(11, "PiYG")[2], "#FFFFFF"))(10), -1)[8],
+                    "Zymomonas" = head(colorRampPalette(c(brewer.pal(11, "PiYG")[2], "#FFFFFF"))(10), -1)[8],
+                    "Fructobacillus" = head(colorRampPalette(c(brewer.pal(11, "PiYG")[2], "#FFFFFF"))(10), -1)[8],
+                    "Floricoccus" = head(colorRampPalette(c(brewer.pal(11, "PiYG")[2], "#FFFFFF"))(10), -1)[8],
+                    "53" = "#000000"
+)
 # genusColors <- list("g__Bombilactobacillus" = head(colorRampPalette(c(brewer.pal(11, "Spectral")[1], "#FFFFFF"))(10), -1)[1],
 #                     "g__Lactobacillus" = head(colorRampPalette(c(brewer.pal(11, "Spectral")[1], "#FFFFFF"))(10), -1)[4],
 #                     "g__CALYQJ01" = head(colorRampPalette(c(brewer.pal(11, "Spectral")[1], "#FFFFFF"))(10), -1)[4],
@@ -904,4 +945,8 @@ adonis_OmegaSq <- function(adonisOutput, partial = TRUE){
     else
         adonisOutput <- aov_tab
     return(adonisOutput)
+}
+
+scientific_10 <- function(x) {
+  parse(text=gsub("e", " %*% 10^", scales::scientific_format()(x)))
 }

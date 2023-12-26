@@ -55,6 +55,11 @@ def get_tax_info(ID):
     else:
         return None
     
+'''
+rename and prune the trees made from aa sequences at the genus level
+and write them to a new directory
+'''
+    
 samples_to_remove = ['F4-5', 'F5-1', 'M6-2']
 # following ete3 tutorial to understand how to parse the trees
 for genus in [basename(x).split('.')[0] for x in glob('results/11_phylogenies/03_iqtree_trees/*/*.treefile')]:
@@ -123,19 +128,26 @@ trees_dir = 'results/figures/visualize_temp/renamed_trees/*.treefile'
 tree_fps = glob(trees_dir)
 
 trees = {}
-dfs = []
-focal_species_list = ['M', 'C', 'D', 'F', 'A']
-
 for tree_fp in tree_fps:
     tree = TreeNode.read(tree_fp, 
                          convert_underscores=False)
     cluster = basename(tree_fp).split('.')[0].split('__')[1]
-    for focus in focal_species_list:
-        cluster_df = count_clade_hosts(tree, focus)
-        if cluster_df is not None:
-            trees[cluster] = tree
-            cluster_df['cluster'] = cluster
-            dfs.append(cluster_df)
+    trees[cluster] = tree
+
+# trees = {}
+# dfs = []
+# focal_species_list = ['M', 'C', 'D', 'F', 'A']
+
+# for tree_fp in tree_fps:
+#     tree = TreeNode.read(tree_fp, 
+#                          convert_underscores=False)
+#     cluster = basename(tree_fp).split('.')[0].split('__')[1]
+#     for focus in focal_species_list:
+#         cluster_df = count_clade_hosts(tree, focus)
+#         if cluster_df is not None:
+#             trees[cluster] = tree
+#             cluster_df['cluster'] = cluster
+#             dfs.append(cluster_df)
 
 # 
 def is_mag(name):
@@ -144,40 +156,6 @@ def is_mag(name):
     else:
         return False
 
-# t = ete3.PhyloTree('results/11_phylogenies/04_MAGs_gtdb/20230313_MAGs_family-bac120/MAGs_refs.treefile')
-# for node in t.traverse('postorder'):
-#     if '--low' in node.name:
-#         node.delete()
-#     else:
-#         if not any([is_mag(x) for x in node.get_leaf_names()]):
-#             pass
-#         else:
-#             node.delete()
-
-# for i, node in enumerate(t.traverse('postorder')):
-#     if not node.is_leaf():
-#         continue
-#     print(f'{i}/{len(t)}', end = '\r')
-#         # for each node, if it matches an ID in phylo_metadata, rename it to the final species name prefixed to MAG name
-#     if node.name in list(phylo_metadata['ID']):
-#         node.name = phylo_metadata[phylo_metadata['ID'] == node.name]['MAG_species_name_final_nospace'].values[0] + '--' + node.name
-#     # if not, append quality info from mag_info to it
-#     else:
-#         if node.name in list(mag_info['ID']):
-#             node.name = node.name + '--' + mag_info[mag_info['ID'] == node.name]['Quality'].values[0]
-#         else:
-#             if node.name != '':
-#                 node.name = get_tax_info(node.name)['species']
-#     # replace spaces with underscores
-#     node.name = node.name.replace(' ', '_')
-
-# t.write(outfile='results/figures/visualize_temp/MAGs_refs_renamed_nospace.treefile', format=1)
-# print(t)
-
-# super_tree_fp = 'results/figures/visualize_temp/MAGs_refs_renamed_nospace.treefile'
-
-# super_tree = TreeNode.read(super_tree_fp,
-#                            convert_underscores=False)
 
 def reroot(target, source):
     target_outgroups = []
@@ -224,49 +202,110 @@ for clade in trees:
         print('Source tree:\n')
         print(super_clade.ascii_art())
 
-# host_dfs = {}
-# target_hosts = ['M', 'C', 'D', 'F', 'A']
+'''
+Rates of sequence evolution were estimated using a linear regression of the genetic distance calculated between each pair 
+of MAGs and the evolutionary divergence time of their respective hosts
+'''
 
-# for clade in rerooted:
-#     tree = rerooted[clade]
-#     tips = [x.name for x in tree.tips()]
-#     host = []
-#     for tip in tips:
-#         host.append(tip.split('--')[1][0])
-#     clade_df = pd.DataFrame.from_dict({'Tip': tips,
-#                                        'Host': host})
-#     clade_df['Clade'] = clade
-#     clade_df['Branch'] = 0
-#     host_dfs[clade] = clade_df
+def host_from_tip(tipname):
+    letter = tipname.split('--')[1][0]
+    if letter == 'M':
+        return 'Apis mellifera'
+    elif letter == 'C':
+        return 'Apis cerana'
+    elif letter == 'D':
+        return 'Apis dorsata'
+    elif letter == 'F':
+        return 'Apis florea'
+    elif letter == 'A':
+        return 'Apis andreniformis'
+    else:
+        return 'Other'
 
-#     for i, target in enumerate(target_hosts):
-#         target_tips = list(clade_df.loc[clade_df['Host'] == target, 'Tip'])
-#         if len(target_tips) < 1:
-#             continue
-#         if len(target_tips) == 1:
-#             clade_df.loc[clade_df['Tip'] == target_tips[0], 'Branch'] = i + 1
-#             continue
-#         target_node = tree.lowest_common_ancestor(target_tips)
-#         lca_tips = [x.name for x in target_node.tips()]
-#         if len(lca_tips) == len(target_tips):
-#             clade_df.loc[clade_df['Tip'].isin(target_tips), 'Branch'] = i + 1
-    
+def species_from_tip(tipename):
+    return tipename.split('--')[0]
 
-# manually transcribed tree from 
-# # Carr, S. M. Multiple mitogenomes indicate Things Fall Apart with Out of Africa or Asia hypotheses for the phylogeographic evolution of Honey Bees (Apis mellifera). Sci Rep 13, 9386 (2023).
-# host_tree = ete3.Tree(
-#     '''(Bombus_ignitus:1938, ((A_florea:553, A_andreniformis:593):421, ((A_dorsata:608, A_laboriosa:579):346, (A_mellifera:651, (A_koschevnikovi:634, (A_nuluensis:419, (A_cerana:338, A_nigrocincta:379):161):381):262):335):312):107);'''
-# )
 
-# manually deleted other species on itol and not the tree is,
-host_tree = ete3.Tree(
-    '''(Bombus_ignitus:1938,((A_florea:553,A_andreniformis:593):421,((A_dorsata:608):346,(A_mellifera:651,(((A_cerana:338):161):381):262):335):312):107);'''
-)
-# write host tree into file
-host_tree.prune(['A_mellifera', 'A_cerana', 'A_dorsata', 'A_florea', 'A_andreniformis'])
-print(host_tree)
-host_tree.write(outfile='results/figures/visualize_temp/host_tree.treefile', format=1)
+# # for each genus, (only makes sense if found in > 3 hosts)
+# # calculate the genetic distance between each pair of MAGs
+# # calculate the evolutionary divergence time of their respective hosts
+# # iterate through each pair of MAGs hat are tips of the bact tree using combinations
+# # and calculate the slope of the linear regression
+def host_divergence(a, b, type = 'dist'):
+    # Carr, S. M. Multiple mitogenomes indicate Things Fall Apart with Out of Africa or Asia hypotheses for the phylogeographic evolution of Honey Bees (Apis mellifera). Sci Rep 13, 9386 (2023).
+    host_tree = TreeNode.read(
+        StringIO('(Bombus_ignitus:1938, ((A_florea:553, A_andreniformis:593):421, ((A_dorsata:608, A_laboriosa:579):346, (A_mellifera:651, (A_koschevnikovi:634, (A_nuluensis:419, (A_cerana:338, A_nigrocincta:379):161):381):262):335):312):107);'),
+        convert_underscores=False
+        )
+    for tip in host_tree.tips():
+        tip.name = tip.name.replace('A_', 'Apis ')
+    host_dists = host_tree.tip_tip_distances().to_data_frame()
+    if type == 'dist':
+        return host_dists.loc[a, b]
+    if type == 'time':
+        # from literature https://static-content.springer.com/esm/art%3A10.1038%2Fs41598-023-35937-4/MediaObjects/41598_2023_35937_MOESM6_ESM.jpg
+        # lengths measured using https://eleif.net/photomeasure#howto for nodes that are not marked
+        # 0.127/0.0115 = 11.04 Myr for flo - mel
+        # check
+        if set([a, b]) == set(['Apis mellifera', 'Apis cerana']):
+            return 7.15
+        if set([a, b]) == set(['Apis mellifera', 'Apis dorsata']):
+            return 9.92
+        if set([a, b]) == set(['Apis mellifera', 'Apis florea']):
+            return 11.04
+        if set([a, b]) == set(['Apis mellifera', 'Apis andreniformis']):
+            return 11.04
+        if set([a, b]) == set(['Apis dorsata', 'Apis cerana']):
+            return 9.92
+        if set([a, b]) == set(['Apis dorsata', 'Apis florea']):
+            return 11.04
+        if set([a, b]) == set(['Apis dorsata', 'Apis andreniformis']):
+            return 11.04
+        if set([a, b]) == set(['Apis cerana', 'Apis florea']):
+            return 11.04
+        if set([a, b]) == set(['Apis cerana', 'Apis andreniformis']):
+            return 11.04
+        if set([a, b]) == set(['Apis florea', 'Apis andreniformis']):
+            return 6.42
 
+
+for clade in rerooted:
+    makedirs(f'results/figures/12-phylo_distances/{clade}', exist_ok=True)
+    print(clade)
+    bact_tree = rerooted[clade]
+    bact_tips = [x.name for x in bact_tree.tips()]
+    bact_dists = bact_tree.tip_tip_distances().to_data_frame()
+    # get pairwise the distance between each pair of MAGs
+    # from bact_dist
+    # and the distance between their respective hosts
+    # from host_dists
+    # also write a tsv with mag pairs in columns 1 and 2 and host
+    # dist and bact dist in columns 3 and 4
+    # if one of the hosts is Other, put the host dist down as
+    # twice the max host dist
+# 0.0115 substitutions/site/Myr (Brower 1994 in Ref.31)
+# Papadopoulou, A., Anastasiou, I. & Vogler, A. P. Revisiting the insect mitochondrial molecular clock: The Mid-Aegean trench calibration. Mol. Biol. Evol. 27, 1659–1672 (2010).    
+# confirm that the length of mitogenome 
+    header = f'MAG1\tMAG2\tHost1\tHost2\tSpecies1\tSpecies2\tHost_dist\tBact_dist\tHost_time\n'
+    with open(f'results/figures/12-phylo_distances/{clade}/bact_host_dists.tsv', 'w+') as f:
+        f.write(header)
+    for pair in combinations(bact_tips, 2):
+        if host_from_tip(pair[0]) == 'Other' or host_from_tip(pair[1]) == 'Other':
+            continue
+        else:
+            host_dist = host_divergence(host_from_tip(pair[0]), host_from_tip(pair[1]), 'dist')
+        # https://www.nature.com/articles/s41598-023-35937-4#Sec2
+        # host_time = host_dist/11043 * 0.0115
+        host_time = host_divergence(host_from_tip(pair[0]), host_from_tip(pair[1]), 'time')
+        bact_dist = bact_dists.loc[pair[0], pair[1]]
+        with open(f'results/figures/12-phylo_distances/{clade}/bact_host_dists.tsv', 'a') as f:
+            success = f.write(f'{pair[0]}\t{pair[1]}\t{host_from_tip(pair[0])}\t{host_from_tip(pair[1])}\t{species_from_tip(pair[0])}\t{species_from_tip(pair[1])}\t{host_dist}\t{bact_dist}\t{host_time}\n')
+
+
+
+'''
+cophylogeny tests using Hommola test as in Sanders et al 2022
+'''
 
 def write_node(f,
                r,
@@ -527,80 +566,27 @@ print(tree)
 
 
 '''
-Rates of sequence evolution were estimated using a linear regression of the genetic distance calculated between each pair 
-of MAGs and the evolutionary divergence time of their respective hosts
+identify species (clades) to consider for estimate substitution rates
+per time for as the one that are monophyletic in the bact tree
+for at least 3 hosts based on the species tree made using the
+bac120 marker genes amino acid sequences
+
+and then calculate the substitution rate per time for each of those
+using the codon-aware alignment of nucleotide sequences for these 
+bac120 marker genes
 '''
 
-def host_from_tip(tipname):
-    letter = tipname.split('--')[1][0]
-    if letter == 'M':
-        return 'Apis mellifera'
-    elif letter == 'C':
-        return 'Apis cerana'
-    elif letter == 'D':
-        return 'Apis dorsata'
-    elif letter == 'F':
-        return 'Apis florea'
-    elif letter == 'A':
-        return 'Apis andreniformis'
-    else:
-        return 'Other'
+# trees = {}
+# dfs = []
+# focal_species_list = ['M', 'C', 'D', 'F', 'A']
 
-def species_from_tip(tipename):
-    return tipename.split('--')[0]
-
-# # for each genus, (only makes sense if found in > 3 hosts)
-# # calculate the genetic distance between each pair of MAGs
-# # calculate the evolutionary divergence time of their respective hosts
-# # iterate through each pair of MAGs hat are tips of the bact tree using combinations
-# # and calculate the slope of the linear regression
-def host_divergence(a, b, type = 'dist'):
-    # Carr, S. M. Multiple mitogenomes indicate Things Fall Apart with Out of Africa or Asia hypotheses for the phylogeographic evolution of Honey Bees (Apis mellifera). Sci Rep 13, 9386 (2023).
-    host_tree = TreeNode.read(
-        StringIO('(Bombus_ignitus:1938, ((A_florea:553, A_andreniformis:593):421, ((A_dorsata:608, A_laboriosa:579):346, (A_mellifera:651, (A_koschevnikovi:634, (A_nuluensis:419, (A_cerana:338, A_nigrocincta:379):161):381):262):335):312):107);')
-        )
-    for tip in host_tree.tips():
-        tip.name = tip.name.replace('A_', 'Apis ')
-        tip.name = tip.name.replace('A ', 'Apis ')
-    host_dists = host_tree.tip_tip_distances().to_data_frame()
-    if type == 'dist':
-        return host_dists.loc[a, b]
-    if type == 'time':
-        return (host_dists.loc[a, b]/11043)/0.0115
-    # from literature https://static-content.springer.com/esm/art%3A10.1038%2Fs41598-023-35937-4/MediaObjects/41598_2023_35937_MOESM6_ESM.jpg
-    # 0.0115 substitutions/site/Myr (Brower 1994 in Ref.31)
-    # 11043 sites in mitogenome
-    
-
-
-for clade in rerooted:
-    makedirs(f'results/figures/12-phylo_distances/{clade}', exist_ok=True)
-    print(clade)
-    bact_tree = rerooted[clade]
-    bact_tips = [x.name for x in bact_tree.tips()]
-    bact_dists = bact_tree.tip_tip_distances().to_data_frame()
-    # get pairwise the distance between each pair of MAGs
-    # from bact_dist
-    # and the distance between their respective hosts
-    # from host_dists
-    # also write a tsv with mag pairs in columns 1 and 2 and host
-    # dist and bact dist in columns 3 and 4
-    # if one of the hosts is Other, put the host dist down as
-    # twice the max host dist
-# 0.0115 substitutions/site/Myr (Brower 1994 in Ref.31)
-# Papadopoulou, A., Anastasiou, I. & Vogler, A. P. Revisiting the insect mitochondrial molecular clock: The Mid-Aegean trench calibration. Mol. Biol. Evol. 27, 1659–1672 (2010).    
-# confirm that the length of mitogenome 
-    header = f'MAG1\tMAG2\tHost1\tHost2\tSpecies1\tSpecies2\tHost_dist\tBact_dist\tHost_time\n'
-    with open(f'results/figures/12-phylo_distances/{clade}/bact_host_dists.tsv', 'w+') as f:
-        f.write(header)
-    for pair in combinations(bact_tips, 2):
-        if host_from_tip(pair[0]) == 'Other' or host_from_tip(pair[1]) == 'Other':
-            continue
-        else:
-            host_dist = host_divergence(host_from_tip(pair[0]), host_from_tip(pair[1]), 'dist')
-        # https://www.nature.com/articles/s41598-023-35937-4#Sec2
-        # host_time = host_dist/11043 * 0.0115
-        host_time = host_divergence(host_from_tip(pair[0]), host_from_tip(pair[1]), 'time')
-        bact_dist = bact_dists.loc[pair[0], pair[1]]
-        with open(f'results/figures/12-phylo_distances/{clade}/bact_host_dists.tsv', 'a') as f:
-            success = f.write(f'{pair[0]}\t{pair[1]}\t{host_from_tip(pair[0])}\t{host_from_tip(pair[1])}\t{species_from_tip(pair[0])}\t{species_from_tip(pair[1])}\t{host_dist}\t{bact_dist}\t{host_time}\n')
+# for tree_fp in tree_fps:
+#     tree = TreeNode.read(tree_fp, 
+#                          convert_underscores=False)
+#     cluster = basename(tree_fp).split('.')[0].split('__')[1]
+#     for focus in focal_species_list:
+#         cluster_df = count_clade_hosts(tree, focus)
+#         if cluster_df is not None:
+#             trees[cluster] = tree
+#             cluster_df['cluster'] = cluster
+#             dfs.append(cluster_df)

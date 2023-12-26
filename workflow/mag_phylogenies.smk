@@ -304,6 +304,66 @@ rule rerun_tree:
         touch {output.done}
         """
 
+# rule extract_bac120_nucleotide:
+    # this is done by the script
+    # scripts/extract_marker_nucleotide_sequences.py
+    # make this into a rule later maybe
+
+bac120_markers = [os.path.basename(x).split(".fa")[0] for x in glob.glob("results/11_phylogenies/05_MAG_bac120_nucleotide_trees/bac120_sequences/*.fa")]
+
+rule align_bac120_nucleotide_macse:
+    input:
+        input_seq = "results/11_phylogenies/05_MAG_bac120_nucleotide_trees/bac120_sequences/{marker}.fa"
+    output:
+        out_nuc = "results/11_phylogenies/05_MAG_bac120_nucleotide_trees/bac120_sequences_aligned/nuc/{marker}.fa",
+        out_aa = "results/11_phylogenies/05_MAG_bac120_nucleotide_trees/bac120_sequences_aligned/aa/{marker}.fa"
+    params:
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("3-00:00:00") # 25h worked for ~118/120 markers
+    resources:
+        mem_mb = convertToMb("100G")
+    threads: 8
+    log: "results/11_phylogenies/05_MAG_bac120_nucleotide_trees/bac120_sequences_aligned/{marker}_aligned.log"
+    benchmark: "results/11_phylogenies/05_MAG_bac120_nucleotide_trees/bac120_sequences_aligned/{marker}_aligned.benchmark"
+    conda: "../config/envs/macse-env.yaml"
+    shell:
+        """
+        macse -prog alignSequences -seq {input.input_seq} \
+              -out_NT {output.out_nuc} -out_AA {output.out_aa} \
+              -gc_def 11 
+        """
+
+rule make_bac120_nucleotide_tree:
+    input:
+        input_seqs = expand("results/11_phylogenies/05_MAG_bac120_nucleotide_trees/bac120_sequences_aligned/nuc/{marker}.fa", marker=bac120_markers)
+    output:
+        out_tree = "results/11_phylogenies/05_MAG_bac120_nucleotide_trees/MAGs_bac120_nuc/MAGs_bac120_nuc.treefile"
+    params:
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("2-00:00:00")
+    resources:
+        mem_mb = convertToMb("150G")
+    threads: 8
+    log: "results/11_phylogenies/05_MAG_bac120_nucleotide_trees/MAGs_bac120_nuc/MAGs_bac120_nuc.log"
+    benchmark: "results/11_phylogenies/05_MAG_bac120_nucleotide_trees/MAGs_bac120_nuc/MAGs_bac120_nuc.benchmark"
+    conda: "../config/envs/phylogenies-env.yaml"
+    shell:
+        """
+        outdir=$(dirname {output.out_tree})
+        indir=$(dirname {input.input_seqs[0]})
+        iqtree -s ${{indir}} \
+            -nt {threads} \
+            -bb 10000 \
+            -seed 1234 \
+            -m MFP \
+            -pre ${{outdir}}/MAGs_bac120_nuc
+        """
+    
+
 rule dram_annotate_mags:
     input:
         dram_config = "config/dram_config.json",
@@ -334,9 +394,36 @@ rule dram_annotate_mags:
                 --threads {threads} --verbose &>> {log}
         """
 
+rule dram_rename_annotations:
+    input:
+        dram_annotations = "results/09_MAGs_collection/dram_output/{mag}/annotations.tsv",
+    output:
+        dram_annotations = "results/09_MAGs_collection/dram_output/{mag}/annotations_renamed.tsv",
+    params:
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-00:15:00")
+    log: "results/09_MAGs_collection/dram_output/logs/{mag}_dram_rename.log"
+    benchmark: "results/09_MAGs_collection/dram_output/logs/{mag}_dram_rename.benchmark"
+    run:
+        with open(input.dram_annotations) as f:
+            header = f.readline()
+            with open(output.dram_annotations, "w") as fh:
+                fh.write(header)
+                for line in f:
+                    # first column has no header and it contains the gene name
+                    # second column has fasta and contains the mag name this is to be replaced
+                    # with the handmade species name of that mag
+                    # all other columns are the same
+                    mag_name = line.split("\t")[1]
+                    species_name = handmade_species_name(get_mag_info(mag_name, checkpoints.mag_metadata_summary.get().output.metadata))
+                    fh.write(line.replace(mag_name, str(species_name)+"_"+str(mag_name)))
+
+
 rule dram_annotate_concat_mags:
     input:
-        dram_annotations = lambda wildcards: expand("results/09_MAGs_collection/dram_output/{mag}/annotations.tsv", mag = get_medium_mags(checkpoints.mag_metadata_summary.get().output.metadata)),
+        dram_annotations = lambda wildcards: expand("results/09_MAGs_collection/dram_output/{mag}/annotations_renamed.tsv", mag = get_medium_mags(checkpoints.mag_metadata_summary.get().output.metadata)),
     output:
         dram_annotation_merged = "results/09_MAGs_collection/dram_distill/annotations.tsv"
     params:
@@ -346,22 +433,24 @@ rule dram_annotate_concat_mags:
         runtime_s=convertToSec("0-00:15:00")
     log: "results/09_MAGs_collection/dram_output/logs/dram_annotate_concat_mags.log"
     benchmark: "results/09_MAGs_collection/dram_output/logs/dram_annotate_concat_mags.benchmark"
-    conda: "../config/envs/dram-env.yaml"
-    shell:
-        """
-        cat {input.dram_annotations[0]} | head -1 > {output.dram_annotation_merged}
-        for f in {input.dram_annotations}
-        do
-            cat $f | tail -n +2 >> {output.dram_annotation_merged}
-        done
-        """
+    run:
+        with open(input.dram_annotations[0]) as f:
+            header = f.readline()
+        with open(output.dram_annotation_merged, "w") as fh:
+            fh.write(header)
+            for file in input.dram_annotations:
+                with open(file, "r") as f:
+                    next(f)
+                    for line in f:
+                        fh.write(line)
+
 
 rule dram_distill_mags:
     input:
         dram_config = "config/dram_config.json",
         dram_annotation_merged = "results/09_MAGs_collection/dram_distill/annotations.tsv",
     output:
-        dram_distilled = "results/09_MAGs_collection/dram_distill/output/product.html",
+        dram_distilled = "results/09_MAGs_collection/dram_distill/output/metabolism_summary.xlsx",
     params:
         dram_outdir = lambda wildcards: os.path.join("results/09_MAGs_collection/dram_distill/output/"),
         mailto="aiswarya.prasad@unil.ch",
@@ -379,3 +468,16 @@ rule dram_distill_mags:
         rm -rf {params.dram_outdir}
         DRAM.py distill -i {input.dram_annotation_merged} -o {params.dram_outdir} --config_loc {input.dram_config}
         """
+
+"""
+mkdir results/09_MAGs_collection/functions_list/
+cat results/09_MAGs_collection/dram_distill/annotations.tsv | cut -f2,4 | grep -P "\tK" > results/09_MAGs_collection/functions_list/all_kos.txt
+"""
+
+# for each mag, make a list of KOs from non-empty lines of annotation
+# and name the file with the mag name containing handmade species name
+# this will be used for ko_mapper.py and minpath
+
+"""
+did minpath and ko_mapper outside of snakemake
+"""

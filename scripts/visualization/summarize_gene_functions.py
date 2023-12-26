@@ -98,3 +98,43 @@ summarize functions of MAGs from samples
 '''
 
 # first get the list of KOs and name the file to have the handmade species name and MAG name (do not add any file extensions)
+
+os.makedirs(f'results/figures/visualize_temp/KO_collections/by_mag/', exist_ok=True)
+
+mags = set()
+with open('results/09_MAGs_collection/functions_list/all_kos.txt', 'r') as in_fh:
+    for line in in_fh:
+        mag = line.split('\t')[0]
+        ko = line.split('\t')[1].strip()
+        if mag in mags:
+            continue
+        else:
+            mags.add(mag)
+
+for mag in mags:
+    print(mag)
+    with open(f'results/figures/visualize_temp/KO_collections/by_mag/{mag}', 'w+') as out_fh:
+        with open('results/09_MAGs_collection/functions_list/all_kos.txt', 'r') as in_fh:
+            for line in in_fh:
+                mag = line.split('\t')[0]
+                if mag == mag:
+                    ko = line.split('\t')[1].strip()
+                    success = out_fh.write(f'{ko}\n')
+                else:
+                    continue
+
+
+'''
+quick processing of the dram file to map gene id to function name when found
+'''
+
+df_functions = pd.read_csv('data/dram_ function_heatmap_form.tsv', sep ='\t')
+dict_func = {}
+for func_list, name in zip(df_functions['function_ids'], df_functions['function_name']):
+    func_list = func_list.split(',')
+    for func in func_list:
+        if func not in dict_func.keys():
+            dict_func[func] = name
+with open('data/dram_function_map.tsv', 'w+') as out_fh:
+    for func, name in dict_func.items():
+        success = out_fh.write(f'{func}\t{name}\n')

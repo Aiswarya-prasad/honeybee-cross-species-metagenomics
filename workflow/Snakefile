@@ -15,6 +15,7 @@ import yaml
 import itertools
 import subprocess
 from itertools import chain
+import pandas as pd
 
 configfile: "config/config.yaml"
 # read config information into local variables to improve readability of rules
@@ -84,7 +85,7 @@ rule targets:
         gene_profiling = expand("results/08_gene_content/01_profiling_bowtie2/{sample}_mapped.hist", sample=SAMPLES_INDIA+SAMPLES_MY),
         count_genes = expand("results/08_gene_content/01_profiling_bowtie2/{sample}_gene_coverage.txt", sample=SAMPLES_INDIA+SAMPLES_MY),
         dram_annotation = expand("results/08_gene_content/02_DRAM_annotations/{sample}/annotations.tsv", sample=SAMPLES_INDIA+SAMPLES_MY),
-        dram_annotation_mags = "results/09_MAGs_collection/dram_distill/output/product.html",
+        dram_distilled_mags = "results/09_MAGs_collection/dram_distill/output/metabolism_summary.xlsx",
         mag_metadata = "results/09_MAGs_collection/MAGs_metadata_summary.tsv",
         profile_plots = expand("results/10_instrain/04_instrain_plot_marker/{sample}_profile_plots.done", sample=SAMPLES),
         # compare_plots = "results/10_instrain/03_instrain_compare/all_compared.done",
@@ -100,7 +101,8 @@ rule targets:
         # contig_fates = "results/05_assembly/contig_fates/{sample}_contig_fates.tsv",
         bowtie_2_index = multiext("results/10_instrain/00_prepare_mags/mag_rep_database.fa", ".1.bt2", ".2.bt2", ".3.bt2", ".4.bt2", ".rev.1.bt2", ".rev.2.bt2"),
         cayman_profile = expand("results/08_gene_content/06_cayman/{sample}.cazy.txt.gz", sample = SAMPLES),
-        tree = lambda wildcards: expand("results/11_phylogenies/03_iqtree_trees/{genus}.done", genus = get_significant_genera(checkpoints.mag_metadata_summary.get().output.metadata))
+        tree = lambda wildcards: expand("results/11_phylogenies/03_iqtree_trees/{genus}.done", genus = get_significant_genera(checkpoints.mag_metadata_summary.get().output.metadata)),
+        nuc_tree = "results/11_phylogenies/05_MAG_bac120_nucleotide_trees/MAGs_bac120_nuc/MAGs_bac120_nuc.treefile"
 
 
 include: "trim-qc.smk"

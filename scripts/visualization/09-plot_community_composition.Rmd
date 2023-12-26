@@ -383,6 +383,7 @@ df_plot_ct <- df_reads_plot %>%
 
 ggplot(df_plot_ct) +
   geom_point(aes(y = MAGs_DB_mf, x = Ct_mean, color = Host), size = 3) +
+  labs(x = "Ct value (universal 16S)", y = "Number of reads mapped to MAGs") +
   scale_x_reverse() +
   scale_y_continuous(labels=unit_format(unit = "M", scale = 1e-6)) +
   scale_color_manual(values=host_order_color_dark) +
@@ -697,35 +698,47 @@ df_rohdes_by_host <- df_rohdes %>%
                         by = c("X_old" = "X")
                       ) %>%
                       mutate(Host = paste0("Apis ", Host)) %>%
-                      mutate(rank = as.factor(rank)) #%>%
+                      mutate(rank = as.factor(rank)) %>%
                       # filter(rank == "1") %>%
-                      # filter(X_old %in% (prevs_df %>% filter(prevalence_in_host >= 0.04) %>% pull(X)))
+                      filter(X_old %in% (prevs_df %>% filter(prevalence_in_host >= 0.5) %>% pull(X))) %>%
+                      left_join(df_plot %>% select(Genus, MAG_species_name_final) %>% unique, by = c("X" = "MAG_species_name_final"))
 
-ggplot(df_rohdes_by_host,
+
+ggplot() +
+  # geom_violin(data = df_rohdes_by_host,
+  geom_boxplot(data = df_rohdes_by_host %>% filter(rank %in% c("1")),
        aes(x = factor(Host, levels = c("Apis mellifera", "Apis dorsata", "Apis cerana", "Apis florea", "Apis andreniformis")),
            y = rohdes_index,
-           fill = factor(Host, levels = c("Apis mellifera", "Apis dorsata", "Apis cerana", "Apis florea", "Apis andreniformis")),
           #  fill = factor(Host, levels = c(host_order)),
-         )
-     ) +
-  geom_boxplot() +
-  geom_jitter(width=0.1, size = 2) +
-  labs(y = "Rohde's index", x = "Host species", fill = "Host") +
-  facet_wrap(~rank, scales = "free") +
-    make_theme(leg_pos = "none", x_angle = 30, setFill = F, x_vj = 1, x_hj = 1, 
-               x_size = 15, y_size = 15, axis_x_title = 20, axis_y_title = 20
-              ) +
-      scale_fill_manual(values=host_order_color_dark) #+
-      # scale_y_continuous(trans = "log10", labels = function(x) parse(text=paste("10^",round(log10(x), 2)))) +
-      # geom_signif(comparisons = split(t(combn(levels(qpcr_plot_df$Host), 2)), seq(nrow(t(combn(levels(qpcr_plot_df$Host), 2))))), 
-      # geom_signif(comparisons = list(c("Apis florea", "Apis andreniformis"),
-      #                                c("Apis florea", "Apis cerana"),
-      #                                c("Apis cerana", "Apis dorsata"),
-      #                                c("Apis mellifera", "Apis dorsata")#,
-      #                               #  c("Apis mellifera", "Apis cerana"),
-      #                               #  c("Apis mellifera", "Apis florea")
-      #                               ), 
-      #         map_signif_level=TRUE, step_increase=0.05)
+         ), alpha = 0.6) +
+  # geom_jitter(data = df_rohdes_by_host,
+  geom_jitter(data = df_rohdes_by_host %>% filter(rank %in% c("1")),
+       aes(x = factor(Host, levels = c("Apis mellifera", "Apis dorsata", "Apis cerana", "Apis florea", "Apis andreniformis")),
+           y = rohdes_index,
+          #  fill = factor(Host, levels = c(host_order)),
+          fill = Genus
+         ), width=0.1, size = 4, shape = 21, color = "#000000") +
+  labs(y = "Rohde's index", x = "Host species (maximum prevalence)", fill = "Host") +
+  scale_color_manual(values=genusColors) +
+  scale_fill_manual(values=genusColors) +
+  scale_size_manual(values=c("1" = 4,
+                              "2" = 2,
+                              "3" = 2,
+                              "4" = 2,
+                              "5" = 2
+  )) +
+  scale_alpha_manual(values=c("1" = 1,
+                              "2" = 0.5,
+                              "3" = 0.5,
+                              "4" = 0.5,
+                              "5" = 0.5
+  )) +
+    make_theme(leg_pos = "right", setFill = F, setCol = F, x_angle = 30, x_vj = 1, x_hj = 1, 
+               x_size = 15, y_size = 15, axis_x_title = 20, axis_y_title = 20,
+               guide_nrow = 20
+              )
+      ggsave("results/figures/3-magotu_rohdes_by_magotu_across.pdf", width = 12, height = 15)
+
 
 abundance_df %>% select(sample, coverage) %>% filter(coverage > 0) %>% pull(sample) %>% unique %>% length
 abundance_df %>% select(sample, coverage, Host) %>%
@@ -786,6 +799,7 @@ for (magotu in unique(df_plot$magOTU)) {
              x_angle = 40, x_hj = 1, x_vj = 1, x_size = 7, axis_x_title = 10,
              axis_y_title = 10
   ) +
+  scale_x_continuous(trans = "log10") +
   ylim(0,1) +
     theme(plot.title = element_text(size = 10, face = "bold"),
           panel.background = element_rect(fill = "white", colour = "black"),
@@ -815,6 +829,7 @@ for (magotu in unique(df_plot$magOTU)) {
              x_angle = 40, x_hj = 1, x_vj = 1, x_size = 7, axis_x_title = 10,
              axis_y_title = 10
   ) +
+  scale_x_continuous(trans = "log10") +
   ylim(0,1) +
     theme(plot.title = element_text(size = 10, face = "bold"),
           panel.background = element_rect(fill = "white", colour = "black"),
@@ -844,6 +859,7 @@ ggplot(df_plot %>% left_join(df_rohdes %>%
              x_angle = 40, x_hj = 1, x_vj = 1, x_size = 7, axis_x_title = 10,
              axis_y_title = 10
   ) +
+  scale_x_continuous(trans = "log10") +
   ylim(0,1) +
     theme(plot.title = element_text(size = 10, face = "bold"),
           panel.background = element_rect(fill = "white", colour = "black"),
@@ -854,13 +870,14 @@ ggsave("results/figures/3-magotu_prev_vs_rel_cov.pdf", width = 12, height = 15)
 # Could you look at the abundance of the highly specific ones vs the non-specific ones. Do the non-specific ones tend to have a ‘preferred’ host, in which they are most abundant?
 ggplot(df_plot %>% left_join(df_rohdes %>% 
   select(!Genus) %>%
-  filter(type == "prev"), by = c("magOTU" = "X")),
+  filter(type == "prev"), by = c("magOTU" = "X_old")),
   aes(y = rohdes_index, x = rel_cov, color = Genus, group = sample)
   ) +
-  facet_wrap(~Host, ncol = 2) +
   geom_point(size = 3) +
   geom_vline(xintercept = 0.01, linetype = "dashed") +
   geom_vline(xintercept = 0.1, linetype = "dashed") +
+  geom_vline(xintercept = 0, linetype = "solid") +
+  facet_wrap(~Host, ncol = 2) +
   labs(y = "Rohdes index", x = "Relative coverage") +
   scale_color_manual(values=genusColors) +
   make_theme(setFill = F, setCol = F, leg_pos = "none",
@@ -868,6 +885,7 @@ ggplot(df_plot %>% left_join(df_rohdes %>%
              x_angle = 40, x_hj = 1, x_vj = 1, x_size = 7, axis_x_title = 10,
              axis_y_title = 10
   ) +
+  scale_x_continuous(trans = "log10") +
   ylim(0,1) +
     theme(plot.title = element_text(size = 10, face = "bold"),
           panel.background = element_rect(fill = "white", colour = "black"),
@@ -1132,8 +1150,18 @@ draw(heatmap_obj, merge_legend = TRUE)
 
 for (genus in genera) {
   pdf(paste("results/figures/09-presence_absence_heatmap_cluster_sep/", genus, "_heatmap.pdf"), width = 10, height = 15)
+  # genus = "g__Lactobacillus"
+  if (dim(abundance_df_matrix_pa %>% select(matches(genus)))[[2]] == 0) {
+    next
+  }
   abundance_df_matrix_plot <- abundance_df_matrix_pa %>% 
                                 select(matches(genus)) %>%
+                                rownames_to_column("sample") %>%
+                                pivot_longer(cols = -sample, names_to = "magOTU", values_to = "presence") %>%
+                                left_join(df_plot %>% select(MAG_species_name_final, magOTU) %>% unique, by = c("magOTU" = "magOTU")) %>%
+                                select(-magOTU) %>%
+                                pivot_wider(names_from = MAG_species_name_final, values_from = presence) %>%
+                                column_to_rownames("sample") %>%
                                 as.matrix
   if (dim(abundance_df_matrix_plot)[2] == 0) {
     next
@@ -1171,6 +1199,213 @@ for (genus in genera) {
   dev.off()
 }
 
+for (genus in genera) {
+  # genus = "g__Lactobacillus"
+  if (dim(abundance_df_matrix_pa %>% select(matches(genus)))[[2]] == 0) {
+    next
+  }
+  abundance_df_matrix_plot <- abundance_df_matrix_pa %>% 
+                                select(matches(genus)) %>%
+                                rownames_to_column("sample") %>%
+                                pivot_longer(cols = -sample, names_to = "magOTU", values_to = "presence") %>%
+                                left_join(df_plot %>% select(MAG_species_name_final, magOTU) %>% unique, by = c("magOTU" = "magOTU")) %>%
+                                select(-magOTU) %>%
+                                pivot_wider(names_from = MAG_species_name_final, values_from = presence) %>%
+                                column_to_rownames("sample") %>%
+                                as.matrix
+  if (dim(abundance_df_matrix_plot)[2] == 0) {
+    next
+  }
+  row_la = rowAnnotation(Genus = colnames(abundance_df_matrix_plot) %>% as.data.frame() %>% left_join(df_plot %>% select(MAG_species_name_final, Genus) %>% unique, by = c(. = "MAG_species_name_final")) %>% pull(Genus),
+                       col = list(Genus = unlist(genusColors)), border = T
+                    )
+  column_ha = HeatmapAnnotation(Host = rownames(abundance_df_matrix_plot) %>% as.data.frame() %>% mutate(Host = Vectorize(get_host_from_sample_name)(.)) %>% pull(Host),
+                              col = list(Host = host_order_color
+                              ), border = T
+                          )
+  column_ba = HeatmapAnnotation(Location = rownames(abundance_df_matrix_plot) %>% as.data.frame() %>% mutate(Location = Vectorize(get_location_from_sample_name)(.)) %>% pull(Location),
+                              `Number of magOTUs` = anno_barplot(rowSums(abundance_df_matrix_plot), 
+                                gp = gpar(fill = "#081d58", color = "#081d58"),
+                                baseline = 0),
+                              col = list(Location = location_order_color),
+                              border = T
+                              )
+  row_split <- colnames(abundance_df_matrix_plot) %>% as.data.frame() %>% left_join(df_plot %>% select(MAG_species_name_final, Genus) %>% unique, by = c(. = "MAG_species_name_final")) %>% pull(Genus) %>% as.factor
+  heatmap_obj = Heatmap(t(abundance_df_matrix_plot),
+          col = c("#e1ebf4", "#081d58"),
+          clustering_method_columns = "ward.D2",
+          clustering_method_rows = "ward.D2",
+          # column_split = column_split,
+          row_split = row_split,
+          column_dend_side = "bottom",
+          column_title_gp = grid::gpar(fontsize = 0),
+          row_title_gp = grid::gpar(fontsize = 0),
+          border = T,
+          heatmap_legend_param = list(title = "Presence"),
+          # top_annotation = column_ba, 
+          # right_annotation = row_ra,
+          left_annotation = row_la,
+          bottom_annotation = column_ha,
+          top_annotation = column_ba,
+          column_names_gp = grid::gpar(fontsize = 0),
+          row_names_gp = grid::gpar(fontsize = 10),
+          cluster_row_slices = F,
+          cluster_column_slices = F,
+          cluster_columns = T,
+            cluster_rows = T)
+  pdf(paste0("results/figures/09-presence_absence_heatmap_cluster_sep/", genus, "_heatmap.pdf"), width = 10, height = 15)
+  draw(heatmap_obj, merge_legend = TRUE, column_title = genus)
+  dev.off()
+}
+
+for (genus in genera) {
+  # genus = "g__Lactobacillus"
+  if (dim(abundance_df_matrix_pa_all %>% select(matches(genus)))[[2]] == 0) {
+    next
+  }
+  abundance_df_matrix_plot <- abundance_df_matrix_pa_all %>% 
+                                filter(!rownames(.) %in% samples_to_exclude) %>%
+                                select(matches(genus)) %>%
+                                rownames_to_column("sample") %>%
+                                pivot_longer(cols = -sample, names_to = "magOTU", values_to = "presence") %>%
+                                left_join(df_plot %>% select(MAG_species_name_final, magOTU) %>% unique, by = c("magOTU" = "magOTU")) %>%
+                                select(-magOTU) %>%
+                                pivot_wider(names_from = MAG_species_name_final, values_from = presence) %>%
+                                column_to_rownames("sample") %>%
+                                as.matrix
+  if (dim(abundance_df_matrix_plot)[2] == 0) {
+    next
+  }
+  row_la = rowAnnotation(Genus = colnames(abundance_df_matrix_plot) %>% as.data.frame() %>% left_join(df_plot %>% select(MAG_species_name_final, Genus) %>% unique, by = c(. = "MAG_species_name_final")) %>% pull(Genus),
+                       col = list(Genus = unlist(genusColors)), border = T
+                    )
+  column_ha = HeatmapAnnotation(Host = rownames(abundance_df_matrix_plot) %>% as.data.frame() %>% mutate(Host = Vectorize(get_host_from_sample_name)(.)) %>% pull(Host),
+                              col = list(Host = host_order_color
+                              ), border = T
+                          )
+  column_ba = HeatmapAnnotation(Location = rownames(abundance_df_matrix_plot) %>% as.data.frame() %>% mutate(Location = Vectorize(get_location_from_sample_name)(.)) %>% pull(Location),
+                              `Number of magOTUs` = anno_barplot(rowSums(abundance_df_matrix_plot), 
+                                gp = gpar(fill = "#081d58", color = "#081d58"),
+                                baseline = 0),
+                              col = list(Location = location_order_color),
+                              border = T
+                              )
+  row_split <- colnames(abundance_df_matrix_plot) %>% as.data.frame() %>% left_join(df_plot %>% select(MAG_species_name_final, Genus) %>% unique, by = c(. = "MAG_species_name_final")) %>% pull(Genus) %>% as.factor
+  col_split <- rownames(abundance_df_matrix_plot) %>% as.data.frame() %>% mutate(Location = Vectorize(get_location_from_sample_name)(.)) %>% pull(Location) %>% as.factor
+  heatmap_obj = Heatmap(t(abundance_df_matrix_plot),
+          col = c("#e1ebf4", "#081d58"),
+          clustering_method_columns = "ward.D2",
+          clustering_method_rows = "ward.D2",
+          column_split = col_split,
+          row_split = row_split,
+          column_dend_side = "bottom",
+          column_title_gp = grid::gpar(fontsize = 0),
+          row_title_gp = grid::gpar(fontsize = 10),
+          border = T,
+          heatmap_legend_param = list(title = "Presence"),
+          # top_annotation = column_ba, 
+          # right_annotation = row_ra,
+          left_annotation = row_la,
+          bottom_annotation = column_ha,
+          top_annotation = column_ba,
+          column_names_gp = grid::gpar(fontsize = 0),
+          row_names_gp = grid::gpar(fontsize = 10),
+          cluster_row_slices = F,
+          cluster_column_slices = F,
+          cluster_columns = T,
+            cluster_rows = T)
+  pdf(paste0("results/figures/09-presence_absence_heatmap_cluster_sep/", genus, "_location_host_clustering_heatmap.pdf"), width = 10, height = 15)
+  draw(heatmap_obj, merge_legend = TRUE, column_title = genus)
+  dev.off()
+}
+
+for (genus in genera) {
+  for (host in host_order) {
+    # genus = "g__Lactobacillus"
+    # host = host_order[[1]]
+    if (dim(abundance_df_matrix_pa_all %>% select(matches(genus)))[[2]] == 0) {
+      next
+    }
+    locations_covered = 0
+    locations_covered = rownames(abundance_df_matrix_all) %>% as.data.frame() %>% 
+                          mutate(Host = Vectorize(get_host_from_sample_name)(.)) %>% 
+                          mutate(Location = Vectorize(get_location_from_sample_name)(.)) %>%
+                          filter(Host == host) %>% pull(Location) %>% unique
+    if (locations_covered %>% length == 1) {
+      next
+    }
+    abundance_df_matrix_plot <- abundance_df_matrix_pa_all %>% 
+                                  filter(!rownames(.) %in% samples_to_exclude) %>%
+                                  select(matches(genus)) %>%
+                                  rownames_to_column("sample") %>%
+                                  mutate(Host = Vectorize(get_host_from_sample_name)(sample)) %>%
+                                  filter(Host == host) %>%
+                                  select(-Host) %>%
+                                  pivot_longer(cols = -sample, names_to = "magOTU", values_to = "presence") %>%
+                                  left_join(df_plot %>% select(MAG_species_name_final, magOTU) %>% unique, by = c("magOTU" = "magOTU")) %>%
+                                  select(-magOTU) %>%
+                                  pivot_wider(names_from = MAG_species_name_final, values_from = presence) %>%
+                                  column_to_rownames("sample") %>%
+                                  as.matrix
+    if (dim(abundance_df_matrix_plot)[2] == 0) {
+      next
+    }
+    if (sum(colSums(abundance_df_matrix_plot) > 0) == 0) {
+      next
+    }
+    # remove columns with row sum 0
+    if (sum(colSums(abundance_df_matrix_plot) > 0) == 1) {
+      name_col = colnames(abundance_df_matrix_plot)[colSums(abundance_df_matrix_plot) > 0]
+      abundance_df_matrix_plot = abundance_df_matrix_plot[, colSums(abundance_df_matrix_plot) > 0] %>% as.matrix
+      colnames(abundance_df_matrix_plot) = name_col
+    } else {
+      abundance_df_matrix_plot <- abundance_df_matrix_plot[, colSums(abundance_df_matrix_plot) > 0]
+    }
+    row_la = rowAnnotation(Genus = colnames(abundance_df_matrix_plot) %>% as.data.frame() %>% left_join(df_plot %>% select(MAG_species_name_final, Genus) %>% unique, by = c(. = "MAG_species_name_final")) %>% pull(Genus),
+                        col = list(Genus = unlist(genusColors)), border = T
+                      )
+    column_ha = HeatmapAnnotation(Host = rownames(abundance_df_matrix_plot) %>% as.data.frame() %>% mutate(Host = Vectorize(get_host_from_sample_name)(.)) %>% pull(Host),
+                                col = list(Host = host_order_color
+                                ), border = T
+                            )
+    column_ba = HeatmapAnnotation(Location = rownames(abundance_df_matrix_plot) %>% as.data.frame() %>% mutate(Location = Vectorize(get_location_from_sample_name)(.)) %>% pull(Location),
+                                `Number of magOTUs` = anno_barplot(rowSums(abundance_df_matrix_plot), 
+                                  gp = gpar(fill = "#081d58", color = "#081d58"),
+                                  baseline = 0),
+                                col = list(Location = location_order_color),
+                                border = T
+                                )
+    row_split <- colnames(abundance_df_matrix_plot) %>% as.data.frame() %>% left_join(df_plot %>% select(MAG_species_name_final, Genus) %>% unique, by = c(. = "MAG_species_name_final")) %>% pull(Genus) %>% as.factor
+    col_split <- rownames(abundance_df_matrix_plot) %>% as.data.frame() %>% mutate(Location = Vectorize(get_location_from_sample_name)(.)) %>% pull(Location) %>% as.factor
+    heatmap_obj = Heatmap(t(abundance_df_matrix_plot),
+            col = c("#e1ebf4", "#081d58"),
+            clustering_method_columns = "ward.D2",
+            clustering_method_rows = "ward.D2",
+            column_split = col_split,
+            row_split = row_split,
+            column_dend_side = "bottom",
+            column_title_gp = grid::gpar(fontsize = 0),
+            row_title_gp = grid::gpar(fontsize = 10),
+            border = T,
+            heatmap_legend_param = list(title = "Presence"),
+            # top_annotation = column_ba, 
+            # right_annotation = row_ra,
+            left_annotation = row_la,
+            bottom_annotation = column_ha,
+            top_annotation = column_ba,
+            column_names_gp = grid::gpar(fontsize = 0),
+            row_names_gp = grid::gpar(fontsize = 10),
+            cluster_row_slices = F,
+            cluster_column_slices = F,
+            cluster_columns = T,
+              cluster_rows = T)
+    pdf(paste0("results/figures/09-presence_absence_heatmap_cluster_sep/", genus, "-", host,"_location_heatmap.pdf"), width = 10, height = 15)
+    draw(heatmap_obj, merge_legend = TRUE, column_title = paste0(genus, " in -", host))
+    dev.off()
+  }
+}
+
+system("rename 's/\\s/_/g' results/figures/09-presence_absence_heatmap_cluster_sep/*")
 
 
 pdf("results/figures/09-presence_absence_heatmap_by_location.pdf", width = 10, height = 15)

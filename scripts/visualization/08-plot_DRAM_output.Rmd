@@ -31,7 +31,7 @@ ggplot() +
     scale_y_continuous(labels=unit_format(unit = "%"), limits = c(0, 100)) +
     make_theme(setFill = F,
                x_angle = 40, x_hj = 1, x_vj = 1)
-    ggsave("Figures/08-perc_binned_genes.pdf")
+    ggsave("results/figures/08-perc_binned_genes.pdf")
 ```
 
 ```{r pcoa_plots}
@@ -116,7 +116,7 @@ pretty_dram_heatmap(prepare_matrix(get_matrix_from_dram(metabolism_carbon),
                     col_split_by = "Genus",
                     col_label_size = 8,
                     grid_line_col = NA)
-pdf("Figures/08-DRAM_GH_PL_genes_by_host.pdf")
+pdf("results/figures/08-DRAM_GH_PL_genes_by_host.pdf")
 a_genes_list <- names(get_matrix_from_dram(metabolism_carbon)) %>%
                 unique() %>%
                 as.data.frame() %>%
@@ -151,7 +151,7 @@ pretty_dram_heatmap(prepare_matrix(get_matrix_from_dram(metabolism_carbon),
                     row_names_size = 0,
                     grid_line_col = NA)
 dev.off()
-pdf("Figures/08-DRAM_GH_PL_genes_by_genus.pdf")
+pdf("results/figures/08-DRAM_GH_PL_genes_by_genus.pdf")
 a_genes_list <- names(get_matrix_from_dram(metabolism_carbon)) %>%
                 unique() %>%
                 as.data.frame() %>%
@@ -186,7 +186,7 @@ pretty_dram_heatmap(prepare_matrix(get_matrix_from_dram(metabolism_carbon),
                     row_names_size = 0,
                     grid_line_col = NA)
 dev.off()
-pdf("Figures/08-DRAM_GH_PL_genes_by_genus_w_names.pdf")
+pdf("results/figures/08-DRAM_GH_PL_genes_by_genus_w_names.pdf")
 a_genes_list <- names(get_matrix_from_dram(metabolism_carbon)) %>%
                 unique() %>%
                 as.data.frame() %>%
@@ -221,7 +221,7 @@ pretty_dram_heatmap(prepare_matrix(get_matrix_from_dram(metabolism_carbon),
                     grid_line_col = NA)
 dev.off()
 a_genes_list <- spl_genes_list              
-pdf("Figures/08-DRAM_cazy_genes_of_interest_1.pdf")
+pdf("results/figures/08-DRAM_cazy_genes_of_interest_1.pdf")
 pretty_dram_heatmap(prepare_matrix(get_matrix_from_dram(metabolism_carbon),
                                    subset_genes = T,
                                    genes_list = a_genes_list,
@@ -250,7 +250,7 @@ pretty_dram_heatmap(prepare_matrix(get_matrix_from_dram(metabolism_carbon),
                     row_names_size = 8,
                     grid_line_col = NA)
 dev.off()
-pdf("Figures/08-DRAM_cazy_genes_of_interest_pnas.pdf")
+pdf("results/figures/08-DRAM_cazy_genes_of_interest_pnas.pdf")
 pretty_dram_heatmap(prepare_matrix(get_matrix_from_dram(metabolism_carbon),
                                    subset_genes = T,
                                    genes_list = spl_genes_list_pnas,
@@ -279,7 +279,7 @@ pretty_dram_heatmap(prepare_matrix(get_matrix_from_dram(metabolism_carbon),
                     row_names_size = 8,
                     grid_line_col = NA)
 dev.off()
-pdf("Figures/08-DRAM_energy_metabolism_by_host.pdf")
+pdf("results/figures/08-DRAM_energy_metabolism_by_host.pdf")
 a_genes_list <- names(get_matrix_from_dram(metabolism_energy)) %>%
                 unique() %>%
                 as.data.frame() %>%
@@ -358,3 +358,712 @@ matrix_pcoa <- prepare_matrix(get_matrix_from_dram(metabolism_carbon),
 pretty_pcoa_plot(matrix_pcoa, metadata = vis_magOTUs_df, variable="Host", color_add=T, color_list=host_order_color_dark, colname_in_metadata = "ID")
 pretty_pcoa_plot(matrix_pcoa, metadata = vis_magOTUs_df, variable="Genus", color_add=T, color_list=genusColors, colname_in_metadata = "ID")
 ```
+# Distilled from all mags
+
+```{r}
+function_names_df <- read.csv("data/dram_function_map.tsv", sep = "\t", header = F)
+colnames(function_names_df) <- c("gene_id", "module")
+df_metabolism_misc <- read_excel("results/09_MAGs_collection/dram_distill/output/metabolism_summary.xlsx", sheet = "MISC") %>%
+                        mutate(name = function_names_df$module[match(gene_id, function_names_df$gene_id)]) %>%
+                        mutate(name = ifelse(is.na(name), module, name)) %>%
+                        mutate(module = name) %>%
+                        select(-name)
+unique(df_metabolism_misc$module)
+# unique(df_metabolism_misc$subheader)
+unique(df_metabolism_misc$header)
+df_metabolism_carbon <- read_excel("results/09_MAGs_collection/dram_distill/output/metabolism_summary.xlsx", sheet = "carbon utilization") %>%
+                        mutate(name = function_names_df$module[match(gene_id, function_names_df$gene_id)]) %>%
+                        mutate(name = ifelse(is.na(name), module, name)) %>%
+                        mutate(module = name) %>%
+                        select(-name)
+unique(df_metabolism_carbon$module)
+unique(df_metabolism_carbon$header)
+unique(df_metabolism_carbon$subheader)
+df_metabolism_transporters <- read_excel("results/09_MAGs_collection/dram_distill/output/metabolism_summary.xlsx", sheet = "Transporters") %>%
+                        mutate(name = function_names_df$module[match(gene_id, function_names_df$gene_id)]) %>%
+                        mutate(name = ifelse(is.na(name), module, name)) %>%
+                        mutate(module = name) %>%
+                        select(-name)
+unique(df_metabolism_transporters$module)
+unique(df_metabolism_transporters$header)
+unique(df_metabolism_transporters$subheader)
+df_metabolism_energy <- read_excel("results/09_MAGs_collection/dram_distill/output/metabolism_summary.xlsx", sheet = "Energy") %>%
+                        mutate(name = function_names_df$module[match(gene_id, function_names_df$gene_id)]) %>%
+                        mutate(name = ifelse(is.na(name), module, name)) %>%
+                        mutate(module = name) %>%
+                        select(-name)
+unique(df_metabolism_energy$module)
+unique(df_metabolism_energy$header)
+unique(df_metabolism_energy$subheader)
+df_metabolism_nitrogen <- read_excel("results/09_MAGs_collection/dram_distill/output/metabolism_summary.xlsx", sheet = "Organic Nitrogen") %>%
+                        mutate(name = function_names_df$module[match(gene_id, function_names_df$gene_id)]) %>%
+                        mutate(name = ifelse(is.na(name), module, name)) %>%
+                        mutate(module = name) %>%
+                        select(-name)
+unique(df_metabolism_nitrogen$module)
+unique(df_metabolism_nitrogen$header)
+unique(df_metabolism_nitrogen$subheader)
+df_metabolism_woodcroft <- read_excel("results/09_MAGs_collection/dram_distill/output/metabolism_summary.xlsx", sheet = "carbon utilization (Woodcroft)") %>%
+                        mutate(name = function_names_df$module[match(gene_id, function_names_df$gene_id)]) %>%
+                        mutate(name = ifelse(is.na(name), module, name)) %>%
+                        mutate(module = name) %>%
+                        select(-name)
+unique(df_metabolism_woodcroft$module)
+unique(df_metabolism_woodcroft$header)
+unique(df_metabolism_woodcroft$subheader)
+```
+
+## misc functions
+
+```{r}
+mat_plot_headers <- df_metabolism_misc %>%
+                    select(-module, -gene_id, -gene_description, -subheader) %>%
+                    pivot_longer(cols = -header,
+                                 names_to = "genome",
+                                 values_to = "value") %>%
+                    group_by(header, genome) %>%
+                    mutate(value = as.numeric(value)) %>%
+                    summarize(value = sum(value)) %>%
+                    pivot_wider(names_from = genome,
+                                values_from = value) %>%
+                    column_to_rownames("header") %>%
+                    as.matrix()
+# remove columns that have sample to exclude name in them
+mat_plot_headers <- mat_plot_headers[, !grepl("sample_to_exclude", colnames(mat_plot_headers))]
+# remove rows and columns that have fewer than 5 non-zeros
+mat_plot_headers <- mat_plot_headers[rowSums(mat_plot_headers != 0) >= 5, colSums(mat_plot_headers != 0) >= 5]
+row_split <- colnames(mat_plot_headers) %>%
+             str_split("_") %>%
+             map_chr(1) %>%
+             as.factor()
+left_anno_genus <- rowAnnotation(Genus = row_split,
+                           col = list(Genus = unlist(genusColorsClean)),
+                           border = T
+)
+left_anno_host <- rowAnnotation(Host = colnames(mat_plot_headers) %>%
+                                    str_split("_") %>%
+                                    map_chr(-2) %>% Vectorize(get_host_from_sample_name)() %>% as.vector(),
+                           col = list(Host = host_order_color_dark),
+                           border = T
+)
+Heatmap(t(mat_plot_headers),
+        col = colorRamp2(c(0, 10), c("#ffffff", "#08306b")),
+        row_split = row_split,
+        row_names_gp = gpar(fontsize = 0),
+        row_title_gp = grid::gpar(fontsize = 10),
+        row_title_rot = 0,
+        row_gap = unit(2.5, "mm"),
+        column_names_gp = gpar(fontsize = 8),
+        left_annotation = left_anno_host,
+        # column_title_gp = grid::gpar(fontsize = 0),
+        cluster_row_slices = T,
+        column_title = "Module",
+        cluster_rows = T,
+        cluster_columns = T,
+)
+
+mat_plot_modules <- df_metabolism_misc %>%
+                    select(-header, -gene_id, -gene_description, -subheader) %>%
+                    pivot_longer(cols = -module,
+                                 names_to = "genome",
+                                 values_to = "value") %>%
+                    group_by(module, genome) %>%
+                    mutate(value = as.numeric(value)) %>%
+                    summarize(value = sum(value)) %>%
+                    pivot_wider(names_from = genome,
+                                values_from = value) %>%
+                    column_to_rownames("module") %>%
+                    as.matrix()
+
+# remove columns that have sample to exclude name in them
+mat_plot_modules <- mat_plot_modules[, !grepl("sample_to_exclude", colnames(mat_plot_modules))]
+# remove rows and columns that have fewer than 5 non-zeros
+mat_plot_modules <- mat_plot_modules[rowSums(mat_plot_modules != 0) >= 5, colSums(mat_plot_modules != 0) >= 5]
+row_split <- colnames(mat_plot_modules) %>%
+             str_split("_") %>%
+             map_chr(1) %>%
+             as.factor()
+left_anno_host <- rowAnnotation(Host = colnames(mat_plot_modules) %>%
+                                    str_split("_") %>%
+                                    map_chr(-2) %>% Vectorize(get_host_from_sample_name)() %>% as.vector(),
+                           col = list(Host = host_order_color_dark),
+                           border = T
+)
+
+h_obj <- Heatmap(t(mat_plot_modules),
+        col = colorRamp2(c(0, 10), c("#ffffff", "#08306b")),
+        row_split = row_split,
+        row_names_gp = gpar(fontsize = 0),
+        row_title_gp = grid::gpar(fontsize = 10),
+        row_title_rot = 0,
+        row_gap = unit(2.5, "mm"),
+        column_names_gp = gpar(fontsize = 8),
+        left_annotation = left_anno_host,
+        # column_title_gp = grid::gpar(fontsize = 0),
+        column_title = "Module",
+        cluster_rows = T,
+        cluster_columns = T,
+)
+pdf("results/figures/DRAM_visualization/08-DRAM_misc_modules_by_host.pdf", width = 20, height = 20)
+h_obj
+dev.off()
+```
+
+## carbon utilization
+
+```{r}
+mat_plot_headers <- df_metabolism_carbon %>%
+                    select(-module, -gene_id, -gene_description, -subheader) %>%
+                    pivot_longer(cols = -header,
+                                 names_to = "genome",
+                                 values_to = "value") %>%
+                    group_by(header, genome) %>%
+                    mutate(value = as.numeric(value)) %>%
+                    summarize(value = sum(value)) %>%
+                    pivot_wider(names_from = genome,
+                                values_from = value) %>%
+                    replace(is.na(.), "unkown") %>%
+                    column_to_rownames("header") %>%
+                    as.matrix()
+# remove columns that have sample to exclude name in them
+mat_plot_headers <- mat_plot_headers[, !grepl("sample_to_exclude", colnames(mat_plot_headers))]
+# remove rows and columns that have fewer than 5 non-zeros
+mat_plot_headers <- mat_plot_headers[rowSums(mat_plot_headers != 0) >= 5, colSums(mat_plot_headers != 0) >= 5]
+row_split <- colnames(mat_plot_headers) %>%
+             str_split("_") %>%
+             map_chr(1) %>%
+             as.factor()
+
+left_anno_genus <- rowAnnotation(Genus = row_split,
+                           col = list(Genus = unlist(genusColorsClean)),
+                           border = T
+)
+left_anno_host <- rowAnnotation(Host = colnames(mat_plot_headers) %>%
+                                    str_split("_") %>%
+                                    map_chr(-2) %>% Vectorize(get_host_from_sample_name)() %>% as.vector(),
+                           col = list(Host = host_order_color_dark),
+                           border = T
+)
+Heatmap(t(mat_plot_headers),
+        col = colorRamp2(c(0, 10), c("#ffffff", "#08306b")),
+        row_split = row_split,
+        row_names_gp = gpar(fontsize = 0),
+        row_title_gp = grid::gpar(fontsize = 10),
+        row_title_rot = 0,
+        row_gap = unit(2.5, "mm"),
+        column_names_gp = gpar(fontsize = 8),
+        left_annotation = left_anno_host,
+        # column_title_gp = grid::gpar(fontsize = 0),
+        cluster_row_slices = T,
+        column_title = "Module",
+        cluster_rows = T,
+        cluster_columns = T,
+)
+
+mat_plot_modules <- df_metabolism_carbon %>%
+                    select(-header, -gene_description, -gene_id, -subheader) %>%
+                    pivot_longer(cols = -module,
+                                 names_to = "genome",
+                                 values_to = "value") %>%
+                    group_by(module, genome) %>%
+                    mutate(value = as.numeric(value)) %>%
+                    summarize(value = sum(value)) %>%
+                    pivot_wider(names_from = genome,
+                                values_from = value) %>%
+                    replace(is.na(.), "unkown") %>%
+                    column_to_rownames("module") %>%
+                    as.matrix()
+# remove columns that have sample to exclude name in them
+mat_plot_modules <- mat_plot_modules[, !grepl("sample_to_exclude", colnames(mat_plot_modules))]
+# remove rows and columns that have fewer than 2 non-zeros
+mat_plot_modules <- mat_plot_modules[rowSums(mat_plot_modules != 0) >= 2, colSums(mat_plot_modules != 0) >= 2]
+row_split <- colnames(mat_plot_modules) %>%
+             str_split("_") %>%
+             map_chr(1) %>%
+             as.factor()
+left_anno_host <- rowAnnotation(Host = colnames(mat_plot_modules) %>%
+                                    str_split("_") %>%
+                                    map_chr(-2) %>% Vectorize(get_host_from_sample_name)() %>% as.vector(),
+                           col = list(Host = host_order_color_dark),
+                           border = T
+)
+h_obj <- Heatmap(t(mat_plot_modules),
+        col = colorRamp2(c(0, 10), c("#ffffff", "#08306b")),
+        row_split = row_split,
+        row_names_gp = gpar(fontsize = 0),
+        row_title_gp = grid::gpar(fontsize = 10),
+        row_title_rot = 0,
+        row_gap = unit(2.5, "mm"),
+        column_names_gp = gpar(fontsize = 8),
+        left_annotation = left_anno_host,
+        # column_title_gp = grid::gpar(fontsize = 0),
+        column_title = "Module",
+        cluster_rows = T,
+        cluster_columns = T,
+)
+h_obj
+
+pdf("results/figures/DRAM_visualization/08-DRAM_carbon_modules_by_host.pdf", width = 20, height = 20)
+h_obj
+dev.off()
+
+mat_plot_modules <- df_metabolism_carbon %>%
+                    select(-header, -gene_description, -module, -subheader) %>%
+                    pivot_longer(cols = -gene_id,
+                                 names_to = "genome",
+                                 values_to = "value") %>%
+                    group_by(gene_id, genome) %>%
+                    mutate(value = as.numeric(value)) %>%
+                    summarize(value = sum(value)) %>%
+                    pivot_wider(names_from = genome,
+                                values_from = value) %>%
+                    replace(is.na(.), "unkown") %>%
+                    column_to_rownames("gene_id") %>%
+                    as.matrix()
+# remove columns that have sample to exclude name in them
+mat_plot_modules <- mat_plot_modules[, !grepl("sample_to_exclude", colnames(mat_plot_modules))]
+# remove rows and columns that have fewer than 10 non-zeros
+mat_plot_modules <- mat_plot_modules[rowSums(mat_plot_modules != 0) >= 10, colSums(mat_plot_modules != 0) >= 10]
+row_split <- colnames(mat_plot_modules) %>%
+             str_split("_") %>%
+             map_chr(1) %>%
+             as.factor()
+left_anno_host <- rowAnnotation(Host = colnames(mat_plot_modules) %>%
+                                    str_split("_") %>%
+                                    map_chr(-2) %>% Vectorize(get_host_from_sample_name)() %>% as.vector(),
+                           col = list(Host = host_order_color_dark),
+                           border = T
+)
+h_obj <- Heatmap(t(mat_plot_modules),
+        col = colorRamp2(c(0, 10), c("#ffffff", "#08306b")),
+        row_split = row_split,
+        row_names_gp = gpar(fontsize = 0),
+        row_title_gp = grid::gpar(fontsize = 10),
+        row_title_rot = 0,
+        row_gap = unit(2.5, "mm"),
+        column_names_gp = gpar(fontsize = 8),
+        left_annotation = left_anno_host,
+        # column_title_gp = grid::gpar(fontsize = 0),
+        column_title = "Module",
+        cluster_rows = T,
+        cluster_columns = T,
+)
+h_obj
+pdf("results/figures/DRAM_visualization/08-DRAM_carbon_util_genes_by_host.pdf", width = 20, height = 20)
+h_obj
+dev.off()
+```
+
+
+```{r}
+mat_plot_modules <- df_metabolism_carbon %>%
+                    select(-header, -gene_description, -gene_id, -subheader) %>%
+                    pivot_longer(cols = -module,
+                                 names_to = "genome",
+                                 values_to = "value") %>%
+                    group_by(module, genome) %>%
+                    mutate(value = as.numeric(value)) %>%
+                    summarize(value = sum(value)) %>%
+                    pivot_wider(names_from = genome,
+                                values_from = value) %>%
+                    replace(is.na(.), "unkown") %>%
+                    column_to_rownames("module") %>%
+                    as.matrix()
+# remove columns that have sample to exclude name in them
+mat_plot_modules <- mat_plot_modules[, !grepl("sample_to_exclude", colnames(mat_plot_modules))]
+# remove rows and columns that have fewer than 10 non-zeros
+mat_plot_modules <- mat_plot_modules[rowSums(mat_plot_modules != 0) >= 10, colSums(mat_plot_modules != 0) >= 10]
+row_split <- colnames(mat_plot_modules) %>%
+             str_split("_") %>%
+             map_chr(-2) %>%
+             Vectorize(get_host_from_sample_name)() %>%
+             as.vector() %>%
+             as.factor()
+row_split_genus <- colnames(mat_plot_modules) %>%
+              str_split("_") %>%
+              map_chr(1) %>%
+              as.factor()
+left_anno_genus <- rowAnnotation(Genus = row_split_genus,
+                           col = list(Genus = unlist(genusColorsClean)),
+                           border = T
+)
+bottom_anno_genus <- HeatmapAnnotation(Genus = row_split_genus,
+                           col = list(Genus = unlist(genusColorsClean)),
+                           border = T
+)
+left_anno_host <- rowAnnotation(Host = colnames(mat_plot_modules) %>%
+                                    str_split("_") %>%
+                                    map_chr(-2) %>% Vectorize(get_host_from_sample_name)() %>% as.vector(),
+                           col = list(Host = host_order_color_dark),
+                           border = T
+)
+h_obj <- Heatmap(mat_plot_modules,
+        col = colorRamp2(c(0, 10), c("#ffffff", "#08306b")),
+        column_split = row_split,
+        border = T,
+        row_names_gp = gpar(fontsize = 20),
+        column_names_gp = gpar(fontsize = 0),
+        column_title_gp = grid::gpar(fontsize = 20),
+        row_title_gp = grid::gpar(fontsize = 0),
+        row_title_rot = 0,
+        column_gap = unit(2.5, "mm"),
+        bottom_annotation = bottom_anno_genus,
+        column_title = "Module",
+        cluster_row_slices = T,
+        cluster_column_slices = T,
+        cluster_rows = T,
+        cluster_columns = T,
+)
+h_obj
+pdf("results/figures/DRAM_visualization/08-DRAM_carbon_util_genes_by_genus.pdf", width = 40, height = 20)
+h_obj
+dev.off()
+```
+
+## transporters
+
+```{r}
+mat_plot_modules <- df_metabolism_transporters %>%
+                    select(-header, -gene_id, -gene_description, -subheader) %>%
+                    pivot_longer(cols = -module,
+                                 names_to = "genome",
+                                 values_to = "value") %>%
+                    group_by(module, genome) %>%
+                    mutate(value = as.numeric(value)) %>%
+                    summarize(value = sum(value)) %>%
+                    pivot_wider(names_from = genome,
+                                values_from = value) %>%
+                    replace(is.na(.), "unkown") %>%
+                    column_to_rownames("module") %>%
+                    as.matrix()
+# remove columns that have sample to exclude name in them
+mat_plot_modules <- mat_plot_modules[, !grepl("sample_to_exclude", colnames(mat_plot_modules))]
+# remove rows and columns that have fewer than 5 non-zeros
+mat_plot_modules <- mat_plot_modules[rowSums(mat_plot_modules != 0) >= 5, colSums(mat_plot_modules != 0) >= 5]
+row_split <- colnames(mat_plot_modules) %>%
+             str_split("_") %>%
+             map_chr(1) %>%
+             as.factor()
+left_anno_genus <- rowAnnotation(Genus = row_split,
+                           col = list(Genus = unlist(genusColorsClean)),
+                           border = T
+)
+left_anno_host <- rowAnnotation(Host = colnames(mat_plot_modules) %>%
+                                    str_split("_") %>%
+                                    map_chr(-2) %>% Vectorize(get_host_from_sample_name)() %>% as.vector(),
+                           col = list(Host = host_order_color_dark),
+                           border = T
+)
+h_obj <- Heatmap(t(mat_plot_modules),
+        col = colorRamp2(c(0, 10), c("#ffffff", "#08306b")),
+        row_split = row_split,
+        row_names_gp = gpar(fontsize = 0),
+        row_title_gp = grid::gpar(fontsize = 10),
+        row_title_rot = 0,
+        row_gap = unit(2.5, "mm"),
+        column_names_gp = gpar(fontsize = 8),
+        left_annotation = left_anno_host,
+        # column_title_gp = grid::gpar(fontsize = 0),
+        cluster_row_slices = T,
+        column_title = "Module",
+        cluster_rows = T,
+        cluster_columns = T,
+)
+h_obj
+pdf("results/figures/DRAM_visualization/08-DRAM_transporter_modules_by_host.pdf", width = 20, height = 20)
+h_obj
+dev.off()
+```
+
+```{r}
+mat_plot_modules <- df_metabolism_transporters %>%
+                    select(-header, -gene_id, -gene_description, -subheader) %>%
+                    pivot_longer(cols = -module,
+                                 names_to = "genome",
+                                 values_to = "value") %>%
+                    group_by(module, genome) %>%
+                    mutate(value = as.numeric(value)) %>%
+                    summarize(value = sum(value)) %>%
+                    pivot_wider(names_from = genome,
+                                values_from = value) %>%
+                    replace(is.na(.), "unkown") %>%
+                    column_to_rownames("module") %>%
+                    as.matrix()
+# remove columns that have sample to exclude name in them
+mat_plot_modules <- mat_plot_modules[, !grepl("sample_to_exclude", colnames(mat_plot_modules))]
+# remove rows and columns that have fewer than 5 non-zeros
+mat_plot_modules <- mat_plot_modules[rowSums(mat_plot_modules != 0) >= 5, colSums(mat_plot_modules != 0) >= 5]
+row_split <- colnames(mat_plot_modules) %>%
+             str_split("_") %>%
+             map_chr(-2) %>%
+             Vectorize(get_host_from_sample_name)() %>%
+             as.vector() %>%
+             as.factor()
+row_split_genus <- colnames(mat_plot_modules) %>%
+             str_split("_") %>%
+             map_chr(1) %>%
+             as.factor()
+left_anno_genus <- rowAnnotation(Genus = row_split_genus,
+                           col = list(Genus = unlist(genusColorsClean)),
+                           border = T
+)
+left_anno_host <- rowAnnotation(Host = colnames(mat_plot_modules) %>%
+                                    str_split("_") %>%
+                                    map_chr(-2) %>% Vectorize(get_host_from_sample_name)() %>% as.vector(),
+                           col = list(Host = host_order_color_dark),
+                           border = T
+)
+h_obj <- Heatmap(t(mat_plot_modules),
+        col = colorRamp2(c(0, 10), c("#ffffff", "#08306b")),
+        row_split = row_split,
+        row_names_gp = gpar(fontsize = 0),
+        row_title_gp = grid::gpar(fontsize = 10),
+        row_title_rot = 0,
+        row_gap = unit(2.5, "mm"),
+        column_names_gp = gpar(fontsize = 8),
+        left_annotation = left_anno_genus,
+        # column_title_gp = grid::gpar(fontsize = 0),
+        cluster_row_slices = T,
+        column_title = "Module",
+        cluster_rows = T,
+        cluster_columns = T,
+)
+h_obj
+pdf("results/figures/DRAM_visualization/08-DRAM_transporter_modules_by_genus.pdf", width = 20, height = 20)
+h_obj
+dev.off()
+
+```
+
+
+
+## energy
+
+```{r}
+mat_plot_modules <- df_metabolism_energy %>%
+                    select(-header, -gene_id, -gene_description, -subheader) %>%
+                    pivot_longer(cols = -module,
+                                 names_to = "genome",
+                                 values_to = "value") %>%
+                    group_by(module, genome) %>%
+                    mutate(value = as.numeric(value)) %>%
+                    summarize(value = sum(value)) %>%
+                    pivot_wider(names_from = genome,
+                                values_from = value) %>%
+                    replace(is.na(.), "unkown") %>%
+                    column_to_rownames("module") %>%
+                    as.matrix()
+# remove columns that have sample to exclude name in them
+mat_plot_modules <- mat_plot_modules[, !grepl("sample_to_exclude", colnames(mat_plot_modules))]
+# remove rows and columns that have fewer than 5 non-zeros
+mat_plot_modules <- mat_plot_modules[rowSums(mat_plot_modules != 0) >= 5, colSums(mat_plot_modules != 0) >= 5]
+row_split <- colnames(mat_plot_modules) %>%
+             str_split("_") %>%
+             map_chr(1) %>%
+             as.factor()
+left_anno_genus <- rowAnnotation(Genus = row_split,
+                           col = list(Genus = unlist(genusColorsClean)),
+                           border = T
+)
+left_anno_host <- rowAnnotation(Host = colnames(mat_plot_modules) %>%
+                                    str_split("_") %>%
+                                    map_chr(-2) %>% Vectorize(get_host_from_sample_name)() %>% as.vector(),
+                           col = list(Host = host_order_color_dark),
+                           border = T
+)
+
+h_obj <- Heatmap(t(mat_plot_modules),
+        col = colorRamp2(c(0, 10), c("#ffffff", "#08306b")),
+        row_split = row_split,
+        row_names_gp = gpar(fontsize = 0),
+        row_title_gp = grid::gpar(fontsize = 10),
+        row_title_rot = 0,
+        row_gap = unit(2.5, "mm"),
+        column_names_gp = gpar(fontsize = 8),
+        left_annotation = left_anno_host,
+        # column_title_gp = grid::gpar(fontsize = 0),
+        cluster_row_slices = T,
+        column_title = "Module",
+        cluster_rows = T,
+        cluster_columns = T,
+)
+h_obj
+pdf("results/figures/DRAM_visualization/08-DRAM_energy_modules_by_host.pdf", width = 20, height = 20)
+h_obj
+dev.off()
+
+```
+
+```{r}
+mat_plot_modules <- df_metabolism_energy %>%
+                    select(-header, -gene_id, -gene_description, -subheader) %>%
+                    pivot_longer(cols = -module,
+                                 names_to = "genome",
+                                 values_to = "value") %>%
+                    group_by(module, genome) %>%
+                    mutate(value = as.numeric(value)) %>%
+                    summarize(value = sum(value)) %>%
+                    pivot_wider(names_from = genome,
+                                values_from = value) %>%
+                    replace(is.na(.), "unkown") %>%
+                    column_to_rownames("module") %>%
+                    as.matrix()
+# remove columns that have sample to exclude name in them
+mat_plot_modules <- mat_plot_modules[, !grepl("sample_to_exclude", colnames(mat_plot_modules))]
+# remove rows and columns that have fewer than 5 non-zeros
+mat_plot_modules <- mat_plot_modules[rowSums(mat_plot_modules != 0) >= 5, colSums(mat_plot_modules != 0) >= 5]
+row_split <- colnames(mat_plot_modules) %>%
+             str_split("_") %>%
+             map_chr(-2) %>%
+             Vectorize(get_host_from_sample_name)() %>%
+             as.vector() %>%
+             as.factor()
+row_split_genus <- colnames(mat_plot_modules) %>%
+             str_split("_") %>%
+             map_chr(1) %>%
+             as.factor()
+left_anno_genus <- rowAnnotation(Genus = row_split_genus,
+                           col = list(Genus = unlist(genusColorsClean)),
+                           border = T
+)
+left_anno_host <- rowAnnotation(Host = colnames(mat_plot_modules) %>%
+                                    str_split("_") %>%
+                                    map_chr(-2) %>% Vectorize(get_host_from_sample_name)() %>% as.vector(),
+                           col = list(Host = host_order_color_dark),
+                           border = T
+)
+
+h_obj <- Heatmap(t(mat_plot_modules),
+        col = colorRamp2(c(0, 10), c("#ffffff", "#08306b")),
+        row_split = row_split,
+        row_names_gp = gpar(fontsize = 0),
+        row_title_gp = grid::gpar(fontsize = 10),
+        row_title_rot = 0,
+        row_gap = unit(2.5, "mm"),
+        column_names_gp = gpar(fontsize = 8),
+        left_annotation = left_anno_genus,
+        # column_title_gp = grid::gpar(fontsize = 0),
+        cluster_row_slices = T,
+        column_title = "Module",
+        cluster_rows = T,
+        cluster_columns = T,
+)
+h_obj
+pdf("results/figures/DRAM_visualization/08-DRAM_energy_modules_by_genus.pdf", width = 20, height = 20)
+h_obj
+dev.off()
+```
+
+## nitrogen
+
+```{r}
+mat_plot_modules <- df_metabolism_nitrogen %>%
+                    select(-header, -gene_id, -gene_description, -subheader) %>%
+                    pivot_longer(cols = -module,
+                                 names_to = "genome",
+                                 values_to = "value") %>%
+                    group_by(module, genome) %>%
+                    mutate(value = as.numeric(value)) %>%
+                    summarize(value = sum(value)) %>%
+                    pivot_wider(names_from = genome,
+                                values_from = value) %>%
+                    replace(is.na(.), "unkown") %>%
+                    column_to_rownames("module") %>%
+                    as.matrix()
+# remove columns that have sample to exclude name in them
+mat_plot_modules <- mat_plot_modules[, !grepl("sample_to_exclude", colnames(mat_plot_modules))]
+# remove rows and columns that have fewer than 5 non-zeros
+mat_plot_modules <- mat_plot_modules[rowSums(mat_plot_modules != 0) >= 5, colSums(mat_plot_modules != 0) >= 5]
+row_split <- colnames(mat_plot_modules) %>%
+             str_split("_") %>%
+             map_chr(1) %>%
+             as.factor()
+left_anno_genus <- rowAnnotation(Genus = row_split,
+                           col = list(Genus = unlist(genusColorsClean)),
+                           border = T
+)
+left_anno_host <- rowAnnotation(Host = colnames(mat_plot_modules) %>%
+                                    str_split("_") %>%
+                                    map_chr(-2) %>% Vectorize(get_host_from_sample_name)() %>% as.vector(),
+                           col = list(Host = host_order_color_dark),
+                           border = T
+)
+
+h_obj <- Heatmap(t(mat_plot_modules),
+        col = colorRamp2(c(0, 10), c("#ffffff", "#08306b")),
+        row_split = row_split,
+        row_names_gp = gpar(fontsize = 0),
+        row_title_gp = grid::gpar(fontsize = 10),
+        row_title_rot = 0,
+        row_gap = unit(2.5, "mm"),
+        column_names_gp = gpar(fontsize = 8),
+        left_annotation = left_anno_host,
+        # column_title_gp = grid::gpar(fontsize = 0),
+        cluster_row_slices = T,
+        column_title = "Module",
+        cluster_rows = T,
+        cluster_columns = T,
+)
+h_obj
+
+pdf("results/figures/DRAM_visualization/08-DRAM_nitrogen_modules_by_host.pdf", width = 20, height = 20)
+h_obj
+dev.off()
+```
+
+## woodcroft
+
+```{r}
+mat_plot_modules <- df_metabolism_woodcroft %>%
+                    select(-header, -gene_id, -gene_description, -module) %>%
+                    pivot_longer(cols = -subheader,
+                                 names_to = "genome",
+                                 values_to = "value") %>%
+                    group_by(subheader, genome) %>%
+                    mutate(value = as.numeric(value)) %>%
+                    summarize(value = sum(value)) %>%
+                    pivot_wider(names_from = genome,
+                                values_from = value) %>%
+                    replace(is.na(.), "unkown") %>%
+                    column_to_rownames("subheader") %>%
+                    as.matrix()
+# remove columns that have sample to exclude name in them
+mat_plot_modules <- mat_plot_modules[, !grepl("sample_to_exclude", colnames(mat_plot_modules))]
+# remove rows and columns that have fewer than 5 non-zeros
+mat_plot_modules <- mat_plot_modules[rowSums(mat_plot_modules != 0) >= 5, colSums(mat_plot_modules != 0) >= 5]
+row_split <- colnames(mat_plot_modules) %>%
+             str_split("_") %>%
+             map_chr(1) %>%
+             as.factor()
+left_anno_genus <- rowAnnotation(Genus = row_split,
+                           col = list(Genus = unlist(genusColorsClean)),
+                           border = T
+)
+left_anno_host <- rowAnnotation(Host = colnames(mat_plot_modules) %>%
+                                    str_split("_") %>%
+                                    map_chr(-2) %>% Vectorize(get_host_from_sample_name)() %>% as.vector(),
+                           col = list(Host = host_order_color_dark),
+                           border = T
+)
+h_obj <- Heatmap(t(mat_plot_modules),
+        col = colorRamp2(c(0, 10), c("#ffffff", "#08306b")),
+        row_split = row_split,
+        row_names_gp = gpar(fontsize = 0),
+        row_title_gp = grid::gpar(fontsize = 10),
+        row_title_rot = 0,
+        row_gap = unit(2.5, "mm"),
+        column_names_gp = gpar(fontsize = 8),
+        left_annotation = left_anno_host,
+        # column_title_gp = grid::gpar(fontsize = 0),
+        cluster_row_slices = T,
+        column_title = "Module",
+        cluster_rows = T,
+        cluster_columns = T,
+)
+h_obj
+pdf("results/figures/DRAM_visualization/08-DRAM_woodcroft_modules_by_host.pdf", width = 20, height = 20)
+h_obj
+dev.off()
+```
+
+# plots across host by family
