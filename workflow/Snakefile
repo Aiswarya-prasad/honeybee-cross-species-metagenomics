@@ -102,6 +102,7 @@ rule targets:
         bowtie_2_index = multiext("results/10_instrain/00_prepare_mags/mag_rep_database.fa", ".1.bt2", ".2.bt2", ".3.bt2", ".4.bt2", ".rev.1.bt2", ".rev.2.bt2"),
         cayman_profile = expand("results/08_gene_content/06_cayman/{sample}.cazy.txt.gz", sample = SAMPLES),
         tree = lambda wildcards: expand("results/11_phylogenies/03_iqtree_trees/{genus}.done", genus = get_significant_genera(checkpoints.mag_metadata_summary.get().output.metadata)),
+        nuc_trees = lambda wildcards: expand("results/11_phylogenies/nucleotide_trees/iqtree/{genus}/{genus}.done", genus = get_significant_genera(checkpoints.mag_metadata_summary.get().output.metadata)),
         nuc_tree = "results/11_phylogenies/05_MAG_bac120_nucleotide_trees/MAGs_bac120_nuc/MAGs_bac120_nuc.treefile"
 
 
