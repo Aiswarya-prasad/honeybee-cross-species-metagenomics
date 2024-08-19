@@ -87,3 +87,5 @@ temp/*
 
 # tracked in another repo
 scripts/PopCOGenT*
+results/._.DS_Store
+results/.DS_Store
