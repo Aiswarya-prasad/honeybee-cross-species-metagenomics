@@ -1,3 +1,5 @@
+#  using env rmd-env /work/FAC/FBM/DMF/pengel/spirit/aprasad/miniconda3/envs/rmd-env
+
 ##############
 # load libraries
 ##############
@@ -5,32 +7,58 @@
 working_dir <- "/work/FAC/FBM/DMF/pengel/spirit/aprasad/BACKUP_current/20230313_apis_species_comparison"
 setwd(working_dir)
 
-library(ggsignif)
-library(plotly)
-library(ggpubr)
-library(htmlwidgets)
 library(ggplot2)
 library(readxl)
 library(knitr)
-library(tidyverse)
-library(viridis)
-library(hrbrthemes)
-library(ggthemes)
 library(RColorBrewer)
 library(scales)
 library(dplyr)
-library(gridExtra)
-library(ggVennDiagram)
 library(vegan)
+library(ggsignif)
+library(plotly)
+library(htmlwidgets)
+library(viridis)
+library(hrbrthemes)
+library(ggthemes)
+library(ggrepel)
+library(gridExtra)
+# library(randomForest)
+library(emmeans)
+library(microbiome)
 library(ape)
-library(ggforce)
-library(VennDiagram)
-library(circlize)
 library(phyloseq)
-library(ggdendro)
-library(dendextend)
 library(ComplexHeatmap)
 library(ggnewscale)
+library(VennDiagram)
+library(ggforce)
+library(circlize)
+library(magrittr)
+library(tidyverse)
+library(corrplot)
+library(ggkegg)
+library(ggfx)
+library(igraph)
+library(tidygraph)
+library(ggdendro)
+library(dendextend)
+library(ggVennDiagram)
+library(ggpubr)
+library(scatterpie)
+library(gggenes)
+# all the above work in the env rmd_env
+# and its clone Apis_project_r_env - which was then modified to add others..
+
+# if (!require("BiocManager", quietly = TRUE)) {
+#   install.packages("BiocManager")
+# }
+# if (!require("Maaslin2", quietly = TRUE)) {
+#   # BiocManager::install(version = "3.10")#   library(BiocManager)
+#   BiocManager::install("Maaslin2") # I asked to update all
+# }
+# library(Maaslin2)
+# did not work in Apis_project_r_env. Use dedicated masslin2 env instead! - it also has randomforest and tidyverse just in case!
+
+
 
 ##############
 # define functions used
@@ -179,6 +207,12 @@ get_sample_name <- function(magname){
   }
 }
 
+samples_to_exclude <- c("F4-5", "F5-1", "M6-2", "D9-5", "F7-5")
+# D9-5(18,026)
+# F7-5(32,896)
+
+# F8-4(74,504)
+# F1-1(852,878)
 
 # function to be used (with Vectorize)
 # to mutate in dataframes
@@ -314,18 +348,22 @@ get_colony_from_sample_name <- function(sample_name){
     return("AcCh")
   }
   if (grepl("DrY1", sample_name)) {
-    return("DrY1")
+    # return("DrY1")
+    return("Dr")
   }
   if (grepl("DrY2", sample_name)) {
-    return("DrY2")
+    # return("DrY2")
+    return("Dr")
   }
   if (grepl("GrY1", sample_name)) {
-    return("GrY1")
+    # return("GrY1")
+    return("Gr")
   }
   if (grepl("GrY2", sample_name)) {
-    return("GrY2")
+    # return("GrY2")
+    return("Gr")
   }
-  return(strsplit(sample_name, "\\.")[[1]][[1]])
+  return(strsplit(sample_name, "\\-")[[1]][[1]])
 }
 
 # function to be used (with Vectorize)
@@ -355,7 +393,7 @@ get_colonyid_from_sample_name <- function(sample_name){
   if (grepl("GrY2", sample_name)) {
     return("4")
   }
-  split_sample = strsplit(sample_name, "\\.")[[1]][[1]]
+  split_sample = strsplit(sample_name, "\\-")[[1]][[1]]
   return(strsplit(split_sample, "")[[1]][[2]])
 }
 get_only_legend <- function(plot) {
@@ -452,12 +490,6 @@ read_comma_numbers <- function(x) {
 ##############
 # define important vectors (manually done)
 ##############
-
-samples_to_exclude <- c("F4-5", "F5-1", "M6-2")
-# D9-5(18,026)
-# F7-5(32,896)
-# F8-4(74,504)
-# F1-1(852,878)
 samples_IN <- c("M1-1", "M1-2", "M1-3", "M1-4", "M1-5",
               "C1-1", "C1-2", "C1-3", "C1-4", "C1-5",
               "C2-1", "C2-2", "C2-3", "C2-4", "C2-5",
@@ -571,6 +603,7 @@ samples_AC <- c("C1-1", "C1-2", "C1-3", "C1-4", "C1-5",
               "AcCh01", "AcCh02", "AcCh03", "AcCh04", "AcCh05",
               "AcCh06", "AcCh07", "AcCh08", "AcCh09", "AcCh10"
             )
+samples_AC <- samples_AC[!samples_AC %in% samples_to_exclude]
 samples_AD <- c("D1-1","D1-2","D1-3","D1-4","D1-5",
               "D2-1","D2-2","D2-3","D2-4","D2-5",
               "D3-1","D3-2","D3-3","D3-4","D3-5",
@@ -581,6 +614,7 @@ samples_AD <- c("D1-1","D1-2","D1-3","D1-4","D1-5",
               "D8-1","D8-2","D8-3","D8-4","D8-5",
               "D9-1","D9-2","D9-3","D9-4","D9-5"
             )
+samples_AD <- samples_AD[!samples_AD %in% samples_to_exclude]            
 samples_AF <- c("F1-1","F1-2","F1-3","F1-4","F1-5",
               "F2-1","F2-2","F2-3","F2-4","F2-5",
               "F3-1","F3-2","F3-3","F3-4","F3-5",
@@ -599,6 +633,7 @@ samples_AA <- c("A1-1","A1-2","A1-3","A1-4","A1-5",
               "A5-1","A5-2","A5-3","A5-4","A5-5",
               "A6-1","A6-2","A6-3","A6-4","A6-5"
             )
+samples_AA <- samples_AA[!samples_AA %in% samples_to_exclude]            
 samples_IN_MY <- c("M1-1", "M1-2", "M1-3", "M1-4", "M1-5",
               "M2-1", "M2-2", "M2-3", "M2-4", "M2-5",
               "M3-1", "M3-2", "M3-3", "M3-4", "M3-5",
@@ -639,11 +674,11 @@ samples_IN_MY <- c("M1-1", "M1-2", "M1-3", "M1-4", "M1-5",
               "A4-1","A4-2","A4-3","A4-4","A4-5",
               "A5-1","A5-2","A5-3","A5-4","A5-5",
               "A6-1","A6-2","A6-3","A6-4","A6-5"
-            )     
+            )
 samples_IN_MY <- samples_IN_MY[!samples_IN_MY %in% samples_to_exclude]
 samples <- c(samples_AM, samples_AC, samples_AD, samples_AF, samples_AA)
 location_order <- c("Malaysia", "India", "Switzerland", "Japan")
-location_order_color <- c("Malaysia" = "#1f78b4", "India" = "#33a02c", "Switzerland" = "#e31a1c", "Japan" = "#fb9a99")
+location_order_color <- c("Malaysia" = "#1f78b4", "India" = "#ff7f00", "Switzerland" = "#e31a1c", "Japan" = "#fb9a99")
 host_order <- c("Apis mellifera", "Apis cerana", "Apis dorsata", "Apis florea", "Apis andreniformis")
 host_order_color <- c("Apis mellifera" = brewer.pal(9, "Pastel1")[2], "Apis cerana" = brewer.pal(9, "Pastel1")[1], "Apis dorsata" = brewer.pal(9, "Pastel1")[4], "Apis florea" = brewer.pal(9, "Pastel1")[3], "Apis andreniformis" = brewer.pal(9, "Pastel1")[5])
 host_order_color_dark <- c("Apis mellifera" = brewer.pal(9, "Set1")[2], "Apis cerana" = brewer.pal(9, "Set1")[1], "Apis dorsata" = brewer.pal(9, "Set1")[4], "Apis florea" = brewer.pal(9, "Set1")[3], "Apis andreniformis" = brewer.pal(9, "Set1")[5])
@@ -653,8 +688,6 @@ location_order <- c("AIST_Am", "UT_Am", "Bee park, GKVK_Am","Les Droites_Am",
                     "NCBS campus_Ac", "Bee park, GKVK_Ac", "Chiba_Ac", "Kanagawa_Ac",
                     "Biological sciences building, IISc_Ad","House near NCBS_Ad","Naideli hostel_Ad",
                     "Bangalore outskirts_Af")
-
-
 genera <- c(
     "g__Lactobacillus",
     "g__Bifidobacterium",
@@ -763,7 +796,10 @@ genusColorsClean <- list("Bombilactobacillus" = head(colorRampPalette(c(brewer.p
                     "Apibacter" = brewer.pal(11, "Spectral")[4],
                     "Bombella" = brewer.pal(11, "Spectral")[5],
                     "Commensalibacter" = brewer.pal(11, "Spectral")[6],
-                    "Bartonella" = brewer.pal(11, "Spectral")[7],
+                    "Bartonella" = head(colorRampPalette(c(brewer.pal(11, "Spectral")[7], "#000000"))(10), -1)[3],
+                    "Bartonella_A" = head(colorRampPalette(c(brewer.pal(11, "Spectral")[7], "#000000"))(10), -1)[3],
+                    # "Bartonella" = brewer.pal(11, "Spectral")[7],
+                    # "Bartonella_A" = brewer.pal(11, "Spectral")[7],
                     "Frischella" = brewer.pal(11, "Spectral")[8],
                     "Apilactobacillus" = brewer.pal(11, "Spectral")[9],
                     "Snodgrassella" = brewer.pal(11, "Spectral")[10],
@@ -949,4 +985,108 @@ adonis_OmegaSq <- function(adonisOutput, partial = TRUE){
 
 scientific_10 <- function(x) {
   parse(text=gsub("e", " %*% 10^", scales::scientific_format()(x)))
+}
+
+clean_g_name <- function(g_name) {
+  g_name <- gsub("g__", "", g_name)
+  # g_name <- gsub("s__", "", g_name)
+  return(g_name)
+}
+
+betapart.core <- function(x){
+	
+	# test for a binary numeric matrix or data.frame
+	if(! is.matrix(x)){
+		x<-as.matrix(x)
+  	}
+	
+	if(! is.numeric(x))
+    	stop("The data in x is not numeric.",call.=TRUE)
+	
+	# simple test for binary data
+	xvals <-  unique(as.vector(x))
+	if (any(!is.element(xvals, c(0, 1)))) 
+        stop("The table contains values other than 0 and 1: data should be presence/absence.", call. = TRUE)
+
+	shared <- x %*% t(x)
+    not.shared <-  abs(sweep(shared, 2, diag(shared)))
+		
+	sumSi <- sum(diag(shared)) # species by site richness
+    St <- sum(colSums(x) > 0)  # regional species richness
+    a <- sumSi - St            # multi site shared species term
+
+    sum.not.shared <- not.shared + t(not.shared)
+    max.not.shared <- pmax(not.shared, t(not.shared))
+    min.not.shared <- pmin(not.shared, t(not.shared))
+
+	computations<-list(data=x, sumSi=sumSi, St=St, a=a, shared=shared, not.shared=not.shared, 
+	                   sum.not.shared=sum.not.shared, max.not.shared=max.not.shared, 
+	                   min.not.shared=min.not.shared)
+    class(computations)<-"betapart"
+
+	return(computations)
+} 
+# Latest commit 4b59d9c on Feb 24, 2012
+beta.pair <- function(x, index.family="sorensen"){
+	
+	# test for a valid index
+	index.family <- match.arg(index.family, c('jaccard','sorensen'))
+	
+	# test for pre-existing betapart objects
+	if (! inherits(x, "betapart")){	
+		x <- betapart.core(x)
+	}
+	
+	# run the analysis given the index
+	switch(index.family,
+		sorensen = {
+			beta.sim <- x$min.not.shared / (x$min.not.shared + x$shared)
+			beta.sne <- ((x$max.not.shared - x$min.not.shared) / ((2 * x$shared) + x$sum.not.shared)) * (x$shared / (x$min.not.shared + x$shared))
+            beta.sor <- x$sum.not.shared / (2 * x$shared + x$sum.not.shared)
+                
+            pairwise <- list(beta.sim=as.dist(beta.sim), beta.sne=as.dist(beta.sne),beta.sor=as.dist(beta.sor))},
+		jaccard = {
+			beta.jtu <- (2*x$min.not.shared) / ((2*x$min.not.shared) + x$shared)
+	        beta.jne <- ((x$max.not.shared - x$min.not.shared) / (x$shared + x$sum.not.shared)) * (x$shared / ((2*x$min.not.shared) + x$shared))
+	        beta.jac <- x$sum.not.shared / (x$shared + x$sum.not.shared)
+
+	        pairwise <- list(beta.jtu=as.dist(beta.jtu), beta.jne=as.dist(beta.jne),beta.jac=as.dist(beta.jac))})
+
+	return(pairwise)
+}
+
+#'Importance of significant features.
+#'
+#'This function uses Breiman's random forest algorithm that can be used in unsupervised mode for assessing proximities among data points.
+#'Random forest classifier is used to determine the importance of differentially expressed features/taxa to the microbial community.
+#'The measure used in this case is Mean Descrease in Accuracy aso know as permutation importance which is
+#'reported for each of the features. This is obtained by removing the relationship of a feature  and measuring increase in error.
+#'Consequently, the feature with high mean decrease in accuracy is considered most important.
+#'
+#' @param data (Required). A \code{data.frame} of features to be assigned importance.
+#' @param groups (Required). Vector corresponding to groups/conditions or source of variation in data.
+#' @return Returns a \code{data.frame} of importance measure (mean decrease in accuracy) and ranks.
+#'
+#' @references \url{http://userweb.eng.gla.ac.uk/umer.ijaz/}, Umer Ijaz, 2015
+#'
+#' @author Alfred Ssekagiri \email{assekagiri@gmail.com},  Umer Zeeshan Ijaz \email{Umer.Ijaz@glasgow.ac.uk}
+#'
+#' @export randomforest_res
+#'
+
+#it returns the measure of importance as mean decrease accuaracy
+randomforest_res <- function(data, groups){
+  IDs_map<-data.frame(row.names=colnames(data),"taxa"=colnames(data))
+  val<-randomForest::randomForest(groups~ ., data=data, importance=T, proximity=T,ntree=1500,keep.forest=F)
+  imp<- randomForest::importance(val)
+  df_accuracy<-data.frame(row.names=NULL,Sample=rownames(imp),Value=abs(as.numeric(imp[,"MeanDecreaseAccuracy"])),Index=rep("Mean Decrease Accuracy",dim(imp)[1]))
+#Rearrange the features in terms of importance for ggplot2 by changing factor levels
+  df_accuracy$Sample<-IDs_map[as.character(df_accuracy$Sample),"taxa"]
+  df_accuracy_order<-as.character(IDs_map[rownames(imp),"taxa"][order(abs(as.numeric(imp[,"MeanDecreaseAccuracy"])),decreasing=T)])
+  df_accuracy$Sample<-factor(as.character(df_accuracy$Sample),levels=df_accuracy_order)
+  df_accuracy$rank <- base::rank(df_accuracy$Value, ties.method = "min")
+  df_accuracy$rank <- max(df_accuracy$rank)-df_accuracy$rank+1
+
+  out<-list("importance"=df_accuracy)
+  return(out)
 }

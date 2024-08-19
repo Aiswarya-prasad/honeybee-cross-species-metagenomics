@@ -22,6 +22,40 @@ To intialize complete all of or relevant sections of `scripts/visualization/Load
 
 Number of reads that mapped to host and of those that did not, number that mapped to MAGs_db and total unmapped
 
+numbers for a supplementary table
+```{r}
+df_reads_updated <- df_reads %>%
+                      left_join(qpcr_plot_df %>% select(Sample.Name, copy_num), by = c("Sample" = "Sample.Name"))
+write.csv(df_reads_updated, "results/figures/Mapping_qpcr_numbers.csv", row.names = F, quote = F)
+```
+
+
+```{r}
+# number of reads etc. for text
+colnames(df_reads_updated)
+df_reads_updated_sub <- df_reads_updated %>% filter(Sample %in% samples_MY | Sample %in% samples_IN)
+# total
+mean(df_reads_updated_sub$Total_clean, na.rm = T)/2
+# 35,574,093
+sd(df_reads_updated_sub$Total_clean, na.rm = T)/2
+# 19,918,487
+min(df_reads_updated_sub$Total_clean, na.rm = T)/2
+# 9,388,517 paired-end reads
+max(df_reads_updated_sub$Total_clean, na.rm = T)/2
+# 132,602,599 paired-end reads
+
+# MAGs DB direct mapping
+mean(df_reads_updated_sub$MAGs_DB_mf, na.rm = T)
+# 27,658,413
+sd(df_reads_updated_sub$MAGs_DB_mf, na.rm = T)
+# 9,201,386
+min(df_reads_updated_sub$MAGs_DB_mf, na.rm = T)
+# 7,497,070
+max(df_reads_updated_sub$MAGs_DB_mf, na.rm = T)
+# 56,221,912
+
+```
+
 ```{r plot_MY_samples_1}
 samples_chosen <- samples_MY
 df_to_plot <- df_reads_plot %>%

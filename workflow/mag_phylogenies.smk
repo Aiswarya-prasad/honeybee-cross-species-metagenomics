@@ -279,30 +279,124 @@ rule run_orthofinder_iqtree:
             -n {wildcards.genus}_iqtree 2>&1 | tee {log}
         """
 
-rule rerun_tree:
+# identify markers in MAGs for each genus
+def get_mag_and_id(gene):
+    dict_return = {}
+    dict_return["id"] = gene.split("_")[-1]
+    dict_return["mag"] = "_".join(gene.split("_")[:-1])
+    return dict_return
+
+# # For each species that could have potentially codiversified, the pairwise bacdiv for the MAGs 
+# # of that species should be lower for pairs of MAGs from the same species than for pairs of MAGs
+# # from different species and the slope of the regression line should be such that this increases
+# # with host divergence time and the slope should be a value that is realistic for #substitutions/site/year
+
+# mags_to_use = {"g__Lactobacillus" : ["A4-2_9"]} # only an example
+
+# rule get_OG_nuc_sequences:
+#     input:
+#         nuc_sequences
+#     output:
+#         nuc_sequences = "results/11_phylogenies/nucleotide_trees/{genus}/sequences_aligned/{marker}.fa",
+#     params:
+#         mailto="aiswarya.prasad@unil.ch",
+#         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+#         account="pengel_spirit",
+#         runtime_s=convertToSec("3-00:00:00") # 25h worked for ~118/120 markers
+#     resources:
+#         mem_mb = convertToMb("100G")
+#     threads: 8
+#     log: "results/11_phylogenies/nucleotide_trees/{genus}/{marker}_get_OG_nuc_sequences.log"
+#     benchmark: "results/11_phylogenies/nucleotide_trees/{genus}/{marker}_get_OG_nuc_sequences.benchmark"
+#     conda: "../config/envs/phylogenies-env.yaml"
+#     run:
+#         og = wildcards.marker
+#         og_file = input.orthofile
+#         gene_id = get_gene_id_num(og)
+#         mag = get_mag_and_id(gene_id)["mag"]
+#         mag_faa = get_genome_path(mag, checkpoints.mag_metadata_summary.get().output.metadata, "faa")["path"]
+#         mag_ffn = get_genome_path(mag, checkpoints.mag_metadata_summary.get().output.metadata, "ffn")["path"]
+#         # resume from here
+
+
+
+# rule align_bac120_nucleotide_macse:
+#     input:
+#         input_seq = "results/11_phylogenies/nucleotide_trees/{genus}/sequences_aligned/{marker}.fa"
+#     output:
+#         out_nuc = "results/11_phylogenies/nucleotide_trees/{genus}/sequences_aligned/nuc/{marker}.fa",
+#         out_aa = "results/11_phylogenies/nucleotide_trees/{genus}/sequences_aligned/aa/{marker}.fa"
+#     params:
+#         mailto="aiswarya.prasad@unil.ch",
+#         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+#         account="pengel_spirit",
+#         runtime_s=convertToSec("3-00:00:00") # 25h worked for ~118/120 markers
+#     resources:
+#         mem_mb = convertToMb("100G")
+#     threads: 8
+#     log: "results/11_phylogenies/nucleotide_trees/{genus}/sequences_aligned/{marker}_aligned.log"
+#     benchmark: "results/11_phylogenies/nucleotide_trees/{genus}/sequences_aligned/{marker}_aligned.benchmark"
+#     conda: "../config/envs/macse-env.yaml"
+#     shell:
+#         """
+#         macse -prog alignSequences -seq {input.input_seq} \
+#               -out_NT {output.out_nuc} -out_AA {output.out_aa} \
+#               -gc_def 11 
+#         """
+
+# rule replace_unknown_characters:
+#     input:
+#         input_seq = "results/11_phylogenies/nucleotide_trees/{genus}/sequences_aligned/nuc/{marker}.fa"
+#     output:
+#         output_seq = "results/11_phylogenies/nucleotide_trees/{genus}/sequences_aligned/nuc/clean/{marker}_clean.fa"
+#     params:
+#         mailto="aiswarya.prasad@unil.ch",
+#         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+#         account="pengel_spirit",
+#         runtime_s=convertToSec("0-00:02:00")
+#     resources:
+#         mem_mb = convertToMb("4G")
+#     threads: 8
+#     log: "results/11_phylogenies/nucleotide_trees/{genus}/sequences_aligned/logs/{marker}_clean.log"
+#     benchmark: "results/11_phylogenies/nucleotide_trees/{genus}/sequences_aligned/logs/{marker}_clean.benchmark"
+#     conda: "../config/envs/phylogenies-env.yaml"
+#     shell:
+#         """
+#         # since iqtree treats all the unknown characters the same way and complains about !
+#         cat {input.input_seq} | sed -e 's/!/N/g' > {output.output_seq}
+#         """
+
+def get_genus_markers(genus):
+    return [os.path.basename(x).split(".fa")[0] for x in glob.glob(f"results/11_phylogenies/nucleotide_trees/{genus}/sequences_aligned/nuc/clean/*.fa")]
+
+rule make_bac120_nucleotide_tree:
     input:
-        msa = "results/11_phylogenies/02_orthofinder_results/{genus}/Results_{genus}/MultipleSequenceAlignments/SpeciesTreeAlignment.fa"
+        input_seqs = lambda wildcards: [f"results/11_phylogenies/nucleotide_trees/{genus}/sequences_aligned/nuc/clean/{marker}_clean.fa" for marker in get_genus_markers(wildcards.genus)]
     output:
-        # tree = "results/11_phylogenies/03_iqtree_trees/{genus}/{genus}.treefile",
-        done = "results/11_phylogenies/03_iqtree_trees/{genus}.done"
+        marker_file = "results/11_phylogenies/nucleotide_trees/iqtree/{genus}/{genus}.done"
     params:
-        outdir = "results/11_phylogenies/03_iqtree_trees/{genus}",
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         account="pengel_spirit",
-        runtime_s=lambda wildcards: convertToSec("2-00:00:00"),
+        runtime_s=convertToSec("3-00:00:00")
     resources:
         mem_mb = convertToMb("150G")
-    threads: 4
-    log: "results/11_phylogenies/03_iqtree_trees/logs/{genus}_rerun_tree.log"
-    benchmark: "results/11_phylogenies/03_iqtree_trees/logs/{genus}_rerun_tree.benchmark"
+    threads: 8
+    log: "results/11_phylogenies/05_MAG_bac120_nucleotide_trees/MAGs_bac120_nuc/MAGs_bac120_nuc.log"
+    benchmark: "results/11_phylogenies/05_MAG_bac120_nucleotide_trees/MAGs_bac120_nuc/MAGs_bac120_nuc.benchmark"
     conda: "../config/envs/phylogenies-env.yaml"
     shell:
         """
-        mkdir -p {params.outdir}
-        iqtree -s {input.msa} -st AA -nt {threads} -bb 10000 -seed 1234 -m TEST -pre {params.outdir}/{wildcards.genus} 2>&1 | tee {log}
-        touch {output.done}
+        outdir=$(dirname {output.out_tree})
+        indir=$(dirname {input.input_seqs[0]})
+        iqtree -s ${{indir}} \
+            -nt {threads} \
+            -bb 10000 \
+            -seed 1234 \
+            -m MFP \
+            -pre ${{outdir}}/MAGs_bac120_nuc
         """
+
 
 # rule extract_bac120_nucleotide:
     # this is done by the script
@@ -335,16 +429,38 @@ rule align_bac120_nucleotide_macse:
               -gc_def 11 
         """
 
+rule replace_unknown_characters:
+    input:
+        input_seq = "results/11_phylogenies/05_MAG_bac120_nucleotide_trees/bac120_sequences_aligned/nuc/{marker}.fa"
+    output:
+        output_seq = "results/11_phylogenies/05_MAG_bac120_nucleotide_trees/bac120_sequences_aligned/nuc/clean/{marker}_clean.fa"
+    params:
+        mailto="aiswarya.prasad@unil.ch",
+        mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
+        account="pengel_spirit",
+        runtime_s=convertToSec("0-00:02:00")
+    resources:
+        mem_mb = convertToMb("4G")
+    threads: 8
+    log: "results/11_phylogenies/05_MAG_bac120_nucleotide_trees/logs/{marker}_clean.log"
+    benchmark: "results/11_phylogenies/05_MAG_bac120_nucleotide_trees/logs/{marker}_clean.benchmark"
+    conda: "../config/envs/phylogenies-env.yaml"
+    shell:
+        """
+        # since iqtree treats all the unknown characters the same way and complains about !
+        cat {input.input_seq} | sed -e 's/!/N/g' > {output.output_seq}
+        """
+
 rule make_bac120_nucleotide_tree:
     input:
-        input_seqs = expand("results/11_phylogenies/05_MAG_bac120_nucleotide_trees/bac120_sequences_aligned/nuc/{marker}.fa", marker=bac120_markers)
+        input_seqs = expand("results/11_phylogenies/05_MAG_bac120_nucleotide_trees/bac120_sequences_aligned/nuc/clean/{marker}_clean.fa", marker=bac120_markers)
     output:
         out_tree = "results/11_phylogenies/05_MAG_bac120_nucleotide_trees/MAGs_bac120_nuc/MAGs_bac120_nuc.treefile"
     params:
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         account="pengel_spirit",
-        runtime_s=convertToSec("2-00:00:00")
+        runtime_s=convertToSec("3-00:00:00")
     resources:
         mem_mb = convertToMb("150G")
     threads: 8

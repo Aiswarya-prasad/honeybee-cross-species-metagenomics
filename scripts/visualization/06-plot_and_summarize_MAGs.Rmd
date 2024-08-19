@@ -393,11 +393,17 @@ ggplot() +
 # Plot heatmaps
 
 ```{r ani_heatmaps}
+handmade_species_names <- read.csv("config/Species_MAG_Cluster-names.txt", header = T, sep = "\t") %>% 
+                            mutate(cluster_name_instrain = paste0(MAG_species_Name_in_analysis, "-", RepMAG))
 all_genera <- vis_magOTUs_df %>%
   pull(Genus) %>% unique()
-system("mkdir -p results/figures/06-ANI_heatmaps")
+system("mkdir -p results/figures/06-ANI_heatmaps_noclust")
+my_col_fun <- colorRamp2(c(0.7, 0.93, 0.94, 0.95, 1), rev(c("#08306b", "#4292c6", "#9ecae1", "#c6dbef", "#f7fbff")))
 for (genus_iter in all_genera) {
-  pdf(paste0("results/figures/06-ANI_heatmaps/06-", genus_iter, "_ANI_heatmap.pdf"), width = 15, height = 25)
+  if (genus_iter == "g__") {
+    next
+  }
+  pdf(paste0("results/figures/06-ANI_heatmaps_noclust/06-", genus_iter, "_ANI_heatmap.pdf"), width = 15, height = 25)
   draw(pretty_ani_heatmaps(get_ani_matrix(genera_list = c(genus_iter)), col_fun = my_col_fun, row_split = "handmade"),
       merge_legend = T)
   dev.off()
@@ -406,10 +412,33 @@ for (genus_iter in all_genera) {
   #     merge_legend = T)
   # dev.off()
 }
+genus_iter <- "g__Gilliamella"
+pdf(paste0("results/figures/06-ANI_heatmaps_noclust/06-", genus_iter, "_ANI_heatmap.pdf"), width = 30, height = 35)
+  draw(pretty_ani_heatmaps(get_ani_matrix(genera_list = c(genus_iter)), col_fun = my_col_fun, row_split = "handmade"),
+      merge_legend = T)
+dev.off()
+genus_iter <- "g__Bombilactobacillus"
+pdf(paste0("results/figures/06-ANI_heatmaps_noclust/06-", genus_iter, "_ANI_heatmap.pdf"), width = 30, height = 35)
+  draw(pretty_ani_heatmaps(get_ani_matrix(genera_list = c(genus_iter)), col_fun = my_col_fun, row_split = "handmade"),
+      merge_legend = T)
+dev.off()
+genus_iter <- "g__Bifidobacterium"
+pdf(paste0("results/figures/06-ANI_heatmaps_noclust/06-", genus_iter, "_ANI_heatmap.pdf"), width = 30, height = 35)
+  draw(pretty_ani_heatmaps(get_ani_matrix(genera_list = c(genus_iter)), col_fun = my_col_fun, row_split = "handmade"),
+      merge_legend = T)
+dev.off()
+genus_iter <- "g__Lactobacillus"
+pdf(paste0("results/figures/06-ANI_heatmaps_noclust/06-", genus_iter, "_ANI_heatmap.pdf"), width = 40, height = 35)
+  draw(pretty_ani_heatmaps(get_ani_matrix(genera_list = c(genus_iter)), col_fun = my_col_fun, row_split = "handmade"),
+      merge_legend = T)
+dev.off()
 for (genus_iter in all_genera) {
   matrix_ret <- get_ani_matrix(genera_list = c(genus_iter))
   write.csv(matrix_ret, paste0("results/figures/06-ANI_heatmaps/06-", genus_iter, "_ANI_heatmap_values.csv"), quote = F, row.names = T)
 }
+genus_iter = "g__Gilliamella"
+draw(pretty_ani_heatmaps(get_ani_matrix(genera_list = c(genus_iter)), col_fun = my_col_fun, row_split = "handmade"),
+      merge_legend = T)
 
 ```
 
@@ -420,6 +449,7 @@ for (genus_iter in all_genera) {
 #                                               merge_legend = TRUE)
 # viridis(15, option = "A")
 my_col_fun <- colorRamp2(c(0.7, 0.93, 0.94, 0.95, 1), rev(c("#000001", "#451077", "#CD4071", "#FD9567", "#FDDC9E")))
+
 draw(pretty_ani_heatmaps(get_ani_matrix(genera_list = c("g__Bombilactobacillus")), col_fun = my_col_fun, row_split = "handmade"),
                                               merge_legend = T)
 draw(pretty_ani_heatmaps(get_ani_matrix(genera_list = c("g__Bifidobacterium")), col_fun = my_col_fun, row_split = "handmade"),
@@ -483,6 +513,169 @@ df_ani_plot %>%
   filter(ani > 0.95) %>%
     filter(type == "Different") %>%
       write.csv("same_magotu_low_ani.csv", quote = F)
+
+```
+
+# MAG by host / ref vs non-ref for Fig 1
+
+```{r}
+vis_magOTUs_df_all
+vis_magOTUs_df
+# use this
+
+vis_magOTUs_df %>%
+  filter(magOTU %in% c("22_1", "22_2", "36_2")) %>% view
+
+vis_magOTUs_df %>%
+  left_join(handmade_species_names %>% select(cluster, MAG_species_name_final_nospace), by = c("magOTU" = "cluster")) %>%
+  # filter(!grepl(" ", MAG_species_name_final_nospace)) %>%
+  # filter(!grepl("SGB", MAG_species_name_final_nospace)) %>%
+  pull(magOTU) %>% unique() %>% length
+
+vis_magOTUs_df %>%
+  left_join(handmade_species_names %>% select(cluster, MAG_species_name_final_nospace), by = c("magOTU" = "cluster")) %>%
+  filter(grepl("SGB", MAG_species_name_final_nospace)) %>%
+  pull(magOTU) %>% unique() %>% length
+# 
+vis_magOTUs_df %>%
+  left_join(handmade_species_names %>% select(cluster, MAG_species_name_final_nospace), by = c("magOTU" = "cluster")) %>%
+  filter(Genus %in% c("g__Lactobacillus", "g__Bombilactobacillus", "g__Bifidobacterium", "g__Gilliamella", "g__Snodgrassella", "g__Frischella", "g__Bartonella_A", "g__Apibacter")) %>%
+  # filter(grepl("SGB", MAG_species_name_final_nospace)) %>%
+  pull(magOTU) %>% unique() %>% length
+
+vis_magOTUs_df %>%
+  left_join(handmade_species_names %>% select(cluster, MAG_species_name_final_nospace), by = c("magOTU" = "cluster")) %>%
+  filter(Genus %in% c("g__Lactobacillus", "g__Bombilactobacillus", "g__Bifidobacterium", "g__Gilliamella", "g__Snodgrassella", "g__Frischella", "g__Bartonella_A", "g__Apibacter")) %>%
+  pull(magOTU) %>% unique() %>% length
+
+vis_magOTUs_df %>%
+  left_join(handmade_species_names %>% select(cluster, MAG_species_name_final_nospace), by = c("magOTU" = "cluster")) %>%
+  filter(Genus %in% c("g__Dysgonomonas", "g__Saezia", "g__Pectinatus", "g__Entomomonas", "g__Pluralibacter", "g__WRHT01", "g__CALYQQ01", "g__CALYQJ01")) %>%
+  # filter(grepl("SGB", MAG_species_name_final_nospace)) %>%
+  pull(magOTU) %>% unique() %>% length
+
+# Whether based on GTDB this species has an Isolate ref, only as MAG in GTDB or None, meaning no spec name in GTDB, this_DB seen as a sep cluster in this database of our MAGs
+species_info_from_gtdb = list(
+  "s__" = "None",
+  "s__Acinetobacter pollinis" = "Isolate",
+  "s__Apibacter sp002964915" = "Isolate", # from China: Sichuan
+  "s__Apibacter adventoris" = "Isolate",
+  "s__Apilactobacillus waqarii" = "Isolate",
+  "s__Apilactobacillus bombintestini" = "Isolate",
+  "s__Apilactobacillus apinorum" = "Isolate",
+  "s__Apilactobacillus zhangqiuensis" = "Isolate",
+  "s__Bartonella_A sp945277285" = "MAG",
+  "s__Bartonella_A apis" = "MAG", # from cerana metagenome (https://www.ncbi.nlm.nih.gov/search/all/?term=SRR11267074)
+  "s__Bartonella_A sp016102285" = "Isolate",           
+  "s__Bartonella_A sp945285915" = "MAG",
+  "s__Bartonella_A sp016100455" = "Isolate",     
+  "s__Bifidobacterium asteroides_I" = "Isolate", 
+  "s__Bifidobacterium sp945269915" = "MAG",
+  "s__Bifidobacterium polysaccharolyticum" = "Isolate", # this is 1.4.1
+  "s__Bifidobacterium asteroides_A" = "Isolate", # (asteroides_A with the _A) equivalent to Bifidobacterium choladohabitans & 1.2
+  "s__Bifidobacterium apousia" = "Isolate", # this is 1.1
+  "s__Bifidobacterium indicum" = "Isolate", # this equivalent to coryneforme sometimes
+  "s__Bifidobacterium sp000499285" = "Isolate",
+  "s__Bifidobacterium choladohabitans" = "Isolate", # this is 1.2
+  "s__Bifidobacterium mizhiense" = "Isolate", 
+  "s__Bombilactobacillus mellifer" = "Isolate",
+  "s__Bombilactobacillus mellis" = "Isolate",
+  "s__CALYQJ01 sp945285405" = "MAG",
+  "s__CALYQJ01 sp945273735" = "MAG",
+  "s__Commensalibacter sp945266285" = "MAG",
+  "s__Commensalibacter sp003202795" = "Isolate", # lots of ESL and other strains (ESL 379,366,284,392,284 among others)
+  "s__Corynebacterium sp022712275" = "MAG",
+  "s__Corynebacterium provencense" = "Isolate",
+  "s__Dysgonomonas sp945273835" = "MAG",
+  "s__Dysgonomonas sp945292135" = "MAG",
+  "s__Enterobacter hormaechei_A" = "Isolate",
+  "s__Enterobacter bugandensis" = "Isolate",
+  "s__Enterobacter roggenkampii" = "Isolate",
+  "s__Enterobacter vonholyi" = "Isolate",
+  "s__Entomomonas sp945283395" = "MAG",
+  "s__Escherichia coli" = "Isolate",
+  "s__Frischella japonica" = "Isolate", 
+  "s__Frischella perrara" = "Isolate", 
+  "s__Gilliamella sp019469205" = "Isolate", # ESL0405
+  "s__Gilliamella apicola_E" = "Isolate", # ESL0443
+  "s__Gilliamella apicola_F" = "Isolate", # wkB171
+  "s__Gilliamella sp945291235" = "MAG",
+  "s__Gilliamella sp019469185" = "Isolate", # ESL0441
+  "s__Gilliamella apicola_J" = "Isolate", # wkB112
+  "s__Gilliamella apicola_L" = "Isolate", # wkB113
+  "s__Gilliamella apicola_K" = "Isolate", # wkB108
+  "s__Gilliamella apicola_N" = "Isolate",
+  "s__Gilliamella apicola" = "Isolate", # wkB1, DSM 104097, A9
+  "s__Gilliamella apicola_Q" = "Isolate", # ESL0182, ESL0177
+  "s__Gilliamella apis" = "Isolate", # ESL0169
+  "s__Gilliamella apis_A" = "Isolate", # ESL0172
+  "s__Gilliamella apicola_I" = "Isolate", # wkB308
+  "s__Gilliamella sp945271295" = "MAG",
+  "s__Gilliamella sp945276085" = "MAG",
+  "s__Klebsiella variicola" = "Isolate",
+  "s__Klebsiella pneumoniae" = "Isolate",
+  "s__Kosakonia oryzae" = "Isolate",
+  "s__Lactobacillus panisapium" = "Isolate",           
+  "s__Lactobacillus sp945290125" = "MAG",
+  "s__Lactobacillus apis" = "Isolate",
+  "s__Lactobacillus melliventris" = "Isolate",
+  "s__Lactobacillus huangpiensis" = "Isolate",
+  "s__Lactobacillus kimbladii_A" = "Isolate", # Hma2
+  "s__Lactobacillus helsingborgensis" = "Isolate",
+  "s__Lactobacillus sp016100975" = "Isolate",
+  "s__Lactobacillus kullabergensis" = "Isolate",
+  "s__Lactobacillus laiwuensis" = "Isolate",
+  "s__Pantoea vagans" = "Isolate",
+  "s__Pantoea dispersa" = "Isolate",
+  "s__Snodgrassella sp945267035" = "MAG",
+  "s__Snodgrassella alvi_E" = "Isolate", # wkB298        
+  "s__Snodgrassella alvi" = "Isolate", # wkB2, ESL: 304, 324, 323
+  "s__Snodgrassella alvi_G" = "MAG", # - this was a SAG wkB3
+  "s__Spiroplasma melliferum" = "Isolate",
+  "s__Hafnia paralvei" = "Isolate",                    
+  "s__Rosenbergiella epipactidis" = "Isolate",
+  "s__Fructobacillus pseudoficulneus" = "Isolate",     
+  "s__Melissococcus plutonius" = "Isolate"
+)
+
+150-length(species_info_from_gtdb[which(species_info_from_gtdb == "Isolate")])
+
+get_genus_from_handmade_name <- function(name) {
+  return(strsplit(name, " ")[[1]][1])
+}
+# # to get number of mags per host
+# vis_magOTUs_df %>% ungroup() %>% select(Host) %>% table
+# plot_mag_info %>% ungroup() %>% select(Host) %>% table
+# vis_magOTUs_df %>% pull(Species)  %>% unique()
+plot_mag_info <- vis_magOTUs_df %>%
+  select(ID, Host, Family, Species, magOTU) %>%
+  mutate(Species_gtdb = Species) %>%
+  left_join(handmade_species_names %>% select(cluster, MAG_species_name_final), by = c("magOTU" = "cluster")) %>%
+  mutate(Species = MAG_species_name_final) %>%
+  select(-MAG_species_name_final) %>%
+  mutate(Genus = Vectorize(get_genus_from_handmade_name)(Species)) %>%
+    mutate(type = species_info_from_gtdb[Species_gtdb]) %>%
+    mutate(type = as.character(type)) %>%
+    mutate(type = ifelse(grepl("SGB", Species), "This_DB", type)) #%>%
+    # mutate(type = as.factor(type))
+
+ggplot(plot_mag_info %>% filter(type != "None")) +
+  geom_bar(aes(y = factor(Host, rev(host_order)), fill = factor(type, c("This_DB", "MAG", "Isolate")))) +
+  # rename levels of type for legend
+  scale_fill_manual(values = c("This_DB" = "#fdae61", "Isolate" = "#3288bd", "MAG" = "#fee08b"),
+                    labels = c("This_DB" = "MAG (This study)", "Isolate" = "GTDB+Isolate", "MAG" = "GTDB+MAG/SAG")) +
+  labs(y = "Host", x = "Number of MAGs", fill = "Type") +
+  make_theme(setFill = F, guide_nrow = 1)
+ggsave("results/figures/06-mag_by_host_ref_vs_nonref.pdf")
+
+ggplot(plot_mag_info %>% filter(type != "None")) +
+  geom_bar(aes(y = factor(Host, rev(host_order)), fill = factor(type, c("This_DB", "MAG", "Isolate")))) +
+  # rename levels of type for legend
+  scale_fill_manual(values = c("This_DB" = "#000000", "Isolate" = "#bbbbbb", "MAG" = "#666666"),
+                    labels = c("This_DB" = "MAG (This study)", "Isolate" = "GTDB+Isolate", "MAG" = "GTDB+MAG/SAG")) +
+  labs(y = "Host", x = "Number of MAGs", fill = "Type") +
+  make_theme(setFill = F, guide_nrow = 1)
+ggsave("results/figures/06-mag_by_host_ref_vs_nonref_monochrome.pdf")
 
 ```
 
@@ -810,3 +1003,20 @@ Coverage is not a good measure - next time, edit this and use number of reads in
 #             guides(color = "none", alpha = "none")
 #             ggsave("results/figures/06-mags_prev_vs_abd_by_genus_host.pdf")
 ```
+
+```{r}
+vis_magOTUs_df %>%
+  select(magOTU) %>%
+  unique() %>% nrow()
+
+vis_magOTUs_df %>%
+  mutate(Num_mags = n()) %>%
+  ungroup() %>%
+  filter(Num_mags > 1) %>%
+  filter(Genus != "f__") %>%
+  select(magOTU) %>%
+  unique() %>% nrow()
+
+
+```
+

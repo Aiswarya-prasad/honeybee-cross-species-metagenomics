@@ -16,27 +16,30 @@ from collections import Counter
 from itertools import combinations
 from pprint import pprint
 from Bio import SeqIO
-import random
+import random as r
+from itertools import permutations, product, chain
+from scipy.spatial.distance import pdist, squareform
+# from sklearn.decomposition import PCA
 # from Bio.KEGG import REST
 # from Bio.KEGG.KGML import KGML_parser
 # os.chdir('/work/FAC/FBM/DMF/pengel/spirit/aprasad/BACKUP_current/20230313_apis_species_comparison')
-host_species = ['Apis mellifera', 'Apis cerana',
-                'Apis dorsata', 'Apis florea', 'Apis andreniformis']
 
-def host_of_sample(sample_name):
-    if sample_name:
-        if sample_name.startswith('M') or sample_name.startswith('Dr') or sample_name.startswith('Gr') or sample_name.startswith('Am'):
-            return 'Apis mellifera'
-        if sample_name.startswith('C') or sample_name.startswith('Ac'):
-            return 'Apis cerana'
-        if sample_name.startswith('D'):
-            return 'Apis dorsata'
-        if sample_name.startswith('F'):
-            return 'Apis florea'
-        if sample_name.startswith('A'):
-            return 'Apis andreniformis'
+'''
+The goal of this script is to summarize the gene content of the samples
+starting from collecting detected genes and their annotations and then
+making a matrix of samples as rows and genes as columns with the values
+and other data about the genes that can then be used by the script 11_gene_content.R
+and others for further analysis and visualization
+There is also a section that adds extra annotation to the certain output files coming
+from the scripts 11_gene_content.R (masslin2 and the kruskal test randomforest analyses)
+'''
+# 1. Collect the detected genes and their annotations
+
+# 1a. Collect the detected genes from the bowtie2 output and create a pickle file containing the detected genes
 
 samples = [x.split('/')[-1].split('_gene_coverage')[0] for x in glob.glob('results/08_gene_content/01_profiling_bowtie2/*_gene_coverage.txt')]
+'''
+os.makedirs('results/figures/08-summarize_functions/genes_detected', exist_ok=True)
 genes_detected = {sample: set() for sample in samples}
 for i, sample in enumerate(samples):
         # get a list of genes that are detected in each sample
@@ -62,86 +65,18 @@ for i, sample in enumerate(samples):
     genes_df = pd.read_csv(f'results/08_gene_content/01_profiling_bowtie2/{sample}_gene_coverage.txt', sep = '\t', header = None)
     genes_df.columns = ['scaffold', 'start', 'end', 'id', 'num_reads', 'num_bases', 'length', 'cov_fraction']
     genes_df['gene'] = [f'{sample}_']*len(genes_df['scaffold']) + genes_df['scaffold'].apply(lambda x: str(x)) + ['_']*len(genes_df['id']) + genes_df['id'].apply(lambda x: x.split('_')[1])
+    genes_df.to_csv(f'results/figures/08-summarize_functions/genes_detected/{sample}_df_detected_genes_info.csv')
     # only consider a gene detected if there are >5 reads (1000/150) and at least 90% of the bases in the gene are covered
     genes_detected[sample] = set(genes_df.loc[(genes_df['num_reads'] > 5) & (genes_df['cov_fraction'] > 0.90)]['gene'].values)
-
-genes_per_sample = {}
-for sample in samples:
-    genes_per_sample[sample] = len(genes_detected[sample])
-with open('results/figures/08-summarize_functions/genes_per_sample.tsv', 'w') as out_fh:
-    out_fh.write('sample\tgenes\n')
-    for sample in genes_per_sample:
-        out_fh.write(f'{sample}\t{genes_per_sample[sample]}\n')
-
-# now number of clusters per sample
+pickle.dump(genes_detected, open('results/figures/08-summarize_functions/genes_detected.pkl', 'wb'))
 '''
-define a class to read and handle clusters. Each cluster represents a list of genes and is represented
-'''
+genes_detected = pickle.load(open('results/figures/08-summarize_functions/genes_detected.pkl', 'rb'))
 
-class cdhit_cluster:
-    def __init__(self, name):
-        self.name = name #cluster name
-        self.genes = [] # list of genes in the cluster
-        self.lengths = {} # list of lengths of the genes in the cluster
-        self.identity = {} # list of perc identity to rep gene
-        self.strandedness = {} # strandedness wrt rep
-        self.rep_gene = '' # representative gene for the cluster
-    
-    def add_info(self, gene_to_add, length, is_rep, strand='+', perc=100):
-        self.genes.append(gene_to_add)
-        self.lengths[gene_to_add] = length
-        self.identity[gene_to_add] = perc
-        self.strandedness[gene_to_add] = strand
-        if is_rep:
-            self.rep_gene = gene_to_add
-    
-    def __repr__(self):
-        return f'Cluster--{self.name}:\n  rep gene:{self.rep_gene}\n    genes: {self.genes}\n    lengths: {self.lengths}\n    identity: {self.identity}'
-
-    def __str__(self):
-        return f'Cluster--{self.name}:\n  rep gene:{self.rep_gene}\n    genes: {self.genes}\n    lengths: {self.lengths}\n    identity: {self.identity}'
-
-clusters = pd.read_pickle('results/figures/clusters_objects_collection.pkl')
-# for each cluster read the names of genes in cluster 
-# if any of them are among the genes detected in the sample,
-
-# add the cluster to the set of clusters detected in that sample
-# clusters_per_sample = {sample: set() for sample in samples}
-# for i, sample in enumerate(samples):
-#     print(f'working on {sample} {i}/{len(samples)}', end = '\r')
-#     for cluster in clusters:
-#         for gene in clusters[cluster].genes:
-#             if gene in genes_detected[sample]:
-#                 clusters_per_sample[sample].add(cluster)
-#                 break
-# pickle.dump(clusters_per_sample, open('results/figures/08-summarize_functions/clusters_per_sample.pkl', 'wb'))
-
-clusters_per_sample = pd.read_pickle('results/figures/08-summarize_functions/clusters_per_sample.pkl')
-
-with open('results/figures/08-summarize_functions/clusters_per_sample.tsv', 'w') as out_fh:
-    out_fh.write('sample\tclusters\n')
-    for sample in clusters_per_sample:
-        out_fh.write(f'{sample}\t{len(clusters_per_sample[sample])}\n')
-
-
-with open('results/figures/08-summarize_functions/cluster_cum_curve.tsv', 'w+') as out_fh:
-    out_fh.write(f'host\titeration\tsize\tgenes\n')
-    for i, host in enumerate(host_species):
-        print(f'working on {host} {i}/5 ')
-        samples_host = [x for x in samples if host_of_sample(x) == host and not x.startswith('Am') and not x.startswith('Dr') and not x.startswith('Gr') and not x.startswith('Ac')]
-        for iteration in range(10):
-            for j, sample_size in enumerate([x for x in range(len(samples_host)) if x > 0]):
-                print(f'working om iteration {iteration}/11 and sample size {j}/{len(samples_host)}', end = '\r')
-                cum_clusters = 0
-                samples_iter = random.sample(samples_host, sample_size)
-                clusters_detected_iter = set()
-                for sample in samples_iter:
-                    clusters_detected_iter.update(clusters_per_sample[sample])
-                cum_clusters = len(clusters_detected_iter)
-                n = out_fh.write(f'{host}\t{iteration}\t{sample_size}\t{cum_clusters}\n')
-
+# 1b. Collect kegg, pfam and cazy annotations of all genes from DRAM output
+        # at results/08_gene_content/02_DRAM_annotations/{sample}/annotations.tsv
+samples = [x.split('/')[-2] for x in glob.glob('results/08_gene_content/02_DRAM_annotations/*/annotations.tsv')]
 # get functional information about each gene
-rank_dict = {}
+rank_dict = {}  # referred to using ko_ind
 kegg_dict = {}
 dram_cazy_dict = {}
 pfam_dict = {}
@@ -185,290 +120,14 @@ for i, sample in enumerate(samples):
                 pfam = line.split('\t')[pfam_ind]
                 pfam_dict[gene] = pfam
 
-# prepare the disctionary to get kegg ortholog information
-current_a = ''
-current_b = ''
-current_c = ''
-kegg_info_dict = {}
-with open('data/KEGG_info/ko00001.keg', 'r') as f:
-    for line in f:
-        if line.startswith('#') or line.startswith('+') or line.startswith('!'):
-            continue
-        first_B = True
-        if line.startswith('A'):
-            current_a = ' '.join(line.strip().split(' ')[1:])
-            print(current_a)
-            first_B = True
-        # B for some reason has a B followed by an empty line and then the next line is a B with the info
-        if line.startswith('B'):
-            if line == 'B\n':
-                continue
-            line = line.strip()
-            current_b = ' '.join(line.split('B  ')[1].split(' ')[1:])
-        if line.startswith('C'):
-            line = line.strip()
-            current_c = ' '.join(line.split('C    ')[1].split(' ')[1:])
-            # current_c_num = current_c.split(' [PATH:')[0]
-        if line.startswith('D'):
-            line = line.strip()
-            ko = line.split('D      ')[1].split(' ')[0]
-            kegg_info_dict[ko] = {'A': current_a, 'B': current_b, 'C': current_c}
+# 1c. Collect cazy annotations from Cayman output
 
-with open('results/figures/08-summarize_functions/kegg_info_dict.txt', 'w+') as f:
-    header = 'ko\tA\tB\tC\n'
-    f.write(header)
-    for ko in kegg_info_dict.keys():
-        line = f'{ko}\t{kegg_info_dict[ko]["A"]}\t{kegg_info_dict[ko]["B"]}\t{kegg_info_dict[ko]["C"]}\n'
-        f.write(line)
+with open('data/cayman_gene_db/20230313_gene_catalog_db.tsv', 'r') as f:
+    cayman_info_dict = {line.split()[0]: line.split()[3] for line in f}
 
-# count the number of kos and under each category for each sample
-kos_detected = {sample: {} for sample in samples}
-ko_count = {sample: {'Total': 0, 'Annotated': 0} for sample in samples}
-for i, sample in enumerate(samples):
-    print(f'working on {sample} {i}/{len(samples)}')
-    for gene in genes_detected[sample]:
-        # kos_detected[sample]['NA'] = set()
-        kos_detected[sample]['NA'] = 0
-        ko_gene = kegg_dict[gene]
-        ko_count[sample]['Total'] += 1
-        if ko_gene == '':
-            # kos_detected[sample]['NA'].add(gene)
-            kos_detected[sample]['NA'] += 1
-        else:
-            ko_count[sample]['Annotated'] += 1
-            if ko_gene in kos_detected[sample].keys():
-                kos_detected[sample][ko_gene] += 1
-            else:
-                kos_detected[sample][ko_gene] = 1
-                # kos_detected[sample][ko_gene] = set([gene])
-
-# write an output to summarize Total and annotated genes from ko_count
-
-with open('results/figures/08-summarize_functions/kos_per_sample.tsv', 'w') as out_fh:
-    out_fh.write('sample\tkos\tunannotated\n')
-    for sample in clusters_per_sample:
-        ann = str(ko_count[sample]['Annotated'])
-        unann = str(ko_count[sample]['Total'] - ko_count[sample]['Annotated'])
-        out_fh.write(f'{sample}\t{ann}\t{unann}\n')
-
-
-# summarize number of kos found per sample
-with open('results/figures/08-summarize_functions/kos_per_sample.tsv', 'w') as out_fh:
-    out_fh.write('sample\tkos\n')
-    for sample in kos_detected:
-        out_fh.write(f'{sample}\t{len(kos_detected[sample].keys())}\n')
-
-# cum curve of #ko and #category
-num_iters = 20
-with open('results/figures/08-summarize_functions/KO_cum_curve.tsv', 'w+') as out_fh:
-    out_fh.write(f'host\titeration\tsize\tkos\n')
-    for i, host in enumerate(host_species):
-        print(f'working on {host} {i}/5 ')
-        samples_host = [x for x in samples if host_of_sample(x) == host and not x.startswith('Am') and not x.startswith('Dr') and not x.startswith('Gr') and not x.startswith('Ac')]
-        for iteration in range(num_iters):
-            for j, sample_size in enumerate([x for x in range(len(samples_host)) if x > 0]):
-                print(f'working om iteration {iteration}/{num_iters} and sample size {j}/{len(samples_host)}', end = '\r')
-                cum_kos = 0
-                samples_iter = random.sample(samples_host, sample_size)
-                kos_detected_iter = set()
-                for sample in samples_iter:
-                    kos_detected_iter.update([x for x in kos_detected[sample].keys()])
-                cum_kos = len(kos_detected_iter)
-                n = out_fh.write(f'{host}\t{iteration}\t{sample_size}\t{cum_kos}\n')
-
-# beta div compare ko - sample vs ko matrix
-
-# pick up enriched kos and / categories
-
-##############################################################################################
-
-# count the number of kos and under each category for each sample
-kos_A_detected = {sample: {} for sample in samples}
-for i, sample in enumerate(samples):
-    print(f'working on {sample} {i}/{len(samples)}')
-    for gene in genes_detected[sample]:
-        ko_cat = 'NA'
-        # kos_detected[sample]['NA'] = set()
-        kos_A_detected[sample]['NA'] = 0
-        ko_gene = kegg_dict[gene]
-        if ko_gene == '':
-            kos_A_detected[sample]['NA'] += 1
-        else:
-            ko_cat = kegg_info_dict[ko_gene]['A']
-            if 'Unclassified: ' in ko_cat:
-                ko_cat = ko_cat.split('Unclassified: ')[1]
-        if ko_cat in kos_A_detected[sample].keys():
-            kos_A_detected[sample][ko_cat] += 1
-        else:
-            kos_A_detected[sample][ko_cat] = 1
-            # kos_A_detected[sample][ko_gene] = set([gene])
-
-# summarize number of kos found per sample
-with open('results/figures/08-summarize_functions/kos_A_per_sample.tsv', 'w') as out_fh:
-    out_fh.write('sample\tkos\tcount\n')
-    for sample in kos_A_detected:
-        for cat in kos_A_detected[sample]:
-            out_fh.write(f'{sample}\t{cat}\t{kos_A_detected[sample][cat]}\n')
-
-##############################################################################################
-
-# count the number of kos and under each category for each sample
-kos_B_detected = {sample: {} for sample in samples}
-ko_B_count = {sample: {'Total': 0, 'Annotated': 0} for sample in samples}
-for i, sample in enumerate(samples):
-    print(f'working on {sample} {i}/{len(samples)}')
-    for gene in genes_detected[sample]:
-        ko_cat = 'NA'
-        # kos_detected[sample]['NA'] = set()
-        kos_B_detected[sample]['NA'] = 0
-        ko_gene = kegg_dict[gene]
-        if ko_gene == '':
-            kos_B_detected[sample]['NA'] += 1
-        else:
-            ko_cat = kegg_info_dict[ko_gene]['B']
-            if 'Unclassified: ' in ko_cat:
-                ko_cat = ko_cat.split('Unclassified: ')[1]
-            ko_B_count[sample]['Total'] += 1
-            ko_B_count[sample]['Annotated'] += 1
-        if ko_cat in kos_B_detected[sample].keys():
-            kos_B_detected[sample][ko_cat] += 1
-        else:
-            kos_B_detected[sample][ko_cat] = 1
-            # kos_B_detected[sample][ko_gene] = set([gene])
-
-# summarize number of kos found per sample
-with open('results/figures/08-summarize_functions/kos_B_per_sample.tsv', 'w') as out_fh:
-    out_fh.write('sample\tkos\tcount\n')
-    for sample in kos_B_detected:
-        for cat in kos_B_detected[sample]:
-            out_fh.write(f'{sample}\t{cat}\t{kos_B_detected[sample][cat]}\n')
-
-# cum curve of #ko and #category
-num_iters = 20
-with open('results/figures/08-summarize_functions/KO_cum_curve.tsv', 'w+') as out_fh:
-    out_fh.write(f'host\titeration\tsize\tkos\n')
-    for i, host in enumerate(host_species):
-        print(f'working on {host} {i}/5 ')
-        samples_host = [x for x in samples if host_of_sample(x) == host and not x.startswith('Am') and not x.startswith('Dr') and not x.startswith('Gr') and not x.startswith('Ac')]
-        for iteration in range(num_iters):
-            for j, sample_size in enumerate([x for x in range(len(samples_host)) if x > 0]):
-                print(f'working om iteration {iteration}/{num_iters} and sample size {j}/{len(samples_host)}', end = '\r')
-                cum_kos = 0
-                samples_iter = random.sample(samples_host, sample_size)
-                kos_B_detected_iter = set()
-                for sample in samples_iter:
-                    kos_B_detected_iter.update([x for x in kos_B_detected[sample].keys()])
-                cum_kos = len(kos_B_detected_iter)
-                n = out_fh.write(f'{host}\t{iteration}\t{sample_size}\t{cum_kos}\n')
-
-
-##############################################################################################
-
-# count the number of kos and under each category for each sample
-kos_C_detected = {sample: {} for sample in samples}
-ko_C_count = {sample: {'Total': 0, 'Annotated': 0} for sample in samples}
-for i, sample in enumerate(samples):
-    print(f'working on {sample} {i}/{len(samples)}')
-    for gene in genes_detected[sample]:
-        ko_cat = 'NA'
-        # kos_detected[sample]['NA'] = set()
-        kos_C_detected[sample]['NA'] = 0
-        ko_gene = kegg_dict[gene]
-        if ko_gene == '':
-            kos_C_detected[sample]['NA'] += 1
-        else:
-            ko_cat = kegg_info_dict[ko_gene]['C']
-            if 'Unclassified: ' in ko_cat:
-                ko_cat = ko_cat.split('Unclassified: ')[1]
-            ko_C_count[sample]['Total'] += 1
-            ko_C_count[sample]['Annotated'] += 1
-        if ko_cat in kos_C_detected[sample].keys():
-            kos_C_detected[sample][ko_cat] += 1
-        else:
-            kos_C_detected[sample][ko_cat] = 1
-            # kos_C_detected[sample][ko_gene] = set([gene])
-
-# summarize number of kos found per sample
-with open('results/figures/08-summarize_functions/kos_C_per_sample.tsv', 'w') as out_fh:
-    out_fh.write('sample\tkos\tcount\n')
-    for sample in kos_C_detected:
-        for cat in kos_C_detected[sample]:
-            out_fh.write(f'{sample}\t{cat}\t{kos_C_detected[sample][cat]}\n')
-
-# cum curve of #ko and #category
-num_iters = 50
-with open('results/figures/08-summarize_functions/KO_cum_curve.tsv', 'w+') as out_fh:
-    out_fh.write(f'host\titeration\tsize\tkos\n')
-    for i, host in enumerate(host_species):
-        print(f'working on {host} {i}/5 ')
-        samples_host = [x for x in samples if host_of_sample(x) == host and not x.startswith('Am') and not x.startswith('Dr') and not x.startswith('Gr') and not x.startswith('Ac')]
-        for iteration in range(num_iters):
-            for j, sample_size in enumerate([x for x in range(len(samples_host)) if x > 0]):
-                print(f'working om iteration {iteration}/{num_iters} and sample size {j}/{len(samples_host)}', end = '\r')
-                cum_kos = 0
-                samples_iter = random.sample(samples_host, sample_size)
-                kos_C_detected_iter = set()
-                for sample in samples_iter:
-                    kos_C_detected_iter.update([x for x in kos_C_detected[sample].keys()])
-                cum_kos = len(kos_C_detected_iter)
-                n = out_fh.write(f'{host}\t{iteration}\t{sample_size}\t{cum_kos}\n')
-
-# beta div compare ko - sample vs ko matrix
-
-# pick up enriched kos and / categories
-
-# which taxa contributes?
-
-# is it core?
-
-# intermediate files in 'results/figures/08-summarize_functions'
-
-#### KEGG category level A
-# kegg_dict_A = {}
-# for gene in kegg_dict.keys():
-#     if kegg_dict[gene] == '':
-#         kegg_dict_A[gene] = ''
-#     else:
-#         kegg_dict_A[gene] = kegg_info_dict[kegg_dict[gene]]['A']
-
-################################################################################
-
-'''
-From this point on the goal is to make a table (per sample)
-to summarize all the genes detected, their differen annotations
-according to:
-    KO (ko) - sub categories, COGs (?)
-    ...
-    CAzy (cazyme-dram) - from DRAM
-    CAzy (cazyme) - from Cayman
-    MAG (mag) - if it is found in one
-    Species
-    Genus
-    Coreness
-And then we collect the information from these table and make
-summaries for further plots and then the tables themselves can
-also be analyzed
-'''
-
-def scaffold_from_geneid(geneid):
-    return '_'.join(geneid.split('_')[:-1])
-
-# get the mag info for the scaffold
-def get_mag_of_gene(gene):
-    if scaffold_from_geneid(gene) in binned_scaffolds:
-        return scaffold_mag_dict[scaffold_from_geneid(gene)]
-    else:
-        return 'unbinned'
-
-def get_gene_id_num(gene):
-    return gene.split('_')[-1]
-
-def og_gene_id(gene):
-    mag = get_mag_of_gene(gene)
-    if mag == 'unbinned':
-        return(None)
-    else:
-        return f'{mag}_{get_gene_id_num(gene)}'
+# 1d. Collect the MAGs that the genes are in from the MAGs collection 
+        # and info about their species and genus
+        # at results/09_MAGs_collection/all_scaffold_to_bin.tsv
 
 all_scaffolds_info = pd.read_csv('results/09_MAGs_collection/all_scaffold_to_bin.tsv', sep='\t')
 handmade_spec_names = pd.read_csv('results/figures/handmade_species_names.csv')
@@ -481,9 +140,10 @@ mag_species_dict = all_scaffolds_info.set_index('mag').to_dict()['MAG_species_na
 binned_scaffolds = set(all_scaffolds_info['scaffold'])
 scaffold_mag_dict = all_scaffolds_info.set_index('scaffold').to_dict()['mag']
 
-# We need to find out if the gene is in a MAG and whether the mag is in the OG analysis and then what the OG is
-# get the MAGs that are in the OG analysis
 phylo_metadata = pd.read_csv('results/11_phylogenies/phylo_genomes_metadata.tsv', sep='\t')
+
+# 1e. Collect the information about the genes from the OrthoFinder output
+        # at results/11_phylogenies/02_orthofinder_results/{group}/Results_{group}/Orthogroups/Orthogroups.txt
 
 gene_og_dict = {}
 for group in phylo_metadata['Phylogeny_group'].unique():
@@ -498,6 +158,9 @@ for group in phylo_metadata['Phylogeny_group'].unique():
             genes = line.split(' ')[1:]
             for gene in genes:
                 gene_og_dict[gene] = f'{group}--{og}'
+
+# 1f. Collect the information about the coreness of the OGs from the motupan output
+        # at results/08_gene_content/07_OG_coreness/{group}_motupan_output.tsv
 
 og_coreness = {}
 for group in phylo_metadata['Phylogeny_group'].unique():
@@ -518,16 +181,116 @@ for group in phylo_metadata['Phylogeny_group'].unique():
                     coreness = line.split('\t')[1]
                     og_coreness[f'{group}--{og}'] = coreness
 
-with open('data/cayman_gene_db/20230313_gene_catalog_db.tsv', 'r') as f:
-    cayman_info_dict = {line.split()[0]: line.split()[3] for line in f}
+# 1g. Collect the information about the clusters of the genes from the cd-hit output
+                    
+# 1g (1) Define the cluster class and read the cd-hit output pickle file
+
+class cdhit_cluster:
+    def __init__(self, name):
+        self.name = name #cluster name
+        self.genes = [] # list of genes in the cluster
+        self.lengths = {} # list of lengths of the genes in the cluster
+        self.identity = {} # list of perc identity to rep gene
+        self.strandedness = {} # strandedness wrt rep
+        self.rep_gene = '' # representative gene for the cluster
+    
+    def add_info(self, gene_to_add, length, is_rep, strand='+', perc=100):
+        self.genes.append(gene_to_add)
+        self.lengths[gene_to_add] = length
+        self.identity[gene_to_add] = perc
+        self.strandedness[gene_to_add] = strand
+        if is_rep:
+            self.rep_gene = gene_to_add
+    
+    def __repr__(self):
+        return f'Cluster--{self.name}:\n  rep gene:{self.rep_gene}\n    genes: {self.genes}\n    lengths: {self.lengths}\n    identity: {self.identity}'
+
+    def __str__(self):
+        return f'Cluster--{self.name}:\n  rep gene:{self.rep_gene}\n    genes: {self.genes}\n    lengths: {self.lengths}\n    identity: {self.identity}'
+
+clusters = pd.read_pickle('results/figures/clusters_objects_collection.pkl')
 
 gene_cd_hit_dict = {}
 for cluster in clusters:
     for gene in clusters[cluster].genes:
         gene_cd_hit_dict[gene] = cluster
 
+# 2. Parse and write to the gene_info_tables
+        # at 'results/figures/08-summarize_functions/gene_info_tables/{sample}_df_detected_genes_info.csv'
 
-# Takes a while but after it is written
+# 2a. Define functions to use and create / read info required by them
+
+'''
+gene_position_names_ffn = {} # (start, end)
+for sample in samples:
+    with open(f'results/figures/08-summarize_functions/genes_detected/{sample}_df_detected_genes_info.csv') as f:
+        for line in f:
+            line = line.strip()
+            start = line.split(',')[2]
+            end = line.split(',')[3]
+            gene = line.split(',')[9]
+            ffn_name = '_'.join(gene.split('_')[:-1]) + ':' + start + '-' + end
+            gene_position_names_ffn[gene] = ffn_name
+pickle.dump(gene_position_names_ffn, open('results/figures/08-summarize_functions/gene_position_names_ffn.pkl', 'wb'))
+'''
+gene_position_names_ffn = pickle.load(open('results/figures/08-summarize_functions/gene_position_names_ffn.pkl', 'rb'))
+
+def scaffold_from_geneid(geneid):
+    return '_'.join(geneid.split('_')[:-1])
+
+# get the mag info for the scaffold
+def get_mag_of_gene(gene):
+    if scaffold_from_geneid(gene) in binned_scaffolds:
+        return scaffold_mag_dict[scaffold_from_geneid(gene)]
+    else:
+        return 'unbinned'
+
+'''
+gene_renamed_dict = {}
+# the faa and ffn files from results/11_phylogenies/00_genomes/ have different IDs and a different 
+# number of genes than the files that were used to name and collected "detected genes"
+# so use the gene positions of detected genes from 
+# 'results/figures/08-summarize_functions/genes_detected/{sample}_df_detected_genes_info.csv'
+# to then get the re-name of the gene in the ffn file based on its name in the ffn_original
+
+# use the ffn to get the old and new names!
+for i, mag in enumerate(glob.glob('results/11_phylogenies/00_genomes/*')):
+    mag_name = mag.split('/')[-1]
+    print(f'working on mag {i}/{len(glob.glob("results/11_phylogenies/00_genomes/*"))}', end = '\r')
+    gene_renamed_dict[mag_name] = {}
+    with open(f'{mag}/{mag_name}.ffn', 'r') as f, open(f'{mag}/{mag_name}_original.ffn', 'r') as f_o:
+        for line, line_o in zip(f, f_o):
+            if line.startswith('>') and line_o.startswith('>'):
+                gene = line.strip().split('>')[1]
+                gene_o = line_o.strip().split('>')[1]
+                gene_renamed_dict[mag_name][gene_o] = gene
+pickle.dump(gene_renamed_dict, open('results/figures/08-summarize_functions/gene_renamed_dict.pkl', 'wb'))
+'''
+gene_renamed_dict = pickle.load(open('results/figures/08-summarize_functions/gene_renamed_dict.pkl', 'rb'))
+
+def og_gene_id(gene):
+    mag = get_mag_of_gene(gene)
+    if mag == 'unbinned':
+        return(None)
+    else:
+        if mag in gene_renamed_dict.keys(): 
+            if gene_position_names_ffn[gene] in gene_renamed_dict[mag]:
+                gene_id = gene_renamed_dict[mag][gene_position_names_ffn[gene]]
+                return(gene_id)
+    return(None)
+
+# gene='C2-3_NODE_740_length_70557_cov_30.867252_28'
+# 'C2-3_18_28' - wrong
+# 'C2-3_18_1179' - right
+# 'C4-3_NODE_4_length_644241_cov_51.191471_609' - was not found in gene_renamed_dict
+# gene_positions_dict['C4-3_6']
+# og_gene_id('C2-3_NODE_740_length_70557_cov_30.867252_28')
+# og_gene_id('C4-3_NODE_4_length_644241_cov_51.191471_609')
+
+# exception : 'C4-3_NODE_174_length_110371_cov_13.960894:94400-95152' gave key error before
+# if gene_position_names_ffn[gene] in gene_renamed_dict[mag]: was added - dig in
+
+os.makedirs('results/figures/08-summarize_functions/gene_info_tables', exist_ok=True)
 for i, sample in enumerate(samples):
     if os.path.isfile(f'results/figures/08-summarize_functions/gene_info_tables/{sample}_df_detected_genes_info.csv'):
         continue
@@ -548,185 +311,13 @@ for i, sample in enumerate(samples):
     df_detected_genes_info['coreness'] = df_detected_genes_info['og'].map(og_coreness)
     df_detected_genes_info['cluster'] = df_detected_genes_info['gene'].map(gene_cd_hit_dict)
     df_detected_genes_info.to_csv(f'results/figures/08-summarize_functions/gene_info_tables/{sample}_df_detected_genes_info.csv')
-print('completed all samples')
 
 
-del mag_species_dict
-del mag_genus_dict
-del binned_scaffolds
-del scaffold_mag_dict
-
-def sample_feature_matrix(feature_name='ko', path=''):
-    '''
-    feature can be one of gene, ko, cazyme-DRAM, cazyme,
-    og, coreness, cluster i.e. one of the columns of the
-    df_detected_genes_info table
-    read all the sample tables and make a matrix of samples
-    as rows and features as columns with the values being
-    the number of genes detected in that sample for that
-    feature
-    '''
-    samples = [x.split('/')[-1].split('_df_detected_genes_info')[0] for x in glob.glob('results/figures/08-summarize_functions/gene_info_tables/*_df_detected_genes_info.csv')]
-    '''
-        first go through all the sample and collect all the kos
-        read the df with list of genes and info for each sample and count the number of genes
-        for each feature and add it to the feature matrix if the feature is not present in the
-        feature matrix, add it as a column for the row of this sample and set 0 for all other
-        samples if the feature is present in the feature matrix, add the count for this sample
-        to the column for this feature
-    '''
-    ko_columns = set()
-    for i, sample in enumerate(samples):
-        print(f'collecting {feature_name} from {sample} {i}/{len(samples)}', end = '\r')
-        df = pd.read_csv(f'results/figures/08-summarize_functions/gene_info_tables/{sample}_df_detected_genes_info.csv')
-        ko_columns.update(df[feature_name].unique())
-    print(f'finished collecting {feature_name} from all samples')
-    feature_matrix = pd.DataFrame()
-    feature_matrix['sample'] = samples
-    feature_matrix = feature_matrix.set_index('sample')
-    feature_names = list(ko_columns)
-    feature_matrix = feature_matrix.reindex(columns = feature_names)
-    feature_matrix = feature_matrix.fillna(0)
-    for i, sample in enumerate(samples):
-        print(f'working on {feature_name} for {sample} {i}/{len(samples)}', end = '\r')
-        df = pd.read_csv(f'results/figures/08-summarize_functions/gene_info_tables/{sample}_df_detected_genes_info.csv')
-        # remove the column unnamed and set gene as index
-        df = df.drop(columns = ['Unnamed: 0'])
-        df = df.set_index('gene')
-        # get the counts for each feature
-        feature_counts = df[feature_name].value_counts()
-        # add the counts to the feature matrix
-        for feature in feature_counts.keys():
-            feature_matrix.loc[sample, feature] = feature_counts[feature]
-    print(f'finished counting {feature_name} from all samples')
-    if path != '':
-        # os.makedirs(os.path.dirname(path), exist_ok=True)
-        feature_matrix.to_csv(path)
-    return feature_matrix
-
-sample_feature_matrix(feature_name='ko', path='results/figures/08-summarize_functions/ko_matrix.csv')
-sample_feature_matrix(feature_name='cluster', path='results/figures/08-summarize_functions/cluster_matrix.csv')
-sample_feature_matrix(feature_name='cazyme-DRAM', path='results/figures/08-summarize_functions/cazyme-DRAM_matrix.csv')
-sample_feature_matrix(feature_name='cazyme', path='results/figures/08-summarize_functions/cazyme_matrix.csv')
-sample_feature_matrix(feature_name='og', path='results/figures/08-summarize_functions/og_matrix.csv')
-
-        
-
-'''
-make summary table of gene content information we have the following information about genes:
-the gene catalog:
-    results/08_gene_content/20230313_gene_catalog.ffn
-profile of the gene catalog (per sample): 
-    results/08_gene_content/06_cayman/{sample}.gene_counts.txt.gz:
-the gene catalog with cayman annotation:
-    data/cayman_gene_db/20230313_gene_catalog_db.csv (No header, columns: gene_id, start, end, gene_length, pval, family, length)
-dram annotation of the gene catalog
-    results/08_gene_content/02_DRAM_annotations/{sample}/annotations.tsv - read using pandas!
-    # check how many genes were not annotated for KEGG
-name of ko annotations and their associated pathways are in data/
-    data/KEGG_info/ko00001.json
-we need to obtain the following information about genes:
-
-# OG membership
-gene -> contig -> mag -> id_in_og_analysis -> OG
-
-# taxonomic information
-gene -> contig -> mag -> gtdb tax from mag summary at results/09_MAGs_collection/MAGs_metadata_summary.tsv
-
-# contig info
-gene -> contig -> results/05_assembly/contig_fates/ -> kaiju/kraken/whokaryote (parse out which sample to look instide)
-
-
-gene_id refers to IDs of the form: {sample}_NODE_10481_length_4970_cov_52.067955_3
-    i.e. {sample}_{contig_name}_3 or {contig_id}_3
-gene_id_num refers to the number at the end of the gene_id
-    i.e. 3
-og_gene_id refers to the gene ID in the orthogroup analysis: C3-5_4_1192
-    i.e. {mag}_1192
-OG refers to the orthogroup ID
-    such as OG0000035
-(not thinking about CD-hit for now)    
-'''
-
-
-'''
-all_scaffold_to_bin.tsv contains the following columns
-scaffold	mag	size	completeness	contamination	genus	species	magotu
-compiled from across all scaffolds and includes information about the mag it belongs to
-and the respective information of the mag collected using a temporary script not in this
-to be recovered or rewritten later... (magotu is in the numerical form coming straight from dRep)
-''' 
-all_scaffolds_info = pd.read_csv('results/09_MAGs_collection/all_scaffold_to_bin.tsv', sep='\t')
-
-# cazy_dict = pd.read_csv('data/cayman_gene_db/20230313_gene_catalog_filtered_filtered_merged_CORRECT_fold_stuff.csv').set_index('sequenceID').to_dict()['family']
-
-
-len(clusters)
-# 710,497 in total
-
-# show a bar plot with x axis the number of hosts that the cluster is found in and y axis the number of clusters
-# that are found in that many hosts
-
-# get the number of hosts that each cluster is found in
-# singletons = 0
-# cluster_size_dict = {}
-# for cluster in clusters:
-#     cluster_size_dict[cluster] = len(clusters[cluster].genes)
-#     if len(clusters[cluster].genes) == 1:
-#         singletons += 1
-
-# plt.hist(cluster_size_dict.values(), bins=100)
-# plt.savefig('results/figures/08-summarize_functions/cluster_size_hist.png')
-# plt.close()
-
-# cluster_host_dict = {}
-# for cluster in clusters:
-#     if len(clusters[cluster].genes) == 1:
-#         continue
-#     hosts_seen = Counter([x[0] for x in clusters[cluster].genes])
-#     cluster_host_dict[cluster] = len(hosts_seen.keys())
-# plt.hist(cluster_host_dict.values(), bins = 5)
-# plt.savefig('results/figures/08-summarize_functions/cluster_host_hist.png')
-# plt.close()
-
-# do the above but using mapping result to tell if a cluster has been detected
-'''
-A cluster is considered detected if any gene in the cluster is found at a coverage > 0
-and breadth > 0.75 in the sample
-To find this, for each sample, 
-'''
-
-
-
-# # get a histogram of coverages
-# plt.hist(gene_info_dfs['A1-1'].coverage, bins=10000)
-# plt.xlim(0, 1)
-# plt.savefig('results/figures/08-summarize_functions/coverage_hist.png')
-# plt.close()
-
-
-# '''
-# copying some files for future use
-# '''
-
-# with open('results/export/magOTU_handmade_names.csv', 'r') as f:
-#     header = f.readline()
-#     for line in f:
-#         line = line.strip()
-#         mag = line.split(',')[0]
-#         mag_name = line.split(',')[1]
-#         faa_path = line.split(',')[5]
-#         gff_path = line.split(',')[6]
-#         print(mag)
-#         out_faa=f'results/export/MAGs_annotation_faa/{mag_name}.faa'
-#         out_gff=f'results/export/MAGs_annotation_gff/{mag_name}.gff'
-#         out_faa_nas=f'/nas/FAC/FBM/DMF/pengel/spirit/D2c/aprasad/20211018_aprasad_ApisCrossSpeciesAnalysis/Analysis/MAGs_collection/MAGs_faa/{mag_name}.faa'
-#         out_gff_nas=f'/nas/FAC/FBM/DMF/pengel/spirit/D2c/aprasad/20211018_aprasad_ApisCrossSpeciesAnalysis/Analysis/MAGs_collection/MAGs_gff/{mag_name}.gff'
-#         os.system(f'cp {faa_path} {out_faa}')
-#         os.system(f'cp {gff_path} {out_gff}')
-#         os.system(f'cp {faa_path} {out_faa_nas}')
-#         os.system(f'cp {gff_path} {out_gff_nas}')
-
-
-# from enrichm
-
+# # delete large dicts from memory
+# del mag_species_dict
+# del mag_genus_dict
+# del binned_scaffolds
+# del scaffold_mag_dict
+# del gene_renamed_dict
+# del gene_og_dict
+# del og_coreness

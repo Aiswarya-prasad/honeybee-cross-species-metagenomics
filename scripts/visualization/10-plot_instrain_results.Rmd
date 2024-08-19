@@ -27,51 +27,953 @@ the --genome parameter so, all the directories under all the species names have 
 genomes (redundant).
 At the moment I do not do anything to change anything about the output - code is up to date to avoid this error. In the future this is important to remember. For parsing for example...
 
+# Functions and data used by following chunks
 
 ```{r}
 clean_bam_name <- function(name){
   return(strsplit(name, split = "_bowtie.bam")[[1]][1])
 }
-# view(handmade_species_names)
-# all the results (species name) are the same!!!
+prevs_df <- read.csv("results/figures/magotu_prevs.csv") %>%
+              pivot_longer(cols = !c("X"), names_to = "host", values_to = "prevalence_in_host") %>%
+              mutate(Host = paste0("Apis ", host))
+handmade_species_names <- read.csv("config/Species_MAG_Cluster-names.txt", header = T, sep = "\t") %>% 
+                            mutate(cluster_name_instrain = paste0(MAG_species_Name_in_analysis, "-", RepMAG))
+df_plot <- abundance_df %>% filter(!is.na(magOTU)) %>%
+                            filter(breadth > breadth_cutoff) %>%
+                            mutate(detected = ifelse(coverage > 1 & breadth > breadth_cutoff, 1, 0)) %>%
+                            select(sample, Host, magOTU, detected, Genus, coverage, copies_cov, rel_cov) %>%
+                            left_join(prevs_df, by = c("magOTU" = "X", "Host" = "Host")) %>%
+                            select(magOTU, coverage, copies_cov, rel_cov, prevalence_in_host, Genus, Host, sample) %>%
+                            left_join(handmade_species_names %>% select(MAG_species_name_final, cluster_name_instrain), by = c("magOTU" = "cluster_name_instrain"))
+df_plot_all <- abundance_df_all %>% filter(!is.na(magOTU)) %>%
+                            filter(breadth > breadth_cutoff) %>%
+                            mutate(detected = ifelse(coverage > 1 & breadth > breadth_cutoff, 1, 0)) %>%
+                            select(sample, Host, magOTU, detected, Genus, coverage, rel_cov) %>%
+                            left_join(prevs_df, by = c("magOTU" = "X", "Host" = "Host")) %>%
+                            select(magOTU, coverage, rel_cov, prevalence_in_host, Genus, Host, sample) %>%
+                            left_join(handmade_species_names %>% select(MAG_species_name_final, cluster_name_instrain), by = c("magOTU" = "cluster_name_instrain"))
+long_species_list <- c("Acinetobacter pollinis",
+                "Apibacter adventoris",
+                "Apibacter sp002964915",
+                "Apilactobacillus apinorum",
+                "Apilactobacillus bombintestini",
+                "Apilactobacillus SGB-72_1",
+                "Apilactobacillus waqarii",
+                "Apilactobacillus zhangqiuensis",
+                "Bartonella_A apis",
+                "Bartonella_A SGB-62_2",
+                "Bartonella_A SGB-65_1",
+                "Bartonella_A SGB-66_1",
+                "Bartonella_A SGB-66_2",
+                "Bartonella_A SGB-67_0",
+                "Bartonella_A SGB-68_0",
+                "Bartonella_A SGB-69_1",
+                "Bartonella_A SGB-70_1",
+                "Bartonella_A sp016100455",
+                "Bartonella_A sp016102285",
+                "Bartonella_A sp945277285",
+                "Bartonella_A sp945285915",
+                "Bifidobacterium apousia",
+                "Bifidobacterium asteroides_A",
+                  "Bifidobacterium asteroides_I",
+                  "Bifidobacterium choladohabitans",
+                "Bifidobacterium indicum",
+                "Bifidobacterium mizhiense",
+                "Bifidobacterium polysaccharolyticum",
+                "Bifidobacterium SGB-4_1",
+                "Bifidobacterium SGB-4_2",
+                "Bifidobacterium SGB-5_1",
+                "Bifidobacterium SGB-5_2",
+                "Bifidobacterium SGB-6_3",
+                "Bifidobacterium SGB-6_4",
+                "Bifidobacterium SGB-6_8",
+                "Bifidobacterium SGB-6_9",
+                "Bifidobacterium SGB-61_0",
+                  "Bifidobacterium SGB-7_1",
+                "Bifidobacterium SGB-8_2",
+                "Bifidobacterium sp000499285",
+                "Bifidobacterium sp945269915",
+                "Bombella SGB-9_1",
+                "Bombella SGB-9_2",
+                "Bombilactobacillus mellifer",
+                "Bombilactobacillus mellifer-22_1",
+                  "Bombilactobacillus mellifer-22_2",
+                  "Bombilactobacillus mellis",
+                "Bombilactobacillus mellis-36_2",
+                  "Bombilactobacillus SGB-22_3",
+                "Bombilactobacillus SGB-35_1",
+                "Bombilactobacillus SGB-37_0",
+                "CALYQJ01 SGB-38_1",
+                  "CALYQJ01 sp945273735",
+                "CALYQJ01 sp945285405",
+                "CALYQQ01 SGB-104_1",
+                "CALYQQ01 SGB-105_1",
+                "CALYQQ01 SGB-105_2",
+                "Commensalibacter SGB-12_0",
+                "Commensalibacter SGB-13_0",
+                "Commensalibacter sp003202795",
+                  "Commensalibacter sp945266285",
+                  "Corynebacterium provencense",
+                "Corynebacterium sp022712275",
+                "Dysgonomonas SGB-15_1",
+                  "Dysgonomonas SGB-17_1",
+                  "Dysgonomonas SGB-17_2",
+                  "Dysgonomonas SGB-18_1",
+                  "Dysgonomonas SGB-20_1",
+                  "Dysgonomonas sp945273835",
+                  "Dysgonomonas sp945292135",
+                  "Enterobacter bugandensis",
+                  "Enterobacter hormaechei_A",
+                "Enterobacter roggenkampii",
+                "Enterobacter vonholyi",
+                  "Entomomonas SGB-51_0",
+                "Entomomonas SGB-52_0",
+                "Entomomonas sp945283395",
+                "Escherichia coli",
+                "Floricoccus SGB-41_0",
+                "Frischella japonica",
+                  "Frischella perrara",
+                "Frischella SGB-92_1",
+                  "Frischella SGB-94_1",
+                  "Fructobacillus pseudoficulneus",
+                  "Gilliamella apicola",
+                  "Gilliamella apicola_E",
+                  "Gilliamella apicola_F",
+                  "Gilliamella apicola_I",
+                  "Gilliamella apicola_J",
+                  "Gilliamella apicola_K",
+                  "Gilliamella apicola_L",
+                  "Gilliamella apicola_N",
+                  "Gilliamella apicola_Q",
+                  "Gilliamella apis",
+                "Gilliamella apis_A",
+                "Gilliamella SGB-76_1",
+                "Gilliamella SGB-78_2",
+                "Gilliamella SGB-79_1",
+                "Gilliamella SGB-82_1",
+                "Gilliamella SGB-83_1",
+                "Gilliamella SGB-86_0",
+                "Gilliamella sp019469185",
+                "Gilliamella sp019469205",
+                "Gilliamella sp945271295",
+                "Hafnia paralvei",
+                "JAATFO01 SGB-106_0",
+                "KAACC-21507 SGB-14_0",
+                "Klebsiella pneumoniae",
+                "Kosakonia oryzae",
+                "Lactobacillus apis",
+                "Lactobacillus helsingborgensis",
+                "Lactobacillus huangpiensis",
+                "Lactobacillus kimbladii_A",
+                "Lactobacillus laiwuensis",
+                "Lactobacillus melliventris",
+                "Lactobacillus panisapium",
+                "Lactobacillus SGB-23_1",
+                "Lactobacillus SGB-28_1",
+                "Lactobacillus SGB-29_1",
+                "Lactobacillus SGB-29_2",
+                "Lactobacillus SGB-30_0",
+                "Lactobacillus SGB-31_1",
+                "Lactobacillus SGB-32_1",
+                "Lactobacillus SGB-33_1",
+                "Lactobacillus SGB-34_1",
+                "Lactobacillus sp016100975",
+                "Lactobacillus sp945290125",
+                "Melissococcus plutonius",
+                "Pantoea dispersa",
+                "Pantoea vagans",
+                "Parolsenella SGB-60_1",
+                "Pectinatus SGB-54_1",
+                "Pluralibacter SGB-98_1",
+                "Q3-R57-64 SGB-48_1",
+                "Rosenbergiella epipactidis",
+                "Saezia SGB-47_1",
+                "Saezia SGB-49_1",
+                "Snodgrassella alvi",
+                "Snodgrassella alvi_E",
+                "Snodgrassella alvi_G",
+                "Snodgrassella SGB-56_2",
+                "Snodgrassella SGB-58_1",
+                "Snodgrassella sp945267035",
+                "Spiroplasma melliferum",
+                "WRHT01 SGB-1_1",
+                "Zymobacter SGB-110_0",
+                "Zymobacter SGB-42_0",
+                "Zymobacter SGB-43_0",
+                "Zymobacter SGB-44_0"
+                )
+colony_color_list <- c("C1" = "#E31A1C",
+                        "C2" = "#E63335",
+                        "C3" = "#E94C4E",
+                        "C4" = "#EC6667",
+                        "C5" = "#EF7F80",
+                        "C6" = "#F2999A",
+                        "C7" = "#F5B2B3",
+                        "C8" = "#F8CCCC",
+                        "C9" = "#FBE5E5",
+                        "AcKn" = "#FB9A99",
+                        "AcCh" = "#FCBBBB",
+                        "M1" = "#1F78B4",
+                        "M2" = "#3787BC",
+                        "M3" = "#5096C4",
+                        "M4" = "#69A4CD",
+                        "M5" = "#82B3D5",
+                        "M6" = "#9BC3DD",
+                        "M7" = "#B4D2E6",
+                        "M8" = "#CDE1EE",
+                        "M9" = "#E6F0F6",
+                        "AmAi" = "#AFD3E6",
+                        "AmIu" = "#5096C4",
+                        "DrY1" = "#69A4CD",
+                        "DrY2" = "#82B3D5",
+                        "GrY2" = "#CDE1EE",
+                        "D1" = "#6A3D9A",
+                        "D2" = "#7A52A5",
+                        "D3" = "#8B68B0",
+                        "D4" = "#9B7DBB",
+                        "D5" = "#AC93C6",
+                        "D6" = "#BCA8D2",
+                        "D7" = "#CDBEDD",
+                        "D8" = "#DDD3E8",
+                        "D9" = "#EEE9F3",
+                        "F1" = "#33A02C",
+                        "F2" = "#49AA43",
+                        "F3" = "#60B55A",
+                        "F4" = "#77BF72",
+                        "F5" = "#8DCA89",
+                        "F6" = "#A4D4A1",
+                        "F7" = "#BBDFB8",
+                        "F8" = "#D1E9D0",
+                        "F9" = "#E8F4E7",
+                        "A1" = "#FF7F00",
+                        "A2" = "#FF8D1C",
+                        "A3" = "#FF9B38",
+                        "A4" = "#FFA955",
+                        "A5" = "#FFB771",
+                        "A6" = "#FFC68D",
+                        "A7" = "#FFD4AA",
+                        "A8" = "#FFE2C6",
+                        "A9" = "#FFF0E2"
+            )
+get_colony_num <- function(x) {
+    if (grepl("AcCh", x)) {
+      return("AcCh")
+    }
+    if (grepl("AcKn", x)) {
+      return("AcCh")
+    }
+    if (grepl("AmAi", x)) {
+      return("AmAi")
+    }
+    if (grepl("AmIu", x)) {
+      return("AmIu")
+    }
+    if (grepl("DrY1", x)) {
+      return("DrY1")
+    }
+    if (grepl("DrY2", x)) {
+      return("DrY2")
+    }
+    if (grepl("GrY2", x)) {
+      return("GrY2")
+    }
+    return(strsplit(x, "-")[[1]][[2]])
+  }
+# hist(read.csv("results/10_instrain/03_instrain_compare/20230313_MAGs_rep_db/output/Bombilactobacillus_mellis_genomeWide_compare.tsv", sep = "\t") %>% 
+#     pull(percent_compared), 500
+#     )
+```
 
-df_comp <- read.csv("results/10_instrain/03_instrain_compare/Bombilactobacillus_mellis/output/Bombilactobacillus_mellis_genomeWide_compare.tsv", sep = "\t") %>%
-              filter(percent_compared > 0.25) %>%
+
+# Strain heatmaps and NMDS
+
+Including only those samples in which the species is "detected" and 0.5 cutoff for coverage_overlap.
+Using robust aitchison distance for NMDS.
+
+# # Only India and Malaysia samples
+
+```{r}
+df_comp <- read.csv("results/10_instrain/03_instrain_compare/20230313_MAGs_rep_db/output/Bombilactobacillus_mellis_genomeWide_compare.tsv", sep = "\t") %>%
+              # filter(percent_compared > 0.75) %>%
+              filter(coverage_overlap > 0.5) %>%
               left_join(handmade_species_names %>% select(RepMAG, MAG_species_name_final, MAG_species_name_final_nospace, cluster_name_instrain), by = c("genome" = "RepMAG")) %>%
               mutate(name1 = Vectorize(clean_bam_name)(name1)) %>%
-              mutate(name2 = Vectorize(clean_bam_name)(name2))
-
+              mutate(name2 = Vectorize(clean_bam_name)(name2)) %>%
+              filter(!(name1 %in% samples_to_exclude)) %>%
+              filter(!(name2 %in% samples_to_exclude)) %>%
+              filter(name1 %in% samples_IN_MY) %>%
+              filter(name2 %in% samples_IN_MY)
 # spec <- "Bombilactobacillus mellis"
 # sort(handmade_species_names$MAG_species_name_final)
-for (spec in c(# "Acinetobacter pollinis",
-                # "Apibacter adventoris",
-                # "Apibacter sp002964915",
-                # "Apilactobacillus apinorum",
-                # "Apilactobacillus bombintestini",
-                # "Apilactobacillus SGB-72_1",
-                # "Apilactobacillus waqarii",
-                # "Apilactobacillus zhangqiuensis",
-                # "Bartonella_A apis",
-                # "Bartonella_A SGB-62_2",
-                # "Bartonella_A SGB-65_1",
-                # "Bartonella_A SGB-66_1",
-                # "Bartonella_A SGB-66_2",
-                # "Bartonella_A SGB-67_0",
-                # "Bartonella_A SGB-68_0",
-                # "Bartonella_A SGB-69_1",
-                # "Bartonella_A SGB-70_1",
-                # "Bartonella_A sp016100455",
-                # "Bartonella_A sp016102285",
-                # "Bartonella_A sp945277285",
-                # "Bartonella_A sp945285915",
-                # "Bifidobacterium apousia",
-                # "Bifidobacterium asteroides_A",
-                #   "Bifidobacterium asteroides_I",
-                #   "Bifidobacterium choladohabitans",
-                # "Bifidobacterium indicum",
-                # "Bifidobacterium mizhiense",
-                # "Bifidobacterium polysaccharolyticum",
-                # "Bifidobacterium SGB-4_1",
+for (spec in long_species_list) {
+  spec_formatted <- str_replace(spec, "\ ", "\\\\ ")
+  # sort(unique(df_comp$MAG_species_name_final))
+  samples_with_species <- df_plot %>% filter(MAG_species_name_final == spec) %>% select(sample) %>% pull()
+  df_com_spec <- df_comp %>%
+                  filter(MAG_species_name_final == spec) %>%
+                  # remove samples in which the species is not detected
+                  filter(name1 %in% samples_with_species) %>%
+                  filter(name2 %in% samples_with_species)
+  if (dim(df_com_spec)[[1]] <= 3) {
+    next
+  }
+  print(spec)
+  # write the comparison info and parse it using python script to get the matrix
+  write.csv(df_com_spec, paste0("results/figures/instrain_comp_mat/", spec, "_instrain_comp_info.csv"), row.names = F, quote = F)
+  system(paste0("source ~/.bashrc && conda activate 20230313_scripts_env && python3 scripts/visualization/parse_popani_mat.py -i results/figures/instrain_comp_mat/", spec_formatted, "_instrain_comp_info.csv"))
+  df_mat <- read.csv(paste0("results/figures/instrain_comp_mat/", spec, "_instrain_comp_info_parsed.csv"), stringsAsFactors = F, check.names= F)
+  colnames(df_mat) <- c("row", colnames(df_mat)[-1])
+  df_mat <-  df_mat %>%
+              column_to_rownames("row")
+  # as it is a dissimilarity matrix, replace NA with 2 (a value that is larger than the largest dissimilarities)
+  # df_mat[is.na(df_mat)] = 1
+  # # only keep rows and cols with at least n_min non-NA values
+  n_max = dim(df_mat)[[1]]
+  spec_num = 5
+  spec_num = length(unique(rownames(df_mat) %>% as.data.frame() %>% mutate(host = Vectorize(get_host_from_sample_name)(.)) %>% pull(host)))
+  if (spec_num == 1) {
+    n_min = floor(n_max/2)
+  } else {
+    #  this allows us to keep those rows with large chunk of NA values
+    #  on account of having a different strain composition than the other specie(s)
+    n_min = floor(n_max/spec_num)
+    if (spec %in% c("Bifidobacterium SGB-6_4", "Bifidobacterium SGB-6_8")) {
+      # this is because even though we have andreni and florea,
+      # andreni is only in one of the sub-clusters of florea
+      # leading to too many NAs so considering the cutoff with 2 species
+      n_min = floor(n_max/2)
+    }
+    if (spec %in% c("Bifidobacterium sp000499285")) {
+      # this is because even though we have andreni and florea,
+      # andreni is only in one of the sub-clusters of florea
+      # leading to too many NAs so considering the cutoff with 2 species
+      n_min = floor(n_max/3)
+    }
+    if (spec %in% c("Lactobacillus sp945290125")) {
+      # the lacto Lactobacillus sp945290125 has 3 clusters
+      # even though there is m, c f and a, one cluster has f,c close
+      # floor(n_max/3) was 47 but only 48 worked
+      n_min = 48
+    }
+  }
+  df_mat <- df_mat[rowSums(!is.na(df_mat))>=n_min , colSums(!is.na(df_mat))>=n_min]
+  if (dim(df_mat)[[1]] == 0) {
+    next
+  }
+  spec_mat <- df_mat %>% 
+              # filter(row.names(.) %in% samples_IN_MY) %>%
+              filter(row.names(.) %in% samples) %>%
+                as.matrix
+  spec_mat <- spec_mat[, rownames(spec_mat)]
+  host_names <- rownames(spec_mat) %>% as.data.frame() %>% mutate(host = Vectorize(get_host_from_sample_name)(.)) %>% pull(host)
+  colony_names <- rownames(spec_mat) %>% as.data.frame() %>% left_join(df_meta_complete %>% select(ID, Colony_ID), by = c("." = "ID")) %>% pull(Colony_ID)
+  colony_num_names <- rownames(spec_mat) %>% as.data.frame() %>% left_join(df_meta_complete %>% select(ID, Colony_ID), by = c("." = "ID")) %>% mutate(Colony_ID = Vectorize(get_colony_num)(.)) %>% pull(Colony_ID)
+  anno_host_col = HeatmapAnnotation(Host = host_names,
+                                          col = list(Host = host_order_color),
+                                          border = T
+                                    )
+  anno_colony_col = rowAnnotation(Colony = colony_names,
+                                  Host = host_names,
+                                          col = list(Colony = colony_color_list,
+                                                    Host = host_order_color
+                                          ),
+                                          border = T
+                                    )
+  spec_mat[is.na(spec_mat)] = 1
+  heatmap_obj = Heatmap(spec_mat,
+              col = colorRamp2(c(0.05, 0), c("#ffffff", "#08306b")),
+              na_col = "#999999",
+              top_annotation = anno_host_col,
+              bottom_annotation = anno_host_col,
+              left_annotation = anno_colony_col,
+              column_names_gp = grid::gpar(fontsize = 8),
+              row_names_gp = grid::gpar(fontsize = 8),
+              heatmap_legend_param = list(title = "Number genes copies"),
+              # column_split = column_split,
+              column_title = paste0(spec),
+              column_title_rot = 0,
+              column_title_gp = grid::gpar(fontsize = 20),
+              border = T,
+              # row_dend_reorder = T,
+              clustering_method_rows = "average",
+              clustering_method_columns = "average",
+              # clustering_method_rows = "complete",
+              # clustering_method_columns = "complete",
+              # clustering_method_rows = "single",
+              # clustering_method_columns = "single",
+              cluster_rows = clust,
+              cluster_columns = clust
+              # cluster_rows = F,
+              # cluster_columns = F
+      )
+  draw(heatmap_obj, merge_legend = TRUE)
+  pdf(paste0("results/figures/10-strain_nmds_IN_MY/", spec,"_heatmap.pdf"), width = 10, height = 15)
+  draw(heatmap_obj, merge_legend = TRUE)
+  dev.off()
+  # remove zero sum rows and cols
+  spec_mat_red <- df_mat %>% 
+                    as.matrix
+  # it is a dissimilarity matrix, replace NA with 1 (a value that is same as or larger than the largest dissimilarities)
+  # we assume this is fair because those samples with low overlap are filtered out before this step
+  spec_mat_red[is.na(spec_mat_red)] = 1
+  spec_mat_red <- spec_mat_red[rowSums(is.na(spec_mat_red))==0 , colSums(is.na(spec_mat_red))==0]
+  if (dim(spec_mat_red)[[1]] == 0) {
+    next
+  }
+  if (dim(spec_mat_red)[[1]] <= 3) {
+    next
+  }
+  # nmds = metaMDS(spec_mat_red, distance = "bray")
+  nmds = metaMDS(spec_mat_red, distance = "robust.aitchison")
+  df_pcoa_new <- as.data.frame(scores(nmds))
+  metadata <- df_meta_complete %>% select(ID, Colony_ID, Country, Species)
+  df_pcoa_new$Sample <- rownames(df_pcoa_new)
+  rownames(df_pcoa_new) <- NULL
+  df_pcoa_new <- left_join(df_pcoa_new, metadata, by = c("Sample" = "ID"))
+  # include results of adonis
+  if (df_pcoa_new$Species %>% unique %>% length <= 1) {
+    p_species <- "-"
+    r_species <- "-"
+  } else {
+    res_species <- adonis_OmegaSq(adonis2(spec_mat_red ~ Species, df_pcoa_new))
+    p_species <- round(res_species$`Pr(>F)`[[1]], 3)
+    r_species <- round(res_species$parOmegaSq[[1]], 3)
+  }
+  if (df_pcoa_new$Country %>% unique %>% length <= 1) {
+    p_country <- "-"
+    r_country <- "-"
+  } else {
+    res_country <- adonis_OmegaSq(adonis2(spec_mat_red ~ Country, df_pcoa_new))
+    p_country <- round(res_country$`Pr(>F)`[[1]], 3)
+    r_country <- round(res_country$parOmegaSq[[1]], 3)
+  }
+  if (df_pcoa_new$Colony_ID %>% unique %>% length <= 1) {
+    p_colony <- "-"
+    r_colony <- "-"
+  } else {
+    res_colony <- adonis_OmegaSq(adonis2(spec_mat_red ~ Colony_IDs, df_pcoa_new))
+    p_colony <- round(res_colony$`Pr(>F)`[[1]], 3)
+    r_colony <- round(res_colony$parOmegaSq[[1]], 3)
+  }
+  # write the p and r value results as a df
+  df_stats <- data.frame("species" = spec,
+                         "P-species" = p_species,
+                         "Omega-species" = r_species,
+                         "P-country" = p_country,
+                         "Omega-country" = r_country,
+                         "P-colony" = p_colony,
+                         "Omega-colony" = r_colony,
+                         "N" = dim(spec_mat_red)[[1]]
+                         )
+  write.csv(df_stats, paste0("results/figures/10-strain_nmds_IN_MY/", spec,"_stats.csv"), row.names = F, quote = F)
+  # plot NMDS
+  ggplot()+
+    geom_point(data = df_pcoa_new, aes(x = NMDS1,
+                          y = NMDS2,
+                          color = Species,
+                          shape = Country),
+                stat="identity", size = 4) +
+                  ggtitle(paste0(spec)) +
+                  annotate("text",
+                    label = paste0("\n", "\n", "\n", "\n", "\n",
+                           "Species: R2 (omega) = ", r_species, " p = ", p_species, "\n",
+                           "Country: R2 (omega) = ", r_country, " p = ", p_country, "\n",
+                           "Colony: R2 (omega) = ", r_colony, " p = ", p_colony, "\n",
+                           "N = ", dim(spec_mat_red)[[1]], "   ", "stress =", round(nmds$stress, 3)),
+                    x = 0, y = Inf, size = 5, color = "black"
+                  ) +
+                  # geom_text_repel(data = data.frame(), aes(label = paste0("\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n",
+                  #                          "Species: R2 (omega) = ", r_species, "\n   p = ", p_species, "\n",
+                  #                          "Country: R2 (omega) = ", r_country, "\n   p = ", p_country, "\n",
+                  #                          "Colony: R2 (omega) = ", r_colony, "\n   p = ", p_colony),
+                  #                          "N = ", dim(spec_mat_red)[[1]],
+                  #                          x = -Inf, y = Inf
+                  #                          ),
+                  #                 size = 5, color = "black"
+                  # ) +
+                  # stat_ellipse(size = 1) +
+                    # labs(x=axis_x_title, y = axis_y_title, color = "Host") +
+                      scale_color_manual(values = host_order_color_dark) +
+                      make_theme(setFill = F, setCol = F, guide_nrow = 5, leg_size = 10, leg_pos =  "right")
+  ggsave(paste0("results/figures/10-strain_nmds_IN_MY/", spec,"_nmds.pdf"), width = 10, height = 10)
+}
+# then run
+# cat results/figures/10-strain_nmds_IN_MY/*.csv | head -1 > results/figures/10-strain_nmds_IN_MY/all_stats.csv
+# Now the same with "all" samples
+# for file in results/figures/10-strain_nmds_IN_MY/*.csv; do cat "$file" | tail -n +2 >> results/figures/10-strain_nmds_IN_MY/all_stats.csv; done
+```
+
+# # Including all samples
+
+```{r}
+df_comp_all <- read.csv("results/10_instrain/03_instrain_compare/20230313_MAGs_rep_db/output/Bombilactobacillus_mellis_genomeWide_compare.tsv", sep = "\t") %>%
+              # filter(percent_compared > 0.75) %>%
+              filter(coverage_overlap > 0.5) %>%
+              left_join(handmade_species_names %>% select(RepMAG, MAG_species_name_final, MAG_species_name_final_nospace, cluster_name_instrain), by = c("genome" = "RepMAG")) %>%
+              mutate(name1 = Vectorize(clean_bam_name)(name1)) %>%
+              mutate(name2 = Vectorize(clean_bam_name)(name2)) %>%
+              filter(!(name1 %in% samples_to_exclude)) %>%
+              filter(!(name2 %in% samples_to_exclude))
+# spec <- "Bombilactobacillus mellis"
+# sort(handmade_species_names$MAG_species_name_final)
+for (spec in long_species_list) {
+  spec_formatted <- str_replace(spec, "\ ", "\\\\ ")
+  # sort(unique(df_comp_all$MAG_species_name_final))
+  samples_with_species <- df_plot %>% filter(MAG_species_name_final == spec) %>% select(sample) %>% pull()
+  df_com_spec <- df_comp_all %>%
+                  filter(MAG_species_name_final == spec) %>%
+                  # remove samples in which the species is not detected
+                  filter(name1 %in% samples_with_species) %>%
+                  filter(name2 %in% samples_with_species)
+  if (dim(df_com_spec)[[1]] <= 3) {
+    next
+  }
+  print(spec)
+  write.csv(df_com_spec, paste0("results/figures/instrain_comp_mat_all/", spec, "_instrain_comp_info.csv"), row.names = F, quote = F)
+  system(paste0("source ~/.bashrc && conda activate 20230313_scripts_env && python3 scripts/visualization/parse_popani_mat.py -i results/figures/instrain_comp_mat_all/", spec_formatted, "_instrain_comp_info.csv"))
+  df_mat <- read.csv(paste0("results/figures/instrain_comp_mat_all/", spec, "_instrain_comp_info_parsed.csv"), stringsAsFactors = F, check.names= F)
+  colnames(df_mat) <- c("row", colnames(df_mat)[-1])
+  df_mat <-  df_mat %>%
+              column_to_rownames("row")
+  # as it is a dissimilarity matrix, replace NA with 2 (a value that is larger than the largest dissimilarities)
+  # df_mat[is.na(df_mat)] = 1
+  # # only keep rows and cols with at least n_min non-NA values
+  n_max = dim(df_mat)[[1]]
+  spec_num = 5
+  spec_num = length(unique(rownames(df_mat) %>% as.data.frame() %>% mutate(host = Vectorize(get_host_from_sample_name)(.)) %>% pull(host)))
+  if (spec_num == 1) {
+    n_min = floor(n_max/2)
+  } else {
+    #  this allows us to keep those rows with large chunk of NA values
+    #  on account of having a different strain composition than the other specie(s)
+    n_min = floor(n_max/spec_num)
+    if (spec %in% c("Bifidobacterium SGB-6_4", "Bifidobacterium SGB-6_8")) {
+      # this is because even though we have andreni and florea,
+      # andreni is only in one of the sub-clusters of florea
+      # leading to too many NAs so considering the cutoff with 2 species
+      n_min = floor(n_max/2)
+    }
+    if (spec %in% c("Bifidobacterium sp000499285")) {
+      # this is because even though we have andreni and florea,
+      # andreni is only in one of the sub-clusters of florea
+      # leading to too many NAs so considering the cutoff with 2 species
+      n_min = floor(n_max/3)
+    }
+    if (spec %in% c("Lactobacillus sp945290125")) {
+      # the lacto Lactobacillus sp945290125 has 3 clusters
+      # even though there is m, c f and a, one cluster has f,c close
+      # floor(n_max/3) was 47 but only 48 worked
+      n_min = 48
+    }
+  }
+  df_mat <- df_mat[rowSums(!is.na(df_mat))>=n_min , colSums(!is.na(df_mat))>=n_min]
+  if (dim(df_mat)[[1]] == 0) {
+    next
+  }
+  spec_mat <- df_mat %>% 
+              # filter(row.names(.) %in% samples_IN_MY) %>%
+              filter(row.names(.) %in% samples) %>%
+                as.matrix
+  spec_mat <- spec_mat[, rownames(spec_mat)]
+  host_names <- rownames(spec_mat) %>% as.data.frame() %>% mutate(host = Vectorize(get_host_from_sample_name)(.)) %>% pull(host)
+  colony_names <- rownames(spec_mat) %>% as.data.frame() %>% left_join(df_meta_complete %>% select(ID, Colony_ID), by = c("." = "ID")) %>% pull(Colony_ID)
+  get_colony_num <- function(x) {
+    if (grepl("AcCh", x)) {
+      return("AcCh")
+    }
+    if (grepl("AcKn", x)) {
+      return("AcCh")
+    }
+    if (grepl("AmAi", x)) {
+      return("AmAi")
+    }
+    if (grepl("AmIu", x)) {
+      return("AmIu")
+    }
+    if (grepl("DrY1", x)) {
+      return("DrY1")
+    }
+    if (grepl("DrY2", x)) {
+      return("DrY2")
+    }
+    if (grepl("GrY2", x)) {
+      return("GrY2")
+    }
+    return(strsplit(x, "-")[[1]][[2]])
+  }
+  colony_num_names <- rownames(spec_mat) %>% as.data.frame() %>% left_join(df_meta_complete %>% select(ID, Colony_ID), by = c("." = "ID")) %>% mutate(Colony_ID = Vectorize(get_colony_num)(.)) %>% pull(Colony_ID)
+  anno_host_col = HeatmapAnnotation(Host = host_names,
+                                          col = list(Host = host_order_color),
+                                          border = T
+                                    )
+  colony_color_list <- c("C1" = "#E31A1C",
+                        "C2" = "#E63335",
+                        "C3" = "#E94C4E",
+                        "C4" = "#EC6667",
+                        "C5" = "#EF7F80",
+                        "C6" = "#F2999A",
+                        "C7" = "#F5B2B3",
+                        "C8" = "#F8CCCC",
+                        "C9" = "#FBE5E5",
+                        "AcKn" = "#FB9A99",
+                        "AcCh" = "#FCBBBB",
+                        "M1" = "#1F78B4",
+                        "M2" = "#3787BC",
+                        "M3" = "#5096C4",
+                        "M4" = "#69A4CD",
+                        "M5" = "#82B3D5",
+                        "M6" = "#9BC3DD",
+                        "M7" = "#B4D2E6",
+                        "M8" = "#CDE1EE",
+                        "M9" = "#E6F0F6",
+                        "AmAi" = "#AFD3E6",
+                        "AmIu" = "#5096C4",
+                        "DrY1" = "#69A4CD",
+                        "DrY2" = "#82B3D5",
+                        "GrY2" = "#CDE1EE",
+                        "D1" = "#6A3D9A",
+                        "D2" = "#7A52A5",
+                        "D3" = "#8B68B0",
+                        "D4" = "#9B7DBB",
+                        "D5" = "#AC93C6",
+                        "D6" = "#BCA8D2",
+                        "D7" = "#CDBEDD",
+                        "D8" = "#DDD3E8",
+                        "D9" = "#EEE9F3",
+                        "F1" = "#33A02C",
+                        "F2" = "#49AA43",
+                        "F3" = "#60B55A",
+                        "F4" = "#77BF72",
+                        "F5" = "#8DCA89",
+                        "F6" = "#A4D4A1",
+                        "F7" = "#BBDFB8",
+                        "F8" = "#D1E9D0",
+                        "F9" = "#E8F4E7",
+                        "A1" = "#FF7F00",
+                        "A2" = "#FF8D1C",
+                        "A3" = "#FF9B38",
+                        "A4" = "#FFA955",
+                        "A5" = "#FFB771",
+                        "A6" = "#FFC68D",
+                        "A7" = "#FFD4AA",
+                        "A8" = "#FFE2C6",
+                        "A9" = "#FFF0E2"
+            )
+  anno_colony_col = rowAnnotation(Colony = colony_names,
+                                  Host = host_names,
+                                          col = list(Colony = colony_color_list,
+                                                    Host = host_order_color
+                                          ),
+                                          border = T
+                                    )
+  spec_mat[is.na(spec_mat)] = 1
+  heatmap_obj = Heatmap(spec_mat,
+              col = colorRamp2(c(0.05, 0), c("#ffffff", "#08306b")),
+              na_col = "#999999",
+              top_annotation = anno_host_col,
+              bottom_annotation = anno_host_col,
+              left_annotation = anno_colony_col,
+              column_names_gp = grid::gpar(fontsize = 8),
+              row_names_gp = grid::gpar(fontsize = 8),
+              heatmap_legend_param = list(title = "Number genes copies"),
+              # column_split = column_split,
+              column_title = paste0(spec),
+              column_title_rot = 0,
+              column_title_gp = grid::gpar(fontsize = 20),
+              border = T,
+              # row_dend_reorder = T,
+              clustering_method_rows = "average",
+              clustering_method_columns = "average",
+              # clustering_method_rows = "complete",
+              # clustering_method_columns = "complete",
+              # clustering_method_rows = "single",
+              # clustering_method_columns = "single",
+              cluster_rows = clust,
+              cluster_columns = clust
+              # cluster_rows = F,
+              # cluster_columns = F
+      )
+  draw(heatmap_obj, merge_legend = TRUE)
+  pdf(paste0("results/figures/10-strain_nmds_all/", spec,"_heatmap.pdf"), width = 10, height = 15)
+  draw(heatmap_obj, merge_legend = TRUE)
+  dev.off()
+  # remove zero sum rows and cols
+  spec_mat_red <- df_mat %>% 
+                    as.matrix
+  # it is a dissimilarity matrix, replace NA with 1 (a value that is same as or larger than the largest dissimilarities)
+  # we assume this is fair because those samples with low overlap are filtered out before this step
+  spec_mat_red[is.na(spec_mat_red)] = 1
+  spec_mat_red <- spec_mat_red[rowSums(is.na(spec_mat_red))==0 , colSums(is.na(spec_mat_red))==0]
+  if (dim(spec_mat_red)[[1]] == 0) {
+    next
+  }
+  if (dim(spec_mat_red)[[1]] <= 3) {
+    next
+  }
+  # nmds = metaMDS(spec_mat_red, distance = "bray")
+  nmds = metaMDS(spec_mat_red, distance = "robust.aitchison")
+  df_pcoa_new <- as.data.frame(scores(nmds))
+  metadata <- df_meta_complete %>% select(ID, Colony_ID, Country, Species)
+  df_pcoa_new$Sample <- rownames(df_pcoa_new)
+  rownames(df_pcoa_new) <- NULL
+  df_pcoa_new <- left_join(df_pcoa_new, metadata, by = c("Sample" = "ID"))
+  # include results of adonis
+  if (df_pcoa_new$Species %>% unique %>% length <= 1) {
+    p_species <- "-"
+    r_species <- "-"
+  } else {
+    res_species <- adonis_OmegaSq(adonis2(spec_mat_red ~ Species, df_pcoa_new))
+    p_species <- round(res_species$`Pr(>F)`[[1]], 3)
+    r_species <- round(res_species$parOmegaSq[[1]], 3)
+  }
+  if (df_pcoa_new$Country %>% unique %>% length <= 1) {
+    p_country <- "-"
+    r_country <- "-"
+  } else {
+    res_country <- adonis_OmegaSq(adonis2(spec_mat_red ~ Country, df_pcoa_new))
+    p_country <- round(res_country$`Pr(>F)`[[1]], 3)
+    r_country <- round(res_country$parOmegaSq[[1]], 3)
+  }
+  if (df_pcoa_new$Colony_ID %>% unique %>% length <= 1) {
+    p_colony <- "-"
+    r_colony <- "-"
+  } else {
+    res_colony <- adonis_OmegaSq(adonis2(spec_mat_red ~ Colony_ID, df_pcoa_new))
+    p_colony <- round(res_colony$`Pr(>F)`[[1]], 3)
+    r_colony <- round(res_colony$parOmegaSq[[1]], 3)
+  }
+  # write the p and r value results as a df
+  df_stats <- data.frame("species" = spec,
+                         "P-species" = p_species,
+                         "Omega-species" = r_species,
+                         "P-country" = p_country,
+                         "Omega-country" = r_country,
+                         "P-colony" = p_colony,
+                         "Omega-colony" = r_colony,
+                         "N" = dim(spec_mat_red)[[1]]
+                         )
+  write.csv(df_stats, paste0("results/figures/10-strain_nmds_all/", spec,"_stats.csv"), row.names = F, quote = F)
+  # plot NMDS
+  ggplot()+
+    geom_point(data = df_pcoa_new, aes(x = NMDS1,
+                          y = NMDS2,
+                          color = Species,
+                          shape = Country),
+                stat="identity", size = 4) +
+                  ggtitle(paste0(spec)) +
+                  annotate("text",
+                    label = paste0("\n", "\n", "\n", "\n", "\n",
+                           "Species: R2 (omega) = ", r_species, " p = ", p_species, "\n",
+                           "Country: R2 (omega) = ", r_country, " p = ", p_country, "\n",
+                           "Colony: R2 (omega) = ", r_colony, " p = ", p_colony, "\n",
+                           "N = ", dim(spec_mat_red)[[1]], "   ", "stress =", round(nmds$stress, 3)),
+                    x = 0, y = Inf, size = 5, color = "black"
+                  ) +
+                  # geom_text_repel(data = data.frame(), aes(label = paste0("\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n",
+                  #                          "Species: R2 (omega) = ", r_species, "\n   p = ", p_species, "\n",
+                  #                          "Country: R2 (omega) = ", r_country, "\n   p = ", p_country, "\n",
+                  #                          "Colony: R2 (omega) = ", r_colony, "\n   p = ", p_colony),
+                  #                          "N = ", dim(spec_mat_red)[[1]],
+                  #                          x = -Inf, y = Inf
+                  #                          ),
+                  #                 size = 5, color = "black"
+                  # ) +
+                  # stat_ellipse(size = 1) +
+                    # labs(x=axis_x_title, y = axis_y_title, color = "Host") +
+                      scale_color_manual(values = host_order_color_dark) +
+                      make_theme(setFill = F, setCol = F, guide_nrow = 5, leg_size = 10, leg_pos =  "right")
+  ggsave(paste0("results/figures/10-strain_nmds_all/", spec,"_nmds.pdf"), width = 10, height = 10)
+}
+# then run
+# cat results/figures/10-strain_nmds_all/*.csv | head -1 > results/figures/10-strain_nmds_all/all_stats.csv
+# for file in results/figures/10-strain_nmds_all/*.csv; do cat "$file" | tail -n +2 >> results/figures/10-strain_nmds_all/all_stats.csv; done
+```
+
+```{r}
+df_rohdes <- read.csv("results/figures/magotu_rohdes_index.csv", stringsAsFactors = F) %>%
+              left_join(magOTU_tax_info, by = c("X" = "magOTU")) %>%
+              pivot_longer(cols = !c("X", "Genus"), names_to = "type", values_to = "rohdes_index") %>%
+              mutate(specific = ifelse(rohdes_index == 1, "specific", "general")) %>%
+              left_join(df_plot %>% select(MAG_species_name_final, magOTU) %>% unique, by = c("X" = "magOTU")) %>%
+              mutate(X_old = X) %>%
+              mutate(X = MAG_species_name_final)
+species_detected <- df_plot %>%
+                      filter(prevalence_in_host > 0.1) %>%
+                      pull(MAG_species_name_final) %>%
+                      unique()
+df_adonis_data <- read.csv("results/figures/10-strain_nmds_all/all_stats.csv") %>%
+                  # replace - with NA
+                  mutate(P.species = ifelse(P.species == "-", NA, P.species)) %>%
+                  mutate(P.country = ifelse(P.country == "-", NA, P.country)) %>%
+                  # mutate(P.colony = ifelse(P.colony == "-", NA, P.colony)) %>%
+                    left_join(df_rohdes %>%
+                                filter(type == "prev") %>%
+                                select(MAG_species_name_final, rohdes_index), by = c("species" = "MAG_species_name_final")) %>%
+                    # select(species, rohdes_index, P.species, P.country) %>%
+                    select(species, rohdes_index, P.species, P.country, P.colony) %>%
+                    mutate(P.species = ifelse(P.species < 0.05, "Y", "N")) %>%
+                    mutate(P.country = ifelse(P.country < 0.05, "Y", "N")) %>%
+                    mutate(P.colony = ifelse(P.colony < 0.05, "Y", "N")) %>%
+                    pivot_longer(cols = !c("species", "rohdes_index"), names_to = "type", values_to = "p_value") %>%
+                    mutate(specificity = ifelse(rohdes_index == 1, "specific", "general")) %>%
+                    filter(species %in% species_detected) %>%
+                    filter(!is.na(specificity)) %>%
+                    mutate(Genus = strsplit(species, " ") %>% sapply(`[`, 1)) %>%
+                    arrange(Genus, specificity)
+                    # arrange(specificity, species)
+ggplot(df_adonis_data) +
+  geom_tile(aes(y = species,
+                x = type,
+                fill = p_value),
+            color = "black") +
+  scale_fill_manual(na.value = "#ffffff", values = c("N" = "#c6dbef",
+                                                    "Y" = "#08519c"),
+                      ) +
+  make_theme(setFill = F, setCol = F, guide_nrow = 30,
+             y_hj = 1,
+             leg_size = 8, leg_pos =  "right")
+  ggsave("results/figures/10-adonis_p_values_by_genus.pdf", width = 10, height = 10)
+ggplot(df_adonis_data) +
+  geom_tile(aes(y = species,
+                x = type,
+                fill = p_value),
+            color = "black") +
+  facet_wrap(~specificity, scales = "free") +
+  scale_fill_manual(na.value = "#ffffff", values = c("N" = "#c6dbef",
+                                                    "Y" = "#08519c"),
+                      ) +
+  make_theme(setFill = F, setCol = F, guide_nrow = 30,
+             y_hj = 1,
+             leg_size = 8, leg_pos =  "right")
+  ggsave("results/figures/10-adonis_p_values.pdf", width = 10, height = 10)
+
+df_adonis_data <- read.csv("results/figures/10-strain_nmds_IN_MY/all_stats.csv") %>%
+                  # replace - with NA
+                  mutate(P.species = ifelse(P.species == "-", NA, P.species)) %>%
+                  mutate(P.country = ifelse(P.country == "-", NA, P.country)) %>%
+                  # mutate(P.colony = ifelse(P.colony == "-", NA, P.colony)) %>%
+                    left_join(df_rohdes %>%
+                                filter(type == "prev") %>%
+                                select(MAG_species_name_final, rohdes_index), by = c("species" = "MAG_species_name_final")) %>%
+                    # select(species, rohdes_index, P.species, P.country) %>%
+                    select(species, rohdes_index, P.species, P.country, P.colony) %>%
+                    mutate(P.species = ifelse(P.species < 0.05, "Y", "N")) %>%
+                    mutate(P.country = ifelse(P.country < 0.05, "Y", "N")) %>%
+                    mutate(P.colony = ifelse(P.colony < 0.05, "Y", "N")) %>%
+                    pivot_longer(cols = !c("species", "rohdes_index"), names_to = "type", values_to = "p_value") %>%
+                    mutate(specificity = ifelse(rohdes_index == 1, "specific", "general")) %>%
+                    filter(species %in% species_detected) %>%
+                    filter(!is.na(specificity)) %>%
+                    mutate(Genus = strsplit(species, " ") %>% sapply(`[`, 1)) %>%
+                    arrange(Genus, specificity)
+                    # arrange(specificity, species)
+ggplot(df_adonis_data) +
+  geom_tile(aes(y = species,
+                x = type,
+                fill = p_value),
+            color = "black") +
+  scale_fill_manual(na.value = "#ffffff", values = c("N" = "#c6dbef",
+                                                    "Y" = "#08519c"),
+                      ) +
+  make_theme(setFill = F, setCol = F, guide_nrow = 30,
+             y_hj = 1,
+             leg_size = 8, leg_pos =  "right")
+  ggsave("results/figures/10-adonis_p_values_by_genus_IN_MY.pdf", width = 10, height = 10)
+ggplot(df_adonis_data) +
+  geom_tile(aes(y = species,
+                x = type,
+                fill = p_value),
+            color = "black") +
+  facet_wrap(~specificity, scales = "free") +
+  scale_fill_manual(na.value = "#ffffff", values = c("N" = "#c6dbef",
+                                                    "Y" = "#08519c"),
+                      ) +
+  make_theme(setFill = F, setCol = F, guide_nrow = 30,
+             y_hj = 1,
+             leg_size = 8, leg_pos =  "right")
+  ggsave("results/figures/10-adonis_p_values_IN_MY.pdf", width = 10, height = 10)
+
+ggplot(df_adonis_data) +
+  geom_tile(aes(y = species,
+                x = type,
+                fill = p_value),
+            color = "black") +
+  scale_fill_manual(na.value = "#ffffff", values = c("N" = "#c6dbef",
+                                                    "Y" = "#08519c"),
+                      ) +
+  make_theme(setFill = F, setCol = F, guide_nrow = 30,
+             y_hj = 1,
+             leg_size = 8, leg_pos =  "right")
+  ggsave("results/figures/10-adonis_p_values_by_genus_IN_MY.pdf", width = 10, height = 10)
+
+# df_adonis_data_values <- read.csv("results/figures/10-strain_nmds_IN_MY/all_stats.csv") %>%
+#                   # replace - with NA
+#                   mutate(P.species = ifelse(P.species == "-", NA, P.species)) %>%
+#                   mutate(P.country = ifelse(P.country == "-", NA, P.country)) %>%
+#                   # mutate(P.colony = ifelse(P.colony == "-", NA, P.colony)) %>%
+#                     left_join(df_rohdes %>%
+#                                 filter(type == "prev") %>%
+#                                 select(MAG_species_name_final, rohdes_index), by = c("species" = "MAG_species_name_final")) %>%
+#                     # select(species, rohdes_index, P.species, P.country) %>%
+#                     select(species, rohdes_index, P.species, P.country, P.colony) %>%
+#                     mutate(P.species = as.numeric(P.species)) %>%
+#                     mutate(P.country = as.numeric(P.country)) %>%
+#                     # mutate(P.species = ifelse(P.species < 0.05, "Y", "N")) %>%
+#                     # mutate(P.country = ifelse(P.country < 0.05, "Y", "N")) %>%
+#                     # mutate(P.colony = ifelse(P.colony < 0.05, "Y", "N")) %>%
+#                     pivot_longer(cols = !c("species", "rohdes_index"), names_to = "type", values_to = "p_value") %>%
+#                     mutate(specificity = ifelse(rohdes_index == 1, "specific", "general")) %>%
+#                     filter(species %in% species_detected) %>%
+#                     filter(!is.na(specificity)) %>%
+#                     mutate(Genus = strsplit(species, " ") %>% sapply(`[`, 1)) %>%
+#                     arrange(Genus, specificity)
+
+# ggplot(df_adonis_data_values) +
+#   # geom_boxplot(aes(x = p_value, y = Genus, fill = type)) +
+#   geom_point(aes(x = p_value, y = Genus, fill = type)) +
+#   facet_wrap(~type, scales = "free") +
+#   geom_vline(xintercept = 0.05, linetype = "dashed") +
+#   scale_fill_manual(na.value = "#ffffff", values = c("N" = "#c6dbef",
+#                                                     "Y" = "#08519c"),
+#                       ) +
+#   make_theme(setFill = F, setCol = F, guide_nrow = 30,
+#              y_hj = 1,
+#              leg_size = 8, leg_pos =  "right")
+#   ggsave("results/figures/10-adonis_p_values_IN_MY.pdf", width = 10, height = 10)
+
+```
+
+```{r}
+df_all_snp_info <- data.frame()
+for (spec in c("Acinetobacter pollinis",
+                "Apibacter adventoris",
+                "Apibacter sp002964915",
+                "Apilactobacillus apinorum",
+                "Apilactobacillus bombintestini",
+                "Apilactobacillus SGB-72_1",
+                "Apilactobacillus waqarii",
+                "Apilactobacillus zhangqiuensis",
+                "Bartonella_A apis",
+                "Bartonella_A SGB-62_2",
+                "Bartonella_A SGB-65_1",
+                "Bartonella_A SGB-66_1",
+                "Bartonella_A SGB-66_2",
+                "Bartonella_A SGB-67_0",
+                "Bartonella_A SGB-68_0",
+                "Bartonella_A SGB-69_1",
+                "Bartonella_A SGB-70_1",
+                "Bartonella_A sp016100455",
+                "Bartonella_A sp016102285",
+                "Bartonella_A sp945277285",
+                "Bartonella_A sp945285915",
+                "Bifidobacterium apousia",
+                "Bifidobacterium asteroides_A",
+                  "Bifidobacterium asteroides_I",
+                  "Bifidobacterium choladohabitans",
+                "Bifidobacterium indicum",
+                "Bifidobacterium mizhiense",
+                "Bifidobacterium polysaccharolyticum",
+                "Bifidobacterium SGB-4_1",
                 "Bifidobacterium SGB-4_2",
                 "Bifidobacterium SGB-5_1",
                 "Bifidobacterium SGB-5_2",
@@ -194,108 +1096,854 @@ for (spec in c(# "Acinetobacter pollinis",
                 "Zymobacter SGB-44_0"
                 )
             ) {
+              samples_detected <- abundance_df %>% filter(!is.na(magOTU)) %>%
+                                              mutate(detected = ifelse(coverage > 1 & breadth > breadth_cutoff, 1, 0)) %>%
+                                              left_join(handmade_species_names %>% select(MAG_species_name_final, cluster_name_instrain), by = c("magOTU" = "cluster_name_instrain")) %>%
+                                              select(sample, MAG_species_name_final, detected) %>%
+                                              filter(detected == 1) %>%
+                                              filter(MAG_species_name_final == spec) %>%
+                                              pull(sample)
+              snps_info <- read.csv(paste0("results/figures/10-instrain_SNP_summaries/", spec, "/SNP_summary.tsv"), sep = "\t") %>%
+                            mutate(host = Vectorize(get_host_from_sample_name)(sample)) %>%
+                            mutate(colony = Vectorize(get_colony_from_sample_name)(sample)) %>%
+                            mutate(location = Vectorize(get_location_from_sample_name)(sample)) %>%
+                            filter(Positions > 0) %>%
+                            mutate(perc_sites = SNV/Positions*100) %>%
+                            filter(sample %in% samples_detected) %>%
+                            mutate(species = spec)
+              if (dim(snps_info)[1] < 5) {
+                next
+              }
+              df_all_snp_info <- rbind(df_all_snp_info, snps_info)
+              ggplot(snps_info) +
+                geom_boxplot(aes(x = factor(host, host_order), y = perc_sites)) +
+                geom_point(aes(x = factor(host, host_order), y = perc_sites, color = factor(host, host_order), shape = location), size = 3) +
+                # facet_wrap(~location) +
+                ggtitle(paste0(spec)) +
+                scale_color_manual(values = host_order_color_dark) +
+                make_theme(setFill = F, setCol = F, guide_nrow = 30, leg_size = 8, leg_pos =  "right")
+              ggsave(paste0("results/figures/10-instrain_SNP_summaries/", spec, "/SNV_summary.pdf"), width = 10, height = 10)
+            }
+
+
+ggplot(df_all_snp_info) +
+  geom_point(aes(x = perc_sites, y = species, color = host), size = 2, alpha = 0.75) +
+  # facet_wrap(~location) +
+  scale_color_manual(values = host_order_color_dark) +
+  make_theme(setFill = F, setCol = F, 
+              y_hj = 1,
+  guide_nrow = 30, leg_size = 8, leg_pos =  "right")
+ggsave("results/figures/10-instrain_SNP_summaries/all_SNV_summary.pdf", width = 10, height = 10)
+
+
+```
+
+```{r}
+
+# get size of genomes for each species
+df_magotu_sizes <- vis_magOTUs_df %>%
+                    filter(Representative == 1) %>%
+                    left_join(handmade_species_names %>% select(MAG_species_name_final, cluster), by = c("magOTU" = "cluster")) %>%
+                    ungroup() %>%
+                    filter(!is.na(MAG_species_name_final)) %>%
+                    select(MAG_species_name_final, Size) %>%
+                    unique()
+p_list <- list()
+# plot cumulative curves for each species
+for (spec in c("Acinetobacter pollinis",
+                "Apibacter adventoris",
+                "Apibacter sp002964915",
+                "Apilactobacillus apinorum",
+                "Apilactobacillus bombintestini",
+                "Apilactobacillus SGB-72_1",
+                "Apilactobacillus waqarii",
+                "Apilactobacillus zhangqiuensis",
+                "Bartonella_A apis",
+                "Bartonella_A SGB-62_2",
+                "Bartonella_A SGB-65_1",
+                "Bartonella_A SGB-66_1",
+                "Bartonella_A SGB-66_2",
+                "Bartonella_A SGB-67_0",
+                "Bartonella_A SGB-68_0",
+                "Bartonella_A SGB-69_1",
+                "Bartonella_A SGB-70_1",
+                "Bartonella_A sp016100455",
+                "Bartonella_A sp016102285",
+                "Bartonella_A sp945277285",
+                "Bartonella_A sp945285915",
+                "Bifidobacterium apousia",
+                "Bifidobacterium asteroides_A",
+                  "Bifidobacterium asteroides_I",
+                  "Bifidobacterium choladohabitans",
+                "Bifidobacterium indicum",
+                "Bifidobacterium mizhiense",
+                "Bifidobacterium polysaccharolyticum",
+                "Bifidobacterium SGB-4_1",
+                "Bifidobacterium SGB-4_2",
+                "Bifidobacterium SGB-5_1",
+                "Bifidobacterium SGB-5_2",
+                "Bifidobacterium SGB-6_3",
+                "Bifidobacterium SGB-6_4",
+                "Bifidobacterium SGB-6_8",
+                "Bifidobacterium SGB-6_9",
+                "Bifidobacterium SGB-61_0",
+                  "Bifidobacterium SGB-7_1",
+                "Bifidobacterium SGB-8_2",
+                "Bifidobacterium sp000499285",
+                "Bifidobacterium sp945269915",
+                "Bombella SGB-9_1",
+                "Bombella SGB-9_2",
+                "Bombilactobacillus mellifer",
+                "Bombilactobacillus mellifer-22_1",
+                  "Bombilactobacillus mellifer-22_2",
+                  "Bombilactobacillus mellis",
+                "Bombilactobacillus mellis-36_2",
+                  "Bombilactobacillus SGB-22_3",
+                "Bombilactobacillus SGB-35_1",
+                "Bombilactobacillus SGB-37_0",
+                "CALYQJ01 SGB-38_1",
+                  "CALYQJ01 sp945273735",
+                "CALYQJ01 sp945285405",
+                "CALYQQ01 SGB-104_1",
+                "CALYQQ01 SGB-105_1",
+                "CALYQQ01 SGB-105_2",
+                "Commensalibacter SGB-12_0",
+                "Commensalibacter SGB-13_0",
+                "Commensalibacter sp003202795",
+                  "Commensalibacter sp945266285",
+                  "Corynebacterium provencense",
+                "Corynebacterium sp022712275",
+                "Dysgonomonas SGB-15_1",
+                  "Dysgonomonas SGB-17_1",
+                  "Dysgonomonas SGB-17_2",
+                  "Dysgonomonas SGB-18_1",
+                  "Dysgonomonas SGB-20_1",
+                  "Dysgonomonas sp945273835",
+                  "Dysgonomonas sp945292135",
+                  "Enterobacter bugandensis",
+                  "Enterobacter hormaechei_A",
+                "Enterobacter roggenkampii",
+                "Enterobacter vonholyi",
+                  "Entomomonas SGB-51_0",
+                "Entomomonas SGB-52_0",
+                "Entomomonas sp945283395",
+                "Escherichia coli",
+                "Floricoccus SGB-41_0",
+                "Frischella japonica",
+                  "Frischella perrara",
+                "Frischella SGB-92_1",
+                  "Frischella SGB-94_1",
+                  "Fructobacillus pseudoficulneus",
+                  "Gilliamella apicola",
+                  "Gilliamella apicola_E",
+                  "Gilliamella apicola_F",
+                  "Gilliamella apicola_I",
+                  "Gilliamella apicola_J",
+                  "Gilliamella apicola_K",
+                  "Gilliamella apicola_L",
+                  "Gilliamella apicola_N",
+                  "Gilliamella apicola_Q",
+                  "Gilliamella apis",
+                "Gilliamella apis_A",
+                "Gilliamella SGB-76_1",
+                "Gilliamella SGB-78_2",
+                "Gilliamella SGB-79_1",
+                "Gilliamella SGB-82_1",
+                "Gilliamella SGB-83_1",
+                "Gilliamella SGB-86_0",
+                "Gilliamella sp019469185",
+                "Gilliamella sp019469205",
+                "Gilliamella sp945271295",
+                "Hafnia paralvei",
+                "JAATFO01 SGB-106_0",
+                "KAACC-21507 SGB-14_0",
+                "Klebsiella pneumoniae",
+                "Kosakonia oryzae",
+                "Lactobacillus apis",
+                "Lactobacillus helsingborgensis",
+                "Lactobacillus huangpiensis",
+                "Lactobacillus kimbladii_A",
+                "Lactobacillus laiwuensis",
+                "Lactobacillus melliventris",
+                "Lactobacillus panisapium",
+                "Lactobacillus SGB-23_1",
+                "Lactobacillus SGB-28_1",
+                "Lactobacillus SGB-29_1",
+                "Lactobacillus SGB-29_2",
+                "Lactobacillus SGB-30_0",
+                "Lactobacillus SGB-31_1",
+                "Lactobacillus SGB-32_1",
+                "Lactobacillus SGB-33_1",
+                "Lactobacillus SGB-34_1",
+                "Lactobacillus sp016100975",
+                "Lactobacillus sp945290125",
+                "Melissococcus plutonius",
+                "Pantoea dispersa",
+                "Pantoea vagans",
+                "Parolsenella SGB-60_1",
+                "Pectinatus SGB-54_1",
+                "Pluralibacter SGB-98_1",
+                "Q3-R57-64 SGB-48_1",
+                "Rosenbergiella epipactidis",
+                "Saezia SGB-47_1",
+                "Saezia SGB-49_1",
+                "Snodgrassella alvi",
+                "Snodgrassella alvi_E",
+                "Snodgrassella alvi_G",
+                "Snodgrassella SGB-56_2",
+                "Snodgrassella SGB-58_1",
+                "Snodgrassella sp945267035",
+                "Spiroplasma melliferum",
+                "WRHT01 SGB-1_1",
+                "Zymobacter SGB-110_0",
+                "Zymobacter SGB-42_0",
+                "Zymobacter SGB-43_0",
+                "Zymobacter SGB-44_0"
+                )
+            ) {
+              # plot cumulative curves for each species and put them in the same PDF
+              # spec = "Bombilactobacillus mellis"
+              df_cum_curve <- read.csv(paste0("results/figures/10-instrain_SNP_summaries/", spec, "/cumulative_SNPs.tsv"), sep = "\t") %>%
+                              mutate(species = spec) %>%
+                              left_join(df_magotu_sizes, by = c("species" = "MAG_species_name_final")) %>%
+                              mutate(perc_var = number_of_SNPs/Size*100)
+              # if there is only one sample, skip it - todo
+              max_num <- df_cum_curve %>%
+                          pull(number_of_samples) %>%
+                          unique() %>%
+                          max()
+              if (max_num < 5) {
+                next
+              }
+              p <- ggplot(df_cum_curve,
+                          aes(x = number_of_samples,
+                              # y = number_of_SNPs,
+                              y = perc_var,
+                              color = factor(host))
+              ) +
+                geom_point(size = 2, alpha = 0.75) +
+                ggtitle(paste0(spec)) +
+                scale_color_manual(values = host_order_color_dark) +
+                geom_smooth(method = "loess", se = F,) +
+                xlim(0, 40) +
+                make_theme(setFill = F, setCol = F, guide_nrow = 30, leg_size = 8, leg_pos =  "right")
+              p_list[[spec]] <- p
+            }
+# pdf("results/figures/10-instrain_SNP_summaries/all_cumulative_SNPs.pdf", width = 10, height = 10)
+# marrangeGrob(p_list, nrow = 4, ncol = 2)
+# dev.off()
+pdf("results/figures/10-instrain_SNP_summaries/all_cumulative_SNPs_perc.pdf", width = 10, height = 10)
+marrangeGrob(p_list, nrow = 4, ncol = 2)
+dev.off()
+```
+
+```{r}
+# plot perc variable sites per sample for each species faceted by genus
+df_snp_info_all_spec <- data.frame()
+df_cum_snps_all_spec <- data.frame()
+for (spec in c("Acinetobacter pollinis",
+                "Apibacter adventoris",
+                "Apibacter sp002964915",
+                "Apilactobacillus apinorum",
+                "Apilactobacillus bombintestini",
+                "Apilactobacillus SGB-72_1",
+                "Apilactobacillus waqarii",
+                "Apilactobacillus zhangqiuensis",
+                "Bartonella_A apis",
+                "Bartonella_A SGB-62_2",
+                "Bartonella_A SGB-65_1",
+                "Bartonella_A SGB-66_1",
+                "Bartonella_A SGB-66_2",
+                "Bartonella_A SGB-67_0",
+                "Bartonella_A SGB-68_0",
+                "Bartonella_A SGB-69_1",
+                "Bartonella_A SGB-70_1",
+                "Bartonella_A sp016100455",
+                "Bartonella_A sp016102285",
+                "Bartonella_A sp945277285",
+                "Bartonella_A sp945285915",
+                "Bifidobacterium apousia",
+                "Bifidobacterium asteroides_A",
+                  "Bifidobacterium asteroides_I",
+                  "Bifidobacterium choladohabitans",
+                "Bifidobacterium indicum",
+                "Bifidobacterium mizhiense",
+                "Bifidobacterium polysaccharolyticum",
+                "Bifidobacterium SGB-4_1",
+                "Bifidobacterium SGB-4_2",
+                "Bifidobacterium SGB-5_1",
+                "Bifidobacterium SGB-5_2",
+                "Bifidobacterium SGB-6_3",
+                "Bifidobacterium SGB-6_4",
+                "Bifidobacterium SGB-6_8",
+                "Bifidobacterium SGB-6_9",
+                "Bifidobacterium SGB-61_0",
+                  "Bifidobacterium SGB-7_1",
+                "Bifidobacterium SGB-8_2",
+                "Bifidobacterium sp000499285",
+                "Bifidobacterium sp945269915",
+                "Bombella SGB-9_1",
+                "Bombella SGB-9_2",
+                "Bombilactobacillus mellifer",
+                "Bombilactobacillus mellifer-22_1",
+                  "Bombilactobacillus mellifer-22_2",
+                  "Bombilactobacillus mellis",
+                "Bombilactobacillus mellis-36_2",
+                  "Bombilactobacillus SGB-22_3",
+                "Bombilactobacillus SGB-35_1",
+                "Bombilactobacillus SGB-37_0",
+                "CALYQJ01 SGB-38_1",
+                  "CALYQJ01 sp945273735",
+                "CALYQJ01 sp945285405",
+                "CALYQQ01 SGB-104_1",
+                "CALYQQ01 SGB-105_1",
+                "CALYQQ01 SGB-105_2",
+                "Commensalibacter SGB-12_0",
+                "Commensalibacter SGB-13_0",
+                "Commensalibacter sp003202795",
+                  "Commensalibacter sp945266285",
+                  "Corynebacterium provencense",
+                "Corynebacterium sp022712275",
+                "Dysgonomonas SGB-15_1",
+                  "Dysgonomonas SGB-17_1",
+                  "Dysgonomonas SGB-17_2",
+                  "Dysgonomonas SGB-18_1",
+                  "Dysgonomonas SGB-20_1",
+                  "Dysgonomonas sp945273835",
+                  "Dysgonomonas sp945292135",
+                  "Enterobacter bugandensis",
+                  "Enterobacter hormaechei_A",
+                "Enterobacter roggenkampii",
+                "Enterobacter vonholyi",
+                  "Entomomonas SGB-51_0",
+                "Entomomonas SGB-52_0",
+                "Entomomonas sp945283395",
+                "Escherichia coli",
+                "Floricoccus SGB-41_0",
+                "Frischella japonica",
+                  "Frischella perrara",
+                "Frischella SGB-92_1",
+                  "Frischella SGB-94_1",
+                  "Fructobacillus pseudoficulneus",
+                  "Gilliamella apicola",
+                  "Gilliamella apicola_E",
+                  "Gilliamella apicola_F",
+                  "Gilliamella apicola_I",
+                  "Gilliamella apicola_J",
+                  "Gilliamella apicola_K",
+                  "Gilliamella apicola_L",
+                  "Gilliamella apicola_N",
+                  "Gilliamella apicola_Q",
+                  "Gilliamella apis",
+                "Gilliamella apis_A",
+                "Gilliamella SGB-76_1",
+                "Gilliamella SGB-78_2",
+                "Gilliamella SGB-79_1",
+                "Gilliamella SGB-82_1",
+                "Gilliamella SGB-83_1",
+                "Gilliamella SGB-86_0",
+                "Gilliamella sp019469185",
+                "Gilliamella sp019469205",
+                "Gilliamella sp945271295",
+                "Hafnia paralvei",
+                "JAATFO01 SGB-106_0",
+                "KAACC-21507 SGB-14_0",
+                "Klebsiella pneumoniae",
+                "Kosakonia oryzae",
+                "Lactobacillus apis",
+                "Lactobacillus helsingborgensis",
+                "Lactobacillus huangpiensis",
+                "Lactobacillus kimbladii_A",
+                "Lactobacillus laiwuensis",
+                "Lactobacillus melliventris",
+                "Lactobacillus panisapium",
+                "Lactobacillus SGB-23_1",
+                "Lactobacillus SGB-28_1",
+                "Lactobacillus SGB-29_1",
+                "Lactobacillus SGB-29_2",
+                "Lactobacillus SGB-30_0",
+                "Lactobacillus SGB-31_1",
+                "Lactobacillus SGB-32_1",
+                "Lactobacillus SGB-33_1",
+                "Lactobacillus SGB-34_1",
+                "Lactobacillus sp016100975",
+                "Lactobacillus sp945290125",
+                "Melissococcus plutonius",
+                "Pantoea dispersa",
+                "Pantoea vagans",
+                "Parolsenella SGB-60_1",
+                "Pectinatus SGB-54_1",
+                "Pluralibacter SGB-98_1",
+                "Q3-R57-64 SGB-48_1",
+                "Rosenbergiella epipactidis",
+                "Saezia SGB-47_1",
+                "Saezia SGB-49_1",
+                "Snodgrassella alvi",
+                "Snodgrassella alvi_E",
+                "Snodgrassella alvi_G",
+                "Snodgrassella SGB-56_2",
+                "Snodgrassella SGB-58_1",
+                "Snodgrassella sp945267035",
+                "Spiroplasma melliferum",
+                "WRHT01 SGB-1_1",
+                "Zymobacter SGB-110_0",
+                "Zymobacter SGB-42_0",
+                "Zymobacter SGB-43_0",
+                "Zymobacter SGB-44_0"
+                )
+            ) {
+        samples_detected <- abundance_df %>% filter(!is.na(magOTU)) %>%
+                                              mutate(detected = ifelse(coverage > 1 & breadth > breadth_cutoff, 1, 0)) %>%
+                                              left_join(handmade_species_names %>% select(MAG_species_name_final, cluster_name_instrain), by = c("magOTU" = "cluster_name_instrain")) %>%
+                                              select(sample, MAG_species_name_final, detected) %>%
+                                              filter(detected == 1) %>%
+                                              filter(MAG_species_name_final == spec) %>%
+                                              pull(sample)
+        df_snp_info <- read.csv(paste0("results/figures/10-instrain_SNP_summaries/", spec, "/SNP_summary.tsv"), sep = "\t") %>%
+                        mutate(perc_var = (SNV+con_SNV+pop_SNV) / Positions * 100) %>%
+                        mutate(species = spec) %>%
+                        mutate(Genus = strsplit(species, " ") %>% sapply(`[`, 1)) %>%
+                        filter(!is.na(Genus)) %>%
+                        select(sample, Positions, perc_var, Genus, species) %>%
+                        filter(sample %in% samples_detected) %>%
+                        mutate(host = Vectorize(get_host_from_sample_name)(sample))
+        df_snp_info_all_spec <- rbind(df_snp_info_all_spec, df_snp_info)
+        df_cum_snps <- read.csv(paste0("results/figures/10-instrain_SNP_summaries/", spec, "/cumulative_SNPs.tsv"), sep = "\t")
+        max_samples <- df_cum_snps %>%
+                        pull(number_of_samples) %>%
+                        unique() %>%
+                        max()
+        df_cum_snps_spec <- df_cum_snps %>%
+                        filter(number_of_samples == max_samples) %>%
+                        reframe(host, max_snps = max(number_of_SNPs), mean_snps = mean(number_of_SNPs)) %>%
+                        unique() %>%
+                        mutate(species = spec)
+        df_cum_snps_all_spec <- rbind(df_cum_snps_all_spec, df_cum_snps_spec)
+                        
+}
+
+ggplot(df_snp_info_all_spec) +
+  geom_point(aes(x = species, y = perc_var, color = host, group = host), size = 1, alpha = 0.75) +
+  geom_boxplot(aes(x = species, y = perc_var, fill = host), alpha = 1, outlier.shape = NA) +
+  facet_wrap(~Genus, scales = "free_x") +
+  scale_color_manual(values = host_order_color_dark) +
+  scale_fill_manual(values = host_order_color_dark) +
+  make_theme(setFill = F, setCol = F, 
+              y_hj = 1,
+              x_angle = 60, x_size = 5, x_hj = 1, x_vj = 1,
+  guide_nrow = 30, leg_size = 8, leg_pos =  "right")
+  ggsave("results/figures/10-figures/SNV_perc_all.pdf", width = 30, height = 15)
+
+ggplot(df_snp_info_all_spec %>%
+        group_by(species, host) %>%
+        mutate(num_sample = n_distinct(sample)) %>%
+        ungroup() %>%
+        filter(num_sample > 5)
+) +
+  geom_point(aes(x = species, y = perc_var, color = host, group = interaction(x, host)), size = 1, alpha = 0.75) +
+  geom_boxplot(aes(x = species, y = perc_var, fill = host), alpha = 1, outlier.shape = NA) +
+  facet_wrap(~Genus, scales = "free_x") +
+  scale_color_manual(values = host_order_color_dark) +
+  scale_fill_manual(values = host_order_color_dark) +
+  make_theme(setFill = F, setCol = F, 
+              y_hj = 1,
+              x_angle = 60, x_size = 5, x_hj = 1, x_vj = 1,
+  guide_nrow = 30, leg_size = 8, leg_pos =  "right")
+  ggsave("results/figures/10-figures/SNV_perc_gtr5_samples.pdf", width = 30, height = 15)
+
+ggplot(df_snp_info_all_spec %>%
+        group_by(species) %>%
+        mutate(num_host = n_distinct(host)) %>%
+        ungroup() %>%
+        filter(num_host > 1) %>%
+        group_by(species, host) %>%
+        mutate(num_sample = n_distinct(sample)) %>%
+        ungroup() %>%
+        filter(num_sample > 5)
+) +
+  geom_boxplot(aes(x = species, y = perc_var, fill = host), alpha = 0.5, outlier.shape = NA) +
+  geom_point(aes(x = species, y = perc_var, color = host, group = interaction(x, host)), 
+              size = 0.5, alpha = 0.75, position = position_dodge(width=0.75),
+              ) +
+  facet_grid(~Genus, scales = "free", space = "free") +
+  scale_color_manual(values = host_order_color_dark) +
+  scale_fill_manual(values = host_order_color_dark) +
+  make_theme(setFill = F, setCol = F, 
+              y_hj = 1,
+              x_angle = 60, x_size = 5, x_hj = 1, x_vj = 1,
+  guide_nrow = 30, leg_size = 8, leg_pos =  "right")
+  ggsave("results/figures/10-figures/SNV_perc_shared_species.pdf", width = 30, height = 15)
+
+ggplot(df_snp_info_all_spec %>%
+        group_by(species, host) %>%
+        mutate(num_sample = n_distinct(sample)) %>%
+        ungroup() %>%
+        filter(num_sample > 5)
+) +
+  geom_boxplot(aes(x = species, y = perc_var, fill = host), alpha = 0.5, outlier.shape = NA) +
+  geom_point(aes(x = species, y = perc_var, color = host, group = interaction(x, host)), 
+              size = 0.5, alpha = 0.75, position = position_dodge(width=0.75),
+              ) +
+  facet_grid(~Genus, scales = "free", space = "free") +
+  scale_color_manual(values = host_order_color_dark) +
+  scale_fill_manual(values = host_order_color_dark) +
+  make_theme(setFill = F, setCol = F, 
+              y_hj = 1,
+              x_angle = 60, x_size = 5, x_hj = 1, x_vj = 1,
+  guide_nrow = 30, leg_size = 8, leg_pos =  "right")
+  ggsave("results/figures/10-figures/SNV_perc_all_species.pdf", width = 30, height = 15)
+
+# add a dot for cumulative snps for each species
+
+df_snps_plot <- df_snp_info_all_spec %>%
+        group_by(species, host) %>%
+        mutate(num_sample = n_distinct(sample)) %>%
+        ungroup() %>%
+        filter(num_sample > 5) %>%
+        left_join(df_cum_snps_all_spec, by = c("species" = "species", "host" = "host")) %>%
+        ungroup() %>%
+        group_by(species) %>%
+        mutate(positions_mean = mean(Positions)) %>%
+        mutate(perc_var_cum = max_snps/positions_mean*100)
+ggplot(df_snps_plot) +
+  geom_boxplot(aes(x = species, y = perc_var, fill = host), outlier.shape = NA) +
+  geom_point(aes(x = species, y = perc_var, color = host, group = interaction(x, host)), 
+              size = 0.5, alpha = 0.75, position = position_dodge(width=0.75),
+              ) +
+  geom_point(aes(x = species, y = perc_var_cum, fill = host, group = interaction(x, host)),
+              color = "black", alpha = 0.1, size = 2, shape = 23, position = position_dodge(width=0.75)) +
+  facet_grid(~Genus, scales = "free", space = "free") +
+  scale_color_manual(values = host_order_color_dark) +
+  scale_fill_manual(values = host_order_color_dark) +
+  make_theme(setFill = F, setCol = F, 
+              y_hj = 1,
+              x_angle = 60, x_size = 5, x_hj = 1, x_vj = 1,
+  guide_nrow = 30, leg_size = 8, leg_pos =  "right")
+  ggsave("results/figures/10-figures/SNV_perc_all_species_with_cum.pdf", width = 30, height = 15)
+```
+
+# Plot average strain-level diversity
+
+```{r}
+# for each host, get the mean perc_var for each species
+# boxplot with perc var on the y axis, host on the x axis, species as the points
+host_order_spl <- c("Apis dorsata",
+                    "Apis mellifera",
+                    "Apis andreniformis",
+                    "Apis cerana",
+                    "Apis florea"
+)
+shared_genera <- c("Bartonella_A",
+                  "Bifidobacterium",
+                  "Bombilactobacillus",
+                  "Gilliamella",
+                  "Lactobacillus",
+                  "CALYQJ01",    
+                  "Snodgrassella",
+                  "Frischella")
+df_mean_snp_per_spec <- df_snp_info_all_spec %>%
+  # filter(Genus %in% shared_genera) %>%
+  mutate(Genus = ifelse(Genus == "Bartonella_A", "Bartonella", Genus)) %>%
+  # # only keep samples in whicht he species can be considered detected
+  # left_join(df_plot %>% select(sample, MAG_species_name_final, coverage), by = c("species" = "MAG_species_name_final", "sample" = "sample")) %>% view
+  group_by(species, host) %>%
+    mutate(num_sample = n_distinct(sample)) %>%
+    ungroup() %>%
+    filter(num_sample > 5) %>%
+    group_by(species, host) %>%
+    mutate(mean_perc_var = mean(perc_var)) %>%
+    ungroup() %>%
+    group_by(Genus) %>%
+    mutate(num_host_genus = n_distinct(host)) %>%
+    filter(num_host_genus > 1) %>%
+    ungroup() %>%
+    group_by(Genus, host) %>%
+    mutate(mean_perc_var_genus = mean(mean_perc_var))
+
+ggplot(unique(df_mean_snp_per_spec %>% select(Genus, sample, host, perc_var))) +
+  # geom_boxplot(aes(x = factor(host, host_order_spl), y = perc_var), outlier.shape = NA) +
+  geom_boxplot(aes(x = factor(host, host_order_spl), y = perc_var, fill = factor(host, host_order_spl)), outlier.shape = NA) +
+  geom_point(aes(x = factor(host, host_order_spl), y = perc_var, group = interaction(x, host)), 
+              size = 1
+              ) +
+  # geom_point(aes(x = factor(host, host_order_spl), y = perc_var, color = Genus, group = interaction(x, host)), 
+  #             size = 3
+  #             ) +
+  # geom_line(aes(x = factor(host, host_order_spl), y = perc_var, group = Genus), color = "black", size = 0.5) +
+  scale_fill_manual(values = host_order_color_dark) +
+  # new_scale_fill() +
+  # geom_point(aes(x = factor(host, host_order_spl), y = perc_var,
+  #                fill = Genus,
+  #                group = interaction(x, host)), 
+  #                color = "#000000",
+  #             size = 2, position = position_jitter(width = 0.05), alpha = 0.5, shape = 21
+  #             ) +
+  # scale_fill_manual(values = genusColorsClean) +
+  facet_wrap(~Genus, scales = "free_y") +
+  # facet_grid(~Genus, space = "free", scales = "free_y") +
+  geom_signif(aes(x = factor(host, host_order_spl), y = perc_var,
+                  y_position = 0.8),
+              test = "wilcox.test",
+              step_increase = 0.05,
+              tip_length = 0.01,
+              comparisons = list(c("Apis mellifera", "Apis dorsata")),
+                map_signif_level = TRUE, textsize = 3, vjust = 0.2) +
+  geom_signif(aes(x = factor(host, host_order_spl), y = perc_var,
+                  y_position = 1.02),
+              test = "wilcox.test",
+              step_increase = 0.05,
+              tip_length = 0.01,
+              comparisons = list(c("Apis mellifera", "Apis cerana")),
+                map_signif_level = TRUE, textsize = 3, vjust = 0.2) +
+  geom_signif(aes(x = factor(host, host_order_spl), y = perc_var,
+                  y_position = 1.06),
+              test = "wilcox.test",
+              step_increase = 0.05,
+              tip_length = 0.01,
+              comparisons = list(c("Apis dorsata", "Apis cerana")),
+                map_signif_level = TRUE, textsize = 3, vjust = 0.2) +
+  geom_signif(aes(x = factor(host, host_order_spl), y = perc_var,
+                  y_position = 2),
+              test = "wilcox.test",
+              step_increase = 0.05,
+              tip_length = 0.01,
+              comparisons = list(c("Apis andreniformis", "Apis cerana")),
+                map_signif_level = TRUE, textsize = 3, vjust = 0.2) +
+  geom_signif(aes(x = factor(host, host_order_spl), y = perc_var,
+                  y_position = 2.04),
+              test = "wilcox.test",
+              step_increase = 0.05,
+              tip_length = 0.01,
+              comparisons = list(c("Apis andreniformis", "Apis florea")),
+                map_signif_level = TRUE, textsize = 3, vjust = 0.2) +
+  geom_signif(aes(x = factor(host, host_order_spl), y = perc_var,
+                  y_position = 2.04),
+              test = "wilcox.test",
+              step_increase = 0.05,
+              tip_length = 0.01,
+              comparisons = list(c("Apis cerana", "Apis florea")),
+                map_signif_level = TRUE, textsize = 3, vjust = 0.2) +
+  make_theme(setFill = F, setCol = F, 
+              y_hj = 1,
+              x_angle = 60, x_size = 10, x_hj = 1, x_vj = 1,
+  guide_nrow = 20, leg_size = 8, leg_pos =  "right")
+  ggsave("results/figures/10-figures/SNV_mean_perc_per_host.pdf", width = 10, height = 15)
+
+
+df_mean_snp_per_spec_high_cov <- df_snp_info_all_spec %>%
+  # filter(Genus %in% shared_genera) %>%
+  mutate(Genus = ifelse(Genus == "Bartonella_A", "Bartonella", Genus)) %>%
+  # # only keep samples in whicht he species can be considered detected
+  left_join(df_plot %>% select(sample, MAG_species_name_final, coverage), by = c("species" = "MAG_species_name_final", "sample" = "sample")) %>%
+  filter(coverage > 20) %>%
+  group_by(species, host) %>%
+    mutate(num_sample = n_distinct(sample)) %>%
+    ungroup() %>%
+    filter(num_sample > 5) %>%
+    group_by(species, host) %>%
+    mutate(mean_perc_var = mean(perc_var)) %>%
+    ungroup() %>%
+    group_by(Genus) %>%
+    mutate(num_host_genus = n_distinct(host)) %>%
+    filter(num_host_genus > 1) %>%
+    ungroup() %>%
+    group_by(Genus, host) %>%
+    mutate(mean_perc_var_genus = mean(mean_perc_var))
+
+ggplot(unique(df_mean_snp_per_spec_high_cov %>% select(Genus, sample, host, perc_var))) +
+  # geom_boxplot(aes(x = factor(host, host_order_spl), y = perc_var), outlier.shape = NA) +
+  geom_boxplot(aes(x = factor(host, host_order_spl), y = perc_var, fill = factor(host, host_order_spl)), outlier.shape = NA) +
+  geom_point(aes(x = factor(host, host_order_spl), y = perc_var, group = interaction(x, host)), 
+              size = 1
+              ) +
+  # geom_point(aes(x = factor(host, host_order_spl), y = perc_var, color = Genus, group = interaction(x, host)), 
+  #             size = 3
+  #             ) +
+  # geom_line(aes(x = factor(host, host_order_spl), y = perc_var, group = Genus), color = "black", size = 0.5) +
+  scale_fill_manual(values = host_order_color_dark) +
+  # new_scale_fill() +
+  # geom_point(aes(x = factor(host, host_order_spl), y = perc_var,
+  #                fill = Genus,
+  #                group = interaction(x, host)), 
+  #                color = "#000000",
+  #             size = 2, position = position_jitter(width = 0.05), alpha = 0.5, shape = 21
+  #             ) +
+  # scale_fill_manual(values = genusColorsClean) +
+  facet_wrap(~Genus, scales = "free_y") +
+  # facet_grid(~Genus, space = "free", scales = "free_y") +
+  geom_signif(aes(x = factor(host, host_order_spl), y = perc_var,
+                  y_position = 0.8),
+              test = "wilcox.test",
+              step_increase = 0.05,
+              tip_length = 0.01,
+              comparisons = list(c("Apis mellifera", "Apis dorsata")),
+                map_signif_level = TRUE, textsize = 3, vjust = 0.2) +
+  geom_signif(aes(x = factor(host, host_order_spl), y = perc_var,
+                  y_position = 1.02),
+              test = "wilcox.test",
+              step_increase = 0.05,
+              tip_length = 0.01,
+              comparisons = list(c("Apis mellifera", "Apis cerana")),
+                map_signif_level = TRUE, textsize = 3, vjust = 0.2) +
+  geom_signif(aes(x = factor(host, host_order_spl), y = perc_var,
+                  y_position = 1.06),
+              test = "wilcox.test",
+              step_increase = 0.05,
+              tip_length = 0.01,
+              comparisons = list(c("Apis dorsata", "Apis cerana")),
+                map_signif_level = TRUE, textsize = 3, vjust = 0.2) +
+  geom_signif(aes(x = factor(host, host_order_spl), y = perc_var,
+                  y_position = 2),
+              test = "wilcox.test",
+              step_increase = 0.05,
+              tip_length = 0.01,
+              comparisons = list(c("Apis andreniformis", "Apis cerana")),
+                map_signif_level = TRUE, textsize = 3, vjust = 0.2) +
+  geom_signif(aes(x = factor(host, host_order_spl), y = perc_var,
+                  y_position = 2.04),
+              test = "wilcox.test",
+              step_increase = 0.05,
+              tip_length = 0.01,
+              comparisons = list(c("Apis andreniformis", "Apis florea")),
+                map_signif_level = TRUE, textsize = 3, vjust = 0.2) +
+  geom_signif(aes(x = factor(host, host_order_spl), y = perc_var,
+                  y_position = 2.04),
+              test = "wilcox.test",
+              step_increase = 0.05,
+              tip_length = 0.01,
+              comparisons = list(c("Apis cerana", "Apis florea")),
+                map_signif_level = TRUE, textsize = 3, vjust = 0.2) +
+  make_theme(setFill = F, setCol = F, 
+              y_hj = 1,
+              x_angle = 60, x_size = 10, x_hj = 1, x_vj = 1,
+  guide_nrow = 20, leg_size = 8, leg_pos =  "right")
+  ggsave("results/figures/10-figures/SNV_mean_perc_per_host_high_cov_20.pdf", width = 10, height = 15)
+
+
+# plot coverage vs num_var sites to check if there is a correlation per species
+ggplot(df_mean_snp_per_spec %>%
+        left_join(df_plot %>% select(sample, MAG_species_name_final, coverage), by = c("species" = "MAG_species_name_final", "sample" = "sample")) %>%
+        filter(coverage > 0)
+        ) +
+  geom_point(aes(x = coverage, y = perc_var, color = host, group = host), size = 1, alpha = 0.75) +
+  # fit linear
+  geom_smooth(aes(x = coverage, y = perc_var), color = "#000000", method = "lm", se = F) +
+  geom_smooth(aes(x = coverage, y = perc_var, color = host), method = "lm", se = F) +
+  facet_wrap(~Genus, scales = "free_x") +
+  scale_color_manual(values = host_order_color_dark) +
+  scale_x_continuous(trans = "log10") +
+  make_theme(setFill = F, setCol = F, 
+              y_hj = 1,
+              x_angle = 60, x_size = 5, x_hj = 1, x_vj = 1,
+  guide_nrow = 10, leg_size = 8, leg_pos =  "right")
+  ggsave("results/figures/10-figures/SNV_coverage_vs_perc_var.pdf", width = 30, height = 15)
+
+# plot coverage vs num_var sites to check if there is a correlation per species
+ggplot(df_mean_snp_per_spec %>%
+        left_join(df_plot %>% select(sample, MAG_species_name_final, coverage), by = c("species" = "MAG_species_name_final", "sample" = "sample")) %>%
+        filter(coverage > 20)
+        ) +
+  geom_point(aes(x = coverage, y = perc_var, color = host, group = host), size = 1, alpha = 0.75) +
+  # fit linear
+  geom_smooth(aes(x = coverage, y = perc_var), color = "#000000", method = "lm", se = F) +
+  geom_smooth(aes(x = coverage, y = perc_var, color = host), method = "lm", se = F) +
+  facet_wrap(~Genus, scales = "free_x") +
+  scale_color_manual(values = host_order_color_dark) +
+  scale_x_continuous(trans = "log10") +
+  make_theme(setFill = F, setCol = F, 
+              y_hj = 1,
+              x_angle = 60, x_size = 5, x_hj = 1, x_vj = 1,
+  guide_nrow = 10, leg_size = 8, leg_pos =  "right")
+  ggsave("results/figures/10-figures/SNV_coverage_vs_perc_var_high_cov_20.pdf", width = 30, height = 15)
+```
+
+# Plot p values
+
+```{r}
+# run adonis with species and colony nested within location each
+# and make a heatmap of the pvalue significane (Y/N) for each.
+df_comp <- read.csv("results/10_instrain/03_instrain_compare/20230313_MAGs_rep_db/output/Bombilactobacillus_mellis_genomeWide_compare.tsv", sep = "\t") %>%
+              # filter(percent_compared > 0.75) %>%
+              filter(coverage_overlap > 0.5) %>%
+              left_join(handmade_species_names %>% select(RepMAG, MAG_species_name_final, MAG_species_name_final_nospace, cluster_name_instrain), by = c("genome" = "RepMAG")) %>%
+              mutate(name1 = Vectorize(clean_bam_name)(name1)) %>%
+              mutate(name2 = Vectorize(clean_bam_name)(name2)) %>%
+              filter(name1 %in% samples_IN_MY) %>%
+              filter(name2 %in% samples_IN_MY)
+# spec = "Bombilactobacillus mellifer-22_2"
+for (spec in long_species_list) {
   spec_formatted <- str_replace(spec, "\ ", "\\\\ ")
-  # sort(unique(df_comp$MAG_species_name_final))
-  df_com_spec <- df_comp %>%
-                  filter(MAG_species_name_final == spec)
-  if (dim(df_com_spec)[[1]] <= 3) {
+  samples_with_species <- df_plot %>% filter(MAG_species_name_final == spec) %>% select(sample) %>% pull()
+  if (length(samples_with_species) == 0) {
+    print("Skipping")
     next
   }
-  write.csv(df_com_spec, paste0("results/figures/instrain_comp_mat/", spec, "_instrain_comp_info.csv"), row.names = F, quote = F)
-  system(paste0("source ~/.bashrc && conda activate 20230313_scripts_env && python3 scripts/visualization/parse_popani_mat.py -i results/figures/instrain_comp_mat/", spec_formatted, "_instrain_comp_info.csv"))
-  df_mat <- read.csv(paste0("results/figures/instrain_comp_mat/", spec, "_instrain_comp_info_parsed.csv"), stringsAsFactors = F, check.names= F)
+  df_com_spec <- df_comp %>%
+                  filter(MAG_species_name_final == spec) %>%
+                  # remove samples in which the species is not detected
+                  filter(name1 %in% samples_with_species) %>%
+                  filter(name2 %in% samples_with_species)
+  if (dim(df_com_spec)[[1]] <= 3) {
+    print("Skipping")
+    next
+  }
+  print(spec)
+  # write the comparison info and parse it using python script to get the matrix
+  write.csv(df_com_spec, paste0("results/figures/10-strain_nmds_IN_MY_nested_stats/", spec, "_instrain_comp_info.csv"), row.names = F, quote = F)
+  system(paste0("source ~/.bashrc && conda activate 20230313_scripts_env && python3 scripts/visualization/parse_popani_mat.py -i results/figures/10-strain_nmds_IN_MY_nested_stats/", spec_formatted, "_instrain_comp_info.csv"))
+  df_mat <- read.csv(paste0("results/figures/10-strain_nmds_IN_MY_nested_stats/", spec, "_instrain_comp_info_parsed.csv"), stringsAsFactors = F, check.names= F)
   colnames(df_mat) <- c("row", colnames(df_mat)[-1])
   df_mat <-  df_mat %>%
               column_to_rownames("row")
+  # as it is a dissimilarity matrix, replace NA with 2 (a value that is larger than the largest dissimilarities)
+  # df_mat[is.na(df_mat)] = 1
+  # # only keep rows and cols with at least n_min non-NA values
+  n_max = dim(df_mat)[[1]]
+  spec_num = 5
+  spec_num = length(unique(rownames(df_mat) %>% as.data.frame() %>% mutate(host = Vectorize(get_host_from_sample_name)(.)) %>% pull(host)))
+  if (spec_num == 1) {
+    n_min = floor(n_max/2)
+  } else {
+    #  this allows us to keep those rows with large chunk of NA values
+    #  on account of having a different strain composition than the other specie(s)
+    n_min = floor(n_max/spec_num)
+    if (spec %in% c("Bifidobacterium SGB-6_4", "Bifidobacterium SGB-6_8")) {
+      # this is because even though we have andreni and florea,
+      # andreni is only in one of the sub-clusters of florea
+      # leading to too many NAs so considering the cutoff with 2 species
+      n_min = floor(n_max/2)
+    }
+    if (spec %in% c("Bifidobacterium sp000499285")) {
+      # this is because even though we have andreni and florea,
+      # andreni is only in one of the sub-clusters of florea
+      # leading to too many NAs so considering the cutoff with 2 species
+      n_min = floor(n_max/3)
+    }
+    if (spec %in% c("Lactobacillus sp945290125")) {
+      # the lacto Lactobacillus sp945290125 has 3 clusters
+      # even though there is m, c f and a, one cluster has f,c close
+      # floor(n_max/3) was 47 but only 48 worked
+      n_min = 48
+    }
+  }
+  df_mat <- df_mat[rowSums(!is.na(df_mat))>=n_min , colSums(!is.na(df_mat))>=n_min]
+  if (dim(df_mat)[[1]] == 0) {
+    print("Skipping")
+    next
+  }
   spec_mat <- df_mat %>% 
               # filter(row.names(.) %in% samples_IN_MY) %>%
               filter(row.names(.) %in% samples) %>%
                 as.matrix
   spec_mat <- spec_mat[, rownames(spec_mat)]
+  spec_mat[is.na(spec_mat)] = 1
   host_names <- rownames(spec_mat) %>% as.data.frame() %>% mutate(host = Vectorize(get_host_from_sample_name)(.)) %>% pull(host)
   colony_names <- rownames(spec_mat) %>% as.data.frame() %>% left_join(df_meta_complete %>% select(ID, Colony_ID), by = c("." = "ID")) %>% pull(Colony_ID)
-  get_colony_num <- function(x) {
-    if (grepl("AcCh", x)) {
-      return("AcCh")
-    }
-    if (grepl("AcKn", x)) {
-      return("AcCh")
-    }
-    if (grepl("AmAi", x)) {
-      return("AmAi")
-    }
-    if (grepl("AmIu", x)) {
-      return("AmIu")
-    }
-    if (grepl("DrY1", x)) {
-      return("DrY1")
-    }
-    if (grepl("DrY2", x)) {
-      return("DrY2")
-    }
-    if (grepl("GrY2", x)) {
-      return("GrY2")
-    }
-    return(strsplit(x, "-")[[1]][[2]])
-  }
   colony_num_names <- rownames(spec_mat) %>% as.data.frame() %>% left_join(df_meta_complete %>% select(ID, Colony_ID), by = c("." = "ID")) %>% mutate(Colony_ID = Vectorize(get_colony_num)(.)) %>% pull(Colony_ID)
   anno_host_col = HeatmapAnnotation(Host = host_names,
                                           col = list(Host = host_order_color),
                                           border = T
                                     )
-  colony_color_list <- c("C1" = "#E31A1C",
-                        "C2" = "#E63335",
-                        "C3" = "#E94C4E",
-                        "C4" = "#EC6667",
-                        "C5" = "#EF7F80",
-                        "C6" = "#F2999A",
-                        "C7" = "#F5B2B3",
-                        "C8" = "#F8CCCC",
-                        "C9" = "#FBE5E5",
-                        "AcKn" = "#FB9A99",
-                        "AcCh" = "#FCBBBB",
-                        "M1" = "#1F78B4",
-                        "M2" = "#3787BC",
-                        "M3" = "#5096C4",
-                        "M4" = "#69A4CD",
-                        "M5" = "#82B3D5",
-                        "M6" = "#9BC3DD",
-                        "M7" = "#B4D2E6",
-                        "M8" = "#CDE1EE",
-                        "M9" = "#E6F0F6",
-                        "AmAi" = "#AFD3E6",
-                        "AmIu" = "#5096C4",
-                        "DrY1" = "#69A4CD",
-                        "DrY2" = "#82B3D5",
-                        "GrY2" = "#CDE1EE",
-                        "D1" = "#6A3D9A",
-                        "D2" = "#7A52A5",
-                        "D3" = "#8B68B0",
-                        "D4" = "#9B7DBB",
-                        "D5" = "#AC93C6",
-                        "D6" = "#BCA8D2",
-                        "D7" = "#CDBEDD",
-                        "D8" = "#DDD3E8",
-                        "D9" = "#EEE9F3",
-                        "F1" = "#33A02C",
-                        "F2" = "#49AA43",
-                        "F3" = "#60B55A",
-                        "F4" = "#77BF72",
-                        "F5" = "#8DCA89",
-                        "F6" = "#A4D4A1",
-                        "F7" = "#BBDFB8",
-                        "F8" = "#D1E9D0",
-                        "F9" = "#E8F4E7",
-                        "A1" = "#FF7F00",
-                        "A2" = "#FF8D1C",
-                        "A3" = "#FF9B38",
-                        "A4" = "#FFA955",
-                        "A5" = "#FFB771",
-                        "A6" = "#FFC68D",
-                        "A7" = "#FFD4AA",
-                        "A8" = "#FFE2C6",
-                        "A9" = "#FFF0E2"
-            )
   anno_colony_col = rowAnnotation(Colony = colony_names,
                                   Host = host_names,
                                           col = list(Colony = colony_color_list,
@@ -318,191 +1966,180 @@ for (spec in c(# "Acinetobacter pollinis",
               column_title_gp = grid::gpar(fontsize = 20),
               border = T,
               # row_dend_reorder = T,
+              clustering_method_rows = "average",
+              clustering_method_columns = "average",
+              # clustering_method_rows = "complete",
+              # clustering_method_columns = "complete",
+              # clustering_method_rows = "single",
+              # clustering_method_columns = "single",
+              # cluster_rows = clust,
+              # cluster_columns = clust
               cluster_rows = T,
               cluster_columns = T
       )
   draw(heatmap_obj, merge_legend = TRUE)
-  pdf(paste0("results/figures/10-strain_nmds/", spec,"_heatmap.pdf"), width = 10, height = 15)
+  pdf(paste0("results/figures/10-strain_nmds_IN_MY_nested_stats/", spec,"_heatmap.pdf"), width = 10, height = 15)
   draw(heatmap_obj, merge_legend = TRUE)
   dev.off()
-  # remove zero sum rows and cols
+  # # remove zero sum rows and cols
   spec_mat_red <- df_mat %>% 
                     as.matrix
-  # spec_mat_red[is.na(spec_mat_red)] = 1
+  # it is a dissimilarity matrix, replace NA with 1 (a value that is same as or larger than the largest dissimilarities)
+  # we assume this is fair because those samples with low overlap are filtered out before this step
+  spec_mat_red[is.na(spec_mat_red)] = 1
   spec_mat_red <- spec_mat_red[rowSums(is.na(spec_mat_red))==0 , colSums(is.na(spec_mat_red))==0]
-  if (spec_mat_red == 0) {
+  if (dim(spec_mat_red)[[1]] == 0) {
+    print("Skipping")
     next
   }
   if (dim(spec_mat_red)[[1]] <= 3) {
+    print("Skipping")
     next
   }
-  nmds = metaMDS(spec_mat_red, distance = "bray")
+  nmds = metaMDS(spec_mat_red, distance = "robust.aitchison")
   df_pcoa_new <- as.data.frame(scores(nmds))
   metadata <- df_meta_complete %>% select(ID, Colony_ID, Country, Species)
   df_pcoa_new$Sample <- rownames(df_pcoa_new)
-  rownames(df_pcoa_new) <- NULL
   df_pcoa_new <- left_join(df_pcoa_new, metadata, by = c("Sample" = "ID"))
-  ggplot(df_pcoa_new, aes(x = NMDS1,
+  rownames(df_pcoa_new) <- df_pcoa_new$Sample
+  # include results of adonis
+  if (df_pcoa_new$Species %>% unique %>% length <= 1 || sum(as.numeric(table(df_pcoa_new$Species)) > 5) <= 1) {
+    print("found in only one species")
+    p_species <- "-"
+    r_species <- "-"
+  } else {
+      print("testing only species")
+      res_species <- adonis_OmegaSq(adonis2(spec_mat_red ~ Species, df_pcoa_new, by = "margin", method = "robust.aitchison"))
+      p_species <- round(res_species$`Pr(>F)`[[1]], 3)
+      r_species <- round(res_species$parOmegaSq[[1]], 3)
+  }
+  #
+  if (df_pcoa_new$Country %>% unique %>% length <= 1 || min(table(df_pcoa_new$Country)) < 5) {
+    print("found in only one species")
+    p_location <- "-"
+    r_location <- "-"
+  } else {
+    res_location <- adonis_OmegaSq(adonis2(spec_mat_red ~ Country, df_pcoa_new, by = "margin", method = "robust.aitchison"))
+    p_location <- round(res_location$`Pr(>F)`[[1]], 3)
+    r_location <- round(res_location$parOmegaSq[[1]], 3)
+  }
+  # write the p and r value results as a df
+  df_stats <- data.frame("species" = spec,
+                         "P-species" = p_species,
+                         "Omega-species" = r_species,
+                         "P-location" = p_location,
+                         "Omega-location" = r_location,
+                         "N" = dim(spec_mat_red)[[1]]
+                         )
+  write.csv(df_stats, paste0("results/figures/10-strain_nmds_IN_MY_nested_stats/", spec,"_stats.csv"), row.names = F, quote = F)
+  ggplot()+
+    geom_point(data = df_pcoa_new, aes(x = NMDS1,
                           y = NMDS2,
-                          color = Species))+
-                  geom_point(stat="identity", size = 4, aes(shape = Country)) +
+                          color = Species,
+                          shape = Country),
+                stat="identity", size = 4) +
                   ggtitle(paste0(spec)) +
+                  annotate("text",
+                    label = paste0("\n", "\n", "\n", "\n", "\n",
+                           "Species: R2 (omega) = ", r_species, " p = ", p_species, "\n",
+                           "Country: R2 (omega) = ", r_location, " p = ", p_location, "\n",
+                          #  "Colony: R2 (omega) = ", r_colony, " p = ", p_colony, "\n",
+                           "N = ", dim(spec_mat_red)[[1]], "   ", "stress =", round(nmds$stress, 3)),
+                    x = 0, y = Inf, size = 5, color = "black"
+                  ) +
+                  # geom_text_repel(data = data.frame(), aes(label = paste0("\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n",
+                  #                          "Species: R2 (omega) = ", r_species, "\n   p = ", p_species, "\n",
+                  #                          "Country: R2 (omega) = ", r_country, "\n   p = ", p_country, "\n",
+                  #                          "Colony: R2 (omega) = ", r_colony, "\n   p = ", p_colony),
+                  #                          "N = ", dim(spec_mat_red)[[1]],
+                  #                          x = -Inf, y = Inf
+                  #                          ),
+                  #                 size = 5, color = "black"
+                  # ) +
                   # stat_ellipse(size = 1) +
                     # labs(x=axis_x_title, y = axis_y_title, color = "Host") +
                       scale_color_manual(values = host_order_color_dark) +
                       make_theme(setFill = F, setCol = F, guide_nrow = 5, leg_size = 10, leg_pos =  "right")
-  ggsave(paste0("results/figures/10-strain_nmds/", spec,"_nmds.pdf"), width = 10, height = 10)
+  ggsave(paste0("results/figures/10-strain_nmds_IN_MY_nested_stats/", spec,"_nmds.pdf"), width = 10, height = 10)
+  print(paste0(spec, "   DONE"))
 }
+# cat results/figures/10-strain_nmds_IN_MY_nested_stats/*.csv | head -1 > results/figures/10-strain_nmds_IN_MY_nested_stats/all_stats.csv
+# Now the same with "all" samples
+# for file in results/figures/10-strain_nmds_IN_MY_nested_stats/*.csv; do cat "$file" | tail -n +2 >> results/figures/results/figures/10-strain_nmds_IN_MY_nested_stats/all_stats.csv; done
+
 ```
 
-
-
-<!-- "Acinetobacter pollinis",
-"Apibacter adventoris",
-"Apibacter sp002964915",
-"Apilactobacillus apinorum",
-"Apilactobacillus bombintestini",
-"Apilactobacillus SGB-72_1",
-"Apilactobacillus waqarii",
-"Apilactobacillus zhangqiuensis",
-"Bartonella_A apis",
- "Bartonella_A SGB-62_2",
- "Bartonella_A SGB-65_1",
- "Bartonella_A SGB-66_1",
- "Bartonella_A SGB-66_2",
- "Bartonella_A SGB-67_0",
- "Bartonella_A SGB-68_0",
- "Bartonella_A SGB-69_1",
- "Bartonella_A SGB-70_1",
- "Bartonella_A sp016100455",
- "Bartonella_A sp016102285",
- "Bartonella_A sp945277285",
- "Bartonella_A sp945285915",
- "Bifidobacterium apousia",
- "Bifidobacterium asteroides_A",
-  "Bifidobacterium asteroides_I",
-  "Bifidobacterium choladohabitans",
- "Bifidobacterium indicum",
- "Bifidobacterium mizhiense",
- "Bifidobacterium polysaccharolyticum",
- "Bifidobacterium SGB-4_1",
- "Bifidobacterium SGB-4_2",
- "Bifidobacterium SGB-5_1",
- "Bifidobacterium SGB-5_2",
- "Bifidobacterium SGB-6_3",
- "Bifidobacterium SGB-6_4",
- "Bifidobacterium SGB-6_8",
- "Bifidobacterium SGB-6_9",
- "Bifidobacterium SGB-61_0",
-  "Bifidobacterium SGB-7_1",
- "Bifidobacterium SGB-8_2",
- "Bifidobacterium sp000499285",
- "Bifidobacterium sp945269915",
- "Bombella SGB-9_1",
- "Bombella SGB-9_2",
- "Bombilactobacillus mellifer",
- "Bombilactobacillus mellifer-22_1",
-  "Bombilactobacillus mellifer-22_2",
-  "Bombilactobacillus mellis",
- "Bombilactobacillus mellis-36_2",
-  "Bombilactobacillus SGB-22_3",
- "Bombilactobacillus SGB-35_1",
- "Bombilactobacillus SGB-37_0",
- "CALYQJ01 SGB-38_1",
-  "CALYQJ01 sp945273735",
- "CALYQJ01 sp945285405",
- "CALYQQ01 SGB-104_1",
- "CALYQQ01 SGB-105_1",
- "CALYQQ01 SGB-105_2",
- "Commensalibacter SGB-12_0",
- "Commensalibacter SGB-13_0",
- "Commensalibacter sp003202795",
-  "Commensalibacter sp945266285",
-  "Corynebacterium provencense",
- "Corynebacterium sp022712275",
- "Dysgonomonas SGB-15_1",
-  "Dysgonomonas SGB-17_1",
-  "Dysgonomonas SGB-17_2",
-  "Dysgonomonas SGB-18_1",
-  "Dysgonomonas SGB-20_1",
-  "Dysgonomonas sp945273835",
-  "Dysgonomonas sp945292135",
-  "Enterobacter bugandensis",
-  "Enterobacter hormaechei_A",
- "Enterobacter roggenkampii",
- "Enterobacter vonholyi",
-  "Entomomonas SGB-51_0",
- "Entomomonas SGB-52_0",
- "Entomomonas sp945283395",
- "Escherichia coli",
- "Floricoccus SGB-41_0",
- "Frischella japonica",
-  "Frischella perrara",
- "Frischella SGB-92_1",
-  "Frischella SGB-94_1",
-  "Fructobacillus pseudoficulneus",
-  "Gilliamella apicola",
-  "Gilliamella apicola_E",
-  "Gilliamella apicola_F",
-  "Gilliamella apicola_I",
-  "Gilliamella apicola_J",
-  "Gilliamella apicola_K",
-  "Gilliamella apicola_L",
-  "Gilliamella apicola_N",
-  "Gilliamella apicola_Q",
-  "Gilliamella apis",
- "Gilliamella apis_A",
- "Gilliamella SGB-76_1",
- "Gilliamella SGB-78_2",
- "Gilliamella SGB-79_1",
- "Gilliamella SGB-82_1",
-"Gilliamella SGB-83_1",
-"Gilliamella SGB-86_0",
-"Gilliamella sp019469185",
-"Gilliamella sp019469205",
-"Gilliamella sp945271295",
-"Hafnia paralvei",
-"JAATFO01 SGB-106_0",
-"KAACC-21507 SGB-14_0",
-"Klebsiella pneumoniae",
-"Kosakonia oryzae",
-"Lactobacillus apis",
-"Lactobacillus helsingborgensis",
-"Lactobacillus huangpiensis",
-"Lactobacillus kimbladii_A",
-"Lactobacillus laiwuensis",
-"Lactobacillus melliventris",
-"Lactobacillus panisapium",
-"Lactobacillus SGB-23_1",
-"Lactobacillus SGB-28_1",
-"Lactobacillus SGB-29_1",
-"Lactobacillus SGB-29_2",
-"Lactobacillus SGB-30_0",
-"Lactobacillus SGB-31_1",
-"Lactobacillus SGB-32_1",
-"Lactobacillus SGB-33_1",
-"Lactobacillus SGB-34_1",
-"Lactobacillus sp016100975",
-"Lactobacillus sp945290125",
-"Melissococcus plutonius",
-"Pantoea dispersa",
-"Pantoea vagans",
-"Parolsenella SGB-60_1",
-"Pectinatus SGB-54_1",
-"Pluralibacter SGB-98_1",
-"Q3-R57-64 SGB-48_1",
-"Rosenbergiella epipactidis",
-"Saezia SGB-47_1",
-"Saezia SGB-49_1",
-"Snodgrassella alvi",
-"Snodgrassella alvi_E",
-"Snodgrassella alvi_G",
-"Snodgrassella SGB-56_2",
-"Snodgrassella SGB-58_1",
-"Snodgrassella sp945267035",
-"Spiroplasma melliferum",
-"WRHT01 SGB-1_1",
-"Zymobacter SGB-110_0",
-"Zymobacter SGB-42_0",
-"Zymobacter SGB-43_0",
-"Zymobacter SGB-44_0" -->
+```{r}
+# cat results/figures/10-strain_nmds_IN_MY_nested_stats/*.csv | head -1 > results/figures/10-strain_nmds_IN_MY_nested_stats/all_stats.csv
+# Now the same with "all" samples
+# for file in results/figures/10-strain_nmds_IN_MY_nested_stats/*.csv; do cat "$file" | tail -n +2 >> results/figures/results/figures/10-strain_nmds_IN_MY_nested_stats/all_stats.csv; done
+df_rohdes <- read.csv("results/figures/magotu_rohdes_index.csv", stringsAsFactors = F) %>%
+              left_join(magOTU_tax_info, by = c("X" = "magOTU")) %>%
+              pivot_longer(cols = !c("X", "Genus"), names_to = "type", values_to = "rohdes_index") %>%
+              mutate(specific = ifelse(rohdes_index == 1, "specific", "general")) %>%
+              left_join(df_plot %>% select(MAG_species_name_final, magOTU) %>% unique, by = c("X" = "magOTU")) %>%
+              mutate(X_old = X) %>%
+              mutate(X = MAG_species_name_final)
+species_detected <- df_plot %>%
+                      filter(prevalence_in_host > 0.1) %>%
+                      pull(MAG_species_name_final) %>%
+                      unique()
+df_adonis_data <- read.csv("results/figures/10-strain_nmds_IN_MY_nested_stats/all_stats.csv") %>%
+                  # replace - with NA
+                  mutate(P.species = ifelse(P.species == "-", NA, P.species)) %>%
+                  mutate(P.location = ifelse(P.location == "-", NA, P.location)) %>%
+                  # mutate(P.colony = ifelse(P.colony == "-", NA, P.colony)) %>%
+                    left_join(df_rohdes %>%
+                                filter(type == "prev") %>%
+                                select(MAG_species_name_final, rohdes_index), by = c("species" = "MAG_species_name_final")) %>%
+                    select(species, rohdes_index, P.species, P.location) %>%
+                    # select(species, rohdes_index, P.species, P.location, P.colony) %>%
+                    mutate(P.species = ifelse(P.species < 0.05, "Y", "N")) %>%
+                    mutate(P.location = ifelse(P.location < 0.05, "Y", "N")) %>%
+                    # mutate(P.colony = ifelse(P.colony < 0.05, "Y", "N")) %>%
+                    pivot_longer(cols = !c("species", "rohdes_index"), names_to = "type", values_to = "p_value") %>%
+                    mutate(specificity = ifelse(rohdes_index == 1, "specific", "general")) %>%
+                    filter(species %in% species_detected) %>%
+                    filter(!is.na(specificity)) %>%
+                    mutate(Genus = strsplit(species, " ") %>% sapply(`[`, 1)) %>%
+                    arrange(Genus, specificity)
+                    # arrange(specificity, species)
+genera_clean_sub <- c("Bombilactobacillus", "Lactobacillus", "Bifidobacterium", "Gilliamella", "Snodgrassella", "Bartonella", "Frischella", "Dysgonomonas", "Apilactobacillus", "Apibacter", "Commensalibacter", "CALYQJ01",
+"CALYQQ01", "Pectinatus", "Entomomonas", "Saezia", "WRHT01", "Parolsanella", "Pluralibacter")
+ggplot(df_adonis_data %>%
+        filter(type == "P.species") %>%
+        filter(Genus %in% genera_clean_sub) %>%
+        mutate(spec_type = ifelse(is.na(p_value), "host-specific (species)", NA)) %>%
+        mutate(spec_type = ifelse(!is.na(p_value) & p_value == "N", "shared non-specific", spec_type)) %>%
+        mutate(spec_type = ifelse(!is.na(p_value) & p_value == "Y", "shared host-specific (strain)", spec_type))
+      ) +
+    geom_jitter(aes(y = rohdes_index, x = factor(Genus, genera_clean_sub), fill = spec_type),
+                color = "#000000", shape = 21,
+                size = 3, alpha = 0.85) +
+    scale_fill_manual(values = c("host-specific (species)" = "#bdbdbd",
+                                 "shared host-specific (strain)" = "#084594",
+                                 "shared non-specific" = "#9ecae1")) +
+    labs(y = "Specificity", x = "Genus", fill = "Specificity type") +
+    make_theme(setFill = F, setCol = F, 
+                y_hj = 1,
+                x_angle = 60, x_size = 5, x_hj = 1, x_vj = 1,
+    guide_nrow = 10, leg_size = 8, leg_pos =  "right")
+  ggsave("results/figures/10-figures/scatter_strain_level_p_value_by_genus.pdf", width = 10, height = 8)
+ggplot(df_adonis_data %>%
+        filter(type == "P.species") %>%
+        filter(Genus %in% genera_clean_sub) %>%
+        mutate(spec_type = ifelse(is.na(p_value), "host-specific (species)", NA)) %>%
+        mutate(spec_type = ifelse(!is.na(p_value) & p_value == "N", "shared non-specific", spec_type)) %>%
+        mutate(spec_type = ifelse(!is.na(p_value) & p_value == "Y", "shared host-specific (strain)", spec_type))
+      ) +
+    geom_bar(aes(x = factor(Genus, genera_clean_sub), fill = spec_type), position = "stack") +
+    scale_fill_manual(values = c("host-specific (species)" = "#bdbdbd",
+                                 "shared host-specific (strain)" = "#084594",
+                                 "shared non-specific" = "#9ecae1")) +
+    labs(y = "Number of species", fill = "Genus") +
+    make_theme(setFill = F, setCol = F, 
+                y_hj = 1,
+                x_angle = 60, x_size = 12, x_hj = 1, x_vj = 1,
+    guide_nrow = 10, leg_size = 8, leg_pos =  "right")
+  ggsave("results/figures/10-figures/barplot_strain_level_p_value_by_genus.pdf", width = 15, height = 10)
+```

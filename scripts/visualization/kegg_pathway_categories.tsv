@@ -1,0 +1,637 @@
+section	subsection	path_name
+1. Metabolism	1.0 Global and overview maps	Metabolic pathways
+1. Metabolism	1.0 Global and overview maps	Biosynthesis of secondary metabolites
+1. Metabolism	1.0 Global and overview maps	Microbial metabolism in diverse environments
+1. Metabolism	1.0 Global and overview maps	Carbon metabolism
+1. Metabolism	1.0 Global and overview maps	2-Oxocarboxylic acid metabolism
+1. Metabolism	1.0 Global and overview maps	Fatty acid metabolism
+1. Metabolism	1.0 Global and overview maps	Biosynthesis of amino acids
+1. Metabolism	1.0 Global and overview maps	Nucleotide metabolism
+1. Metabolism	1.0 Global and overview maps	Biosynthesis of nucleotide sugars
+1. Metabolism	1.0 Global and overview maps	Biosynthesis of cofactors
+1. Metabolism	1.0 Global and overview maps	Degradation of aromatic compounds
+1. Metabolism	1.1 Carbohydrate metabolism	Degradation of aromatic compounds
+1. Metabolism	1.1 Carbohydrate metabolism	Glycolysis / Gluconeogenesis
+1. Metabolism	1.1 Carbohydrate metabolism	Citrate cycle (TCA cycle)
+1. Metabolism	1.1 Carbohydrate metabolism	Pentose phosphate pathway
+1. Metabolism	1.1 Carbohydrate metabolism	Pentose and glucuronate interconversions
+1. Metabolism	1.1 Carbohydrate metabolism	Fructose and mannose metabolism
+1. Metabolism	1.1 Carbohydrate metabolism	Galactose metabolism
+1. Metabolism	1.1 Carbohydrate metabolism	Ascorbate and aldarate metabolism
+1. Metabolism	1.1 Carbohydrate metabolism	Starch and sucrose metabolism
+1. Metabolism	1.1 Carbohydrate metabolism	Amino sugar and nucleotide sugar metabolism
+1. Metabolism	1.1 Carbohydrate metabolism	Pyruvate metabolism
+1. Metabolism	1.1 Carbohydrate metabolism	Glyoxylate and dicarboxylate metabolism
+1. Metabolism	1.1 Carbohydrate metabolism	Propanoate metabolism
+1. Metabolism	1.1 Carbohydrate metabolism	Butanoate metabolism
+1. Metabolism	1.1 Carbohydrate metabolism	C5-Branched dibasic acid metabolism
+1. Metabolism	1.1 Carbohydrate metabolism	Inositol phosphate metabolism
+1. Metabolism	1.2 Energy metabolism	Inositol phosphate metabolism
+1. Metabolism	1.2 Energy metabolism	Oxidative phosphorylation
+1. Metabolism	1.2 Energy metabolism	Photosynthesis
+1. Metabolism	1.2 Energy metabolism	Photosynthesis - antenna proteins
+1. Metabolism	1.2 Energy metabolism	Carbon fixation in photosynthetic organisms
+1. Metabolism	1.2 Energy metabolism	Carbon fixation pathways in prokaryotes
+1. Metabolism	1.2 Energy metabolism	Methane metabolism
+1. Metabolism	1.2 Energy metabolism	Nitrogen metabolism
+1. Metabolism	1.2 Energy metabolism	Sulfur metabolism
+1. Metabolism	1.3 Lipid metabolism	Sulfur metabolism
+1. Metabolism	1.3 Lipid metabolism	Fatty acid biosynthesis
+1. Metabolism	1.3 Lipid metabolism	Fatty acid elongation
+1. Metabolism	1.3 Lipid metabolism	Fatty acid degradation
+1. Metabolism	1.3 Lipid metabolism	Cutin, suberine and wax biosynthesis
+1. Metabolism	1.3 Lipid metabolism	Steroid biosynthesis
+1. Metabolism	1.3 Lipid metabolism	Primary bile acid biosynthesis
+1. Metabolism	1.3 Lipid metabolism	Secondary bile acid biosynthesis
+1. Metabolism	1.3 Lipid metabolism	Steroid hormone biosynthesis
+1. Metabolism	1.3 Lipid metabolism	Glycerolipid metabolism
+1. Metabolism	1.3 Lipid metabolism	Glycerophospholipid metabolism
+1. Metabolism	1.3 Lipid metabolism	Ether lipid metabolism
+1. Metabolism	1.3 Lipid metabolism	Sphingolipid metabolism
+1. Metabolism	1.3 Lipid metabolism	Arachidonic acid metabolism
+1. Metabolism	1.3 Lipid metabolism	Linoleic acid metabolism
+1. Metabolism	1.3 Lipid metabolism	alpha-Linolenic acid metabolism
+1. Metabolism	1.3 Lipid metabolism	Biosynthesis of unsaturated fatty acids
+1. Metabolism	1.4 Nucleotide metabolism	Biosynthesis of unsaturated fatty acids
+1. Metabolism	1.4 Nucleotide metabolism	Purine metabolism
+1. Metabolism	1.4 Nucleotide metabolism	Pyrimidine metabolism
+1. Metabolism	1.5 Amino acid metabolism	Pyrimidine metabolism
+1. Metabolism	1.5 Amino acid metabolism	Alanine, aspartate and glutamate metabolism
+1. Metabolism	1.5 Amino acid metabolism	Glycine, serine and threonine metabolism
+1. Metabolism	1.5 Amino acid metabolism	Cysteine and methionine metabolism
+1. Metabolism	1.5 Amino acid metabolism	Valine, leucine and isoleucine degradation
+1. Metabolism	1.5 Amino acid metabolism	Valine, leucine and isoleucine biosynthesis
+1. Metabolism	1.5 Amino acid metabolism	Lysine biosynthesis
+1. Metabolism	1.5 Amino acid metabolism	Lysine degradation
+1. Metabolism	1.5 Amino acid metabolism	Arginine biosynthesis
+1. Metabolism	1.5 Amino acid metabolism	Arginine and proline metabolism
+1. Metabolism	1.5 Amino acid metabolism	Histidine metabolism
+1. Metabolism	1.5 Amino acid metabolism	Tyrosine metabolism
+1. Metabolism	1.5 Amino acid metabolism	Phenylalanine metabolism
+1. Metabolism	1.5 Amino acid metabolism	Tryptophan metabolism
+1. Metabolism	1.5 Amino acid metabolism	Phenylalanine, tyrosine and tryptophan biosynthesis
+1. Metabolism	1.6 Metabolism of other amino acids	Phenylalanine, tyrosine and tryptophan biosynthesis
+1. Metabolism	1.6 Metabolism of other amino acids	beta-Alanine metabolism
+1. Metabolism	1.6 Metabolism of other amino acids	Taurine and hypotaurine metabolism
+1. Metabolism	1.6 Metabolism of other amino acids	Phosphonate and phosphinate metabolism
+1. Metabolism	1.6 Metabolism of other amino acids	Selenocompound metabolism
+1. Metabolism	1.6 Metabolism of other amino acids	Cyanoamino acid metabolism
+1. Metabolism	1.6 Metabolism of other amino acids	D-Amino acid metabolism
+1. Metabolism	1.6 Metabolism of other amino acids	Glutathione metabolism
+1. Metabolism	1.7 Glycan biosynthesis and metabolism	Glutathione metabolism
+1. Metabolism	1.7 Glycan biosynthesis and metabolism	N-Glycan biosynthesis
+1. Metabolism	1.7 Glycan biosynthesis and metabolism	Various types of N-glycan biosynthesis
+1. Metabolism	1.7 Glycan biosynthesis and metabolism	Mucin type O-glycan biosynthesis
+1. Metabolism	1.7 Glycan biosynthesis and metabolism	Mannose type O-glycan biosynthesis
+1. Metabolism	1.7 Glycan biosynthesis and metabolism	Other types of O-glycan biosynthesis
+1. Metabolism	1.7 Glycan biosynthesis and metabolism	Glycosaminoglycan biosynthesis - chondroitin sulfate / dermatan sulfate
+1. Metabolism	1.7 Glycan biosynthesis and metabolism	Glycosaminoglycan biosynthesis - heparan sulfate / heparin
+1. Metabolism	1.7 Glycan biosynthesis and metabolism	Glycosaminoglycan biosynthesis - keratan sulfate
+1. Metabolism	1.7 Glycan biosynthesis and metabolism	Glycosaminoglycan degradation
+1. Metabolism	1.7 Glycan biosynthesis and metabolism	Glycosylphosphatidylinositol (GPI)-anchor biosynthesis
+1. Metabolism	1.7 Glycan biosynthesis and metabolism	Glycosphingolipid biosynthesis - lacto and neolacto series
+1. Metabolism	1.7 Glycan biosynthesis and metabolism	Glycosphingolipid biosynthesis - globo and isoglobo series
+1. Metabolism	1.7 Glycan biosynthesis and metabolism	Glycosphingolipid biosynthesis - ganglio series
+1. Metabolism	1.7 Glycan biosynthesis and metabolism	Other glycan degradation
+1. Metabolism	1.7 Glycan biosynthesis and metabolism	Lipopolysaccharide biosynthesis
+1. Metabolism	1.7 Glycan biosynthesis and metabolism	O-Antigen repeat unit biosynthesis
+1. Metabolism	1.7 Glycan biosynthesis and metabolism	O-Antigen nucleotide sugar biosynthesis
+1. Metabolism	1.7 Glycan biosynthesis and metabolism	Peptidoglycan biosynthesis
+1. Metabolism	1.7 Glycan biosynthesis and metabolism	Teichoic acid biosynthesis
+1. Metabolism	1.7 Glycan biosynthesis and metabolism	Lipoarabinomannan (LAM) biosynthesis
+1. Metabolism	1.7 Glycan biosynthesis and metabolism	Arabinogalactan biosynthesis - Mycobacterium
+1. Metabolism	1.7 Glycan biosynthesis and metabolism	Exopolysaccharide biosynthesis
+1. Metabolism	1.8 Metabolism of cofactors and vitamins	Exopolysaccharide biosynthesis
+1. Metabolism	1.8 Metabolism of cofactors and vitamins	Thiamine metabolism
+1. Metabolism	1.8 Metabolism of cofactors and vitamins	Riboflavin metabolism
+1. Metabolism	1.8 Metabolism of cofactors and vitamins	Vitamin B6 metabolism
+1. Metabolism	1.8 Metabolism of cofactors and vitamins	Nicotinate and nicotinamide metabolism
+1. Metabolism	1.8 Metabolism of cofactors and vitamins	Pantothenate and CoA biosynthesis
+1. Metabolism	1.8 Metabolism of cofactors and vitamins	Biotin metabolism
+1. Metabolism	1.8 Metabolism of cofactors and vitamins	Lipoic acid metabolism
+1. Metabolism	1.8 Metabolism of cofactors and vitamins	Folate biosynthesis
+1. Metabolism	1.8 Metabolism of cofactors and vitamins	One carbon pool by folate
+1. Metabolism	1.8 Metabolism of cofactors and vitamins	Retinol metabolism
+1. Metabolism	1.8 Metabolism of cofactors and vitamins	Porphyrin metabolism
+1. Metabolism	1.8 Metabolism of cofactors and vitamins	Ubiquinone and other terpenoid-quinone biosynthesis
+1. Metabolism	1.9 Metabolism of terpenoids and polyketides	Ubiquinone and other terpenoid-quinone biosynthesis
+1. Metabolism	1.9 Metabolism of terpenoids and polyketides	Terpenoid backbone biosynthesis
+1. Metabolism	1.9 Metabolism of terpenoids and polyketides	Monoterpenoid biosynthesis
+1. Metabolism	1.9 Metabolism of terpenoids and polyketides	Sesquiterpenoid and triterpenoid biosynthesis
+1. Metabolism	1.9 Metabolism of terpenoids and polyketides	Diterpenoid biosynthesis
+1. Metabolism	1.9 Metabolism of terpenoids and polyketides	Carotenoid biosynthesis
+1. Metabolism	1.9 Metabolism of terpenoids and polyketides	Brassinosteroid biosynthesis
+1. Metabolism	1.9 Metabolism of terpenoids and polyketides	Insect hormone biosynthesis
+1. Metabolism	1.9 Metabolism of terpenoids and polyketides	Zeatin biosynthesis
+1. Metabolism	1.9 Metabolism of terpenoids and polyketides	Limonene degradation
+1. Metabolism	1.9 Metabolism of terpenoids and polyketides	Pinene, camphor and geraniol degradation
+1. Metabolism	1.9 Metabolism of terpenoids and polyketides	Type I polyketide structures
+1. Metabolism	1.9 Metabolism of terpenoids and polyketides	Biosynthesis of 12-, 14- and 16-membered macrolides
+1. Metabolism	1.9 Metabolism of terpenoids and polyketides	Biosynthesis of ansamycins
+1. Metabolism	1.9 Metabolism of terpenoids and polyketides	Biosynthesis of enediyne antibiotics
+1. Metabolism	1.9 Metabolism of terpenoids and polyketides	Biosynthesis of type II polyketide backbone
+1. Metabolism	1.9 Metabolism of terpenoids and polyketides	Biosynthesis of type II polyketide products
+1. Metabolism	1.9 Metabolism of terpenoids and polyketides	Tetracycline biosynthesis
+1. Metabolism	1.9 Metabolism of terpenoids and polyketides	Polyketide sugar unit biosynthesis
+1. Metabolism	1.9 Metabolism of terpenoids and polyketides	Nonribosomal peptide structures
+1. Metabolism	1.9 Metabolism of terpenoids and polyketides	Biosynthesis of siderophore group nonribosomal peptides
+1. Metabolism	1.9 Metabolism of terpenoids and polyketides	Biosynthesis of vancomycin group antibiotics
+1. Metabolism	1.10 Biosynthesis of other secondary metabolites	Biosynthesis of vancomycin group antibiotics
+1. Metabolism	1.10 Biosynthesis of other secondary metabolites	Phenylpropanoid biosynthesis
+1. Metabolism	1.10 Biosynthesis of other secondary metabolites	Stilbenoid, diarylheptanoid and gingerol biosynthesis
+1. Metabolism	1.10 Biosynthesis of other secondary metabolites	Flavonoid biosynthesis
+1. Metabolism	1.10 Biosynthesis of other secondary metabolites	Flavone and flavonol biosynthesis
+1. Metabolism	1.10 Biosynthesis of other secondary metabolites	Anthocyanin biosynthesis
+1. Metabolism	1.10 Biosynthesis of other secondary metabolites	Isoflavonoid biosynthesis
+1. Metabolism	1.10 Biosynthesis of other secondary metabolites	Degradation of flavonoids
+1. Metabolism	1.10 Biosynthesis of other secondary metabolites	Indole alkaloid biosynthesis
+1. Metabolism	1.10 Biosynthesis of other secondary metabolites	Indole diterpene alkaloid biosynthesis
+1. Metabolism	1.10 Biosynthesis of other secondary metabolites	Isoquinoline alkaloid biosynthesis
+1. Metabolism	1.10 Biosynthesis of other secondary metabolites	Tropane, piperidine and pyridine alkaloid biosynthesis
+1. Metabolism	1.10 Biosynthesis of other secondary metabolites	Biosynthesis of various alkaloids
+1. Metabolism	1.10 Biosynthesis of other secondary metabolites	Caffeine metabolism
+1. Metabolism	1.10 Biosynthesis of other secondary metabolites	Betalain biosynthesis
+1. Metabolism	1.10 Biosynthesis of other secondary metabolites	Glucosinolate biosynthesis
+1. Metabolism	1.10 Biosynthesis of other secondary metabolites	Benzoxazinoid biosynthesis
+1. Metabolism	1.10 Biosynthesis of other secondary metabolites	Penicillin and cephalosporin biosynthesis
+1. Metabolism	1.10 Biosynthesis of other secondary metabolites	Carbapenem biosynthesis
+1. Metabolism	1.10 Biosynthesis of other secondary metabolites	Monobactam biosynthesis
+1. Metabolism	1.10 Biosynthesis of other secondary metabolites	Clavulanic acid biosynthesis
+1. Metabolism	1.10 Biosynthesis of other secondary metabolites	Streptomycin biosynthesis
+1. Metabolism	1.10 Biosynthesis of other secondary metabolites	Neomycin, kanamycin and gentamicin biosynthesis
+1. Metabolism	1.10 Biosynthesis of other secondary metabolites	Acarbose and validamycin biosynthesis
+1. Metabolism	1.10 Biosynthesis of other secondary metabolites	Novobiocin biosynthesis
+1. Metabolism	1.10 Biosynthesis of other secondary metabolites	Staurosporine biosynthesis
+1. Metabolism	1.10 Biosynthesis of other secondary metabolites	Phenazine biosynthesis
+1. Metabolism	1.10 Biosynthesis of other secondary metabolites	Prodigiosin biosynthesis
+1. Metabolism	1.10 Biosynthesis of other secondary metabolites	Aflatoxin biosynthesis
+1. Metabolism	1.10 Biosynthesis of other secondary metabolites	Biosynthesis of various antibiotics
+1. Metabolism	1.10 Biosynthesis of other secondary metabolites	Biosynthesis of various plant secondary metabolites
+1. Metabolism	1.10 Biosynthesis of other secondary metabolites	Biosynthesis of various other secondary metabolites
+1. Metabolism	1.11 Xenobiotics biodegradation and metabolism	Biosynthesis of various other secondary metabolites
+1. Metabolism	1.11 Xenobiotics biodegradation and metabolism	Benzoate degradation
+1. Metabolism	1.11 Xenobiotics biodegradation and metabolism	Aminobenzoate degradation
+1. Metabolism	1.11 Xenobiotics biodegradation and metabolism	Fluorobenzoate degradation
+1. Metabolism	1.11 Xenobiotics biodegradation and metabolism	Chloroalkane and chloroalkene degradation
+1. Metabolism	1.11 Xenobiotics biodegradation and metabolism	Chlorocyclohexane and chlorobenzene degradation
+1. Metabolism	1.11 Xenobiotics biodegradation and metabolism	Toluene degradation
+1. Metabolism	1.11 Xenobiotics biodegradation and metabolism	Xylene degradation
+1. Metabolism	1.11 Xenobiotics biodegradation and metabolism	Nitrotoluene degradation
+1. Metabolism	1.11 Xenobiotics biodegradation and metabolism	Ethylbenzene degradation
+1. Metabolism	1.11 Xenobiotics biodegradation and metabolism	Styrene degradation
+1. Metabolism	1.11 Xenobiotics biodegradation and metabolism	Atrazine degradation
+1. Metabolism	1.11 Xenobiotics biodegradation and metabolism	Caprolactam degradation
+1. Metabolism	1.11 Xenobiotics biodegradation and metabolism	Bisphenol degradation
+1. Metabolism	1.11 Xenobiotics biodegradation and metabolism	Dioxin degradation
+1. Metabolism	1.11 Xenobiotics biodegradation and metabolism	Naphthalene degradation
+1. Metabolism	1.11 Xenobiotics biodegradation and metabolism	Polycyclic aromatic hydrocarbon degradation
+1. Metabolism	1.11 Xenobiotics biodegradation and metabolism	Furfural degradation
+1. Metabolism	1.11 Xenobiotics biodegradation and metabolism	Steroid degradation
+1. Metabolism	1.11 Xenobiotics biodegradation and metabolism	Metabolism of xenobiotics by cytochrome P450
+1. Metabolism	1.11 Xenobiotics biodegradation and metabolism	Drug metabolism - cytochrome P450
+1. Metabolism	1.11 Xenobiotics biodegradation and metabolism	Drug metabolism - other enzymes
+1. Metabolism	1.12 Chemical structure transformation maps	Drug metabolism - other enzymes
+1. Metabolism	1.12 Chemical structure transformation maps	Overview of biosynthetic pathways
+1. Metabolism	1.12 Chemical structure transformation maps	Biosynthesis of plant secondary metabolites
+1. Metabolism	1.12 Chemical structure transformation maps	Biosynthesis of phenylpropanoids
+1. Metabolism	1.12 Chemical structure transformation maps	Biosynthesis of terpenoids and steroids
+1. Metabolism	1.12 Chemical structure transformation maps	Biosynthesis of alkaloids derived from shikimate pathway
+1. Metabolism	1.12 Chemical structure transformation maps	Biosynthesis of alkaloids derived from ornithine, lysine and nicotinic acid
+1. Metabolism	1.12 Chemical structure transformation maps	Biosynthesis of alkaloids derived from histidine and purine
+1. Metabolism	1.12 Chemical structure transformation maps	Biosynthesis of alkaloids derived from terpenoid and polyketide
+1. Metabolism	1.12 Chemical structure transformation maps	Biosynthesis of plant hormones
+2. Genetic Information Processing	1.12 Chemical structure transformation maps	Biosynthesis of plant hormones
+2. Genetic Information Processing	2.1 Transcription	Biosynthesis of plant hormones
+2. Genetic Information Processing	2.1 Transcription	RNA polymerase
+2. Genetic Information Processing	2.1 Transcription	Basal transcription factors
+2. Genetic Information Processing	2.1 Transcription	Spliceosome
+2. Genetic Information Processing	2.2 Translation	Spliceosome
+2. Genetic Information Processing	2.2 Translation	Ribosome
+2. Genetic Information Processing	2.2 Translation	Aminoacyl-tRNA biosynthesis
+2. Genetic Information Processing	2.2 Translation	Nucleocytoplasmic transport
+2. Genetic Information Processing	2.2 Translation	mRNA surveillance pathway
+2. Genetic Information Processing	2.2 Translation	Ribosome biogenesis in eukaryotes
+2. Genetic Information Processing	2.3 Folding, sorting and degradation	Ribosome biogenesis in eukaryotes
+2. Genetic Information Processing	2.3 Folding, sorting and degradation	Protein export
+2. Genetic Information Processing	2.3 Folding, sorting and degradation	Protein processing in endoplasmic reticulum
+2. Genetic Information Processing	2.3 Folding, sorting and degradation	SNARE interactions in vesicular transport
+2. Genetic Information Processing	2.3 Folding, sorting and degradation	Ubiquitin mediated proteolysis
+2. Genetic Information Processing	2.3 Folding, sorting and degradation	Sulfur relay system
+2. Genetic Information Processing	2.3 Folding, sorting and degradation	Proteasome
+2. Genetic Information Processing	2.3 Folding, sorting and degradation	RNA degradation
+2. Genetic Information Processing	2.4 Replication and repair	RNA degradation
+2. Genetic Information Processing	2.4 Replication and repair	DNA replication
+2. Genetic Information Processing	2.4 Replication and repair	Base excision repair
+2. Genetic Information Processing	2.4 Replication and repair	Nucleotide excision repair
+2. Genetic Information Processing	2.4 Replication and repair	Mismatch repair
+2. Genetic Information Processing	2.4 Replication and repair	Homologous recombination
+2. Genetic Information Processing	2.4 Replication and repair	Non-homologous end-joining
+2. Genetic Information Processing	2.4 Replication and repair	Fanconi anemia pathway
+2. Genetic Information Processing	2.5 Chromosome	Fanconi anemia pathway
+2. Genetic Information Processing	2.5 Chromosome	ATP-dependent chromatin remodeling
+2. Genetic Information Processing	2.5 Chromosome	Polycomb repressive complex
+2. Genetic Information Processing	2.6 Information processing in viruses	Polycomb repressive complex
+2. Genetic Information Processing	2.6 Information processing in viruses	Viral genome structure
+2. Genetic Information Processing	2.6 Information processing in viruses	Viral replication
+2. Genetic Information Processing	2.6 Information processing in viruses	Viral life cycle - HIV-1
+2. Genetic Information Processing	2.6 Information processing in viruses	Virion - Human immunodeficiency virus
+2. Genetic Information Processing	2.6 Information processing in viruses	Virion - Rotavirus New!
+2. Genetic Information Processing	2.6 Information processing in viruses	Virion - Coronavirus
+2. Genetic Information Processing	2.6 Information processing in viruses	Virion - Influenza virus
+2. Genetic Information Processing	2.6 Information processing in viruses	Virion - Enterovirus
+2. Genetic Information Processing	2.6 Information processing in viruses	Virion - Flavivirus
+2. Genetic Information Processing	2.6 Information processing in viruses	Virion - Ebolavirus and Lyssavirus
+2. Genetic Information Processing	2.6 Information processing in viruses	Virion - Herpesvirus
+2. Genetic Information Processing	2.6 Information processing in viruses	Virion - Orthopoxvirus
+2. Genetic Information Processing	2.6 Information processing in viruses	Virion - Adenovirus
+2. Genetic Information Processing	2.6 Information processing in viruses	Virion - Bacteriophages T4 and T7
+2. Genetic Information Processing	2.6 Information processing in viruses	Virion - Bacteriophage lambda
+3. Environmental Information Processing	2.6 Information processing in viruses	Virion - Bacteriophage lambda
+3. Environmental Information Processing	3.1 Membrane transport	Virion - Bacteriophage lambda
+3. Environmental Information Processing	3.1 Membrane transport	ABC transporters
+3. Environmental Information Processing	3.1 Membrane transport	Phosphotransferase system (PTS)
+3. Environmental Information Processing	3.1 Membrane transport	Bacterial secretion system
+3. Environmental Information Processing	3.2 Signal transduction	Bacterial secretion system
+3. Environmental Information Processing	3.2 Signal transduction	Two-component system
+3. Environmental Information Processing	3.2 Signal transduction	MAPK signaling pathway
+3. Environmental Information Processing	3.2 Signal transduction	MAPK signaling pathway - fly
+3. Environmental Information Processing	3.2 Signal transduction	MAPK signaling pathway - plant
+3. Environmental Information Processing	3.2 Signal transduction	MAPK signaling pathway - yeast
+3. Environmental Information Processing	3.2 Signal transduction	ErbB signaling pathway
+3. Environmental Information Processing	3.2 Signal transduction	Ras signaling pathway
+3. Environmental Information Processing	3.2 Signal transduction	Rap1 signaling pathway
+3. Environmental Information Processing	3.2 Signal transduction	Wnt signaling pathway
+3. Environmental Information Processing	3.2 Signal transduction	Notch signaling pathway
+3. Environmental Information Processing	3.2 Signal transduction	Hedgehog signaling pathway
+3. Environmental Information Processing	3.2 Signal transduction	Hedgehog signaling pathway - fly
+3. Environmental Information Processing	3.2 Signal transduction	TGF-beta signaling pathway
+3. Environmental Information Processing	3.2 Signal transduction	Hippo signaling pathway
+3. Environmental Information Processing	3.2 Signal transduction	Hippo signaling pathway - fly
+3. Environmental Information Processing	3.2 Signal transduction	Hippo signaling pathway - multiple species
+3. Environmental Information Processing	3.2 Signal transduction	VEGF signaling pathway
+3. Environmental Information Processing	3.2 Signal transduction	Apelin signaling pathway
+3. Environmental Information Processing	3.2 Signal transduction	JAK-STAT signaling pathway
+3. Environmental Information Processing	3.2 Signal transduction	NF-kappa B signaling pathway
+3. Environmental Information Processing	3.2 Signal transduction	TNF signaling pathway
+3. Environmental Information Processing	3.2 Signal transduction	HIF-1 signaling pathway
+3. Environmental Information Processing	3.2 Signal transduction	FoxO signaling pathway
+3. Environmental Information Processing	3.2 Signal transduction	Calcium signaling pathway
+3. Environmental Information Processing	3.2 Signal transduction	Phosphatidylinositol signaling system
+3. Environmental Information Processing	3.2 Signal transduction	Phospholipase D signaling pathway
+3. Environmental Information Processing	3.2 Signal transduction	Sphingolipid signaling pathway
+3. Environmental Information Processing	3.2 Signal transduction	cAMP signaling pathway
+3. Environmental Information Processing	3.2 Signal transduction	cGMP-PKG signaling pathway
+3. Environmental Information Processing	3.2 Signal transduction	PI3K-Akt signaling pathway
+3. Environmental Information Processing	3.2 Signal transduction	AMPK signaling pathway
+3. Environmental Information Processing	3.2 Signal transduction	mTOR signaling pathway
+3. Environmental Information Processing	3.2 Signal transduction	Plant hormone signal transduction
+3. Environmental Information Processing	3.3 Signaling molecules and interaction	Plant hormone signal transduction
+3. Environmental Information Processing	3.3 Signaling molecules and interaction	Neuroactive ligand-receptor interaction
+3. Environmental Information Processing	3.3 Signaling molecules and interaction	Cytokine-cytokine receptor interaction
+3. Environmental Information Processing	3.3 Signaling molecules and interaction	Viral protein interaction with cytokine and cytokine receptor
+3. Environmental Information Processing	3.3 Signaling molecules and interaction	ECM-receptor interaction
+3. Environmental Information Processing	3.3 Signaling molecules and interaction	Cell adhesion molecules
+4. Cellular Processes	3.3 Signaling molecules and interaction	Cell adhesion molecules
+4. Cellular Processes	4.1 Transport and catabolism	Cell adhesion molecules
+4. Cellular Processes	4.1 Transport and catabolism	Endocytosis
+4. Cellular Processes	4.1 Transport and catabolism	Phagosome
+4. Cellular Processes	4.1 Transport and catabolism	Lysosome
+4. Cellular Processes	4.1 Transport and catabolism	Peroxisome
+4. Cellular Processes	4.1 Transport and catabolism	Autophagy - animal
+4. Cellular Processes	4.1 Transport and catabolism	Autophagy - yeast
+4. Cellular Processes	4.1 Transport and catabolism	Autophagy - other
+4. Cellular Processes	4.1 Transport and catabolism	Mitophagy - animal
+4. Cellular Processes	4.1 Transport and catabolism	Mitophagy - yeast
+4. Cellular Processes	4.1 Transport and catabolism	Efferocytosis
+4. Cellular Processes	4.2 Cell growth and death	Efferocytosis
+4. Cellular Processes	4.2 Cell growth and death	Cell cycle
+4. Cellular Processes	4.2 Cell growth and death	Cell cycle - yeast
+4. Cellular Processes	4.2 Cell growth and death	Cell cycle - Caulobacter
+4. Cellular Processes	4.2 Cell growth and death	Meiosis - yeast
+4. Cellular Processes	4.2 Cell growth and death	Oocyte meiosis
+4. Cellular Processes	4.2 Cell growth and death	Apoptosis
+4. Cellular Processes	4.2 Cell growth and death	Apoptosis - fly
+4. Cellular Processes	4.2 Cell growth and death	Apoptosis - multiple species
+4. Cellular Processes	4.2 Cell growth and death	Ferroptosis
+4. Cellular Processes	4.2 Cell growth and death	Necroptosis
+4. Cellular Processes	4.2 Cell growth and death	p53 signaling pathway
+4. Cellular Processes	4.2 Cell growth and death	Cellular senescence
+4. Cellular Processes	4.3 Cellular community - eukaryotes	Cellular senescence
+4. Cellular Processes	4.3 Cellular community - eukaryotes	Focal adhesion
+4. Cellular Processes	4.3 Cellular community - eukaryotes	Adherens junction
+4. Cellular Processes	4.3 Cellular community - eukaryotes	Tight junction
+4. Cellular Processes	4.3 Cellular community - eukaryotes	Gap junction
+4. Cellular Processes	4.3 Cellular community - eukaryotes	Signaling pathways regulating pluripotency of stem cells
+4. Cellular Processes	4.4 Cellular community - prokaryotes	Signaling pathways regulating pluripotency of stem cells
+4. Cellular Processes	4.4 Cellular community - prokaryotes	Quorum sensing
+4. Cellular Processes	4.4 Cellular community - prokaryotes	Biofilm formation - Vibrio cholerae
+4. Cellular Processes	4.4 Cellular community - prokaryotes	Biofilm formation - Pseudomonas aeruginosa
+4. Cellular Processes	4.4 Cellular community - prokaryotes	Biofilm formation - Escherichia coli
+4. Cellular Processes	4.5 Cell motility	Biofilm formation - Escherichia coli
+4. Cellular Processes	4.5 Cell motility	Bactrial chemotaxis
+4. Cellular Processes	4.5 Cell motility	Flagellar assembly
+4. Cellular Processes	4.5 Cell motility	Motor proteins
+4. Cellular Processes	4.5 Cell motility	Cytoskeleton in muscle cells New!
+4. Cellular Processes	4.5 Cell motility	Regulation of actin cytoskeleton
+5. Organismal Systems	4.5 Cell motility	Regulation of actin cytoskeleton
+5. Organismal Systems	5.1 Immune system	Regulation of actin cytoskeleton
+5. Organismal Systems	5.1 Immune system	Hematopoietic cell lineage
+5. Organismal Systems	5.1 Immune system	Complement and coagulation cascades
+5. Organismal Systems	5.1 Immune system	Platelet activation
+5. Organismal Systems	5.1 Immune system	Neutrophil extracellular trap formation
+5. Organismal Systems	5.1 Immune system	Toll-like receptor signaling pathway
+5. Organismal Systems	5.1 Immune system	Toll and Imd signaling pathway
+5. Organismal Systems	5.1 Immune system	NOD-like receptor signaling pathway
+5. Organismal Systems	5.1 Immune system	RIG-I-like receptor signaling pathway
+5. Organismal Systems	5.1 Immune system	Cytosolic DNA-sensing pathway
+5. Organismal Systems	5.1 Immune system	C-type lectin receptor signaling pathway
+5. Organismal Systems	5.1 Immune system	Natural killer cell mediated cytotoxicity
+5. Organismal Systems	5.1 Immune system	Antigen processing and presentation
+5. Organismal Systems	5.1 Immune system	T cell receptor signaling pathway
+5. Organismal Systems	5.1 Immune system	Th1 and Th2 cell differentiation
+5. Organismal Systems	5.1 Immune system	Th17 cell differentiation
+5. Organismal Systems	5.1 Immune system	IL-17 signaling pathway
+5. Organismal Systems	5.1 Immune system	B cell receptor signaling pathway
+5. Organismal Systems	5.1 Immune system	Fc epsilon RI signaling pathway
+5. Organismal Systems	5.1 Immune system	Fc gamma R-mediated phagocytosis
+5. Organismal Systems	5.1 Immune system	Leukocyte transendothelial migration
+5. Organismal Systems	5.1 Immune system	Intestinal immune network for IgA production
+5. Organismal Systems	5.1 Immune system	Chemokine signaling pathway
+5. Organismal Systems	5.2 Endocrine system	Chemokine signaling pathway
+5. Organismal Systems	5.2 Endocrine system	Insulin secretion
+5. Organismal Systems	5.2 Endocrine system	Insulin signaling pathway
+5. Organismal Systems	5.2 Endocrine system	Glucagon signaling pathway
+5. Organismal Systems	5.2 Endocrine system	Regulation of lipolysis in adipocytes
+5. Organismal Systems	5.2 Endocrine system	Adipocytokine signaling pathway
+5. Organismal Systems	5.2 Endocrine system	PPAR signaling pathway
+5. Organismal Systems	5.2 Endocrine system	GnRH secretion
+5. Organismal Systems	5.2 Endocrine system	GnRH signaling pathway
+5. Organismal Systems	5.2 Endocrine system	Ovarian steroidogenesis
+5. Organismal Systems	5.2 Endocrine system	Estrogen signaling pathway
+5. Organismal Systems	5.2 Endocrine system	Progesterone-mediated oocyte maturation
+5. Organismal Systems	5.2 Endocrine system	Prolactin signaling pathway
+5. Organismal Systems	5.2 Endocrine system	Oxytocin signaling pathway
+5. Organismal Systems	5.2 Endocrine system	Relaxin signaling pathway
+5. Organismal Systems	5.2 Endocrine system	Growth hormone synthesis, secretion and action
+5. Organismal Systems	5.2 Endocrine system	Thyroid hormone synthesis
+5. Organismal Systems	5.2 Endocrine system	Thyroid hormone signaling pathway
+5. Organismal Systems	5.2 Endocrine system	Parathyroid hormone synthesis, secretion and action
+5. Organismal Systems	5.2 Endocrine system	Melanogenesis
+5. Organismal Systems	5.2 Endocrine system	Renin secretion
+5. Organismal Systems	5.2 Endocrine system	Renin-angiotensin system
+5. Organismal Systems	5.2 Endocrine system	Aldosterone synthesis and secretion
+5. Organismal Systems	5.2 Endocrine system	Cortisol synthesis and secretion
+5. Organismal Systems	5.3 Circulatory system	Cortisol synthesis and secretion
+5. Organismal Systems	5.3 Circulatory system	Cardiac muscle contraction
+5. Organismal Systems	5.3 Circulatory system	Adrenergic signaling in cardiomyocytes
+5. Organismal Systems	5.3 Circulatory system	Vascular smooth muscle contraction
+5. Organismal Systems	5.4 Digestive system	Vascular smooth muscle contraction
+5. Organismal Systems	5.4 Digestive system	Salivary secretion
+5. Organismal Systems	5.4 Digestive system	Gastric acid secretion
+5. Organismal Systems	5.4 Digestive system	Pancreatic secretion
+5. Organismal Systems	5.4 Digestive system	Bile secretion
+5. Organismal Systems	5.4 Digestive system	Carbohydrate digestion and absorption
+5. Organismal Systems	5.4 Digestive system	Protein digestion and absorption
+5. Organismal Systems	5.4 Digestive system	Fat digestion and absorption
+5. Organismal Systems	5.4 Digestive system	Cholesterol metabolism
+5. Organismal Systems	5.4 Digestive system	Vitamin digestion and absorption
+5. Organismal Systems	5.4 Digestive system	Cobalamin transport and metabolism New!
+5. Organismal Systems	5.4 Digestive system	Mineral absorption
+5. Organismal Systems	5.5 Excretory system	Mineral absorption
+5. Organismal Systems	5.5 Excretory system	Vasopressin-regulated water reabsorption
+5. Organismal Systems	5.5 Excretory system	Aldosterone-regulated sodium reabsorption
+5. Organismal Systems	5.5 Excretory system	Endocrine and other factor-regulated calcium reabsorption
+5. Organismal Systems	5.5 Excretory system	Proximal tubule bicarbonate reclamation
+5. Organismal Systems	5.5 Excretory system	Collecting duct acid secretion
+5. Organismal Systems	5.6 Nervous system	Collecting duct acid secretion
+5. Organismal Systems	5.6 Nervous system	Glutamatergic synapse
+5. Organismal Systems	5.6 Nervous system	GABAergic synapse
+5. Organismal Systems	5.6 Nervous system	Cholinergic synapse
+5. Organismal Systems	5.6 Nervous system	Dopaminergic synapse
+5. Organismal Systems	5.6 Nervous system	Serotonergic synapse
+5. Organismal Systems	5.6 Nervous system	Long-term potentiation
+5. Organismal Systems	5.6 Nervous system	Long-term depression
+5. Organismal Systems	5.6 Nervous system	Retrograde endocannabinoid signaling
+5. Organismal Systems	5.6 Nervous system	Synaptic vesicle cycle
+5. Organismal Systems	5.6 Nervous system	Neurotrophin signaling pathway
+5. Organismal Systems	5.7 Sensory system	Neurotrophin signaling pathway
+5. Organismal Systems	5.7 Sensory system	Phototransduction
+5. Organismal Systems	5.7 Sensory system	Phototransduction - fly
+5. Organismal Systems	5.7 Sensory system	Olfactory transduction
+5. Organismal Systems	5.7 Sensory system	Taste transduction
+5. Organismal Systems	5.7 Sensory system	Inflammatory mediator regulation of TRP channels
+5. Organismal Systems	5.8 Development and regeneration	Inflammatory mediator regulation of TRP channels
+5. Organismal Systems	5.8 Development and regeneration	Dorso-ventral axis formation
+5. Organismal Systems	5.8 Development and regeneration	Axon guidance
+5. Organismal Systems	5.8 Development and regeneration	Axon regeneration
+5. Organismal Systems	5.8 Development and regeneration	Osteoclast differentiation
+5. Organismal Systems	5.9 Aging	Osteoclast differentiation
+5. Organismal Systems	5.9 Aging	Longevity regulating pathway
+5. Organismal Systems	5.9 Aging	Longevity regulating pathway - worm
+5. Organismal Systems	5.9 Aging	Longevity regulating pathway - multiple species
+5. Organismal Systems	5.10 Environmental adaptation	Longevity regulating pathway - multiple species
+5. Organismal Systems	5.10 Environmental adaptation	Circadian rhythm
+5. Organismal Systems	5.10 Environmental adaptation	Circadian entrainment
+5. Organismal Systems	5.10 Environmental adaptation	Circadian rhythm - fly
+5. Organismal Systems	5.10 Environmental adaptation	Circadian rhythm - plant
+5. Organismal Systems	5.10 Environmental adaptation	Thermogenesis
+5. Organismal Systems	5.10 Environmental adaptation	Plant-pathogen interaction
+6. Human Diseases	5.10 Environmental adaptation	Plant-pathogen interaction
+6. Human Diseases	6.1 Cancer: overview	Plant-pathogen interaction
+6. Human Diseases	6.1 Cancer: overview	Pathways in cancer
+6. Human Diseases	6.1 Cancer: overview	Transcriptional misregulation in cancer
+6. Human Diseases	6.1 Cancer: overview	MicroRNAs in cancer
+6. Human Diseases	6.1 Cancer: overview	Proteoglycans in cancer
+6. Human Diseases	6.1 Cancer: overview	Chemical carcinogenesis - DNA adducts
+6. Human Diseases	6.1 Cancer: overview	Chemical carcinogenesis - receptor activation
+6. Human Diseases	6.1 Cancer: overview	Chemical carcinogenesis - reactive oxygen species
+6. Human Diseases	6.1 Cancer: overview	Viral carcinogenesis
+6. Human Diseases	6.1 Cancer: overview	Central carbon metabolism in cancer
+6. Human Diseases	6.1 Cancer: overview	Choline metabolism in cancer
+6. Human Diseases	6.1 Cancer: overview	PD-L1 expression and PD-1 checkpoint pathway in cancer
+6. Human Diseases	6.2 Cancer: specific types	PD-L1 expression and PD-1 checkpoint pathway in cancer
+6. Human Diseases	6.2 Cancer: specific types	Colorectal cancer
+6. Human Diseases	6.2 Cancer: specific types	Pancreatic cancer
+6. Human Diseases	6.2 Cancer: specific types	Hepatocellular carcinoma
+6. Human Diseases	6.2 Cancer: specific types	Gastric cancer
+6. Human Diseases	6.2 Cancer: specific types	Glioma
+6. Human Diseases	6.2 Cancer: specific types	Thyroid cancer
+6. Human Diseases	6.2 Cancer: specific types	Acute myeloid leukemia
+6. Human Diseases	6.2 Cancer: specific types	Chronic myeloid leukemia
+6. Human Diseases	6.2 Cancer: specific types	Basal cell carcinoma
+6. Human Diseases	6.2 Cancer: specific types	Melanoma
+6. Human Diseases	6.2 Cancer: specific types	Renal cell carcinoma
+6. Human Diseases	6.2 Cancer: specific types	Bladder cancer
+6. Human Diseases	6.2 Cancer: specific types	Prostate cancer
+6. Human Diseases	6.2 Cancer: specific types	Endometrial cancer
+6. Human Diseases	6.2 Cancer: specific types	Breast cancer
+6. Human Diseases	6.2 Cancer: specific types	Small cell lung cancer
+6. Human Diseases	6.2 Cancer: specific types	Non-small cell lung cancer
+6. Human Diseases	6.3 Infectious disease: viral	Non-small cell lung cancer
+6. Human Diseases	6.3 Infectious disease: viral	Human T-cell leukemia virus 1 infection
+6. Human Diseases	6.3 Infectious disease: viral	Human immunodeficiency virus 1 infection
+6. Human Diseases	6.3 Infectious disease: viral	Hepatitis B
+6. Human Diseases	6.3 Infectious disease: viral	Hepatitis C
+6. Human Diseases	6.3 Infectious disease: viral	Coronavirus disease - COVID-19
+6. Human Diseases	6.3 Infectious disease: viral	Influenza A
+6. Human Diseases	6.3 Infectious disease: viral	Measles
+6. Human Diseases	6.3 Infectious disease: viral	Herpes simplex virus 1 infection
+6. Human Diseases	6.3 Infectious disease: viral	Human cytomegalovirus infection
+6. Human Diseases	6.3 Infectious disease: viral	Kaposi sarcoma-associated herpesvirus infection
+6. Human Diseases	6.3 Infectious disease: viral	Epstein-Barr virus infection
+6. Human Diseases	6.3 Infectious disease: viral	Human papillomavirus infection
+6. Human Diseases	6.4 Infectious disease: bacterial	Human papillomavirus infection
+6. Human Diseases	6.4 Infectious disease: bacterial	Vibrio cholerae infection
+6. Human Diseases	6.4 Infectious disease: bacterial	Epithelial cell signaling in Helicobacter pylori infection
+6. Human Diseases	6.4 Infectious disease: bacterial	Pathogenic Escherichia coli infection
+6. Human Diseases	6.4 Infectious disease: bacterial	Salmonella infection
+6. Human Diseases	6.4 Infectious disease: bacterial	Shigellosis
+6. Human Diseases	6.4 Infectious disease: bacterial	Yersinia infection
+6. Human Diseases	6.4 Infectious disease: bacterial	Pertussis
+6. Human Diseases	6.4 Infectious disease: bacterial	Legionellosis
+6. Human Diseases	6.4 Infectious disease: bacterial	Staphylococcus aureus infection
+6. Human Diseases	6.4 Infectious disease: bacterial	Tuberculosis
+6. Human Diseases	6.4 Infectious disease: bacterial	Bacterial invasion of epithelial cells
+6. Human Diseases	6.5 Infectious disease: parasitic	Bacterial invasion of epithelial cells
+6. Human Diseases	6.5 Infectious disease: parasitic	Amoebiasis
+6. Human Diseases	6.5 Infectious disease: parasitic	Malaria
+6. Human Diseases	6.5 Infectious disease: parasitic	Toxoplasmosis
+6. Human Diseases	6.5 Infectious disease: parasitic	Leishmaniasis
+6. Human Diseases	6.5 Infectious disease: parasitic	Chagas disease
+6. Human Diseases	6.5 Infectious disease: parasitic	African trypanosomiasis
+6. Human Diseases	6.6 Immune disease	African trypanosomiasis
+6. Human Diseases	6.6 Immune disease	Asthma
+6. Human Diseases	6.6 Immune disease	Systemic lupus erythematosus
+6. Human Diseases	6.6 Immune disease	Rheumatoid arthritis
+6. Human Diseases	6.6 Immune disease	Autoimmune thyroid disease
+6. Human Diseases	6.6 Immune disease	Inflammatory bowel disease
+6. Human Diseases	6.6 Immune disease	Allograft rejection
+6. Human Diseases	6.6 Immune disease	Graft-versus-host disease
+6. Human Diseases	6.6 Immune disease	Primary immunodeficiency
+6. Human Diseases	6.7 Neurodegenerative disease	Primary immunodeficiency
+6. Human Diseases	6.7 Neurodegenerative disease	Alzheimer disease
+6. Human Diseases	6.7 Neurodegenerative disease	Parkinson disease
+6. Human Diseases	6.7 Neurodegenerative disease	Amyotrophic lateral sclerosis
+6. Human Diseases	6.7 Neurodegenerative disease	Huntington disease
+6. Human Diseases	6.7 Neurodegenerative disease	Spinocerebellar ataxia
+6. Human Diseases	6.7 Neurodegenerative disease	Prion disease
+6. Human Diseases	6.7 Neurodegenerative disease	Pathways of neurodegeneration - multiple diseases
+6. Human Diseases	6.8 Substance dependence	Pathways of neurodegeneration - multiple diseases
+6. Human Diseases	6.8 Substance dependence	Cocaine addiction
+6. Human Diseases	6.8 Substance dependence	Amphetamine addiction
+6. Human Diseases	6.8 Substance dependence	Morphine addiction
+6. Human Diseases	6.8 Substance dependence	Nicotine addiction
+6. Human Diseases	6.8 Substance dependence	Alcoholism
+6. Human Diseases	6.9 Cardiovascular disease	Alcoholism
+6. Human Diseases	6.9 Cardiovascular disease	Lipid and atherosclerosis
+6. Human Diseases	6.9 Cardiovascular disease	Fluid shear stress and atherosclerosis
+6. Human Diseases	6.9 Cardiovascular disease	Hypertrophic cardiomyopathy
+6. Human Diseases	6.9 Cardiovascular disease	Arrhythmogenic right ventricular cardiomyopathy
+6. Human Diseases	6.9 Cardiovascular disease	Dilated cardiomyopathy
+6. Human Diseases	6.9 Cardiovascular disease	Diabetic cardiomyopathy
+6. Human Diseases	6.9 Cardiovascular disease	Viral myocarditis
+6. Human Diseases	6.10 Endocrine and metabolic disease	Viral myocarditis
+6. Human Diseases	6.10 Endocrine and metabolic disease	Type II diabetes mellitus
+6. Human Diseases	6.10 Endocrine and metabolic disease	Type I diabetes mellitus
+6. Human Diseases	6.10 Endocrine and metabolic disease	Maturity onset diabetes of the young
+6. Human Diseases	6.10 Endocrine and metabolic disease	Alcoholic liver disease
+6. Human Diseases	6.10 Endocrine and metabolic disease	Non-alcoholic fatty liver disease
+6. Human Diseases	6.10 Endocrine and metabolic disease	Insulin resistance
+6. Human Diseases	6.10 Endocrine and metabolic disease	AGE-RAGE signaling pathway in diabetic complications
+6. Human Diseases	6.10 Endocrine and metabolic disease	Cushing syndrome
+6. Human Diseases	6.11 Drug resistance: antimicrobial	Cushing syndrome
+6. Human Diseases	6.11 Drug resistance: antimicrobial	beta-Lactam resistance
+6. Human Diseases	6.11 Drug resistance: antimicrobial	Vancomycin resistance
+6. Human Diseases	6.11 Drug resistance: antimicrobial	Cationic antimicrobial peptide (CAMP) resistance
+6. Human Diseases	6.12 Drug resistance: antineoplastic	Cationic antimicrobial peptide (CAMP) resistance
+6. Human Diseases	6.12 Drug resistance: antineoplastic	EGFR tyrosine kinase inhibitor resistance
+6. Human Diseases	6.12 Drug resistance: antineoplastic	Platinum drug resistance
+6. Human Diseases	6.12 Drug resistance: antineoplastic	Antifolate resistance
+6. Human Diseases	6.12 Drug resistance: antineoplastic	Endocrine resistance
+7. Drug Development	6.12 Drug resistance: antineoplastic	Endocrine resistance
+7. Drug Development	7.1 Chronology: Antiinfectives	Endocrine resistance
+7. Drug Development	7.1 Chronology: Antiinfectives	Penicillins
+7. Drug Development	7.1 Chronology: Antiinfectives	Cephalosporins - parenteral agents
+7. Drug Development	7.1 Chronology: Antiinfectives	Cephalosporins - oral agents
+7. Drug Development	7.1 Chronology: Antiinfectives	Aminoglycosides
+7. Drug Development	7.1 Chronology: Antiinfectives	Tetracyclines
+7. Drug Development	7.1 Chronology: Antiinfectives	Macrolides and ketolides
+7. Drug Development	7.1 Chronology: Antiinfectives	Quinolones
+7. Drug Development	7.1 Chronology: Antiinfectives	Rifamycins
+7. Drug Development	7.1 Chronology: Antiinfectives	Antifungal agents
+7. Drug Development	7.1 Chronology: Antiinfectives	Antiviral agents
+7. Drug Development	7.1 Chronology: Antiinfectives	Anti-HIV agents
+7. Drug Development	7.2 Chronology: Antineoplastics	Anti-HIV agents
+7. Drug Development	7.2 Chronology: Antineoplastics	Antineoplastics - alkylating agents
+7. Drug Development	7.2 Chronology: Antineoplastics	Antineoplastics - antimetabolic agents
+7. Drug Development	7.2 Chronology: Antineoplastics	Antineoplastics - agents from natural products
+7. Drug Development	7.2 Chronology: Antineoplastics	Antineoplastics - hormones
+7. Drug Development	7.2 Chronology: Antineoplastics	Antineoplastics - protein kinase inhibitors
+7. Drug Development	7.3 Chronology: Nervous system agents	Antineoplastics - protein kinase inhibitors
+7. Drug Development	7.3 Chronology: Nervous system agents	Hypnotics
+7. Drug Development	7.3 Chronology: Nervous system agents	Anxiolytics
+7. Drug Development	7.3 Chronology: Nervous system agents	Anticonvulsants
+7. Drug Development	7.3 Chronology: Nervous system agents	Local analgesics
+7. Drug Development	7.3 Chronology: Nervous system agents	Opioid analgesics
+7. Drug Development	7.3 Chronology: Nervous system agents	Antipsychotics
+7. Drug Development	7.3 Chronology: Nervous system agents	Antipsychotics - phenothiazines
+7. Drug Development	7.3 Chronology: Nervous system agents	Antipsychotics - butyrophenones
+7. Drug Development	7.3 Chronology: Nervous system agents	Antidepressants
+7. Drug Development	7.3 Chronology: Nervous system agents	Agents for Alzheimer-type dementia
+7. Drug Development	7.3 Chronology: Nervous system agents	Antiparkinsonian agents
+7. Drug Development	7.4 Chronology: Other drugs	Antiparkinsonian agents
+7. Drug Development	7.4 Chronology: Other drugs	Sulfonamide derivatives - overview
+7. Drug Development	7.4 Chronology: Other drugs	Sulfonamide derivatives - sulfa drugs
+7. Drug Development	7.4 Chronology: Other drugs	Sulfonamide derivatives - diuretics
+7. Drug Development	7.4 Chronology: Other drugs	Sulfonamide derivatives - hypoglycemic agents
+7. Drug Development	7.4 Chronology: Other drugs	Antiarrhythmic drugs
+7. Drug Development	7.4 Chronology: Other drugs	Antiulcer drugs
+7. Drug Development	7.4 Chronology: Other drugs	Immunosuppressive agents
+7. Drug Development	7.4 Chronology: Other drugs	Osteoporosis drugs
+7. Drug Development	7.4 Chronology: Other drugs	Antimigraines
+7. Drug Development	7.4 Chronology: Other drugs	Antithrombosis agents
+7. Drug Development	7.4 Chronology: Other drugs	Antirheumatics - DMARDs and biological agents
+7. Drug Development	7.4 Chronology: Other drugs	Antidiabetics
+7. Drug Development	7.4 Chronology: Other drugs	Antidyslipidemic agents
+7. Drug Development	7.4 Chronology: Other drugs	Antiglaucoma agents
+7. Drug Development	7.5 Target-based classification: G protein-coupled receptors	Antiglaucoma agents
+7. Drug Development	7.5 Target-based classification: G protein-coupled receptors	Cholinergic and anticholinergic drugs
+7. Drug Development	7.5 Target-based classification: G protein-coupled receptors	alpha-Adrenergic receptor agonists/antagonists
+7. Drug Development	7.5 Target-based classification: G protein-coupled receptors	beta-Adrenergic receptor agonists/antagonists
+7. Drug Development	7.5 Target-based classification: G protein-coupled receptors	Dopamine receptor agonists/antagonists
+7. Drug Development	7.5 Target-based classification: G protein-coupled receptors	Histamine H1 receptor antagonists
+7. Drug Development	7.5 Target-based classification: G protein-coupled receptors	Histamine H2/H3 receptor agonists/antagonists
+7. Drug Development	7.5 Target-based classification: G protein-coupled receptors	Serotonin receptor agonists/antagonists
+7. Drug Development	7.5 Target-based classification: G protein-coupled receptors	Eicosanoid receptor agonists/antagonists
+7. Drug Development	7.5 Target-based classification: G protein-coupled receptors	Opioid receptor agonists/antagonists
+7. Drug Development	7.5 Target-based classification: G protein-coupled receptors	Angiotensin receptor and endothelin receptor antagonists
+7. Drug Development	7.6 Target-based classification: Nuclear receptors	Angiotensin receptor and endothelin receptor antagonists
+7. Drug Development	7.6 Target-based classification: Nuclear receptors	Glucocorticoid and mineralocorticoid receptor agonists/antagonists
+7. Drug Development	7.6 Target-based classification: Nuclear receptors	Progesterone, androgen and estrogen receptor agonists/antagonists
+7. Drug Development	7.6 Target-based classification: Nuclear receptors	Retinoic acid receptor (RAR) and retinoid X receptor (RXR) agonists/antagonists
+7. Drug Development	7.6 Target-based classification: Nuclear receptors	Peroxisome proliferator-activated receptor (PPAR) agonists
+7. Drug Development	7.7 Target-based classification: Ion channels	Peroxisome proliferator-activated receptor (PPAR) agonists
+7. Drug Development	7.7 Target-based classification: Ion channels	Nicotinic cholinergic receptor antagonists
+7. Drug Development	7.7 Target-based classification: Ion channels	GABA-A receptor agonists/antagonists
+7. Drug Development	7.7 Target-based classification: Ion channels	Calcium channel blocking drugs
+7. Drug Development	7.7 Target-based classification: Ion channels	Sodium channel blocking drugs
+7. Drug Development	7.7 Target-based classification: Ion channels	Potassium channel blocking and opening drugs
+7. Drug Development	7.7 Target-based classification: Ion channels	N-Methyl-D-aspartic acid (NMDA) receptor antagonists
+7. Drug Development	7.8 Target-based classification: Transporters	N-Methyl-D-aspartic acid (NMDA) receptor antagonists
+7. Drug Development	7.8 Target-based classification: Transporters	Ion transporter inhibitors
+7. Drug Development	7.8 Target-based classification: Transporters	Neurotransmitter transporter inhibitors
+7. Drug Development	7.9 Target-based classification: Enzymes	Neurotransmitter transporter inhibitors
+7. Drug Development	7.9 Target-based classification: Enzymes	Catecholamine transferase inhibitors
+7. Drug Development	7.9 Target-based classification: Enzymes	Cyclooxygenase inhibitors
+7. Drug Development	7.9 Target-based classification: Enzymes	HMG-CoA reductase inhibitors
+7. Drug Development	7.9 Target-based classification: Enzymes	Renin-angiotensin system inhibitors
+7. Drug Development	7.9 Target-based classification: Enzymes	HIV protease inhibitors
+7. Drug Development	7.10 Structure-based classification	HIV protease inhibitors
+7. Drug Development	7.10 Structure-based classification	Quinolines
+7. Drug Development	7.10 Structure-based classification	Eicosanoids
+7. Drug Development	7.10 Structure-based classification	Prostaglandins
+7. Drug Development	7.11 Skeleton-based classification	Prostaglandins
+7. Drug Development	7.11 Skeleton-based classification	Benzoic acid family
+7. Drug Development	7.11 Skeleton-based classification	1,2-Diphenyl substitution family
+7. Drug Development	7.11 Skeleton-based classification	Naphthalene family
+7. Drug Development	7.11 Skeleton-based classification	Benzodiazepine family

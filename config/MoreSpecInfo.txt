@@ -1,0 +1,80 @@
+s__	None	
+s__Acinetobacter pollinis	Isolate	 
+s__Apibacter sp002964915	Isolate	from China: Sichuan
+s__Apibacter adventoris	Isolate	 
+s__Apilactobacillus waqarii	Isolate	 
+s__Apilactobacillus bombintestini	Isolate	 
+s__Apilactobacillus apinorum	Isolate	 
+s__Apilactobacillus zhangqiuensis	Isolate	 
+s__Bartonella_A sp945277285	MAG	 
+s__Bartonella_A apis	MAG	from cerana metagenome (https://www.ncbi.nlm.nih.gov/search/all/?term=SRR11267074)
+s__Bartonella_A sp016102285	Isolate	            
+s__Bartonella_A sp945285915	MAG	 
+s__Bartonella_A sp016100455	Isolate	      
+s__Bifidobacterium asteroides_I	Isolate	  
+s__Bifidobacterium sp945269915	MAG	 
+s__Bifidobacterium polysaccharolyticum	Isolate	this is 1.4.1
+s__Bifidobacterium asteroides_A	Isolate	(asteroides_A with the _A) equivalent to Bifidobacterium choladohabitans & 1.2
+s__Bifidobacterium apousia	Isolate	this is 1.1
+s__Bifidobacterium indicum	Isolate	this equivalent to coryneforme sometimes
+s__Bifidobacterium sp000499285	Isolate	 
+s__Bifidobacterium choladohabitans	Isolate	this is 1.2
+s__Bifidobacterium mizhiense	Isolate	  
+s__Bombilactobacillus mellifer	Isolate	 
+s__Bombilactobacillus mellis	Isolate	 
+s__CALYQJ01 sp945285405	MAG	 
+s__CALYQJ01 sp945273735	MAG	 
+s__Commensalibacter sp945266285	MAG	 
+s__Commensalibacter sp003202795	Isolate	lots of ESL and other strains (ESL 379,366,284,392,284 among others)
+s__Corynebacterium sp022712275	MAG	 
+s__Corynebacterium provencense	Isolate	 
+s__Dysgonomonas sp945273835	MAG	 
+s__Dysgonomonas sp945292135	MAG	 
+s__Enterobacter hormaechei_A	Isolate	 
+s__Enterobacter bugandensis	Isolate	 
+s__Enterobacter roggenkampii	Isolate	 
+s__Enterobacter vonholyi	Isolate	 
+s__Entomomonas sp945283395	MAG	 
+s__Escherichia coli	Isolate	 
+s__Frischella japonica	Isolate	  
+s__Frischella perrara	Isolate	  
+s__Gilliamella sp019469205	Isolate	ESL0405
+s__Gilliamella apicola_E	Isolate	ESL0443
+s__Gilliamella apicola_F	Isolate	wkB171
+s__Gilliamella sp945291235	MAG	 
+s__Gilliamella sp019469185	Isolate	ESL0441
+s__Gilliamella apicola_J	Isolate	wkB112
+s__Gilliamella apicola_L	Isolate	wkB113
+s__Gilliamella apicola_K	Isolate	wkB108
+s__Gilliamella apicola_N	Isolate	 
+s__Gilliamella apicola	Isolate	wkB1, DSM 104097, A9
+s__Gilliamella apicola_Q	Isolate	ESL0182, ESL0177
+s__Gilliamella apis	Isolate	ESL0169
+s__Gilliamella apis_A	Isolate	ESL0172
+s__Gilliamella apicola_I	Isolate	wkB308
+s__Gilliamella sp945271295	MAG	 
+s__Gilliamella sp945276085	MAG	 
+s__Klebsiella variicola	Isolate	 
+s__Klebsiella pneumoniae	Isolate	 
+s__Kosakonia oryzae	Isolate	 
+s__Lactobacillus panisapium	Isolate	            
+s__Lactobacillus sp945290125	MAG	 
+s__Lactobacillus apis	Isolate	 
+s__Lactobacillus melliventris	Isolate	 
+s__Lactobacillus huangpiensis	Isolate	 
+s__Lactobacillus kimbladii_A	Isolate	Hma2
+s__Lactobacillus helsingborgensis	Isolate	 
+s__Lactobacillus sp016100975	Isolate	 
+s__Lactobacillus kullabergensis	Isolate	 
+s__Lactobacillus laiwuensis	Isolate	 
+s__Pantoea vagans	Isolate	 
+s__Pantoea dispersa	Isolate	 
+s__Snodgrassella sp945267035	MAG	 
+s__Snodgrassella alvi_E	Isolate	wkB298        
+s__Snodgrassella alvi	Isolate	wkB2, ESL: 304, 324, 323
+s__Snodgrassella alvi_G	SAG	wkB3
+s__Spiroplasma melliferum	Isolate	 
+s__Hafnia paralvei	Isolate	                     
+s__Rosenbergiella epipactidis	Isolate	 
+s__Fructobacillus pseudoficulneus	Isolate	      
+s__Melissococcus plutonius	Isolate	 

@@ -1,0 +1,1596 @@
+---
+title: "Honeybee cross-species analysis - 11"
+author: Aiswarya Prasad
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  prettydoc::html_pretty:
+    theme: cayman
+    <!-- other fun themes: architect leonids hpstr cayman -->
+    highlight: github
+    math: katex
+    number_sections: true
+    df_print: paged
+    cold-folding: hide
+    toc: true
+---
+
+# Initialization
+
+To intialize complete all of or relevant sections of `scripts/visualization/Load_data.R`.
+
+# 1. Alpha diversity
+
+## 1a. Genes
+
+```{r}
+df_num_genes <- read.csv("results/figures/08-summarize_functions/genes_per_sample.tsv", sep = "\t") %>%
+                  mutate(host = Vectorize(get_host_from_sample_name)(sample))
+ggplot(df_num_genes %>% filter(sample %in% samples)) +
+  geom_bar(aes(y = factor(sample, samples),
+               x = genes,
+               fill = host
+             ),
+             stat = "identity"
+  ) +
+  scale_fill_manual(values = host_order_color_dark) +
+  labs(x = "# Genes", y = "Sample", color = "Host") +
+  make_theme(setFill = F)
+  # ggsave("results/figures/Number_of_genes_per_sample.pdf")
+
+ggplot(df_num_genes %>% filter(sample %in% samples)) +
+  geom_boxplot(aes(x = factor(host, host_order),
+               y = genes,
+               fill = host
+             ),
+             outlier.shape = NA
+  ) +
+  geom_jitter(aes(x = factor(host, host_order),
+               y = genes
+             ),
+             width = 0.1,
+             color = "#000000"
+  ) +
+  scale_fill_manual(values = host_order_color_dark) +
+  labs(x = "Host", y = "# Genes", color = "Host") +
+  make_theme(setFill = F, x_hj = 1, x_vj = 1, x_angle = 30)
+  ggsave("results/figures/Number_of_genes_per_sample.pdf")
+# number of ORFs
+sum(df_num_genes$genes)
+```
+
+## 1b. KOs
+
+```{r}
+# plot KOs detected per sample
+df_kos_per_sample <- read.csv("results/figures/08-summarize_functions/kos_per_sample.tsv", sep = "\t") %>%
+                          mutate(host = Vectorize(get_host_from_sample_name)(sample)) %>%
+                          mutate(location = Vectorize(get_location_from_sample_name)(sample)) %>%
+                            filter(!sample %in% samples_to_exclude)
+
+ggplot(df_kos_per_sample) +
+  geom_boxplot(aes(y = kos, x = factor(host, host_order), 
+                fill = factor(host, host_order),
+                ),
+                outlier.shape = NA
+              ) +
+  geom_point(aes(y = kos, x = factor(host, host_order), group = host,
+                 shape = location, fill = factor(host)), 
+              size = 3,
+              position = position_jitterdodge(0.75)) +
+  scale_fill_manual(values = host_order_color) +
+  labs(x = "Host", y = "Number of KOs", fill = "Host") +
+  scale_y_continuous(labels = label_number(suffix = " K", scale = 1e-3)) +
+  # add stats
+  geom_signif(aes(x = host, y = kos),
+              test = "wilcox.test",
+              step_increase = 0.05,
+              tip_length = 0,
+              comparisons = list(c("Apis florea", "Apis andreniformis"), 
+                                #  c("Apis mellifera", "Apis florea"),
+                                 c("Apis cerana", "Apis andreniformis"),
+                                #  c("Apis cerana", "Apis dorsata"),
+                                #  c("Apis cerana", "Apis florea"),
+                                #  c("Apis dorsata", "Apis florea"),
+                                 c("Apis mellifera", "Apis cerana"),
+                                 c("Apis dorsata", "Apis andreniformis"),
+                                 c("Apis dorsata", "Apis cerana"),
+                                 c("Apis mellifera", "Apis dorsata")),
+              map_signif_level = TRUE, textsize = 6) +
+  make_theme(setFill = FALSE, leg_pos = "bottom", 
+             x_angle = 90, x_size = 0,
+             x_hj = 10, x_vj = 1,
+             y_size = 10, y_hj = 1)
+ggsave("results/figures/Number_of_kos_per_sample.pdf")
+```
+
+```{r}
+df_ko_cum_data <- read.csv("results/figures/08-summarize_functions/KO_cum_curve.tsv", sep = "\t")
+ggplot() +
+  geom_smooth(data = df_ko_cum_data %>% filter(host == "Apis mellifera"), aes(x = size, y = kos, color = host), method = "loess", se = T) +
+  geom_point(data = df_ko_cum_data %>% filter(host == "Apis mellifera"), aes(x = size, y = kos, color = host)) +
+  geom_smooth(data = df_ko_cum_data %>% filter(host == "Apis cerana"), aes(x = size, y = kos, color = host), method = "loess", se = T) +
+  geom_point(data = df_ko_cum_data %>% filter(host == "Apis cerana"), aes(x = size, y = kos, color = host)) +
+  geom_smooth(data = df_ko_cum_data %>% filter(host == "Apis dorsata"), aes(x = size, y = kos, color = host), method = "loess", se = T) +
+  geom_point(data = df_ko_cum_data %>% filter(host == "Apis dorsata"), aes(x = size, y = kos, color = host)) +
+  geom_smooth(data = df_ko_cum_data %>% filter(host == "Apis florea"), aes(x = size, y = kos, color = host), method = "loess", se = T) +
+  geom_point(data = df_ko_cum_data %>% filter(host == "Apis florea"), aes(x = size, y = kos, color = host)) +
+  geom_smooth(data = df_ko_cum_data %>% filter(host == "Apis andreniformis"), aes(x = size, y = kos, color = host), method = "loess", se = T) +
+  geom_point(data = df_ko_cum_data %>% filter(host == "Apis andreniformis"), aes(x = size, y = kos, color = host)) +
+  scale_color_manual(values = host_order_color_dark) +
+  labs(x = "# Bees", y = "# KOs", color = "Host") +
+  scale_y_continuous(labels = label_number(suffix = " K", scale = 1e-3)) +
+  make_theme(setFill = F, setCol = F, guide_nrow = 1)
+ggsave("results/figures/KO_cum_curve.pdf")
+```
+
+```{r}
+df_ko_sharing <- read.csv("results/figures/08-summarize_functions/kos_C_per_host.tsv", sep = "\t") %>%
+                  mutate(number = as.numeric(number)) %>%
+                  filter(number > 5) %>%
+                  # leave out kosCs that have only shared
+ggplot(df_ko_sharing) +
+  geom_bar(aes(y = kos_C, x = number, fill = host), stat = "identity") +
+  scale_fill_manual(values = host_order_color_dark, na.value = "grey") +
+  labs(x = "Host", y = "Number of KOs", fill = "Host") +
+  scale_x_continuous(trans = "log10") +
+  make_theme(setFill = F, y_hj = 1, y_vj = 0.5)
+```
+
+## 1c. CAZy
+
+```{r}
+df_cazy_per_sample <- read.csv("results/figures/08-summarize_functions/cazymes_per_sample.tsv", sep = "\t") %>%
+                          mutate(host = Vectorize(get_host_from_sample_name)(sample)) %>%
+                          mutate(location = Vectorize(get_location_from_sample_name)(sample)) %>%
+                            filter(sample %in% samples)
+ggplot() +
+  geom_boxplot(data = df_cazy_per_sample, aes(y = cazymes, x = factor(host, host_order), 
+                fill = factor(host, host_order),
+                ),
+                outlier.shape = NA
+              ) +
+  geom_point(data = df_cazy_per_sample, aes(y = cazymes, x = factor(host, host_order), group = host,
+                 shape = location, fill = factor(host)), 
+              size = 3,
+              position = position_jitterdodge(0.75)) +
+  scale_fill_manual(values = host_order_color_dark) +
+  labs(x = "Host", y = "Number of CAZymes", fill = "Host") +
+  # scale_y_continuous(labels = label_number(suffix = " K", scale = 1e-3)) +
+  # add stats
+  geom_signif(data = df_cazy_per_sample,
+              aes(x = host, y = cazymes),
+              test = "wilcox.test",
+              step_increase = 0.05,
+              tip_length = 0,
+              comparisons = list(c("Apis florea", "Apis andreniformis"), 
+                                #  c("Apis mellifera", "Apis florea"),
+                                #  c("Apis mellifera", "Apis andreniformis"),
+                                #  c("Apis cerana", "Apis dorsata"),
+                                #  c("Apis cerana", "Apis florea"),
+                                #  c("Apis dorsata", "Apis florea"),
+                                 c("Apis mellifera", "Apis cerana"),
+                                 c("Apis dorsata", "Apis andreniformis"),
+                                 c("Apis dorsata", "Apis cerana"),
+                                 c("Apis mellifera", "Apis dorsata")),
+              map_signif_level = TRUE, textsize = 6) +
+  make_theme(setFill = FALSE, leg_pos = "bottom", 
+             x_angle = 90, x_size = 0,
+             x_hj = 10, x_vj = 1,
+             y_size = 10, y_hj = 1)
+ggsave("results/figures/Number_of_cazymes_per_sample.pdf")
+```
+
+```{r}
+df_cazy_per_sample <- read.csv("results/figures/08-summarize_functions/cazymes_per_sample_noAA_GT.tsv", sep = "\t") %>%
+                          mutate(host = Vectorize(get_host_from_sample_name)(sample)) %>%
+                          mutate(location = Vectorize(get_location_from_sample_name)(sample)) %>%
+                            filter(sample %in% samples)
+ggplot() +
+  geom_boxplot(data = df_cazy_per_sample, aes(y = cazymes, x = factor(host, host_order), 
+                fill = factor(host, host_order),
+                ),
+                outlier.shape = NA
+              ) +
+  geom_point(data = df_cazy_per_sample, aes(y = cazymes, x = factor(host, host_order), group = host,
+                 shape = location, fill = factor(host)), 
+              size = 3,
+              position = position_jitterdodge(0.75)) +
+  scale_fill_manual(values = host_order_color_dark) +
+  labs(x = "Host", y = "Number of CAZymes", fill = "Host") +
+  # scale_y_continuous(labels = label_number(suffix = " K", scale = 1e-3)) +
+  # add stats
+  geom_signif(data = df_cazy_per_sample,
+              aes(x = host, y = cazymes),
+              test = "wilcox.test",
+              step_increase = 0.05,
+              tip_length = 0,
+              comparisons = list(c("Apis florea", "Apis andreniformis"), 
+                                #  c("Apis mellifera", "Apis florea"),
+                                #  c("Apis mellifera", "Apis andreniformis"),
+                                #  c("Apis cerana", "Apis dorsata"),
+                                #  c("Apis cerana", "Apis florea"),
+                                #  c("Apis dorsata", "Apis florea"),
+                                 c("Apis mellifera", "Apis cerana"),
+                                 c("Apis dorsata", "Apis andreniformis"),
+                                 c("Apis dorsata", "Apis cerana"),
+                                 c("Apis mellifera", "Apis dorsata")),
+              map_signif_level = TRUE, textsize = 6) +
+  make_theme(setFill = FALSE, leg_pos = "bottom", 
+             x_angle = 90, x_size = 0,
+             x_hj = 10, x_vj = 1,
+             y_size = 10, y_hj = 1)
+ggsave("results/figures/Number_of_cazymes_per_sample_noAA_GT.pdf")
+```
+
+```{r}
+df_cazy_cum_data <- read.csv("results/figures/08-summarize_functions/cazyme_cum_curve.tsv", sep = "\t")
+ggplot() +
+  geom_smooth(data = df_cazy_cum_data %>% filter(host == "Apis mellifera"), aes(x = size, y = cazymes, color = host), method = "loess", se = T) +
+  geom_point(data = df_cazy_cum_data %>% filter(host == "Apis mellifera"), aes(x = size, y = cazymes, color = host)) +
+  geom_smooth(data = df_cazy_cum_data %>% filter(host == "Apis cerana"), aes(x = size, y = cazymes, color = host), method = "loess", se = T) +
+  geom_point(data = df_cazy_cum_data %>% filter(host == "Apis cerana"), aes(x = size, y = cazymes, color = host)) +
+  geom_smooth(data = df_cazy_cum_data %>% filter(host == "Apis dorsata"), aes(x = size, y = cazymes, color = host), method = "loess", se = T) +
+  geom_point(data = df_cazy_cum_data %>% filter(host == "Apis dorsata"), aes(x = size, y = cazymes, color = host)) +
+  geom_smooth(data = df_cazy_cum_data %>% filter(host == "Apis florea"), aes(x = size, y = cazymes, color = host), method = "loess", se = T) +
+  geom_point(data = df_cazy_cum_data %>% filter(host == "Apis florea"), aes(x = size, y = cazymes, color = host)) +
+  geom_smooth(data = df_cazy_cum_data %>% filter(host == "Apis andreniformis"), aes(x = size, y = cazymes, color = host), method = "loess", se = T) +
+  geom_point(data = df_cazy_cum_data %>% filter(host == "Apis andreniformis"), aes(x = size, y = cazymes, color = host)) +
+  scale_color_manual(values = host_order_color_dark) +
+  labs(x = "# Bees", y = "# CAZy", color = "Host") +
+  # scale_y_continuous(labels = label_number(suffix = " K", scale = 1e-3)) +
+  make_theme(setFill = F, setCol = F, guide_nrow = 1)
+ggsave("results/figures/CAZy_cum_curve.pdf")
+```
+
+```{r}
+completed_substrate_annotations <- read.csv("data/cayman_gene_db/20230607_glycan_annotations_cleaned_manually.tsv", header = T, sep = "\t")
+glycan_annotations_final_cleaned <- completed_substrate_annotations %>% select(c(Family:Subfamily,ORIGIN:FUNCTION_AT_DESTINATION_3, Glycan_annotation))
+glycan_annotations_final_cleaned_long <- glycan_annotations_final_cleaned %>% separate_rows(ORIGIN,sep=",") %>% separate_rows(FUNCTION_IN_ORIGIN,sep=",") %>% separate_rows(FUNCTION_AT_DESTINATION_1,sep=",") %>% separate_rows(FUNCTION_AT_DESTINATION_2,sep=",") %>% separate_rows(FUNCTION_AT_DESTINATION_3,sep=",")
+glycan_annotations_cleaned <- glycan_annotations_final_cleaned
+glycan_annotations_cleaned_filt <- glycan_annotations_cleaned %>% filter(!is.na(FUNCTION_AT_DESTINATION_3))
+df_cazymes_by_genus <- read.csv("results/figures/08-summarize_functions/cazymes_per_host_by_genus.tsv", sep = "\t") %>%
+                        left_join(glycan_annotations_cleaned, by = c("cazyme" = "Subfamily")) %>%
+                          mutate(mod_names_pec = ifelse(grepl("pectin", FUNCTION_AT_DESTINATION_3), 1, 0)) %>%
+                          mutate(short_names = abbreviate(FUNCTION_AT_DESTINATION_3, minlength = 50)) %>%
+                          unique() %>%
+                          filter(number > 2) %>%
+                          arrange(FUNCTION_AT_DESTINATION_3) %>%
+                          filter(!is.na(genus))
+cazyme_order <- df_cazymes_by_genus %>% group_by(cazyme) %>% summarise(FUNCTION_AT_DESTINATION_3, n = n()) %>% arrange(FUNCTION_AT_DESTINATION_3) %>% pull(cazyme) %>% unique()
+# cazyme_order <- df_cazymes_by_genus %>% pull(cazyme)
+ggplot() +
+  geom_point(data = df_cazymes_by_genus, aes(y = host, x = factor(cazyme, cazyme_order), color = host, fill = host, size = number)) +
+  facet_grid(genus ~ ., scales = "free", space = "free") +
+  # facet_grid(genus ~ ., scales = "free") +
+  scale_color_manual(values = host_order_color_dark) +
+  scale_fill_manual(values = host_order_color_dark) +
+  scale_size_continuous(range = c(1, 5)) +
+  labs(x = "Host", y = "Number of CAZymes", fill = "Number of CAZymes") +
+  # geom_tile(data = df_cazymes_by_genus, aes(x = factor(cazyme, cazyme_order), y = host, fill = mod_names_pec), color = "black") +
+  make_theme(setFill = F, setCol = F, leg_pos = "bottom", 
+             x_angle = 90, x_size = 8,
+             x_hj = 1, x_vj = 0.5,
+             y_angle = 90, y_size = 0) +
+  theme(strip.text.y = element_text(angle = 360))
+  ggsave("results/figures/11-figures/11-Number_of_cazymes_per_host_by_genus.pdf", width = 20, height = 25)
+ggplot() +
+  geom_point(data = df_cazymes_by_genus, aes(y = 0, x = factor(cazyme, cazyme_order), 
+  color = FUNCTION_AT_DESTINATION_3),
+  size = 5, shape = 15) +
+  make_theme(setFill = T, x_angle = 90, x_size = 8, palettecol = "Dark2",
+             x_hj = 1, x_vj = 0.5, max_colors = 22,
+             leg_pos = "bottom", guide_nrow = 10,
+             y_angle = 90, y_size = 0)
+    ggsave("results/figures/11-figures/11-Number_of_cazymes_per_host_by_genus_color.pdf", width = 20, height = 25)
+df_cazymes_by_genus_sub <- df_cazymes_by_genus %>%
+ filter(grepl("ectin|ellulose|emicellulose", FUNCTION_AT_DESTINATION_3)) %>%
+ filter(FUNCTION_AT_DESTINATION_3 != "Amylose_and_Amylopectin")
+df_cazymes_by_genus_sub$FUNCTION_AT_DESTINATION_3 %>% unique
+df_cazymes_by_genus %>% filter(FUNCTION_AT_DESTINATION_3 == "Pectin")
+substrate_colors <- c(
+  "Pectin" = "#0570b0",
+  "Gum,Pectin" = "#74a9cf",
+  "Amylose_and_Amylopectin,Gum,Mannans_and_Heteromannans,Pectin" = "#74a9cf",
+  "Amylose_and_Amylopectin,Gum,Pectin" = "#74a9cf",
+  "Amylose_and_Amylopectin,Pectin" = "#74a9cf",
+  "Gum,Glycoprotein,Pectin" = "#74a9cf",
+  "Hemicellulose" = "#cb181d",
+  "Hemicellulose,Mannans_and_Heteromannans" = "#fc9272",
+  "Hemicellulose,Pectin" = "#6a51a3",
+  "Gum,Glycoprotein,Hemicellulose,Pectin" = "#9e9ac8",
+  "Glycoprotein,Gum,Hemicellulose,Mannans_and_Heteromannans,Pectin" = "#9e9ac8",
+  "Gum,Hemicellulose,Mannans_and_Heteromannans,Pectin" = "#9e9ac8",
+  "Amylose_and_Amylopectin,Gum,Hemicellulose,Mannans_and_Heteromannans,Pectin" = "#9e9ac8",
+  "Cellulose" = "#238b45",
+  "Cellulose,Hemicellulose,Mannans_and_Heteromannans" = "#74c476",
+  "Cellulose,Glycoprotein,Gum,Hemicellulose,Mannans_and_Heteromannans,Pectin" = "#74c476",
+  "Cellulose,Gum,Glycoprotein,Hemicellulose,Mannans_and_Heteromannans,Pectin" = "#74c476"
+)
+# make a bar plot of number of cazymes per genus per sample for each host
+ggplot(data = df_cazymes_by_genus_sub) +
+  geom_point(aes(y = factor(host, host_order), x = factor(cazyme, cazyme_order), color = FUNCTION_AT_DESTINATION_3, fill = host, size = number)) +
+  scale_color_manual(values = substrate_colors) +
+  scale_fill_manual(values = host_order_color_dark) +
+  scale_size_continuous(range = c(1, 5)) +
+  labs(x = "Host", y = "Number of CAZymes", fill = "Number of CAZymes") +
+  new_scale_color() +
+  # geom_point(data = df_cazymes_by_genus_sub, aes(y = 0, x = factor(cazyme, cazyme_order), 
+  # color = FUNCTION_AT_DESTINATION_3),
+  # size = 5, shape = 15) +
+  make_theme(setFill = F, setCol = T, leg_pos = "right",
+             x_angle = 90, x_size = 8,
+             x_hj = 1, x_vj = 0.5,
+             guide_nrow = 15, y_size = 10)
+  ggsave("results/figures/11-figures/11-Number_of_cazymes_per_host_dotplot.pdf", width = 20, height = 20)
+genusColorsClean_custom <- c("Bombilactobacillus" = head(colorRampPalette(c(brewer.pal(11, "Spectral")[1], "#FFFFFF"))(10), -1)[1],
+                    "Lactobacillus" = head(colorRampPalette(c(brewer.pal(11, "Spectral")[1], "#FFFFFF"))(10), -1)[4],
+                    "CALYQJ01" = head(colorRampPalette(c(brewer.pal(11, "Spectral")[1], "#FFFFFF"))(10), -1)[4],
+                    "Dysgonomonas" = brewer.pal(11, "Spectral")[2],
+                    "Bifidobacterium" = brewer.pal(11, "Spectral")[3],
+                    "Apibacter" = brewer.pal(11, "Spectral")[4],
+                    "Bombella" = brewer.pal(11, "Spectral")[5],
+                    "Commensalibacter" = brewer.pal(11, "Spectral")[6],
+                    "Bartonella" = brewer.pal(11, "Spectral")[7],
+                    "Frischella" = brewer.pal(11, "Spectral")[8],
+                    "Apilactobacillus" = brewer.pal(11, "Spectral")[9],
+                    "Snodgrassella" = brewer.pal(11, "Spectral")[10],
+                    "Gilliamella" = brewer.pal(11, "Spectral")[11],
+                    "CALYQQ01" = brewer.pal(11, "Spectral")[11],
+                    "Pectinatus" = brewer.pal(8, "Dark2")[1],
+                    "WRHT01" = brewer.pal(8, "Dark2")[3],
+                    "Saezia" = brewer.pal(8, "Dark2")[6],
+                    "Enterobacter" = head(colorRampPalette(c(brewer.pal(11, "BrBG")[2], "#FFFFFF"))(10), -1)[6],
+                    "Parolsenella" = head(colorRampPalette(c(brewer.pal(11, "BrBG")[5], "#FFFFFF"))(10), -1)[6],
+                    "Pluralibacter" = head(colorRampPalette(c(brewer.pal(11, "PiYG")[2], "#FFFFFF"))(10), -1)[4],
+                    "Entomomonas"= head(colorRampPalette(c(brewer.pal(11, "BrBG")[2], "#FFFFFF"))(10), -1)[1],
+                    "Others" = "#d9d9d9",
+                    "Unknown" = "#999999"
+)
+other_list <- c("Zymomonas",
+              "Spiroplasma",
+              "Q3-R57-64",
+              "Zymobacter",
+              "Escherichia",
+              "Klebsiella",
+              "Cronobacter",
+              "Rosenbergiella",
+              "Melissococcus",
+              "KAACC-21507",
+              "Pantoea",
+              "Acinetobacter",
+              "Corynebacterium",
+              "Kosakonia",
+              "JAATFO01",
+              "Hafnia",
+              "Fructobacillus",
+              "Floricoccus",
+              "53")
+# genusColorsClean_custom <- genusColorsClean_custom[which(names(genusColorsClean_custom) %in% unique(df_cazymes_by_genus_sub$genus))]
+# barplot with number per genus add genus colors
+ggplot(data = df_cazymes_by_genus_sub %>% 
+          mutate(genus = ifelse(genus == "", "Unknown", genus)) %>%
+          mutate(genus = ifelse(genus %in% other_list, "Others", genus))
+          ) +
+  geom_bar(aes(y = factor(host, host_order), fill = genus), position = "stack") +
+  scale_fill_manual(values = genusColorsClean_custom) +
+  labs(y = "Host", x = "Number of CAZymes", fill = "Genus") +
+  make_theme(setFill = F, leg_pos = "right",
+             x_angle = 90, x_size = 8,
+             x_hj = 1, x_vj = 0.5,
+             guide_nrow = 15, y_size = 10)
+  ggsave("results/figures/11-figures/11-Number_of_cazymes_per_genus_barplot.pdf", width = 20, height = 20)
+
+```
+
+# 2. Beta diversity
+
+```{r}
+# ko_rpkms <- data.frame()
+# cazyme_rpkms <- data.frame()
+# for (sample in samples_IN_MY) {
+#   print(sample)
+#   gene_counts_rpkm <- read.csv(paste0("results/figures/08-summarize_functions/gene_info_tables/", sample, "_df_detected_genes_cov.csv"))
+#   gene_info <- read.csv(paste0("results/figures/08-summarize_functions/gene_info_tables/", sample, "_df_detected_genes_info.csv"))
+#   # can subset by genus / species and,
+#   # also can subset by core / accessory
+#   ko_counts_rpkm <- gene_info %>%
+#                     select(gene, ko) %>%
+#                     left_join(gene_counts_rpkm %>% select(gene, rpkm, cpm), by = c("gene")) %>%
+#                     mutate(ko = ifelse(ko == "", NA, ko)) %>%
+#                     group_by(ko) %>%
+#                     summarise(rpkm = sum(rpkm, na.rm = T)) %>%
+#                     # summarise(rpkm = sum(rpkm, na.rm = T),
+#                     #           cpm = sum(cpm, na.rm = T)) %>%
+#                     ungroup()
+#   cazyme_counts_rpkm <- gene_info %>%
+#                         select(gene, cazyme) %>%
+#                         left_join(gene_counts_rpkm %>% select(gene, rpkm, cpm), by = c("gene")) %>%
+#                         mutate(cazyme = ifelse(cazyme == "", NA, cazyme)) %>%
+#                         group_by(cazyme) %>%
+#                         summarise(rpkm = sum(rpkm, na.rm = T)) %>%
+#                         # summarise(rpkm = sum(rpkm, na.rm = T),
+#                         #           cpm = sum(cpm, na.rm = T)) %>%
+#                         ungroup()
+#   ko_counts_rpkm <- cbind(ko_counts_rpkm, sample)
+#   ko_rpkms <- rbind(ko_rpkms, ko_counts_rpkm)
+#   cazyme_counts_rpkm <- cbind(cazyme_counts_rpkm, sample)
+#   cazyme_rpkms <- rbind(cazyme_rpkms, cazyme_counts_rpkm)
+# }
+# saveRDS(ko_rpkms, "results/figures/11-ko_rpkms.rds")
+# saveRDS(cazyme_rpkms, "results/figures/11-cazyme_rpkms.rds")
+ko_rpkms <- readRDS("results/figures/11-ko_rpkms.rds")
+cazyme_rpkms <- readRDS("results/figures/11-cazyme_rpkms.rds")
+ko_matrix <- ko_rpkms %>%
+          pivot_wider(names_from = ko, values_from = rpkm) %>%
+          replace(is.na(.), 0) %>%
+          column_to_rownames("sample") %>%
+          filter(!rownames(.) %in% samples_to_exclude) %>%
+          as.matrix()
+cazyme_matrix <- cazyme_rpkms %>%
+          pivot_wider(names_from = cazyme, values_from = rpkm) %>%
+          replace(is.na(.), 0) %>%
+          column_to_rownames("sample") %>%
+          filter(!rownames(.) %in% samples_to_exclude) %>%
+          # subset to remove cazymes that are either GT or AA
+          select(-starts_with("AA"), -starts_with("GT")) %>%
+          as.matrix()
+```
+
+# KOs
+
+```{r}
+ko_matrix_pa <- ko_matrix
+ko_matrix_pa[ko_matrix_pa > 0] <- 1
+ko_matrix_pa <- ko_matrix_pa[apply(ko_matrix_pa, 1, function(x) sum(x) > 0),]                  
+
+dist_mat <- beta.pair(ko_matrix_pa, "jaccard")
+ado_res <- adonis2(dist_mat$beta.jac ~ Species, 
+          rownames(dist_mat$beta.jac %>% as.matrix) %>% as.data.frame() %>%
+            mutate(Species = Vectorize(get_host_from_sample_name)(.)))
+pdf("results/figures/ko_rpkm_betadiv/ko_jaccard_full.pdf", width = 10, height = 15)
+pcoa_plot(dist_mat$beta.jac, df_meta_complete, "Species", color_add = T, color_list = host_order_color_dark) +
+  annotate("text", x = -0.2,
+                        y = 0.2,
+                        size = 5,
+            label = paste0("omega2 = ", round(adonis_OmegaSq(ado_res)$parOmegaSq[[1]], 3),
+                          ", \np = ", adonis_OmegaSq(ado_res)$`Pr(>F`[[1]])
+            )
+dev.off()
+
+
+dist_mat <- beta.pair(ko_matrix_pa, "jaccard")
+ado_res <- adonis2(dist_mat$beta.jtu ~ Species, 
+          rownames(dist_mat$beta.jtu %>% as.matrix) %>% as.data.frame() %>%
+            mutate(Species = Vectorize(get_host_from_sample_name)(.)))
+pdf("results/figures/ko_rpkm_betadiv/ko_jaccard_turnover.pdf", width = 10, height = 15)
+pcoa_plot(dist_mat$beta.jtu, df_meta_complete, "Species", color_add = T, color_list = host_order_color_dark) +
+  annotate("text", x = -0.2,
+                        y = 0.2,
+                        size = 5,
+            label = paste0("omega2 = ", round(adonis_OmegaSq(ado_res)$parOmegaSq[[1]], 3),
+                          ", \np = ", adonis_OmegaSq(ado_res)$`Pr(>F`[[1]])
+            )
+dev.off()
+
+dist_mat <- beta.pair(ko_matrix_pa, "sorensen")
+ado_res <- adonis2(dist_mat$beta.sor ~ Species, 
+          rownames(dist_mat$beta.sor %>% as.matrix) %>% as.data.frame() %>%
+            mutate(Species = Vectorize(get_host_from_sample_name)(.)))
+pdf("results/figures/ko_rpkm_betadiv/ko_sorensen_full.pdf", width = 10, height = 15)
+pcoa_plot(dist_mat$beta.sor, df_meta_complete, "Species", color_add = T, color_list = host_order_color_dark) +
+  annotate("text", x = -0.1,
+                        y = 0.2,
+                        size = 5,
+            label = paste0("omega2 = ", round(adonis_OmegaSq(ado_res)$parOmegaSq[[1]], 3),
+                          ", \np = ", adonis_OmegaSq(ado_res)$`Pr(>F`[[1]])
+            )
+dev.off()
+
+
+dist_mat <- beta.pair(ko_matrix_pa, "sorensen")
+ado_res <- adonis2(dist_mat$beta.sim ~ Species, 
+          rownames(dist_mat$beta.sim %>% as.matrix) %>% as.data.frame() %>%
+            mutate(Species = Vectorize(get_host_from_sample_name)(.)))
+pdf("results/figures/ko_rpkm_betadiv/ko_sorensen_turnover.pdf", width = 10, height = 15)
+pcoa_plot(dist_mat$beta.sim, df_meta_complete, "Species", color_add = T, color_list = host_order_color_dark) +
+  annotate("text", x = -0.1,
+                        y = 0.1,
+                        size = 5,
+            label = paste0("omega2 = ", round(adonis_OmegaSq(ado_res)$parOmegaSq[[1]], 3),
+                          ", \np = ", adonis_OmegaSq(ado_res)$`Pr(>F`[[1]])
+            ) +
+    stat_ellipse(aes(color = Species), geom = "path", level = 0.95, linetype = "solid", size = 0.5)
+dev.off()
+
+dist_mat <- beta.pair(ko_matrix_pa, "jaccard")
+ado_res <- adonis2(dist_mat$beta.jac ~ Species, 
+          rownames(dist_mat$beta.jac %>% as.matrix) %>% as.data.frame() %>%
+            mutate(Species = Vectorize(get_host_from_sample_name)(.)))
+pdf("results/figures/ko_rpkm_betadiv/ko_jaccard_full.pdf", width = 10, height = 15)
+pcoa_plot(dist_mat$beta.jac, df_meta_complete, "Species", color_add = T, color_list = host_order_color_dark) +
+  annotate("text", x = -0.1,
+                        y = 0.2,
+                        size = 8,
+            label = paste0("omega2 = ", round(adonis_OmegaSq(ado_res)$parOmegaSq[[1]], 3),
+                          ", \np = ", adonis_OmegaSq(ado_res)$`Pr(>F`[[1]])
+            ) +
+            stat_ellipse(aes(color = Species), geom = "path", level = 0.95, linetype = "solid", size = 0.5)
+dev.off()
+
+dist_mat <- vegdist(ko_matrix[, colSums(ko_matrix > 0) > 5], method = "robust.aitchison")
+ado_res <- adonis2(dist_mat ~ Species, 
+          rownames(dist_mat %>% as.matrix) %>% as.data.frame() %>%
+            mutate(Species = Vectorize(get_host_from_sample_name)(.)))
+pdf("results/figures/ko_rpkm_betadiv/ko_robust_aitchison_full_gtr5.pdf", width = 10, height = 15)
+pcoa_plot(dist_mat, df_meta_complete, "Species", color_add = T, color_list = host_order_color_dark) +
+  annotate("text", x = -0.1,
+                        y = 0.2,
+                        size = 5,
+            label = paste0("omega2 = ", round(adonis_OmegaSq(ado_res)$parOmegaSq[[1]], 3),
+                          ", \np = ", adonis_OmegaSq(ado_res)$`Pr(>F`[[1]])
+            ) +
+    # draw ellispse with no fill
+    stat_ellipse(aes(color = Species), geom = "path", level = 0.95, linetype = "solid", size = 0.5)
+dev.off()
+```
+
+# Cazymes
+
+```{r}
+cazyme_matrix_pa <- cazyme_matrix
+cazyme_matrix_pa[cazyme_matrix_pa > 0] <- 1
+cazyme_matrix_pa <- cazyme_matrix_pa[apply(cazyme_matrix_pa, 1, function(x) sum(x) > 0),]
+
+dist_mat <- beta.pair(cazyme_matrix_pa, "jaccard")
+ado_res <- adonis2(dist_mat$beta.jac ~ Species, 
+          rownames(dist_mat$beta.jac %>% as.matrix) %>% as.data.frame() %>%
+            mutate(Species = Vectorize(get_host_from_sample_name)(.)))
+pdf("results/figures/cazyme_rpkm_betadiv/cazyme_jaccard_full.pdf", width = 10, height = 15)
+pcoa_plot(dist_mat$beta.jac, df_meta_complete, "Species", color_add = T, color_list = host_order_color_dark) +
+  annotate("text", x = -0.2,
+                        y = 0.2,
+                        size = 5,
+            label = paste0("omega2 = ", round(adonis_OmegaSq(ado_res)$parOmegaSq[[1]], 3),
+                          ", \np = ", adonis_OmegaSq(ado_res)$`Pr(>F`[[1]])
+            ) +
+    stat_ellipse(aes(color = Species), geom = "path", level = 0.95, linetype = "solid", size = 0.5)
+dev.off()
+
+dist_mat <- beta.pair(cazyme_matrix_pa, "jaccard")
+ado_res <- adonis2(dist_mat$beta.jtu ~ Species, 
+          rownames(dist_mat$beta.jtu %>% as.matrix) %>% as.data.frame() %>%
+            mutate(Species = Vectorize(get_host_from_sample_name)(.)))
+pdf("results/figures/cazyme_rpkm_betadiv/cazyme_jaccard_turnover.pdf", width = 10, height = 15)
+pcoa_plot(dist_mat$beta.jtu, df_meta_complete, "Species", color_add = T, color_list = host_order_color_dark) +
+  annotate("text", x = -0.2,
+                        y = 0.2,
+                        size = 5,
+            label = paste0("omega2 = ", round(adonis_OmegaSq(ado_res)$parOmegaSq[[1]], 3),
+                          ", \np = ", adonis_OmegaSq(ado_res)$`Pr(>F`[[1]])
+            ) +
+    stat_ellipse(aes(color = Species), geom = "path", level = 0.95, linetype = "solid", size = 0.5)
+dev.off()
+
+dist_mat <- beta.pair(cazyme_matrix_pa, "sorensen")
+ado_res <- adonis2(dist_mat$beta.sor ~ Species, 
+          rownames(dist_mat$beta.sor %>% as.matrix) %>% as.data.frame() %>%
+            mutate(Species = Vectorize(get_host_from_sample_name)(.)))
+pdf("results/figures/cazyme_rpkm_betadiv/cazyme_sorensen_full.pdf", width = 10, height = 15)
+pcoa_plot(dist_mat$beta.sor, df_meta_complete, "Species", color_add = T, color_list = host_order_color_dark) +
+  annotate("text", x = -0.1,
+                        y = 0.2,
+                        size = 5,
+            label = paste0("omega2 = ", round(adonis_OmegaSq(ado_res)$parOmegaSq[[1]], 3),
+                          ", \np = ", adonis_OmegaSq(ado_res)$`Pr(>F`[[1]])
+            )
+dev.off()
+
+dist_mat <- beta.pair(cazyme_matrix_pa, "sorensen")
+ado_res <- adonis2(dist_mat$beta.sim ~ Species, 
+          rownames(dist_mat$beta.sim %>% as.matrix) %>% as.data.frame() %>%
+            mutate(Species = Vectorize(get_host_from_sample_name)(.)))
+pdf("results/figures/cazyme_rpkm_betadiv/cazyme_sorensen_turnover.pdf", width = 10, height = 15)
+pcoa_plot(dist_mat$beta.sim, df_meta_complete, "Species", color_add = T, color_list = host_order_color_dark) +
+  annotate("text", x = -0.1,
+                        y = 0.1,
+                        size = 5,
+            label = paste0("omega2 = ", round(adonis_OmegaSq(ado_res)$parOmegaSq[[1]], 3),
+                          ", \np = ", adonis_OmegaSq(ado_res)$`Pr(>F`[[1]])
+            ) +
+            stat_ellipse(aes(color = Species), geom = "path", level = 0.95, linetype = "solid", size = 0.5)
+dev.off()
+
+dist_mat <- vegdist(cazyme_matrix[, colSums(cazyme_matrix > 0) > 2], method = "robust.aitchison")
+ado_res <- adonis2(dist_mat ~ Species, 
+          rownames(dist_mat %>% as.matrix) %>% as.data.frame() %>%
+            mutate(Species = Vectorize(get_host_from_sample_name)(.)))
+pdf("results/figures/cazyme_rpkm_betadiv/cazyme_aitchinson_gtr2prev.pdf", width = 10, height = 15)
+pcoa_plot(dist_mat, df_meta_complete, "Species", color_add = T, color_list = host_order_color_dark) +
+  annotate("text", x = -0.01,
+                        y = 0.02,
+                        size = 5,
+            label = paste0("omega2 = ", round(adonis_OmegaSq(ado_res)$parOmegaSq[[1]], 3),
+                          ", \np = ", adonis_OmegaSq(ado_res)$`Pr(>F`[[1]])
+            ) +
+    # draw ellispse with no fill
+    stat_ellipse(aes(color = Species), geom = "path", level = 0.95, linetype = "solid", size = 0.5)
+dev.off()
+```
+
+# 2a. KOs
+
+```{r}
+# get feature matrix and plot as heatmap (KO, cazy, og?)
+  # make sample names the row names and make it a numeric matrix
+ko_df <- read.csv("results/figures/08-summarize_functions/ko_matrix.csv") %>%
+          filter(sample %in% samples) %>%
+          column_to_rownames("sample") %>%
+            as.matrix()
+# dist_mat <- vegdist(ko_df, method = "bray")
+# pcoa_plot(dist_mat, df_meta_complete, "Species", color_add = T, color_list = host_order_color_dark)
+
+# presence-absence matrix of 1 and 0
+ko_df_pa <- ko_df
+ko_df_pa[ko_df_pa > 0] <- 1
+
+# dist_mat <- beta.pair(ko_df_pa, "sorensen")
+# pcoa_plot(dist_mat$beta.sim, df_meta_complete, "Species", color_add = T, color_list = host_order_color_dark)
+# pcoa_plot(dist_mat$beta.sor, df_meta_complete, "Species", color_add = T, color_list = host_order_color_dark)
+
+dist_mat <- beta.pair(ko_df_pa, "jaccard")
+res <- adonis2(dist_mat$beta.jac ~ Species, 
+          rownames(dist_mat$beta.jac %>% as.matrix) %>% as.data.frame() %>%
+            mutate(Species = Vectorize(get_host_from_sample_name)(.)))
+pdf("results/figures/KO_jaccard_pcoa.pdf", , width = 10, height = 15)
+pcoa_plot(dist_mat$beta.jac, df_meta_complete, "Species", color_add = T, color_list = host_order_color_dark) +
+  annotate("text", x = -0.15,
+                      y = 0.2,
+                      size = 8,
+          label = paste0("omega2 = ", round(adonis_OmegaSq(res)$parOmegaSq[[1]], 3),
+                         ", \np = ", adonis_OmegaSq(res)$`Pr(>F`[[1]])
+          )
+dev.off()
+res <- adonis2(dist_mat$beta.jtu ~ Species, 
+          rownames(dist_mat$beta.jtu %>% as.matrix) %>% as.data.frame() %>%
+            mutate(Species = Vectorize(get_host_from_sample_name)(.)))
+pdf("results/figures/KO_jaccard_turnover.pdf", , width = 10, height = 15)
+pcoa_plot(dist_mat$beta.jtu, df_meta_complete, "Species", color_add = T, color_list = host_order_color_dark) +
+  annotate("text", x = -0.1,
+                      y = 0.13,
+                      size = 8,
+          label = paste0("omega2 = ", round(adonis_OmegaSq(res)$parOmegaSq[[1]], 3),
+                         ", \np = ", adonis_OmegaSq(res)$`Pr(>F`[[1]])
+          )
+dev.off()
+
+dist_mat <- beta.pair(ko_df_pa, "sorensen")
+res <- adonis2(dist_mat$beta.sor ~ Species, 
+          rownames(dist_mat$beta.sor %>% as.matrix) %>% as.data.frame() %>%
+            mutate(Species = Vectorize(get_host_from_sample_name)(.)))
+res_omega <- adonis_OmegaSq(res)
+pdf("results/figures/KO_sorensen_pcoa.pdf", , width = 10, height = 15)
+pcoa_plot(dist_mat$beta.sor, df_meta_complete, "Species", color_add = T, color_list = host_order_color_dark) +
+  annotate("text", x = -0.15,
+                      y = 0.2,
+                      size = 8,
+          label = paste0("omega2 = ", round(adonis_OmegaSq(res)$parOmegaSq[[1]], 3),
+                         ", \np = ", adonis_OmegaSq(res)$`Pr(>F`[[1]])
+          )
+dev.off()
+res <- adonis2(dist_mat$beta.sim ~ Species, 
+          rownames(dist_mat$beta.sim %>% as.matrix) %>% as.data.frame() %>%
+            mutate(Species = Vectorize(get_host_from_sample_name)(.)))
+res_omega <- adonis_OmegaSq(res)  
+pdf("results/figures/KO_sorensen_turnover_pcoa.pdf", , width = 10, height = 15)
+pcoa_plot(dist_mat$beta.sim, df_meta_complete, "Species", color_add = T, color_list = host_order_color_dark) +
+  annotate("text", x = -0.1,
+                      y = 0.13,
+                      size = 8,
+          label = paste0("omega2 = ", round(adonis_OmegaSq(res)$parOmegaSq[[1]], 3),
+                         ", \np = ", adonis_OmegaSq(res)$`Pr(>F`[[1]])
+          )
+dev.off()
+
+
+ko_matrix_norm <- decostand(ko_df, method = "normalize")
+dist_mat <- vegdist(ko_matrix_norm, method = "robust.aitchison")
+ado_res <- adonis2(dist_mat ~ Species, 
+          rownames(dist_mat %>% as.matrix) %>% as.data.frame() %>%
+            mutate(Species = Vectorize(get_host_from_sample_name)(.)))
+pdf("results/figures/KO_robust_aitchison_pcoa.pdf", , width = 10, height = 15)
+pcoa_plot(dist_mat, df_meta_complete, "Species", color_add = T, color_list = host_order_color_dark) +
+  annotate("text", x = -25,
+                      y = -10,
+                      size = 8,
+          label = paste0("omega2 = ", round(adonis_OmegaSq(ado_res)$parOmegaSq[[1]], 3),
+                         ", \np = ", adonis_OmegaSq(ado_res)$`Pr(>F`[[1]])
+          )
+dev.off()
+
+
+
+# # load host info from scripts/visualization/09-plot_community_composition.Rmd
+# sample_bac_div <- beta.pair(ko_df_pa, "sorensen")$beta.sim
+# # heatmap(sample_bac_div %>% as.matrix)
+# sample_host_div <- sample_host_div %>% 
+#   filter(row.names(.) %in% as.vector(as.matrix(sample_bac_div) %>% row.names)) %>%
+#   select(as.vector(as.matrix(sample_bac_div) %>% row.names))
+# # heatmap(sample_host_div %>% as.matrix)
+
+# sample_host_div_df <- sample_host_div %>%
+#                         as.matrix %>%
+#                         as.data.frame %>%
+#                         rownames_to_column("Sample") %>%
+#                         filter(Sample %in% samples_IN_MY) %>%
+#                         pivot_longer(!Sample, names_to = "Compared", values_to = "dist_h")
+# sample_bac_div_df <- sample_bac_div %>%
+#                         as.matrix %>%
+#                         as.data.frame %>%
+#                         rownames_to_column("Sample") %>%
+#                         filter(Sample %in% samples_IN_MY) %>%
+#                           pivot_longer(!Sample, names_to = "Compared", values_to = "dist_b") %>%
+#                           mutate(Host_s = Vectorize(get_host_from_sample_name)(Sample)) %>%
+#                           mutate(Host_c = Vectorize(get_host_from_sample_name)(Compared)) %>%
+#                           mutate(Type_b = ifelse(Host_s == Host_c, "Within", "Between")) %>%
+#                           mutate(Hosts_compared = paste0(Host_s, "_", Host_c))
+# dissimilarities_df_median <- left_join(sample_bac_div_df, sample_host_div_df) %>%
+#                         group_by(Hosts_compared) %>%
+#                         summarise(dist_h, median_b = median(dist_b)) %>%
+#                         unique
+# dissimilarities_df_mean <- left_join(sample_bac_div_df, sample_host_div_df) %>%
+#                         group_by(Hosts_compared) %>%
+#                         summarise(dist_h, mean_b = median(dist_b)) %>%
+#                         unique
+# dissimilarities_df <- left_join(sample_bac_div_df, sample_host_div_df) %>%
+#                         group_by(Hosts_compared)
+#                         # filter(Sample %in% c("M1.2", "C1.2", "D1.2", "F1.2", "A1.2"))
+
+# anno_side_b <- rowAnnotation(Host = sample_bac_div %>% as.matrix %>% rownames %>% as.data.frame() %>%
+#                                 mutate(host = Vectorize(get_host_from_sample_name)(.)) %>% pull(host),
+#                                col = list(Host = host_order_color_dark),
+#                                border = TRUE
+# )
+# anno_side_h <- rowAnnotation(Host = sample_host_div %>% as.matrix %>% rownames %>% as.data.frame() %>%
+#                                 mutate(host = Vectorize(get_host_from_sample_name)(.)) %>% pull(host),
+#                                col = list(Host = host_order_color_dark),
+#                                border = TRUE
+# )
+# anno_top_b <- HeatmapAnnotation(Host = sample_bac_div %>% as.matrix %>% colnames %>% as.data.frame() %>%
+#                                 mutate(host = Vectorize(get_host_from_sample_name)(.)) %>% pull(host),
+#                                col = list(Host = host_order_color_dark),
+#                                border = TRUE
+# )
+# anno_top_h <- HeatmapAnnotation(Host = sample_host_div %>% as.matrix %>% colnames %>% as.data.frame() %>%
+#                                 mutate(host = Vectorize(get_host_from_sample_name)(.)) %>% pull(host),
+#                                col = list(Host = host_order_color_dark),
+#                                border = TRUE
+# )
+# pdf("results/figures/KO_bac_divergence_sorenson_turnover_dend.pdf")
+# Heatmap(sample_bac_div %>% as.matrix,
+#         rect_gp = gpar(type = "none"),
+#         top_annotation = anno_top_b,
+#         right_annotation = anno_side_b
+#       )
+# dev.off()
+# pdf("results/figures/KO_host_divergence_sorenson_turnover_dend.pdf")
+# Heatmap(sample_host_div %>% as.matrix,
+#         rect_gp = gpar(type = "none"),
+#         top_annotation = anno_top_h,
+#         right_annotation = anno_side_h
+#       )
+# dev.off()
+
+# mantel(sample_host_div, sample_bac_div, method="spearman", permutations=1000)
+
+# cor_res <- cor.test(dissimilarities_df$dist_h, dissimilarities_df$dist_b, method = "spearman")
+
+# ggplot() +
+#   geom_jitter(data=dissimilarities_df,
+#              aes(x = dist_h,
+#                  y = dist_b,
+#                  group = Hosts_compared,
+#                  fill = Host_s,
+#                  color = Host_c,
+#                 #  shape = Type_b
+#              ), width=0.0001, size = 4, shape = 21, stroke = 2
+#             ) +
+#   # geom_jitter(data=dissimilarities_df_mean,
+#   #            aes(x = dist_h,
+#   #                y = mean_b
+#   #            ), size = 3, width = 0
+#   #           ) +
+#   geom_jitter(data=dissimilarities_df_median,
+#              aes(x = dist_h,
+#                  y = median_b
+#              ), size = 5, width = 0, color = "black", shape = 23, fill = "red", stroke = 2
+#             ) +
+#   # geom_smooth(data=dissimilarities_df_median,
+#   #            aes(x = dist_h,
+#   #                y = median_b
+#   #            ), method = "lm", se = T, color = "black"
+#   #           ) +
+#     labs(x = "Host divergence (based on 16S and 12S)", y = "Microbiome dissimilarity (sorensen - turnover)", color = "Host species") +
+#     scale_fill_manual(values = host_order_color_dark) +
+#     scale_color_manual(values = host_order_color_dark) +
+#     annotate("text", x = 0.02,
+#                       y = 0.4,
+#                       size = 5,
+#           label = paste0("Spearman's rho = ", round(cor_res$estimate, 3),
+#                          ", \np = ", cor_res$p.value)
+#           ) +
+#     make_theme(setCol = F, setFill = F, guide_nrow = 2,
+#                leg_size = 12,
+#                axis_x_title = 20, axis_y_title = 20
+#     )
+#   ggsave("results/figures/KO_host_dissimilarities_sorenson_turnover.pdf")
+
+# mantel(as.dist(sample_host_div), as.dist(sample_bac_div), method = "pearson", permutations = 9999)
+
+```
+
+# 2b. CAZy
+
+```{r}
+# get feature matrix and plot as heatmap (KO, cazy, og?)
+  # make sample names the row names and make it a numeric matrix
+# unlist(lapply(colnames(cazy_df), function(x) paste(c(strsplit(x, "")[[1]])[1:2], collapse = ""))) %>% unique
+cazy_df <- read.csv("results/figures/08-summarize_functions/cazyme_matrix.csv") %>%
+          filter(sample %in% samples) %>%
+          select(-starts_with("AA"), -starts_with("GT")) %>%
+          column_to_rownames("sample") %>%          
+            as.matrix()
+# dist_mat <- vegdist(cazy_df, method = "bray")
+# pcoa_plot(dist_mat, df_meta_complete, "Species", color_add = T, color_list = host_order_color_dark)
+
+# presence-absence matrix of 1 and 0
+# remove columns with no data
+cazy_df <- cazy_df[, colSums(cazy_df) > 0]
+heatmap(cazy_df)
+cazy_df_pa <- cazy_df
+cazy_df_pa[cazy_df_pa > 0] <- 1
+cazy_df_pa <- cazy_df_pa[apply(cazy_df_pa, 1, function(x) sum(x) > 0),]
+
+dist_mat <- beta.pair(cazy_df_pa, "jaccard")
+pdf("results/figures/CAZy_jaccard_pcoa.pdf", , width = 10, height = 15)
+pcoa_plot(dist_mat$beta.jac, df_meta_complete, "Species", color_add = T, color_list = host_order_color_dark)
+dev.off()
+adonis2(dist_mat$beta.jac ~ Species, 
+          rownames(dist_mat$beta.jac %>% as.matrix) %>% as.data.frame() %>%
+            mutate(Species = Vectorize(get_host_from_sample_name)(.)))
+
+dist_mat <- beta.pair(cazy_df_pa, "sorensen")
+pdf("results/figures/CAZy_sorensen_pcoa.pdf", , width = 10, height = 15)
+pcoa_plot(dist_mat$beta.sor, df_meta_complete, "Species", color_add = T, color_list = host_order_color_dark)
+# pcoa_plot(dist_mat$beta.sim, df_meta_complete, "Species", color_add = T, color_list = host_order_color_dark)
+dev.off()
+# pcoa_plot(dist_mat$beta.jne, df_meta_complete, "Species", color_add = T, color_list = host_order_color_dark)
+# pcoa_plot(dist_mat$beta.sim, df_meta_complete, "Species", color_add = T, color_list = host_order_color_dark)
+
+cazy_df_norm <- decostand(cazy_df, method = "normalize")
+dist_mat <- vegdist(cazy_df_norm, method = "robust.aitchison")
+ado_res <- adonis2(dist_mat ~ Species, 
+          rownames(dist_mat %>% as.matrix) %>% as.data.frame() %>%
+            mutate(Species = Vectorize(get_host_from_sample_name)(.)))
+pdf("results/figures/CAZy_robust_aitchison_pcoa.pdf", , width = 10, height = 15)
+pcoa_plot(dist_mat, df_meta_complete, "Species", color_add = T, color_list = host_order_color_dark) +
+  annotate("text", x = -5,
+                      y = 4,
+                      size = 8,
+          label = paste0("omega2 = ", round(adonis_OmegaSq(ado_res)$parOmegaSq[[1]], 3),
+                         ", \np = ", adonis_OmegaSq(ado_res)$`Pr(>F`[[1]])
+          )
+dev.off()
+
+```
+
+# Cazymes by host and bacterial genus for Fig 2
+
+```{r}
+
+# we need
+# - average number per individual of each cazyme (involving, pectin, hemicellulose, cellulose)
+# - average number per individual of each cazyme per bacterial genus
+```
+
+<!-- results from using rpkm and number of genes detected per group are similar! -->
+
+# Parse pathway rpkms
+
+```{r}
+pathways_include_df <- read.csv("scripts/visualization/pathways_to_include.tsv", sep = "\t")
+pathways_include <- pathways_include_df %>% filter(include == "y") %>% pull(pathway_name)
+pathways_include_clean <- pathways_include_df %>%
+                          filter(include == "y") %>%
+                          mutate(pathway_name = make.names(pathway_name)) %>%
+                          pull(pathway_name)
+kegg_path_info <- read.csv("scripts/visualization/kegg_pathway_categories.tsv", sep = '\t') %>%
+                    distinct(path_name, .keep_all = TRUE)
+kegg_path_info_clean <- kegg_path_info
+kegg_path_info_clean$path_name <- make.names(kegg_path_info_clean$path_name)
+                          
+df_counts_all <- data.frame()
+for (sample in samples) {
+  if (!file.exists(paste0("results/figures/08-summarize_functions/minpath_outputs/by_sample/", sample, "_kos.path.rpkm"))) {
+    next
+  }
+  df_counts_iter <- read.csv(paste0("results/figures/08-summarize_functions/minpath_outputs/by_sample/", sample, "_kos.path.rpkm"), sep = "\t") %>%
+                      mutate(Sample = sample)
+  df_counts_all <- rbind(df_counts_all, df_counts_iter)
+}
+df_counts <- df_counts_all %>%
+              filter(pathway_name %in% pathways_include)
+df_counts_mat <- df_counts %>%
+                  mutate(rpkm = as.numeric(rpkm)) %>%
+                  pivot_wider(id_cols = c(Sample), names_from = pathway_name, values_from = rpkm) %>%
+                  # replace NAs with 0
+                  mutate(across(where(is.numeric), ~replace_na(., 0)))
+df_counts_cpm_all <- data.frame()
+for (sample in samples) {
+  if (!file.exists(paste0("results/figures/08-summarize_functions/minpath_outputs/by_sample/", sample, "_kos.path.cpm"))) {
+    next
+  }
+  df_counts_cpm_iter <- read.csv(paste0("results/figures/08-summarize_functions/minpath_outputs/by_sample/", sample, "_kos.path.cpm"), sep = "\t") %>%
+                      mutate(Sample = sample)
+  df_counts_cpm_all <- rbind(df_counts_cpm_all, df_counts_cpm_iter)
+}
+df_counts_cpm <- df_counts_cpm_all %>%
+                  filter(pathway_name %in% pathways_include)
+
+df_counts_cpm_mat <- df_counts_cpm %>%
+                  mutate(cpm = as.numeric(cpm)) %>%
+                  pivot_wider(id_cols = c(Sample), names_from = pathway_name, values_from = cpm) %>%
+                  # replace NAs with 0
+                  mutate(across(where(is.numeric), ~replace_na(., 0)))
+# make a facet grid boxplot for each pathway vs cpm for each host with points
+# # per sample
+# ggplot(df_counts_cpm %>%
+#         # remove those in 5 samples or less
+#         group_by(pathway_name) %>%
+#         mutate(count = n_distinct(Sample)) %>%
+#         filter(count > 10) %>%
+#         ungroup() %>%
+#         left_join(kegg_path_info, by = c("pathway_name" = "path_name")) %>%
+#         mutate(Host = Vectorize(get_host_from_sample_name)(Sample))) +
+#   geom_boxplot(aes(x = cpm, y = pathway_name, fill = section), outlier.shape = NA) +
+#   geom_point(aes(x = cpm, y = pathway_name, color = section), size = 0.5) +
+#   facet_grid(~Host, scales = "free") +
+#   labs(y = "CPM", x = "Host", fill = "Host") +
+#   # scale_color_manual(values = host_order_color_dark) +
+#   # scale_fill_manual(values = host_order_color_dark) +
+#   make_theme(setFill = F, setCol = F, leg_pos = "bottom", 
+#              x_angle = 45, x_size = 10, modify_guide = F,
+#              y_size = 6, y_hj = 1)
+#   ggsave("results/figures/08-summarize_functions/maaslin2_minpath_plots/pathway_cpm_boxplot.pdf", width = 10, height = 15)
+
+
+pathway_order <- df_counts %>%
+                  left_join(kegg_path_info, by = c("pathway_name" = "path_name")) %>%
+                  group_by(pathway_name) %>%
+                  mutate(count = n_distinct(Sample)) %>%
+                  # filter(count > 10) %>%
+                  ungroup() %>%
+                  mutate(max_count = max(rpkm)) %>%
+                  arrange(max_count, count) %>%
+                  pull(pathway_name) %>% unique
+ggplot(df_counts %>%
+        # remove those in 5 samples or less
+        group_by(pathway_name) %>%
+        mutate(count = n_distinct(Sample)) %>%
+        # filter(count > 10) %>%
+        ungroup() %>%
+        left_join(kegg_path_info, by = c("pathway_name" = "path_name")) %>%
+        mutate(Host = Vectorize(get_host_from_sample_name)(Sample))) +
+  geom_boxplot(aes(x = rpkm, y = factor(pathway_name, pathway_order), fill = section), outlier.shape = NA) +
+  geom_point(aes(x = rpkm, y = factor(pathway_name, pathway_order)), size = 0.05) +
+  facet_grid(~factor(Host, host_order), scales = "free") +
+  labs(y = "Pathway name", x = "RPKM", fill = "Host") +
+  # scale_color_manual(values = host_order_color_dark) +
+  # scale_fill_manual(values = host_order_color_dark) +
+  make_theme(setFill = T, setCol = T, leg_pos = "bottom", 
+             x_angle = 45, x_size = 10,
+             palettefill = "Spectral",
+             guide_nrow = 6,
+             y_size = 10, y_hj = 1, y_vj = 0.5)
+  ggsave("results/figures/08-summarize_functions/pathway_rpkm_boxplot_all.pdf", width = 20, height = 25)
+
+pathway_order <- df_counts %>%
+                  group_by(pathway_name) %>%
+                  mutate(count = n_distinct(Sample)) %>%
+                  filter(count > 10) %>%
+                  ungroup() %>%
+                  mutate(max_count = max(rpkm)) %>%
+                  arrange(max_count, count) %>%
+                  pull(pathway_name) %>% unique
+ggplot(df_counts %>%
+        # remove those in 5 samples or less
+        group_by(pathway_name) %>%
+        mutate(count = n_distinct(Sample)) %>%
+        filter(count > 10) %>%
+        ungroup() %>%
+        left_join(kegg_path_info, by = c("pathway_name" = "path_name")) %>%
+        mutate(Host = Vectorize(get_host_from_sample_name)(Sample))) +
+  geom_boxplot(aes(x = rpkm, y = factor(pathway_name, pathway_order), fill = section), outlier.shape = NA) +
+  geom_point(aes(x = rpkm, y = factor(pathway_name, pathway_order)), size = 0.05) +
+  facet_grid(~factor(Host, host_order), scales = "free") +
+  labs(y = "Pathway name (>10 samples)", x = "RPKM", fill = "Host") +
+  # scale_color_manual(values = host_order_color_dark) +
+  # scale_fill_manual(values = host_order_color_dark) +
+  make_theme(setFill = T, setCol = T, leg_pos = "bottom", 
+             x_angle = 45, x_size = 10,
+             palettefill = "Spectral",
+             guide_nrow = 6,
+             y_size = 10, y_hj = 1, y_vj = 0.5)
+  ggsave("results/figures/08-summarize_functions/pathway_rpkm_boxplot_gtr10.pdf", width = 20, height = 25)
+
+pathway_order <- df_counts %>%
+                  left_join(kegg_path_info, by = c("pathway_name" = "path_name")) %>%
+                  filter(section != "6. Human Diseases") %>%
+                  group_by(pathway_name) %>%
+                  mutate(count = n_distinct(Sample)) %>%
+                  filter(count > 10) %>%
+                  ungroup() %>%
+                  mutate(max_count = max(rpkm)) %>%
+                  arrange(max_count, count) %>%
+                  pull(pathway_name) %>% unique
+ggplot(df_counts %>%
+        # remove those in 5 samples or less
+        group_by(pathway_name) %>%
+        mutate(count = n_distinct(Sample)) %>%
+        filter(count > 10) %>%
+        ungroup() %>%
+        left_join(kegg_path_info, by = c("pathway_name" = "path_name")) %>%
+        filter(section != "6. Human Diseases") %>%
+        mutate(Host = Vectorize(get_host_from_sample_name)(Sample))) +
+  geom_boxplot(aes(x = rpkm, y = factor(pathway_name, pathway_order), fill = section), outlier.shape = NA) +
+  geom_point(aes(x = rpkm, y = factor(pathway_name, pathway_order)), size = 0.05) +
+  facet_grid(~factor(Host, host_order), scales = "free") +
+  labs(y = "Pathway name (> 10 samples excluding section 6)", x = "RPKM", fill = "Host") +
+  # scale_color_manual(values = host_order_color_dark) +
+  # scale_fill_manual(values = host_order_color_dark) +
+  make_theme(setFill = T, setCol = T, leg_pos = "bottom", 
+             x_angle = 45, x_size = 10,
+             palettefill = "Spectral",
+             guide_nrow = 6,
+             y_size = 10, y_hj = 1, y_vj = 0.5)
+  ggsave("results/figures/08-summarize_functions/pathway_rpkm_boxplot_notNum6.pdf", width = 20, height = 25)
+
+pathway_order <- df_counts %>%
+                  left_join(kegg_path_info, by = c("pathway_name" = "path_name")) %>%
+                  filter(section == "1. Metabolism") %>%
+                  group_by(pathway_name) %>%
+                  mutate(count = n_distinct(Sample)) %>%
+                  filter(count > 10) %>%
+                  ungroup() %>%
+                  mutate(max_count = max(rpkm)) %>%
+                  arrange(max_count, count) %>%
+                  pull(pathway_name) %>% unique
+ggplot(df_counts %>%
+        # remove those in 5 samples or less
+        group_by(pathway_name) %>%
+        mutate(count = n_distinct(Sample)) %>%
+        filter(count > 10) %>%
+        ungroup() %>%
+        left_join(kegg_path_info, by = c("pathway_name" = "path_name")) %>%
+        filter(section == "1. Metabolism") %>%
+        mutate(Host = Vectorize(get_host_from_sample_name)(Sample))) +
+  geom_boxplot(aes(x = rpkm, y = factor(pathway_name, pathway_order), fill = subsection), outlier.shape = NA) +
+  geom_point(aes(x = rpkm, y = factor(pathway_name, pathway_order)), size = 0.05) +
+  facet_grid(~factor(Host, host_order), scales = "free") +
+  labs(y = "Pathway name (> 10 samples, only Metabolism)", x = "RPKM", fill = "Host") +
+  # scale_color_manual(values = host_order_color_dark) +
+  # scale_fill_manual(values = host_order_color_dark) +
+  make_theme(setFill = T, setCol = T, leg_pos = "bottom", 
+             x_angle = 45, x_size = 10,
+             palettefill = "Spectral",
+             guide_nrow = 6,
+             y_size = 10, y_hj = 1, y_vj = 0.5)
+  ggsave("results/figures/08-summarize_functions/pathway_rpkm_boxplot_Num1.pdf", width = 20, height = 25)
+
+pathway_order <- df_counts %>%
+                  left_join(kegg_path_info, by = c("pathway_name" = "path_name")) %>%
+                  filter(section == "1. Metabolism") %>%
+                  group_by(pathway_name) %>%
+                  mutate(count = n_distinct(Sample)) %>%
+                  filter(count > 10) %>%
+                  ungroup() %>%
+                  mutate(max_count = max(rpkm)) %>%
+                  arrange(max_count, count) %>%
+                  pull(pathway_name) %>% unique
+ggplot(df_counts %>%
+        # remove those in 5 samples or less
+        group_by(pathway_name) %>%
+        mutate(count = n_distinct(Sample)) %>%
+        filter(count > 10) %>%
+        ungroup() %>%
+        left_join(kegg_path_info, by = c("pathway_name" = "path_name")) %>%
+        filter(section == "1. Metabolism") %>%
+        mutate(Host = Vectorize(get_host_from_sample_name)(Sample))) +
+  geom_boxplot(aes(x = rpkm, y = factor(pathway_name, pathway_order), fill = Host), outlier.shape = NA) +
+  # geom_point(aes(x = rpkm, y = factor(pathway_name, pathway_order), color = Host), size = 0.05) +
+  # facet_wrap(subsection~., scales = "free") +
+  labs(y = "Pathway name (> 10 samples, only Metabolism)", x = "RPKM", fill = "Host") +
+  scale_color_manual(values = host_order_color_dark) +
+  scale_fill_manual(values = host_order_color_dark) +
+  make_theme(setFill = F, setCol = F, leg_pos = "bottom", 
+             x_angle = 45, x_size = 10,
+             palettefill = "Spectral",
+             guide_nrow = 2,
+             y_size = 10, y_hj = 1, y_vj = 0.5)
+  ggsave("results/figures/08-summarize_functions/pathway_rpkm_boxplot_Num1_compared.pdf", width = 20, height = 25)
+# # make it numeric
+# heatmap(df_counts_mat %>% select(!pathway_id) %>% column_to_rownames("pathway_name") %>% as.matrix)
+# compare with maaslin2
+input_data <- df_counts_mat %>% column_to_rownames("Sample") %>% as.matrix
+meta_table <- data.frame(Host = Vectorize(get_host_from_sample_name)(rownames(input_data)))
+meta_table$Host <- factor(meta_table$Host, levels = c("Apis mellifera", "Apis cerana",
+                                                      "Apis dorsata", "Apis florea", "Apis andreniformis"))
+input_metadata <- meta_table
+# fit_data = Maaslin2(
+#     input_data = input_data, 
+#     input_metadata = input_metadata, 
+#     output = "results/figures/08-summarize_functions/maaslin2_results_minpath", 
+#     analysis_method = "LM", # consider
+#     transform = "LOG", # consider
+#     normalization = "TSS", # consider
+#     fixed_effects = c("Host"),
+#     min_abundance = 0,
+#     save_models = T,
+#     plot_scatter = F,
+#     plot_heatmap = F)
+df_pairwise <- data.frame()
+models_data <- readRDS("results/figures/08-summarize_functions/maaslin2_results_minpath/fits/models.rds")
+for (i in 1:length(models_data)) {
+  model <- models_data[[i]]
+  conts <- summary(lsmeans(model, pairwise ~ Host, adjust = "FDR"))
+  df_to_add <- data.frame(
+                    feature = names(models_data)[[i]],
+                    contrast = conts$contrasts$contrast,
+                    p.value = conts$contrasts$p.value,
+                    estimate = conts$contrasts$estimate
+                  )
+  df_pairwise <- rbind(df_pairwise, df_to_add)
+}
+write.csv(df_pairwise, "results/figures/08-summarize_functions/maaslin2_results_minpath.csv", row.names = F, quote = F)
+# plot pairwise results
+df_minpath_out <- read.csv("results/figures/08-summarize_functions/maaslin2_results_minpath/all_results.tsv", sep = "\t")
+# head(df_counts) # pathway_id                             pathway_name         rpkm Sample
+df_minpath_out_amRef <- df_minpath_out %>%
+                      filter(qval < 0.05) %>%
+                      filter(feature %in% pathways_include_clean)
+df_minpath_out_amRef_names <- df_minpath_out_amRef %>%
+                      group_by(feature) %>%
+                      mutate(count = n_distinct(value)) %>%
+                      ungroup() %>%
+                      arrange(count) %>%
+                      pull(feature) %>% unique
+# make a heatmap 
+ggplot(df_minpath_out_amRef) +
+  geom_tile(aes(x = value, y = factor(feature, df_minpath_out_amRef_names), fill = coef)) +
+  labs(y = "Pathway", x = "Host", fill = "Estimate") +
+  scale_fill_gradientn(
+    colours = c("red", "white", "blue"),
+  ) + 
+  make_theme(setFill = FALSE, leg_pos = "right", 
+             x_angle = 45, x_size = 10, modify_guide = F,
+             y_size = 10, y_hj = 1)
+  ggsave("results/figures/08-summarize_functions/minpath_maaslin_rf_plots/maaslin2_results_minpath_heatmap.pdf", width = 10, height = 15)
+
+ggplot(df_minpath_out_amRef %>% left_join(kegg_path_info_clean %>% select(path_name, section), by = c("feature" = "path_name"))) +
+  geom_tile(aes(x = value, y = factor(feature, df_minpath_out_amRef_names), fill = coef)) +
+  labs(y = "Pathway", x = "Host", fill = "Estimate") +
+  scale_fill_gradientn(
+    colours = c("red", "white", "blue"),
+  ) + 
+  facet_grid(section~., scales = "free", space = "free_y") +
+  make_theme(setFill = FALSE, leg_pos = "right", 
+             x_angle = 45, x_size = 10, modify_guide = F,
+             y_size = 10, y_hj = 1)
+  ggsave("results/figures/08-summarize_functions/minpath_maaslin_rf_plots/maaslin2_results_minpath_heatmap_sections.pdf", width = 10, height = 15)
+#  remove 
+ggplot(df_counts %>%
+        # remove those in 5 samples or less
+        group_by(pathway_name) %>%
+        mutate(count = n_distinct(Sample)) %>%
+        filter(count > 10) %>%
+        ungroup() %>%
+        arrange(count) %>%
+        left_join(kegg_path_info, by = c("pathway_name" = "path_name")) %>%
+        mutate(Host = Vectorize(get_host_from_sample_name)(Sample))) +
+  geom_tile(aes(x = Sample, y = pathway_name, fill = rpkm)) +
+  facet_grid(section~Host, scales = "free", space = "free_y") +
+  labs(y = "Pathway (>5 samples)", x = "Sample", fill = "RPKM") +
+  # log scale for color fill
+  scale_fill_continuous(trans = "log10") +
+  make_theme(setFill = FALSE, leg_pos = "right", 
+             x_angle = 45, x_size = 10, modify_guide = F,
+             y_size = 6, y_hj = 1)
+  ggsave("results/figures/08-summarize_functions/pathway_rpkm_heatmap.pdf", width = 20, height = 25)
+
+ggplot(df_counts %>%
+        # remove those in 5 samples or less
+        mutate(Host = Vectorize(get_host_from_sample_name)(Sample)) %>%
+        group_by(pathway_name) %>%
+        mutate(count = n_distinct(Host)) %>%
+        mutate(sample_count = n_distinct(Sample)) %>%
+        filter(count > 2) %>%
+        filter(sample_count > 10) %>%
+        ungroup() %>%
+        arrange(count) %>%
+        left_join(kegg_path_info, by = c("pathway_name" = "path_name"))) +
+  geom_tile(aes(x = Sample, y = pathway_name, fill = rpkm)) +
+  facet_grid(section~Host, scales = "free", space = "free_y") +
+  labs(y = "Pathway (>5 samples)", x = "Sample", fill = "RPKM") +
+  # log scale for color fill
+  scale_fill_continuous(trans = "log10") +
+  make_theme(setFill = FALSE, leg_pos = "right", 
+             x_angle = 45, x_size = 10, modify_guide = F,
+             y_size = 6, y_hj = 1)
+  ggsave("results/figures/08-summarize_functions/pathway_rpkm_heatmap_shared.pdf", width = 20, height = 25)
+ggplot(df_counts %>%
+        # remove those in 5 samples or less
+        mutate(Host = Vectorize(get_host_from_sample_name)(Sample)) %>%
+        group_by(pathway_name) %>%
+        mutate(count = n_distinct(Host)) %>%
+        mutate(sample_count = n_distinct(Sample)) %>%
+        filter(count <= 2) %>%
+        # filter(sample_count > 10) %>%
+        ungroup() %>%
+        arrange(count) %>%
+        left_join(kegg_path_info, by = c("pathway_name" = "path_name"))) +
+  geom_tile(aes(x = Sample, y = pathway_name, fill = rpkm)) +
+  facet_grid(section~Host, scales = "free", space = "free_y") +
+  labs(y = "Pathway (>5 samples)", x = "Sample", fill = "RPKM") +
+  # log scale for color fill
+  scale_fill_continuous(trans = "log10") +
+  make_theme(setFill = FALSE, leg_pos = "right", 
+             x_angle = 45, x_size = 10, modify_guide = F,
+             y_size = 6, y_hj = 1)
+  ggsave("results/figures/08-summarize_functions/pathway_rpkm_heatmap_unshared.pdf", width = 20, height = 25)
+all_pairs <- read.csv("results/figures/08-summarize_functions/maaslin2_results_minpath.csv", header = T)$contrast %>% unique
+for (pair in all_pairs) {
+  # get the pathways that are differentially abundant
+  df_pairwise <- read.csv("results/figures/08-summarize_functions/maaslin2_results_minpath.csv", header = T) %>%
+                  filter(feature %in% pathways_include_clean) %>%
+                  filter(contrast == pair) %>%
+                  # filter(p.value < 0.05) %>%
+                  mutate(pair1 = strsplit(pair, " - ") %>% sapply(function(x) x[1]),
+                         pair2 = strsplit(pair, " - ") %>% sapply(function(x) x[2])) %>%
+                  mutate(host = ifelse(estimate > 0, pair1, pair2)) %>%
+                  mutate(host = ifelse(p.value > 0.05, NA, host))
+  # volcano plot
+  ggplot(df_pairwise) +
+    geom_point(aes(x = estimate, y = -log10(p.value), color = host), size = 3) +
+    labs(x = "Estimate", y = "-log10(p.value)", color = "Host") +
+    ggtitle(pair) +
+    geom_hline(yintercept = -log10(0.05), linetype = "dashed") +
+    scale_color_manual(values = host_order_color_dark) +
+    geom_text_repel(aes(x = estimate, y = -log10(p.value), label = feature), box.padding = 0.5) +
+    make_theme(setFill = F, setCol = F, leg_pos = "right", 
+               x_angle = 45, x_size = 10, modify_guide = F,
+               y_size = 6, y_hj = 1)
+    ggsave(paste0("results/figures/08-summarize_functions/masslin2_volcano/maaslin2_results_minpath_volcano_", pair, ".pdf"))
+}
+for (pair in all_pairs) {
+  # get the pathways that are differentially abundant
+  df_pairwise <- read.csv("results/figures/08-summarize_functions/maaslin2_results_minpath.csv", header = T) %>%
+                  filter(feature %in% pathways_include_clean) %>%
+                  filter(contrast == pair) %>%
+                  # filter(p.value < 0.05) %>%
+                  mutate(pair1 = strsplit(pair, " - ") %>% sapply(function(x) x[1]),
+                         pair2 = strsplit(pair, " - ") %>% sapply(function(x) x[2])) %>%
+                  mutate(host = ifelse(estimate > 0, pair1, pair2)) %>%
+                  mutate(host = ifelse(p.value > 0.05, NA, host)) %>%
+                  left_join(kegg_path_info_clean %>% select(path_name, section), by = c("feature" = "path_name")) %>%
+                  filter(section != "6. Human Diseases")
+  # volcano plot
+  ggplot(df_pairwise) +
+    geom_point(aes(x = estimate, y = -log10(p.value), color = host), size = 3) +
+    labs(x = "Estimate", y = "-log10(p.value)", color = "Host") +
+    ggtitle(pair) +
+    geom_hline(yintercept = -log10(0.05), linetype = "dashed") +
+    scale_color_manual(values = host_order_color_dark) +
+    geom_text_repel(aes(x = estimate, y = -log10(p.value), label = feature), box.padding = 0.5) +
+    make_theme(setFill = F, setCol = F, leg_pos = "right", 
+               x_angle = 45, x_size = 10, modify_guide = F,
+               y_size = 6, y_hj = 1)
+    ggsave(paste0("results/figures/08-summarize_functions/masslin2_volcano/maaslin2_results_minpath_volcano_noHumanDis_", pair, ".pdf"))
+}
+for (pair in all_pairs) {
+  # get the pathways that are differentially abundant
+  df_pairwise <- read.csv("results/figures/08-summarize_functions/maaslin2_results_minpath.csv", header = T) %>%
+                  filter(feature %in% pathways_include_clean) %>%
+                  filter(contrast == pair) %>%
+                  # filter(p.value < 0.05) %>%
+                  mutate(pair1 = strsplit(pair, " - ") %>% sapply(function(x) x[1]),
+                         pair2 = strsplit(pair, " - ") %>% sapply(function(x) x[2])) %>%
+                  mutate(host = ifelse(estimate > 0, pair1, pair2)) %>%
+                  mutate(host = ifelse(p.value > 0.05, NA, host)) %>%
+                  left_join(kegg_path_info_clean %>% select(path_name, section), by = c("feature" = "path_name")) %>%
+                  filter(section == "1. Metabolism")
+  # volcano plot
+  ggplot(df_pairwise) +
+    geom_point(aes(x = estimate, y = -log10(p.value), color = host), size = 3) +
+    labs(x = "Estimate", y = "-log10(p.value)", color = "Host") +
+    ggtitle(pair) +
+    geom_hline(yintercept = -log10(0.05), linetype = "dashed") +
+    scale_color_manual(values = host_order_color_dark) +
+    geom_text_repel(aes(x = estimate, y = -log10(p.value), label = feature), box.padding = 0.5) +
+    make_theme(setFill = F, setCol = F, leg_pos = "right", 
+               x_angle = 45, x_size = 10, modify_guide = F,
+               y_size = 6, y_hj = 1)
+    ggsave(paste0("results/figures/08-summarize_functions/masslin2_volcano/maaslin2_results_minpath_volcano_Metab_", pair, ".pdf"))
+}
+
+# plot the boxplot for the top signif results from maaslin2
+df_counts_sig <- df_counts %>%
+                  mutate(pathway_name = make.names(pathway_name)) %>%
+                  filter(pathway_name %in% (df_minpath_out %>% filter(qval < 0.05) %>% pull(feature) %>% unique)) %>%
+                  left_join(kegg_path_info_clean %>% select(path_name, section), by = c("pathway_name" = "path_name")) %>%
+                  mutate(Host = Vectorize(get_host_from_sample_name)(Sample))
+ggplot(df_counts_sig %>% filter(section == "1. Metabolism")) +
+  geom_boxplot(aes(x = rpkm, y = pathway_name, fill = Host), outlier.shape = NA) +
+  # geom_point(aes(x = rpkm, y = pathway_name, color = section), size = 0.5) +
+  # facet_grid(~Host) +
+  labs(y = "RPKM", x = "Host", fill = "Host") +
+  # scale_color_manual(values = host_order_color_dark) +
+  scale_fill_manual(values = host_order_color_dark) +
+  make_theme(setFill = F, setCol = F, leg_pos = "bottom", 
+             x_angle = 45, x_size = 10, modify_guide = F,
+             y_size = 6, y_hj = 1)
+  ggsave("results/figures/08-summarize_functions/pathway_rpkm_boxplot_sig_metab.pdf", width = 20, height = 25)
+df_counts_sig <- df_counts %>%
+                  mutate(pathway_name = make.names(pathway_name)) %>%
+                  filter(pathway_name %in% (df_minpath_out %>% filter(qval < 0.05) %>% pull(feature) %>% unique)) %>%
+                  left_join(kegg_path_info_clean %>% select(path_name, section), by = c("pathway_name" = "path_name")) %>%
+                  mutate(Host = Vectorize(get_host_from_sample_name)(Sample))
+
+ggplot(df_counts_sig %>% filter(section != "1. Metabolism")) +
+  geom_boxplot(aes(x = rpkm, y = pathway_name, fill = Host), outlier.shape = NA) +
+  # geom_point(aes(x = rpkm, y = pathway_name, color = section), size = 0.5) +
+  # facet_grid(~Host) +
+  labs(y = "RPKM", x = "Host", fill = "Host") +
+  # scale_color_manual(values = host_order_color_dark) +
+  scale_fill_manual(values = host_order_color_dark) +
+  make_theme(setFill = F, setCol = F, leg_pos = "bottom", 
+             x_angle = 45, x_size = 10, modify_guide = F,
+             y_size = 6, y_hj = 1)
+  ggsave("results/figures/08-summarize_functions/pathway_rpkm_boxplot_sig_nonMetab.pdf", width = 20, height = 25)
+```
+
+```{r}
+pvalue.threshold <- 0.05
+# excluded pathways of non-interest here:
+abund_table <- df_counts_mat %>% column_to_rownames("Sample") %>% as.data.frame()
+# filter and normalize (log-relative) data
+abund_table <- abund_table[rowSums(abund_table) > 0,]
+abund_table <- abund_table / rowSums(abund_table)
+abund_table <- log(abund_table + 1)
+meta_table <- data.frame(Groups = Vectorize(get_host_from_sample_name)(rownames(abund_table)))
+meta_table$Groups <- as.factor(meta_table$Groups)
+
+kruskal.wallis.table <- data.frame()
+data <- as.data.frame(abund_table)
+for (i in 1:dim(data)[2]){
+    ks.test <- kruskal.test(data[,i], g=meta_table$Groups)
+    # Store the result in the data frame
+    kruskal.wallis.table <- rbind(kruskal.wallis.table,data.frame(id=names(data)[i],p.value=ks.test$p.value))
+}
+kruskal.wallis.table$E.value <- kruskal.wallis.table$p.value * dim(kruskal.wallis.table)[1]
+kruskal.wallis.table$FWER <- pbinom(q=0, p=kruskal.wallis.table$p.value, size=dim(kruskal.wallis.table)[1], lower.tail=FALSE)
+kruskal.wallis.table <- kruskal.wallis.table[order(kruskal.wallis.table$p.value, decreasing=FALSE), ]
+kruskal.wallis.table$q.value.factor <- dim(kruskal.wallis.table)[1] / 1:dim(kruskal.wallis.table)[1]
+kruskal.wallis.table$q.value <- kruskal.wallis.table$p.value * kruskal.wallis.table$q.value.factor
+rownames(kruskal.wallis.table) <- kruskal.wallis.table$id
+
+#==================significant feature selection =================================#
+last.significant.element <- max(which(kruskal.wallis.table$q.value <= pvalue.threshold))
+selected <- 1:last.significant.element
+sig_res <-kruskal.wallis.table$id[selected]
+
+#==random forest classifier ==#
+subset.data<-data.frame(data[,as.character(kruskal.wallis.table[rownames(kruskal.wallis.table),"id"])], check.names=FALSE)
+kruskal.wallis.table$id <- colnames(subset.data) #enforce that ids and colnames of subset data remain the same for easy indexing later on
+names(subset.data) <- make.names(names(subset.data))
+# Random Forest
+# # saveRDS(subset.data, "results/figures/08-summarize_functions/selected_features.rds")
+# # saveRDS(meta_table, "results/figures/08-summarize_functions/meta_table.rds")
+# subset.data <- readRDS("results/figures/08-summarize_functions/selected_features.rds")
+# meta_table <- readRDS("results/figures/08-summarize_functions/meta_table.rds")
+# rf_res <- randomforest_res(subset.data, meta_table$Groups)
+# saveRDS(rf_res, "results/figures/08-summarize_functions/randomforest_res.rds")
+rf_res <- readRDS("results/figures/08-summarize_functions/randomforest_res.rds")
+df_accuracy <- rf_res$importance
+
+df <- NULL
+for(i in df_accuracy$Sample){
+    rank <- (subset(df_accuracy, df_accuracy$Sample==i))$rank
+    tmp<-data.frame(subset.data[,i],meta_table$Groups, rep(rank), rep(paste(i," p.adj = ",sprintf("%.10g",kruskal.wallis.table[kruskal.wallis.table$id==i,"q.value"]),sep=""),dim(data)[1]))
+    colnames(tmp)<-c("Value","Groups","Rank","Taxa")
+    if(is.null(df)){df<-tmp} else { df<-rbind(df,tmp)}
+    df <- na.omit(df)
+}
+
+out <- list("SignfeaturesTable"=kruskal.wallis.table, "plotdata"=df, "importance"=df_accuracy)
+write.csv(out$SignfeaturesTable, "results/figures/08-summarize_functions/minpath_compared_kruskal_wallis_table.csv")
+write.csv(out$importance, "results/figures/08-summarize_functions/minpath_compared_kruskal_wallis_importance.csv")
+
+max_rank <- max(out$importance$rank)
+write.csv(out$importance %>% left_join(kegg_path_info_clean,
+                    by = c("Sample" = "path_name")), "results/figures/08-summarize_functions/minpath_compared_kruskal_wallis_importance_added.csv")
+out_importance <- read.csv("results/figures/08-summarize_functions/minpath_compared_kruskal_wallis_importance.csv") %>%
+                    filter(Sample %in% pathways_include_clean)
+path_order <- out_importance %>%
+        arrange(Value) %>% pull(Sample) %>% as.character %>% unique
+
+ggplot(out_importance %>%
+        left_join(kegg_path_info_clean,
+                    by = c("Sample" = "path_name")) %>%
+        arrange(-rank) %>% filter(rank < max_rank)) +
+  geom_bar(aes(x = Value, y = factor(Sample, path_order), fill = section), stat = "identity") +
+  # facet_wrap(~section, scales = "free") +
+  # scale_fill_manual(values = host_order_color_dark) +
+  make_theme(setFill = T, setCol = T, leg_pos = "bottom", palettefill = "Spectral", 
+             x_angle = 45, x_size = 10, guide_nrow = 6,
+             y_size = 6, y_hj = 1)
+    ggsave("results/figures/08-summarize_functions/minpath_maaslin_rf_plots/minpath_compared_kruskal_wallis.pdf", width = 10, height = 15)
+ggplot(out_importance %>%
+        left_join(kegg_path_info_clean,
+                    by = c("Sample" = "path_name")) %>%
+        filter(section != "6. Human Diseases") %>%
+        arrange(-rank) %>% filter(rank < max_rank)) +
+  geom_bar(aes(x = Value, y = factor(Sample, path_order), fill = section), stat = "identity") +
+  # facet_wrap(~section, scales = "free") +
+  # scale_fill_manual(values = host_order_color_dark) +
+  make_theme(setFill = T, setCol = T, leg_pos = "bottom", palettefill = "Spectral", 
+             x_angle = 45, x_size = 10, guide_nrow = 6,
+             y_size = 6, y_hj = 1)
+    ggsave("results/figures/08-summarize_functions/minpath_maaslin_rf_plots/minpath_compared_kruskal_wallis_sub.pdf", width = 10, height = 15)
+
+ggplot(out_importance %>%
+        left_join(kegg_path_info_clean,
+                    by = c("Sample" = "path_name")) %>%
+        filter(section == "1. Metabolism") %>%
+        arrange(-rank) %>% filter(rank < max_rank)) +
+  geom_bar(aes(x = Value, y = factor(Sample, path_order), fill = subsection), stat = "identity") +
+  # facet_wrap(~section, scales = "free") +
+  # scale_fill_manual(values = host_order_color_dark) +
+  make_theme(setFill = T, setCol = T, leg_pos = "bottom", palettefill = "Spectral", 
+             x_angle = 45, x_size = 10, guide_nrow = 6,
+             y_size = 6, y_hj = 1)
+    ggsave("results/figures/08-summarize_functions/minpath_maaslin_rf_plots/minpath_compared_kruskal_wallis_sub_metabolism.pdf", width = 10, height = 15)
+
+# "results/figures/08-summarize_functions/maaslin2_minpath_plots"
+```
+
+# Draw genes of interest
+
+```{r}
+# read minpath info
+minpath_map <- read.csv("scripts/MinPath/data/KEGG-mapping.txt", sep = "\t", header = F)
+minpath_pathnames <- read.csv("scripts/MinPath/data/KEGG-pathway.txt", sep = "\t", header = F)
+# minpath_ko_info <- KEGG-family.txt
+colnames(minpath_map) <- c("pathway_id", "ko_id")
+colnames(minpath_pathnames) <- c("pathway_id", "pathway_name")
+pathway_info <- left_join(minpath_map, minpath_pathnames, by = "pathway_id") %>%
+                  mutate(pathway_name = ifelse(pathway_name %in% pathways_include, pathway_name, "Other"))
+# get_gene_name_from_desc <- function(description){
+#   # description = "Hemolysin coregulated protein Hcp (TssD)"
+#   description = strsplit(description, "\\(")[[1]][[2]]
+#   gene_name = strsplit(description, "\\)")[[1]][[1]]
+#   return(gene_name)
+# }
+clean_dram_gene_name <- function(gene_name) {
+  #  gene_name = "D3-4_D3-4_NODE_10001_length_6406_cov_22.032908_2"
+   gene_name = strsplit(gene_name, "_") %>% unlist
+   gene_name = gene_name[2:(length(gene_name) - 0)]
+   gene_name = paste(gene_name, collapse = "_")
+   return(gene_name)
+}
+get_molecule_from_gene <- function(gene_id) {
+  # remove only last _ and the number after it
+  # gene_id = "D3-4_NODE_34_length_225669_cov_18.609235_187"
+  molecule <- strsplit(gene_id, "_") %>% unlist
+  molecule <- molecule[1:(length(molecule) - 1)]
+  molecule <- paste(molecule, collapse = "_")
+  return(molecule)
+}
+cazymes_of_interest <- glycan_annotations_final_cleaned %>%
+                        filter(grepl("ectin|ellulose|emicellulose", FUNCTION_AT_DESTINATION_3)) %>%
+                        filter(FUNCTION_AT_DESTINATION_3 != "Amylose_and_Amylopectin") %>%
+                        mutate(cazyme = Family) %>%
+                        select(cazyme, FUNCTION_AT_DESTINATION_3) 
+for (sample in c()) {
+  df_covs_pos <- read.csv("results/figures/08-summarize_functions/gene_info_tables/D3-4_df_detected_genes_cov.csv")
+  df_info <- read.csv("results/figures/08-summarize_functions/gene_info_tables/D3-4_df_detected_genes_info.csv")
+  df_annotations <- read.csv("results/08_gene_content/02_DRAM_annotations/D3-4/annotations.tsv", skip = 1, header = F, sep = "\t")
+  colnames(df_annotations) <- c(
+      "gene_dram_name",
+      "sample",
+      "rank",
+      "ko_id",
+      "kegg_hit",
+      "peptidase_id",
+      "peptidase_family",
+      "peptidase_hit",
+      "peptidase_RBH",
+      "peptidase_identity",
+      "peptidase_bitScore",
+      "peptidase_eVal",
+      "pfam_hits",
+      "cazy_ids",
+      "cazy_hits",
+      "cazy_subfam_ec",
+      "cazy_best_hit",
+      "heme_regulatory_motif_count"
+  )
+  df_annotations_parsed <- df_annotations %>%
+                    left_join(pathway_info, by = "ko_id") %>%
+                    filter(ko_id != "") %>% 
+                    mutate(gene = Vectorize(clean_dram_gene_name)(gene_dram_name)) %>%
+                    mutate(gene_desc_kegg = kegg_hit) %>%
+                    mutate(gene_desc_pfam = pfam_hits) %>%
+                    select(gene, pathway_name, pathway_id, ko_id, gene_desc_pfam, gene_desc_kegg)
+  df_all_gene_info <- left_join(df_info, df_covs_pos, by = "gene") %>%
+                        mutate(molecule = Vectorize(get_molecule_from_gene)(gene)) %>%
+                        left_join(df_annotations_parsed, by = "gene") %>%
+                          left_join(cazymes_of_interest, by = c("cazyme" = "cazyme"))
+  colnames(df_all_gene_info)
+  genes_chosen_ranges <- df_all_gene_info %>%
+                    # filter(mag == "D3-4_25") %>%
+                    filter(genus == "g__Dysgonomonas") %>%
+                    filter(cazyme != "") %>%
+                    filter(cazyme %in% cazymes_of_interest$cazyme) %>%
+                    group_by(molecule) %>%
+                    mutate(molecule_start = min(start),
+                          molecule_end = max(end)) %>%
+                    mutate(molecule_range = molecule_end - molecule_start) %>%
+                    filter(molecule_range > 10000) %>% # remove small molecules
+                    filter(molecule_range < 10000000) %>% # remove those with genes too far away
+                    mutate(num_genes = n()) %>%
+                    filter(num_genes > 5) %>%
+                    ungroup() %>%
+                    group_by(molecule) %>%
+                    mutate(molecule_name = molecule) %>%
+                    summarise(molecule_start = min(molecule_start),
+                              molecule_end = max(molecule_end))
+  # just select the molecules that are listed in genes_chosen_ranges
+  # and check that only genes in that range are selected
+  genes_chosen <- df_all_gene_info %>%
+                    left_join(genes_chosen_ranges, by = "molecule") %>%
+                    filter(!is.na(molecule_start) & !is.na(molecule_end)) %>%
+                    mutate(include = ifelse(start >= molecule_start & end <= molecule_end, T, F)) %>%
+                    filter(include) %>%
+                    mutate(middle = (start + end) / 2) %>%
+                    group_by(molecule) %>%
+                    mutate(molecule_order = min(start)) %>%
+                    arrange(molecule_order) %>%
+                    ungroup() %>%
+                    group_by(gene) %>%
+                    mutate(pathway_name = paste(pathway_name, collapse = " | ")) %>%
+                    select(!X) %>%
+                    ungroup() %>%
+                    unique() %>% view
+  ggplot(genes_chosen, aes(xmin = start,
+                            xmax = end,
+                            x = middle,
+                            y = molecule,
+                            label = cazyme,
+                            fill = FUNCTION_AT_DESTINATION_3)) +
+    geom_gene_arrow(arrowhead_height = unit(3, "mm"), arrowhead_width = unit(1, "mm")) +
+    geom_gene_label(align = "left") +
+    geom_text_repel(aes(label = gene_desc_kegg), angle = 50, hjust = -0.2, size = 1) +
+    scale_fill_manual(values = c("Pectin" = "#b3cde3",
+                                "Hemicellulose" = "#fed9a6",
+                                  "Cellulose" = "#fbb4ae")) +
+    # scale_fill_manual(values = c("Pectin" = "#0570b0",
+    #                              "Hemicellulose" = "#fdae61",
+    #                               "Cellulose" = "#d73027")) +
+    facet_wrap(~ molecule, scales = "free", ncol = 1) +
+    labs(x = "Position", y = "Molecule", fill = "Cazyme") +
+    make_theme(theme_name = theme_genes(),
+              setFill = F, setCol = F,
+              guide_nrow = 6, y_size = 5,
+              leg_pos = "bottom")
+    ggsave(paste0("results/figures/11-Dysgonomonas_cazyme_genes_", sample, ".pdf"), width = 20, height = 25)
+}
+```

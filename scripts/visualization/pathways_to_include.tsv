@@ -1,0 +1,537 @@
+Serial number	pathway_name	include
+10	Glycolysis / Gluconeogenesis	y
+20	Citrate cycle (TCA cycle)	y
+30	Pentose phosphate pathway	y
+40	Pentose and glucuronate interconversions	y
+51	Fructose and mannose metabolism	y
+52	Galactose metabolism	y
+53	Ascorbate and aldarate metabolism	y
+61	Fatty acid biosynthesis	y
+62	Fatty acid elongation	y
+71	Fatty acid degradation	y
+72	Synthesis and degradation of ketone bodies	y
+73	Cutin, suberine and wax biosynthesis	n
+100	Steroid biosynthesis	y
+120	Primary bile acid biosynthesis	y
+121	Secondary bile acid biosynthesis	y
+130	Ubiquinone and other terpenoid-quinone biosynthesis	y
+140	Steroid hormone biosynthesis	n
+190	Oxidative phosphorylation	y
+195	Photosynthesis	n
+196	Photosynthesis - antenna proteins	n
+220	Arginine biosynthesis	y
+230	Purine metabolism	y
+232	Caffeine metabolism	y
+240	Pyrimidine metabolism	y
+250	Alanine, aspartate and glutamate metabolism	y
+253	Tetracycline biosynthesis	y
+254	Aflatoxin biosynthesis	y
+260	Glycine, serine and threonine metabolism	y
+261	Monobactam biosynthesis	y
+270	Cysteine and methionine metabolism	y
+280	Valine, leucine and isoleucine degradation	y
+281	Geraniol degradation	y
+290	Valine, leucine and isoleucine biosynthesis	y
+300	Lysine biosynthesis	y
+310	Lysine degradation	y
+311	Penicillin and cephalosporin biosynthesis	y
+330	Arginine and proline metabolism	y
+331	Clavulanic acid biosynthesis	y
+332	Carbapenem biosynthesis	y
+333	Prodigiosin biosynthesis	n
+340	Histidine metabolism	y
+350	Tyrosine metabolism	y
+360	Phenylalanine metabolism	y
+361	Chlorocyclohexane and chlorobenzene degradation	y
+362	Benzoate degradation	y
+363	Bisphenol degradation	y
+364	Fluorobenzoate degradation	y
+365	Furfural degradation	y
+380	Tryptophan metabolism	y
+400	Phenylalanine, tyrosine and tryptophan biosynthesis	y
+401	Novobiocin biosynthesis	y
+402	Benzoxazinoid biosynthesis	y
+403	Indole diterpene alkaloid biosynthesis	y
+404	Staurosporine biosynthesis	y
+405	Phenazine biosynthesis	y
+410	beta-Alanine metabolism	y
+430	Taurine and hypotaurinen metabolism	y
+440	Phosphonate and phosphinate metabolism	y
+450	Selenocompound metabolism	y
+460	Cyanoamino acid metabolism	y
+471	D-Glutamine and D-glutamate metabolism	y
+472	D-Arginine and D-ornithine metabolism	y
+473	D-Alanine metabolism	y
+480	Glutathione metabolism	y
+500	Starch and sucrose metabolism	y
+510	N-Glycan biosynthesis	y
+511	Other glycan degradation	y
+512	Mucin type O-glycan biosynthesis	y
+513	Various types of N-glycan biosynthesis	y
+514	Other types of O-glycan biosynthesis	y
+515	Mannose type O-glycan biosynthesis	y
+520	Amino sugar and nucleotide sugar metabolism	y
+521	Streptomycin biosynthesis	y
+522	Biosynthesis of 12-, 14- and 16-membered macrolides	y
+523	Polyketide sugar unit biosynthesis	y
+524	Neomycin, kanamycin and gentamicin biosynthesis	y
+525	Acarbose and validamycin biosynthesis	y
+531	Glycosaminoglycan degradation	y
+532	Glycosaminoglycan biosynthesis - chondroitin sulfate / dermatan sulfate	y
+533	Glycosaminoglycan biosynthesis - keratan sulfate	y
+534	Glycosaminoglycan biosynthesis - heparan sulfate / heparin	y
+540	Lipopolysaccharide biosynthesis	y
+541	O-Antigen nucleotide sugar biosynthesis	y
+542	O-Antigen repeat unit biosynthesis	y
+550	Peptidoglycan biosynthesis	y
+561	Glycerolipid metabolism	y
+562	Inositol phosphate metabolism	y
+563	Glycosylphosphatidylinositol (GPI)-anchor biosynthesis	y
+564	Glycerophospholipid metabolism	y
+565	Ether lipid metabolism	y
+571	Lipoarabinomannan (LAM) biosynthesis	y
+572	Arabinogalactan biosynthesis - Mycobacterium	y
+590	Arachidonic acid metabolism	y
+591	Linoleic acid metabolism	y
+592	alpha-Linolenic acid metabolism	y
+600	Sphingolipid metabolism	y
+601	Glycosphingolipid biosynthesis - lacto and neolacto series	y
+603	Glycosphingolipid biosynthesis - globo and isoglobo series	y
+604	Glycosphingolipid biosynthesis - ganglio series	y
+620	Pyruvate metabolism	y
+621	Dioxin degradation	y
+622	Xylene degradation	y
+623	Toluene degradation	y
+624	Polycyclic aromatic hydrocarbon degradation	y
+625	Chloroalkane and chloroalkene degradation	y
+626	Naphthalene degradation	y
+627	Aminobenzoate degradation	y
+630	Glyoxylate and dicarboxylate metabolism	y
+633	Nitrotoluene degradation	y
+640	Propanoate metabolism	y
+642	Ethylbenzene degradation	y
+643	Styrene degradation	y
+650	Butanoate metabolism	y
+660	C5-Branched dibasic acid metabolism	y
+670	One carbon pool by folate	y
+680	Methane metabolism	y
+710	Carbon fixation in photosynthetic organisms	y
+720	Carbon fixation pathways in prokaryotes	y
+730	Thiamine metabolism	y
+740	Riboflavin metabolism	y
+750	Vitamin B6 metabolism	y
+760	Nicotinate and nicotinamide metabolism	y
+770	Pantothenate and CoA biosynthesis	y
+780	Biotin metabolism	y
+785	Lipoic acid metabolism	y
+790	Folate biosynthesis	y
+791	Atrazine degradation	y
+830	Retinol metabolism	y
+860	Porphyrin and chlorophyll metabolism	y
+900	Terpenoid backbone biosynthesis	y
+901	Indole alkaloid biosynthesis	y
+902	Monoterpenoid biosynthesis	y
+903	Limonene and pinene degradation	y
+904	Diterpenoid biosynthesis	y
+905	Brassinosteroid biosynthesis	y
+906	Carotenoid biosynthesis	y
+908	Zeatin biosynthesis	y
+909	Sesquiterpenoid and triterpenoid biosynthesis	y
+910	Nitrogen metabolism	y
+920	Sulfur metabolism	y
+930	Caprolactam degradation	y
+940	Phenylpropanoid biosynthesis	y
+941	Flavonoid biosynthesis	n
+942	Anthocyanin biosynthesis	n
+943	Isoflavonoid biosynthesis	n
+944	Flavone and flavonol biosynthesis	n
+945	Stilbenoid, diarylheptanoid and gingerol biosynthesis	n
+950	Isoquinoline alkaloid biosynthesis	n
+960	Tropane, piperidine and pyridine alkaloid biosynthesis	n
+965	Betalain biosynthesis	n
+966	Glucosinolate biosynthesis	n
+970	Aminoacyl-tRNA biosynthesis	y
+980	Metabolism of xenobiotics by cytochrome P450	y
+981	Insect hormone biosynthesis	y
+982	Drug metabolism - cytochrome P450	y
+983	Drug metabolism - other enzymes	y
+984	Steroid degradation	y
+997	Biosynthesis of various secondary metabolites - part 3	y
+998	Biosynthesis of various secondary metabolites - part 2	y
+999	Biosynthesis of various secondary metabolites - part 1	y
+1010	Overview of biosynthetic pathways	y
+1040	Biosynthesis of unsaturated fatty acids	y
+1051	Biosynthesis of ansamycins	y
+1052	Type I polyketide structures	y
+1053	Biosynthesis of siderophore group nonribosomal peptides	y
+1054	Nonribosomal peptide structures	y
+1055	Biosynthesis of vancomycin group antibiotics	y
+1056	Biosynthesis of type II polyketide backbone	y
+1057	Biosynthesis of type II polyketide products	y
+1058	Acridone alkaloid biosynthesis	y
+1059	Biosynthesis of enediyne antibiotics	y
+1060	Biosynthesis of plant secondary metabolites	n
+1061	Biosynthesis of phenylpropanoids	y
+1062	Biosynthesis of terpenoids and steroids	y
+1063	Biosynthesis of alkaloids derived from shikimate pathway	y
+1064	Biosynthesis of alkaloids derived from ornithine, lysine and nicotinic acid	y
+1065	Biosynthesis of alkaloids derived from histidine and purine	y
+1066	Biosynthesis of alkaloids derived from terpenoid and polyketide	y
+1070	Biosynthesis of plant hormones	n
+1501	beta-Lactam resistance	y
+1502	Vancomycin resistance	y
+1503	Cationic antimicrobial peptide (CAMP) resistance	y
+1521	EGFR tyrosine kinase inhibitor resistance	n
+1522	Endocrine resistance	n
+1523	Antifolate resistance	n
+1524	Platinum drug resistance	n
+2010	ABC transporters	y
+2020	Two-component system	y
+2024	Quorum sensing	y
+2025	Biofilm formation - Pseudomonas aeruginosa	y
+2026	Biofilm formation - Escherichia coli	y
+2030	Bacterial chemotaxis	y
+2040	Flagellar assembly	y
+2060	Phosphotransferase system (PTS)	y
+3008	Ribosome biogenesis in eukaryotes	n
+3010	Ribosome	y
+3013	RNA transport	y
+3015	mRNA surveillance pathway	y
+3018	RNA degradation	y
+3020	RNA polymerase	y
+3022	Basal transcription factors	y
+3030	DNA replication	y
+3040	Spliceosome	n
+3050	Proteasome	y
+3060	Protein export	y
+3070	Bacterial secretion system	y
+3320	PPAR signaling pathway	y
+3410	Base excision repair	y
+3420	Nucleotide excision repair	y
+3430	Mismatch repair	y
+3440	Homologous recombination	y
+3450	Non-homologous end-joining	y
+3460	Fanconi anemia pathway	n
+4010	MAPK signaling pathway	n
+4011	MAPK signaling pathway - yeast	n
+4012	ErbB signaling pathway	n
+4013	MAPK signaling pathway - fly	n
+4014	Ras signaling pathway	n
+4015	Rap1 signaling pathway	n
+4016	MAPK signaling pathway - plant	n
+4020	Calcium signaling pathway	n
+4022	cGMP-PKG signaling pathway	n
+4024	cAMP signaling pathway	n
+4060	Cytokine-cytokine receptor interaction	n
+4061	Viral protein interaction with cytokine and cytokine receptor	n
+4062	Chemokine signaling pathway	n
+4064	NF-kappa B signaling pathway	n
+4066	HIF-1 signaling pathway	n
+4068	FoxO signaling pathway	n
+4070	Phosphatidylinositol signaling system	n
+4071	Sphingolipid signaling pathway	n
+4072	Phospholipase D signaling pathway	n
+4075	Plant hormone signal transduction	n
+4080	Neuroactive ligand-receptor interaction	n
+4110	Cell cycle	n
+4111	Cell cycle - yeast	n
+4112	Cell cycle - Caulobacter	n
+4113	Meiosis - yeast	n
+4114	Oocyte meiosis	n
+4115	p53 signaling pathway	n
+4120	Ubiquitin mediated proteolysis	n
+4122	Sulfur relay system	y
+4130	SNARE interactions in vesicular transport	n
+4136	Autophagy - other	n
+4137	Mitophagy - animal	n
+4138	Autophagy - yeast	n
+4139	Mitophagy - yeast	n
+4140	Autophagy - animal	n
+4141	Protein processing in endoplasmic reticulum	n
+4142	Lysosome	n
+4144	Endocytosis	n
+4145	Phagosome	n
+4146	Peroxisome	n
+4150	mTOR signaling pathway	n
+4151	PI3K-Akt signaling pathway	n
+4152	AMPK signaling pathway	n
+4210	Apoptosis	n
+4211	Longevity regulating pathway	n
+4212	Longevity regulating pathway - worm	n
+4213	Longevity regulating pathway - multiple species	n
+4214	Apoptosis - fly	n
+4215	Apoptosis - multiple species	n
+4216	Ferroptosis	n
+4217	Necroptosis	n
+4218	Cellular senescence	n
+4260	Cardiac muscle contraction	n
+4261	Adrenergic signaling in cardiomyocytes	n
+4270	Vascular smooth muscle contraction	n
+4310	Wnt signaling pathway	n
+4320	Dorso-ventral axis formation	n
+4330	Notch signaling pathway	n
+4340	Hedgehog signaling pathway	n
+4341	Hedgehog signaling pathway - fly	n
+4350	TGF-beta signaling pathway	n
+4360	Axon guidance	n
+4361	Axon regeneration	n
+4370	VEGF signaling pathway	n
+4371	Apelin signaling pathway	n
+4380	Osteoclast differentiation	n
+4390	Hippo signaling pathway	n
+4391	Hippo signaling pathway - fly	n
+4392	Hippo signaling pathway - multiple species	n
+4510	Focal adhesion	n
+4512	ECM-receptor interaction	n
+4514	Cell adhesion molecules	n
+4520	Adherens junction	n
+4530	Tight junction	n
+4540	Gap junction	n
+4550	Signaling pathways regulating pluripotency of stem cells	n
+4610	Complement and coagulation cascades	n
+4611	Platelet activation	n
+4612	Antigen processing and presentation	n
+4613	Neutrophil extracellular trap formation	n
+4614	Renin-angiotensin system	n
+4620	Toll-like receptor signaling pathway	n
+4621	NOD-like receptor signaling pathway	n
+4622	RIG-I-like receptor signaling pathway	n
+4623	Cytosolic DNA-sensing pathway	n
+4624	Toll and Imd signaling pathway	n
+4625	C-type lectin receptor signaling pathway	n
+4626	Plant-pathogen interaction	n
+4630	JAK-STAT signaling pathway	n
+4640	Hematopoietic cell lineage	n
+4650	Natural killer cell mediated cytotoxicity	n
+4657	IL-17 signaling pathway	n
+4658	Th1 and Th2 cell differentiation	n
+4659	Th17 cell differentiation	n
+4660	T cell receptor signaling pathway	n
+4662	B cell receptor signaling pathway	n
+4664	Fc epsilon RI signaling pathway	n
+4666	Fc gamma R-mediated phagocytosis	n
+4668	TNF signaling pathway	n
+4670	Leukocyte transendothelial migration	n
+4672	Intestinal immune network for IgA production	n
+4710	Circadian rhythm	n
+4711	Circadian rhythm - fly	n
+4712	Circadian rhythm - plant	n
+4713	Circadian entrainment	n
+4714	Thermogenesis	n
+4720	Long-term potentiation	n
+4721	Synaptic vesicle cycle	n
+4722	Neurotrophin signaling pathway	n
+4723	Retrograde endocannabinoid signaling	n
+4724	Glutamatergic synapse	n
+4725	Cholinergic synapse	n
+4726	Serotonergic synapse	n
+4727	GABAergic synapse	n
+4728	Dopaminergic synapse	n
+4730	Long-term depression	n
+4740	Olfactory transduction	n
+4742	Taste transduction	n
+4744	Phototransduction	n
+4745	Phototransduction - fly	n
+4750	Inflammatory mediator regulation of TRP channels	n
+4810	Regulation of actin cytoskeleton	n
+4910	Insulin signaling pathway	n
+4911	Insulin secretion	n
+4912	GnRH signaling pathway	n
+4913	Ovarian steroidogenesis	n
+4914	Progesterone-mediated oocyte maturation	n
+4915	Estrogen signaling pathway	n
+4916	Melanogenesis	n
+4917	Prolactin signaling pathway	n
+4918	Thyroid hormone synthesis	n
+4919	Thyroid hormone signaling pathway	n
+4920	Adipocytokine signaling pathway	n
+4921	Oxytocin signaling pathway	n
+4922	Glucagon signaling pathway	n
+4923	Regulation of lipolysis in adipocytes	n
+4924	Renin secretion	n
+4925	Aldosterone synthesis and secretion	n
+4926	Relaxin signaling pathway	n
+4927	Cortisol synthesis and secretion	n
+4928	Parathyroid hormone synthesis, secretion and action	n
+4929	GnRH secretion	n
+4930	Type II diabetes mellitus	n
+4931	Insulin resistance	n
+4932	Non-alcoholic fatty liver disease	n
+4933	AGE-RAGE signaling pathway in diabetic complications	n
+4934	Cushing syndrome	n
+4935	Growth hormone synthesis, secretion and action	n
+4940	Type I diabetes mellitus	n
+4950	Maturity onset diabetes of the young	n
+4960	Aldosterone-regulated sodium reabsorption	n
+4961	Endocrine and other factor-regulated calcium reabsorption	n
+4962	Vasopressin-regulated water reabsorption	n
+4964	Proximal tubule bicarbonate reclamation	n
+4966	Collecting duct acid secretion	n
+4970	Salivary secretion	n
+4971	Gastric acid secretion	n
+4972	Pancreatic secretion	n
+4973	Carbohydrate digestion and absorption	n
+4974	Protein digestion and absorption	n
+4975	Fat digestion and absorption	n
+4976	Bile secretion	n
+4977	Vitamin digestion and absorption	n
+4978	Mineral absorption	n
+4979	Cholesterol metabolism	n
+5010	Alzheimer disease	n
+5012	Parkinson disease	n
+5014	Amyotrophic lateral sclerosis	n
+5016	Huntington disease	n
+5017	Spinocerebellar ataxia	n
+5020	Prion disease	n
+5022	Pathways of neurodegeneration - multiple diseases	n
+5030	Cocaine addiction	n
+5031	Amphetamine addiction	n
+5032	Morphine addiction	n
+5033	Nicotine addiction	n
+5034	Alcoholism	n
+5100	Bacterial invasion of epithelial cells	n
+5110	Vibrio cholerae infection	n
+5111	Biofilm formation - Vibrio cholerae	y
+5120	Epithelial cell signaling in Helicobacter pylori infection	n
+5130	Pathogenic Escherichia coli infection	n
+5131	Shigellosis	n
+5132	Salmonella infection	n
+5133	Pertussis	n
+5134	Legionellosis	n
+5135	Yersinia infection	n
+5140	Leishmaniasis	n
+5142	Chagas disease	n
+5143	African trypanosomiasis	n
+5144	Malaria	n
+5145	Toxoplasmosis	n
+5146	Amoebiasis	n
+5150	Staphylococcus aureus infection	n
+5152	Tuberculosis	n
+5160	Hepatitis C	n
+5161	Hepatitis B	n
+5162	Measles	n
+5163	Human cytomegalovirus infection	n
+5164	Influenza A	n
+5165	Human papillomavirus infection	n
+5166	Human T-cell leukemia virus 1 infection	n
+5167	Kaposi sarcoma-associated herpesvirus infection	n
+5168	Herpes simplex virus 1 infection	n
+5169	Epstein-Barr virus infection	n
+5170	Human immunodeficiency virus 1 infection	n
+5171	Coronavirus disease - COVID-19	n
+5200	Pathways in cancer	n
+5202	Transcriptional misregulation in cancer	n
+5203	Viral carcinogenesis	n
+5204	Chemical carcinogenesis	n
+5205	Proteoglycans in cancer	n
+5206	MicroRNAs in cancer	n
+5210	Colorectal cancer	n
+5211	Renal cell carcinoma	n
+5212	Pancreatic cancer	n
+5213	Endometrial cancer	n
+5214	Glioma	n
+5215	Prostate cancer	n
+5216	Thyroid cancer	n
+5217	Basal cell carcinoma	n
+5218	Melanoma	n
+5219	Bladder cancer	n
+5220	Chronic myeloid leukemia	n
+5221	Acute myeloid leukemia	n
+5222	Small cell lung cancer	n
+5223	Non-small cell lung cancer	n
+5224	Breast cancer	n
+5225	Hepatocellular carcinoma	n
+5226	Gastric cancer	n
+5230	Central carbon metabolism in cancer	n
+5231	Choline metabolism in cancer	n
+5235	PD-L1 expression and PD-1 checkpoint pathway in cancer	n
+5310	Asthma	n
+5320	Autoimmune thyroid disease	n
+5321	Inflammatory bowel disease	n
+5322	Systemic lupus erythematosus	n
+5323	Rheumatoid arthritis	n
+5330	Allograft rejection	n
+5332	Graft-versus-host disease	n
+5340	Primary immunodeficiency	n
+5410	Hypertrophic cardiomyopathy	n
+5412	Arrhythmogenic right ventricular cardiomyopathy	n
+5414	Dilated cardiomyopathy	n
+5415	Diabetic cardiomyopathy	n
+5416	Viral myocarditis	n
+5417	Lipid and atherosclerosis	n
+5418	Fluid shear stress and atherosclerosis	n
+7011	Penicillins	n
+7012	Cephalosporins - parenteral agents	n
+7013	Cephalosporins - oral agents	n
+7014	Quinolones	n
+7015	Local analgesics	n
+7016	Sulfonamide derivatives - sulfa drugs	n
+7017	Sulfonamide derivatives - diuretics	n
+7018	Sulfonamide derivatives - hypoglycemic agents	n
+7019	Tetracyclines	n
+7020	Macrolides and ketolides	n
+7021	Aminoglycosides	n
+7023	Rifamycins	n
+7024	HMG-CoA reductase inhibitors	n
+7025	Quinolines	n
+7026	Antifungal agents	n
+7027	Antidepressants	n
+7028	Antipsychotics	n
+7029	Antipsychotics - phenothiazines	n
+7030	Anxiolytics	n
+7031	Antipsychotics - butyrophenones	n
+7032	Hypnotics	n
+7033	Anticonvulsants	n
+7034	Eicosanoids	n
+7035	Prostaglandins	n
+7036	Calcium channel blocking drugs	n
+7037	Antiarrhythmic drugs	n
+7038	Antiulcer drugs	n
+7039	Opioid analgesics	n
+7040	Antineoplastics - alkylating agents	n
+7041	Antineoplastics - antimetabolic agents	n
+7042	Antineoplastics - agents from natural products	n
+7043	Antineoplastics - hormones	n
+7044	Antiviral agents	n
+7045	Antineoplastics - protein kinase inhibitors	n
+7046	Immunosuppressive agents	n
+7047	Osteoporosis drugs	n
+7048	Antimigraines	n
+7049	Antithrombosis agents	n
+7050	Antirheumatics - DMARDs and biological agents	n
+7051	Antidiabetics	n
+7052	Antidyslipidemic agents	n
+7053	Anti-HIV agents	n
+7054	Antiglaucoma agents	n
+7055	Sulfonamide derivatives - overview	n
+7056	Agents for Alzheimer-type dementia	n
+7057	Antiparkinsonian agents	n
+7110	Benzoic acid family	n
+7112	1,2-Diphenyl substitution family	n
+7114	Naphthalene family	n
+7117	Benzodiazepine family	n
+7211	Serotonin receptor agonists/antagonists	n
+7212	Histamine H1 receptor antagonists	n
+7213	Dopamine receptor agonists/antagonists	n
+7214	beta-Adrenergic receptor agonists/antagonists	n
+7215	alpha-Adrenergic receptor agonists/antagonists	n
+7216	Catecholamine transferase inhibitors	n
+7217	Renin-angiotensin system inhibitors	n
+7218	HIV protease inhibitors	n
+7219	Cyclooxygenase inhibitors	n
+7220	Cholinergic and anticholinergic drugs	n
+7221	Nicotinic cholinergic receptor antagonists	n
+7222	Peroxisome proliferator-activated receptor (PPAR) agonists	n
+7223	Retinoic acid receptor (RAR) and retinoid X receptor (RXR) agonists/antagonists	n
+7224	Opioid receptor agonists/antagonists	n
+7225	Glucocorticoid and mineralocorticoid receptor agonists/antagonists	n
+7226	Progesterone, androgen and estrogen receptor agonists/antagonists	n
+7227	Histamine H2/H3 receptor agonists/antagonists	n
+7228	Eicosanoid receptor agonists/antagonists	n
+7229	Angiotensin receptor and endothelin receptor antagonists	n
+7230	GABA-A receptor agonists/antagonists	n
+7231	Sodium channel blocking drugs	n
+7232	Potassium channel blocking and opening drugs	n
+7233	Ion transporter inhibitors	n
+7234	Neurotransmitter transporter inhibitors	n
+7235	N-Methyl-D-aspartic acid (NMDA) receptor antagonists	n
