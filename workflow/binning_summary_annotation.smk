@@ -5,11 +5,33 @@ name: backmapping-binning
 description: Takes binning results from metabat2 and summarises it then runs checkm, gtdbtk, drep on mags and creates a filtered mag database for instrain (non-redundant) and redundant for mapping to
 author: Aiswarya Prasad (aiswarya.prasad@unil.ch)
 rules:
-    - checkm_evaluation
-scripts:
-    - *.py
-targets:
-    - ...
+    collect_mags (checkpoint)
+        + collects all MAGs from binning results
+    mag_metadata_summary (checkpoint)
+        + summarizes metadata from checkm, gtdbtk and drep
+    - checkm_evaluate:
+        + evaluates MAGs using checkm to get completeness and contamination values for each MAG
+    - merge_checkm_output:
+        + merges checkm output into one file for all MAGs for further processing by drep
+    - gtdbtk_batchfile:
+        + creates a batchfile for gtdbtk to run on MAGs
+    - gtdb_annotate:
+        + annotates MAGs using gtdbtk to get taxonomy information for all MAGs of the batchfile
+    - make_drep_genome_info:
+        + creates a file with genome information for drep to use
+    - make_drep_genome_info_high_medium:
+        + creates a file with genome information for drep to use for high and medium quality MAGs
+    - drep_dereplicate:
+        + dereplicates MAGs using drep
+    - summarize_contig_fates:
+        + summarizes contig fates for all samples
+    - checkm_all_bins:
+        + evaluates all bins using checkm to get completeness and contamination values for each bin
+scripts/:
+    - make_mag_metadata_summary.py
+        + summarizes metadata from checkm, gtdbtk and drep
+    - summarize_contig_fates.py
+        + summarizes contig fates for all samples
 """
 
 checkpoint collect_mags:

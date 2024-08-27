@@ -6,11 +6,9 @@ description: run motus on trimmed reads for an initial picture of the community 
 author: Aiswarya Prasad (aiswarya.prasad@unil.ch)
 rules:
     - run_motus
-        + runs motus for each sample
+        + run motus on cleaned reads
     - merge_motus
         + merge all motus output into one file for downstream processing
-targets:
-    - motus_merged = "results/02_motus_profile/samples_merged.motus", # got to its respective rule and add desired list of samples in its expansion eg. SAMPLES
 """
 
 rule run_motus:

@@ -2,28 +2,41 @@
 
 """
 name: trim-qc
-description: trimming and qc before and after trimming and trimmed reads concatenated (only concat reads kept)
+description: trimming and qc before and after trimming and trimmed reads concatenated (only concat reads kept) for further analysis
+             also includes a rules to map reads to host and then to MAGs in different orders
 author: Aiswarya Prasad (aiswarya.prasad@unil.ch)
 rules:
-    - raw_qc
+    - raw_qc:
         + runs fastqc on raw reads
-    - make_adapters
-        + custom script used when adaptor sequences are not standard (currently not in use)
-    - trim
-        + runs trimmomatic on raw reads
-    - trim_qc
+    - trim:
+        + trims reads using trimmomatic
+    - trim_qc:
         + runs fastqc on trimmed reads
+    - concatenate_reads:
+        + concatenates trimmed reads
+    - re_pair_reads:
+        + re-pairs reads (only used for some that htre errors)
+    - get_host_unmapd:
+        + gets unmapped reads from host mapping
+    - host_unmapd_map_to_mags_rep:
+        + maps unmapped reads from host mapping to representative MAGs
+    - get_host_unmapd_map_mags_unmapped:
+        + gets unmapped reads from host mapping to representative MAGs
+    - get_unmapd_to_rep_MAGs:
+        + gets unmapped reads from representative MAGs mapping
+    - unmapd_to_rep_MAGs_host_mapping:
+        + maps unmapped reads from representative MAGs mapping to host
+    - get_unmapd_to_rep_MAGs_unmaped_host:
+        + gets unmapped reads from representative MAGs mapping to host
+    - rule unmapd_rep_MAGs_map_all_MAGs_hq:
+        + maps unmapped reads from representative MAGs mapping to all MAGs
 scripts:
-    - write_adapters.py (currently not in use)
-targets:
-    - trimmed files
-    - concatenated files after trimming
-    - raw and trimmmed file fastqc results
+    - write_adapters.py (currently not in use as output hence made is available)
 """
 
 rule raw_qc:
     input:
-        reads = lambda wildcards: get_input_file(raw_paths_dict, wildcards.sample, wildcards.read, wildcards.lane, wildcards.run)[0],
+        reads = lambda wildcards: get_input_file(raw_paths_dict, wildcards.sample, wildcards.read, wildcards.lane)[0],
     output:
         html = "results/00_rawreads/fastqc/{sample}_{lane}_{read}_{run}_fastqc.html",
         zip = "results/00_rawreads/fastqc/{sample}_{lane}_{read}_{run}_fastqc.zip"
@@ -46,15 +59,6 @@ rule raw_qc:
         zcat {input.reads} | fastqc -t {threads} -o {params.outdir} stdin:{params.outname}
         """
 
-"""
-# rule make_adapters:
-#     input:
-#         "../config/index_table.csv"
-#     output:
-#         "../config/Adapters-PE.fa"
-#     script:
-#         "../scripts/write_adapters.py"
-"""
 
 rule trim:
     input:

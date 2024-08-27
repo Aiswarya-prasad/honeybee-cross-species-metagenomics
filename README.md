@@ -1,19 +1,24 @@
-This section is yet to be updated. 
-Note that this pipeline is a work in progress so some parts of the documentation may not be up-to-date yet. If you would like to have questions or require clarification, contact Aiswarya Prasad. (aiswarya.prasad@unil.ch)
+This pipeline is not intended to be run independently without prior set-up. If you would like to use it or its parts and have questions or require clarification, contact Aiswarya Prasad. (aiswarya.prasad@unil.ch)
 
-# honeybee-MAGs
+# Honeybee-MAGs
 
-The aim of this pipeline is to document the steps used to process raw shotgun metagenomic data (R1 and R2 fastq reads), assemble and bin scaffolds into MAGs, cluster them into magOTUs, estimate the "core" coverage of each of the magOTUs and then finally also SNP profiling across samples based on the high quality MAGs chosen. The pipeline also anotates ORFs and MAGs and includes a section for SDP validation (from Kirsten_Ellegaard's work) and making phylogenies of MAGs. Downstream analysis is performed using independent scripts and documented in their respective directories. All scripts are present in the scripts directory in general.
+The aim of this repository is to document the steps used to process raw shotgun metagenomic data (R1 and R2 fastq reads), assemble and bin scaffolds into MAGs, cluster them into magOTUs, estimate the coverage of each of the magOTUs and then finally also SNP profiling across samples based on the high quality MAGs chosen. Downstream analysis is performed using independent scripts and documented in their respective directories. All scripts are present in the scripts directory in general.
 
-In this file, each of the rules in the Snakefile and the associated are explained in more detail. Every step is taken care of by Snakemake as instructed in the Snakefile. None of the scripts are expected to be run independently. The overall approach is to have to the ultimate rule named `backup` which will ask for all the desired outputs and copy important files (currently it copies the entire working directory but the backup script will be modified to only copy important checkpoints) to a specified local or remote backup location.
+# Directory structure
 
-If you wish to not run any rules, remove the entries correponding to their outputs from the list of inputs to these rules.
+The code used can be found in the `scripts` and `workflow` directory. Most of the bioinformatic processing was done using the snakemake rules found in the files of the `workflow` directory. Outputs from the workflow were processed using python and R scripts found in the `scripts` directory. Figures were made using the R and Rmd scripts found within `scripts/visualization`.
 
-## Getting started
+The `config` directory contains files including metadata and parameter specification used in various scripts. It also contains the `config/envs` directory with YAML files specifying the packes used as conda environment specifications.
 
-All paths are specified with respect to the working directory. Snakemake also happily understands this. In the process of writing this pipeline "211018_Medgenome_india_samples" was the name of my project and the working directory, `/scratch/aprasad/211018_Medgenome_india_samples` on curnagl. So if you see this appear anywhere, you know what to do!
+The `data` directory contains host genomes, database information etc. used by various scripts. All outputs are written among the various subdirectories of `results/`.
 
-To get started with this pipeline you will need the following files.
+All paths are specified with respect to the working directory unless absolute paths are necessary (sometimes within some scripts).
+
+Workflow was parallelized at the computation cluster at UNIL with the setup described here: [how to setup snakemake profile](https://github.com/RomainFeron/snakemake-slurm)
+
+Refer to the `targets` rule in the Snakefile to get the list of the outputs generated using the workflow. Further processing was done by the scripts found in `scripts/`. Refer to the respective scripts of interest for further information about the parameters used. The final summaries of outputs used for Figures are loaded into R by `scripts/visualization/Load_data.Rmd` where the paths to all the files of interest can be found.
+
+<!-- To get started with this pipeline you will need the following files.
 
 + config/config.yaml
   - This is used by Snakemake to get some important information. It is best to create it manually or using a script that will read a metadatasheet compiled manually.
@@ -47,9 +52,9 @@ To get started with this pipeline you will need the following files.
 + envs/<env>.yaml
   - The conda environments needed for each rule will be created based on the yaml files in this directory. So at least the files corresponding to the conda environments that your rules will use must be present.
 + scripts/<script>.xxx
-  - The scripts used by various rules are all to be in this directory. The list of all scripts and theit use can be found later in this file.
+  - The scripts used by various rules are all to be in this directory. The list of all scripts and theit use can be found later in this file. -->
 
-## Checkpoints
+<!-- ## Checkpoints
 
 Snakemake uses the file/path provided to the final rule (targets) and then looks for rules with output paths that match the pattern of wildcards in the respective target. Checkpoints are a provision of snakemake as described [here](https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html#data-dependent-conditional-execution) to allow for rules to be defined with outputs that will depend on another rule. For example, the list of MAGs on which to perform downstream steps on will only be known after the binning step has been completed. So far, there are two checkpoint as described below.
 
@@ -204,7 +209,7 @@ Some functions in the script are used to provide inputs to various rules and to 
     + `rule instrain_profile`
     + `rule instrain_compare`
 <!-- + "Continue readme update here - need to finish function to get rep genomes and then rerun everything after backmapping!" -->
-  + `rule run_orthofinder`
+  <!-- + `rule run_orthofinder`
     + Runs [Orthofinder](https://github.com/davidemms/OrthoFinder) for each phylotype.
     + **Before** running this, group genomes by phylotype in directories for Orthofinder to be able to get which groups to consider together. When the genomes for the database are downloaded at `database/faa_files/{genome}`, they are all in one directory. Grouping was done using `scripts/rearange_faa.py`. As written, it is to be run from the scripts directory in which it resides (!! it uses relative paths !!).
     + faa files for each genome comes from the respective databese (NCBI for example)
@@ -484,43 +489,9 @@ Some functions in the script are used to provide inputs to various rules and to 
   For `cor_ter` is the coverage $y = ax + b$ where x is psi (the breakpoint on the x axis) and the `cor_ori2` is the coverage at the ori which is the section with maximum coverage and at the `tail`. The condition `(psi<psi_min) || (psi>psi_max) || (min_ori_cov<cov_ter)` checks: **First**; If the break-point is too far from the expected place (+/-50% of break-point estimate), ptr is set to `NA`. **Second**; If the coverage at ori (either beginning or end of dataframe) is lower than the estimated coverage at ter, ptr is also set to `NA`. Finally, if the coverage of the origin is not greater than the terminus, ptr is set to `NA`.
 
     + the PTR was set to `NA`, the median will be plotted and used for quantification. Else, the segmented regression line is plotted, and the terminus coverage is used for quantification.
+-->
 
-  ## Scripts
-<!-- This list is not exhaustive. Make a complete list #TODO -->
-  + `aln_aa_to_dna.py`
-  + `aln_calc.sh`
-  + `calc_perc_id_orthologs.py`
-  + `core_cov.py`
-  + `core_cov.R`
-  + `download_data.py`
-  + `extract_orthologs.py`
-  + `fasta_generate_regions.py`
-  + `filter_bam.py`
-  + `filter_orthologs.py`
-  + `filter_sam_aln_length.pl`
-  + `filter_sam_aln_length_unmapped.pl`
-  + `filter_snvs.pl`
-  + `filt_vcf_samples.pl`
-  + `get_single_ortho.py`
-  + `parse_core_cov.py`
-  + `parse_spades_metagenome.pl`
-  + `rearange_faa.py`
-  + `subset_orthofile.py`
-  + `trim_aln.py`
-  + `scripts/write_adapters.py`
-
-  ## Envs
-
-`core-cov-env.yaml`
-`mapping-env.yaml`
-`rmd-env.yaml`
-`snv-env.yaml`
-`trim-qc-env.yaml`
-...
-
-`snakemake -p --use-conda --conda-prefix /scratch/aprasad/built-envs/ --conda-frontend mamba --profile slurm --restart-times 0 --cluster-cancel scancel --rerun-incomplete --keep-going --rerun-triggers mtime -r --scheduler greedy`
-
-# Introduction
+<!-- # Introduction
 
 The analysis is split into multiple parts.
 
@@ -561,9 +532,9 @@ The samples used in this analysis are mentioned below.
 * "F2.1","F2.2","F2.3","F2.4","F2.5",
   * _Apis florea_ from India, colony number 2
 * "F3.1","F3.2","F3.3","F3.4","F3.5"
-  * _Apis florea_ from India, colony number 3
+  * _Apis florea_ from India, colony number 3 -->
 
-## Data summary
+<!-- ## Data summary
 
 50 samples were first mapped to a host database and then the unmapped reads to a microbiome database.
 
@@ -576,9 +547,9 @@ The dataset comprises samples from 4 species of honey bees sampled in India.
 + _Apis mellifera_ (5 individuals from 1 colony)
 + _Apis cerana_ (5 individuals from 3 colonies)
 + _Apis dorsata_ (5 individuals from 3 colonies)
-+ _Apis florea_ (5 individuals from 3 colonies)
++ _Apis florea_ (5 individuals from 3 colonies) -->
 
-Some samples from older publications of the lab are also included for _Apis mellifera_ and _Apis cerana_
+<!-- Some samples from older publications of the lab are also included for _Apis mellifera_ and _Apis cerana_
 
 The data is stored in various locations as described below and backed up on the NAS.
 
@@ -618,9 +589,9 @@ The data is stored in various locations as described below and backed up on the 
 + **Conda installation (cluster)**:
 
 	`/work/FAC/FBM/DMF/pengel/spirit/aprasad/Miniconda3`
-  (cluster - aprasad@curnagl.dcsr.unil.ch)
+  (cluster - aprasad@curnagl.dcsr.unil.ch) -->
 
-### Nomenclature
+<!-- ### Nomenclature
 
 There are 56 samples at the moment.
 
@@ -640,34 +611,18 @@ These samples were from earlier runs:
   + **20170426_OBIWAN300**	20170426	Kirsten_Ellegaard	6	GTF	Illumina	100	PE	HiSeq 2500	Genomic diversity landscape of the honey bee gut microbiota (2019, NatCom)	Nurses, Year 2, Grammont \
   + **20170428_WINDU191**	20170428	Kirsten_Ellegaard	12	GTF	Illumina	100	PE	HiSeq 2500	Genomic diversity landscape of the honey bee gut microbiota (2019, NatCom)	Foragers/Winterbees, Year 2, Grammont \
   + **20180118_OBIWAN338-339**	20180118	Kirsten_Ellegaard	30	GTF	Illumina	100	PE	HiSeq 2500	Metagenomes of individual honey bees, subjected to dietary manipulation and kept in the lab (**NOT INCLUDED**) \
-  + **20180612_KE_japan_metagenomes**	20180612	Ryo_Miyasaki	40	Japan	Illumina	100	PE	HiSeq 2500	Vast differences in strain-level diversity in two closely related species of honey bees (2020, CurBiol)	Sampling and sequencing done in Japan (**INCLUDED FOR NOW**)
-
-## Databases
-
-### Host database
-
-The database is named **4_host_db**.
-
-A [paper](https://academic.oup.com/gbe/article/12/1/3677/5682415) published in Dec. 2019 a high quality [_Apis dorsata_ genome](https://www.ncbi.nlm.nih.gov/assembly/GCA_009792835.1/) as an improvement over a previous submission in 2013. The paper also mentioned studies that had previously sequenced the [_Apis florea_ genome](https://www.ncbi.nlm.nih.gov/assembly/GCA_000184785.2) in 2012, [_Apis cerana_ genome](https://www.ncbi.nlm.nih.gov/assembly/GCF_001442555.1) in 2015 (other assemblies submitted found [here](https://www.ncbi.nlm.nih.gov/assembly/organism/7460/latest/)) and [_Apis mellifera_ genome](https://www.ncbi.nlm.nih.gov/assembly/GCF_003254395.2) in 2018 (other assemblies submitted listed here). So far I have not found any whole genome assemblies of _Apis adreniformis_.
-
-These assemblies were downloaded and concatenated to make the **4_host_db**. It contains,
-
-+ `>apis_mellifera_2018 PRJNA471592 version Amel_Hac3.1`
-+ `>Apis_cerana  PRJNA235974`
-+ `>Apis_cerana_mitochondrion PRJNA235974`
-+ `>Apis_florea PRJNA45871`
-+ `>Apis_dorsata PRJNA174631`
+  + **20180612_KE_japan_metagenomes**	20180612	Ryo_Miyasaki	40	Japan	Illumina	100	PE	HiSeq 2500	Vast differences in strain-level diversity in two closely related species of honey bees (2020, CurBiol)	Sampling and sequencing done in Japan (**INCLUDED FOR NOW**) -->
 
 
-### Microbiome database
+<!-- ### Microbiome database
 
 The database is named **genome_db_210402**.
 
-This database was set up by Dr Kirsten Ellegard (KE) and is described on zenodo. It uses NCBI and IMG genome assemblies. It is non-redundant and contains concatenated genomes. Located at in lab NAS directory at lab_resources/Genome_databse. In this pipeline so far, the version of the pipeline set up by KE’s community profiling pipeline.
+This database was set up by Dr Kirsten Ellegard (KE) and is described on zenodo. It uses NCBI and IMG genome assemblies. It is non-redundant and contains concatenated genomes. Located at in lab NAS directory at lab_resources/Genome_databse. In this pipeline so far, the version of the pipeline set up by KE’s community profiling pipeline. -->
 
-It was downloaded by the script `download.py --genome_db` from [zenodo](https://zenodo.org/record/4661061#.YcGlSxPMK3I). This dowloads multiple directories. The Orthofider directory can be deleted as this is generated for the pipeline as needed. The bed files can be generated from gff files if desired but this was already done for the genomes of that database so was not repeated. The other files (ffn, gff) are found in the public repository from where the genome was downloaded. The faa files were reorganised in directories corresponding to their respective SDPs in order to allow the Orthofinder scripts to assign orthogroups per SDP.
+<!-- It was downloaded by the script `download.py --genome_db` from [zenodo](https://zenodo.org/record/4661061#.YcGlSxPMK3I). This dowloads multiple directories. The Orthofider directory can be deleted as this is generated for the pipeline as needed. The bed files can be generated from gff files if desired but this was already done for the genomes of that database so was not repeated. The other files (ffn, gff) are found in the public repository from where the genome was downloaded. The faa files were reorganised in directories corresponding to their respective SDPs in order to allow the Orthofinder scripts to assign orthogroups per SDP. -->
 
-These repositories follow their own annotation pipeline to generate these files. The database can also be found at `<NAS>/lab_resources/Genome_database/database_construction`. It contains 198 genomes identified by their locus tags and described in `<NAS>/lab_resources/Genome_database/database_construction/database_construction` in metadata sheets.
+<!-- These repositories follow their own annotation pipeline to generate these files. The database can also be found at `<NAS>/lab_resources/Genome_database/database_construction`. It contains 198 genomes identified by their locus tags and described in `<NAS>/lab_resources/Genome_database/database_construction/database_construction` in metadata sheets. -->
 
 <!-- 2.0.5.2 honeybee_gut_microbiota_db_red
 Generated by subsetting genomes and Orthofiles from genome_db_210402 for the sake of SNV analysis. So there is only one genome per SDP. The choice of which genome is made by Kirsten’s pipeline. later, review to see if it is the best choice for this pipleine as well. -->
@@ -734,15 +689,30 @@ The **results** of the core coverage estimation are stored in,
 
 It is clear that the database is not best suited for some SDPs found especially in host species other than _Apis mellifera_. So, the next step would be to implement a MAG based analysis to compare these samples. However, as the database was already shown to be well-suited for _Apis mellifera_ and _Apis cerana_, another set of analysis would compare these samples from the [publication](https://www.sciencedirect.com/science/article/pii/S0960982220305868) ([zenodo](https://zenodo.org/record/3747314#.YcGkvRPMK3I)) with the samples from India.
 
-## Choosing representative genomes
+<!-- ## Choosing representative genomes
 
 Information in [drep](https://drep.readthedocs.io/en/latest/choosing_parameters.html) documentation.
 
 $$A * Completeness - B * Contamination + C * (Contamination * frac{strainheterogeneity}{100}) + D * log(N50) + E * log(size) + F * (centrality - S_{a}ni) $$s
 
 "It makes no sense to perform bootstrap with less than 4 sequences" from IQTree
+-->
 
-## extra info to be curated later
+## Databases
+
+The host database is named **host_databse/apis_bees_db.fasta**.
+
+A [paper](https://academic.oup.com/gbe/article/12/1/3677/5682415) published in Dec. 2019 a high quality [_Apis dorsata_ genome](https://www.ncbi.nlm.nih.gov/assembly/GCA_009792835.1/) as an improvement over a previous submission in 2013. The paper also mentioned studies that had previously sequenced the [_Apis florea_ genome](https://www.ncbi.nlm.nih.gov/assembly/GCA_000184785.2) in 2012, [_Apis cerana_ genome](https://www.ncbi.nlm.nih.gov/assembly/GCF_001442555.1) in 2015 (other assemblies submitted found [here](https://www.ncbi.nlm.nih.gov/assembly/organism/7460/latest/)) and [_Apis mellifera_ genome](https://www.ncbi.nlm.nih.gov/assembly/GCF_003254395.2) in 2018 (other assemblies submitted listed here). So far I have not found any whole genome assemblies of _Apis adreniformis_.
+
+These assemblies were downloaded and concatenated to make the **4_host_db**. It contains,
+
++ `>apis_mellifera_2018 PRJNA471592 version Amel_Hac3.1`
++ `>Apis_cerana  PRJNA235974`
++ `>Apis_cerana_mitochondrion PRJNA235974`
++ `>Apis_florea PRJNA45871`
++ `>Apis_dorsata PRJNA174631`
+
+## Extra info to be curated later
 
 meaning of benchmark output
 
@@ -758,9 +728,8 @@ io_out | float (MB) | the number of MB written (cumulative).
 mean_load | float (-) | CPU usage over time, divided by the total running time (first row)
 cpu_time | float(-) | CPU time summed for user and system
 
-[how to setup snakemake profile](https://github.com/RomainFeron/snakemake-slurm)
 
-### Information about MAGs to report (MIMAG)
+<!-- ### Information about MAGs to report (MIMAG)
 
 * type_of_genome: MAG or Isolate
 * assembly_software: metaspades #get version
@@ -779,8 +748,8 @@ cpu_time | float(-) | CPU time summed for user and system
   * yes/no
 * 16_recovery_software:
   * checkm
-<!-- * number_of_standard_tRNAs_extracted -->
-<!-- * tRNA_extraction_software -->
+<!-- * number_of_standard_tRNAs_extracted
+* tRNA_extraction_software
 * completeness_approach:
   * marker gene based
   * reference genome based
@@ -792,9 +761,9 @@ cpu_time | float(-) | CPU time summed for user and system
 *  reassembly_post_binning
   *  no
 *  mag_coverage_software
-  *  bwa #get version
+  *  bwa #get version -->
 
-### Logging and redirecting stdout and stderr
+<!-- ### Logging and redirecting stdout and stderr
 
 Some scripts or tools write the output to stdout and others write outputs and errors while writing the output to a specified file. Logging will have to be done accordingly.
 
@@ -802,10 +771,4 @@ If the tool is writing the desired output to stdout, only the stderr shout be re
 
 If the tool is writing the desired output to a file and stdout is only going to include messages for logging, stderr and stdout can both be redirected to the same log file using `&>` for example, `command &> log.txt`
 
-Look [here](https://www.gnu.org/software/bash/manual/html_node/Redirections.html#:~:text=Redirection%20allows%20commands'%20file%20handles,the%20current%20shell%20execution%20environment.) for more information.
-
-For backing up:
-`/nas/FAC/FBM/DMF/pengel/spirit/D2c/aprasad/20211018_aprasad_ApisCrossSpeciesAnalysis/Analysis/20230313_apis_species_comparison`
-RawData in:
-`/nas/FAC/FBM/DMF/pengel/general_data/D2c/datasets/` - The lab's NGS_data is here
-
+Look [here](https://www.gnu.org/software/bash/manual/html_node/Redirections.html#:~:text=Redirection%20allows%20commands'%20file%20handles,the%20current%20shell%20execution%20environment.) for more information. -->

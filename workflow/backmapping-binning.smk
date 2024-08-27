@@ -5,13 +5,17 @@ name: backmapping-binning
 description: takes the assembled scaffolds and performs backmapping followed by writing depth files and finally uses those for binning by metabat2
 author: Aiswarya Prasad (aiswarya.prasad@unil.ch)
 rules:
-    - rename_scaffolds
     - build_bwa_index
+        + indexing the scaffolds for mapping
     - backmapping
+        + mapping the reads to the scaffolds (all against all)
+    - make_depthfile
+        + writing the depth files from the bam files
+    - run_metabat2
+        + binning the scaffolds using metabat2
 scripts:
     - rename_scaffolds.py
-targets:
-    - build_bwa_index
+    - filter_bam.py
 """
 
 rule build_bwa_index:

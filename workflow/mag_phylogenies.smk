@@ -5,11 +5,45 @@ name: mag_phylogenies
 description: xxx
 author: Aiswarya Prasad (aiswarya.prasad@unil.ch)
 rules:
-    - xxx
+    - (checkpoint) make_phylo_metadata
+    - (checkpoint) collect_prodigal_from_checkm
+    - download_assembly_summary
+        + download assembly_summary frm NCBI
+    - rename_prodigal_checkm:
+        + rename prodigal genes from checkm output for MAGs
+    - prepare_genomes_faa:
+        + prepare genomes for orthofinder by running prodigal on them if needed and renaming the genes
+    - rename_faa_and_ffn:
+        + rename the genes in the faa and ffn files for orthofinder with simple headers
+    - collect_faa_orthofinder:
+        + collect the faa files for orthofinder from the renamed faa files for each MAG
+    - run_orthofinder:
+        + run orthofinder on the faa files for each genus to get orthogroups
+    - run_orthofinder_iqtree:
+        + run orthofinder with iqtree on the orthogroups to get a species tree
+    - get_OG_nuc_sequences:
+        + get the nucleotide sequences for each orthogroup
+    - extract_bac120_nucleotide:
+        + extract the nucleotide sequences for the bac120 markers using the script (not a rule)
+    - align_bac120_nucleotide_macse:
+        + align the bac120 nucleotide sequences using macse
+    - replace_unknown_characters:
+        + replace unknown characters in the aligned sequences with N for iqtree
+    - make_bac120_nucleotide_tree:
+        + make a tree from the aligned bac120 nucleotide sequences using iqtree
+    - dram_annotate_mags:
+        + annotate the MAGs using DRAM
+    - dram_rename_annotations:
+        + rename the annotations from DRAM to be more informative and easier to use in downstream analysis
+    - dram_annotate_concat_mags:
+        + concatenate the DRAM annotations for all MAGs into a single file for running distill
+    - dram_distill_mags:
+        + distill the DRAM annotations to get a summary of the metabolism of the MAGs
 scripts:
-    - x*.py
-targets:
-    - ...
+    scripts/make_phylo_metadata.py
+    scripts/collect_prodigal_from_checkm.sh
+    scripts/gff_to_bed.py
+    scripts/extract_marker_nucleotide_sequences.py
 """
 # orthofinder and motupan
 

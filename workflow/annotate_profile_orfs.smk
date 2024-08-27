@@ -3,17 +3,58 @@ name: annotate-orfs
 description: ORF annotation and extraction of coverage
 author: Aiswarya Prasad (aiswarya.prasad@unil.ch)
 rules:
+    - rename_scaffolds
+        + renaming the scaffolds to have a unique name
     - prodigal_get_orfs
-        + identify ORFs in all filtered contigs and remove partial and short ORFs
+        + running prodigal to get ORFs
+    - run_whokaryote
+        + running whokaryote to predict eukaryotic and prokaryotic contigs
+    - prodigal_filt_orfs
+        + filtering ORFs based on whokaryote predictions
+    - get_filt_orfs_gff
+        + getting the gff file for the filtered ORFs
+    - get_filt_orfs_faa
+        + getting the faa file for the filtered ORFs
+    - cdhit_clustering
+        + clustering the ORFs (not used for further analysis per se)
+    - parse_clustering_file
+        + parsing the clustering file to get the cluster-host affiliations
     - dram_annotate_orfs
-        + annotate ORFs with dram
+        + annotating the ORFs using DRAM KO and Pfam information referred to later
+    - index_nr_gene_catalog
+        + indexing the gene catalog for mapping to the reads (not used for further analysis per se)
+    - profile_genes
+        + mapping the reads to the gene catalog and getting coverage information
+    - bowtie2_build
+        + building the bowtie2 index for the gene catalog
+    - map_to_assembly
+        + mapping the reads to the assembly using bowtie2 (insert size filtering was not working with bwa in instrain)
+    - get_sorted_genes
+        + getting the sorted genes from the gff file
+    - filter_bam_by_qual
+        + filtering the bam file by quality by removing reads with quality less than 20
+    - gene_counts_coverage
+        + getting the gene counts and coverage information
+    - run_kaiju_genes
+        + running kaiju on the gene catalog
+    - run_kaiju_genes_taxonomy
+        + running kaiju on the gene catalog with full taxonomy
+    - run_kraken2_genes
+        + running kraken2 on the gene catalog
+    - cayman_profiling
+        + running cayman on the gene catalog
 scripts:
-    - 
-targets:
-    - 
+    scripts/rename_scaffolds.py
+    scripts/filt_orfs.py
+    scripts/get_filt_gff.py
+    scripts/clean_faa_header.py
+    scripts/parse_cluster_file.py
+    scripts/filter_bam.py
+    scripts/filter_bam.py
+    scripts/gff_to_bed.py
 """
 
-rule rename_scaffolds:
+rule rename_scaffolds
     input:
         scaffolds = "results/05_assembly/all_reads_assemblies/{sample}_scaffolds.fasta",
     output:
@@ -35,7 +76,7 @@ rule rename_scaffolds:
         python3 scripts/rename_scaffolds.py --scaffolds_in {input.scaffolds} --scaffolds_out {output.scaffolds} --sample {wildcards.sample} &>> {log}
         """
 
-rule prodigal_get_orfs:
+rule prodigal_get_orfs
     input:
         scaffolds = "results/07_MAG_binng_QC/00_assembled_scaffolds/{sample}/{sample}_scaffolds.fasta"
     output:

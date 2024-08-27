@@ -20,8 +20,6 @@ scripts:
         + filters scaffolds based on provided length and coverage
     - assembly_summary.py
         + summarizes assemebly length, number of contigs before and after filtering and number of reads mapped for each sample
-targets:
-    - summary_assembly
 """
 
 # samples that failed in the first run (250G):

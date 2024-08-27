@@ -43,7 +43,7 @@ def get_all_input_files(paths_dict):
     return(all_paths)
 
 
-def get_input_file(paths_dict, sample, read, lane, run):
+def get_input_file(paths_dict, sample, read, lane):
     '''
     runs are identified by their date (first 8 digits) - if this is different edit function accordingly
     '''

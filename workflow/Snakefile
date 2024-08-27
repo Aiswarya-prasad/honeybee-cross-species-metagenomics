@@ -113,7 +113,6 @@ include: "backmapping-binning.smk"
 include: "binning_summary_annotation.smk"
 include: "annotate_profile_orfs.smk"
 include: "mag_db_instrain.smk"
-include: "core_pan_genome.smk"
 include: "mag_phylogenies.smk"
 
 # to do next, 

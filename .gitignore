@@ -90,3 +90,4 @@ scripts/PopCOGenT*
 results/._.DS_Store
 results/.DS_Store
 results/figures/*
+archive/*
