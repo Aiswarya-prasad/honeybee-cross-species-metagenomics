@@ -26,6 +26,5 @@
 
 # use bioseq revcomp..
 
-print("this script was deleted earlier FUCK")
+print("this script was deleted earlier")
 print("The output luckily survived (Adapters-PE.fa)")
-print("rewrite it later")

@@ -4,7 +4,7 @@ This pipeline is not intended to be run independently without prior set-up. If y
 
 The aim of this repository is to document the steps used to process raw shotgun metagenomic data (R1 and R2 fastq reads), assemble and bin scaffolds into MAGs, cluster them into magOTUs, estimate the coverage of each of the magOTUs and then finally also SNP profiling across samples based on the high quality MAGs chosen. Downstream analysis is performed using independent scripts and documented in their respective directories. All scripts are present in the scripts directory in general.
 
-# Directory structure
+## Overview
 
 The code used can be found in the `scripts` and `workflow` directory. Most of the bioinformatic processing was done using the snakemake rules found in the files of the `workflow` directory. Outputs from the workflow were processed using python and R scripts found in the `scripts` directory. Figures were made using the R and Rmd scripts found within `scripts/visualization`.
 
@@ -17,6 +17,31 @@ All paths are specified with respect to the working directory unless absolute pa
 Workflow was parallelized at the computation cluster at UNIL with the setup described here: [how to setup snakemake profile](https://github.com/RomainFeron/snakemake-slurm)
 
 Refer to the `targets` rule in the Snakefile to get the list of the outputs generated using the workflow. Further processing was done by the scripts found in `scripts/`. Refer to the respective scripts of interest for further information about the parameters used. The final summaries of outputs used for Figures are loaded into R by `scripts/visualization/Load_data.Rmd` where the paths to all the files of interest can be found.
+
+## Location of important files
+
+Large files are not included here but can be found in the accompanying [Zenodo](zenondo.com) repository.
+
++ Trimmed and cleaned files used for downstream analyses are in `results/01_cleanreads/{sample}_R{n}_repaired.fastq.gz`
++ Assembled scaffold are in `results/05_assembly/all_reads_assemblies/{sample}_scaffolds.fasta`
++ All MAGs are in `results/09_MAGs_collection/MAGs/{mag}.fa` with other directories within `results/09_MAGs_collection/` containing various filtering, annotation and depreplication results
++ The MAG database used for community profiling and SNV inference are in `results/10_instrain/00_prepare_mags/mag_rep_database.fa`
++ The results of filtering and annotation of ORFs combined with gene coverage information obtained by mapping clean reads back to the assemblies can be found in `results/figures/08-summarize_functions/gene_info_tables/{sample}_df_detected_genes_info.csv` and `results/figures/08-summarize_functions/gene_info_tables/{sample}_df_detected_genes_cov.csv` by the scripts `scripts/visualization/make_gene_info_summaries.py` and `scripts/visualization/summarize_gene_functions.py` respctively.
++ Phylogenies are in `results/11_phylogenies/03_iqtree_trees` and its neighbouring and subdirectories
+
+## Databases
+
+The host database is named **host_databse/apis_bees_db.fasta**.
+
+A [paper](https://academic.oup.com/gbe/article/12/1/3677/5682415) published in Dec. 2019 a high quality [_Apis dorsata_ genome](https://www.ncbi.nlm.nih.gov/assembly/GCA_009792835.1/) as an improvement over a previous submission in 2013. The paper also mentioned studies that had previously sequenced the [_Apis florea_ genome](https://www.ncbi.nlm.nih.gov/assembly/GCA_000184785.2) in 2012, [_Apis cerana_ genome](https://www.ncbi.nlm.nih.gov/assembly/GCF_001442555.1) in 2015 (other assemblies submitted found [here](https://www.ncbi.nlm.nih.gov/assembly/organism/7460/latest/)) and [_Apis mellifera_ genome](https://www.ncbi.nlm.nih.gov/assembly/GCF_003254395.2) in 2018 (other assemblies submitted listed here). So far I have not found any whole genome assemblies of _Apis adreniformis_.
+
+These assemblies were downloaded and concatenated to make the **4_host_db**. It contains,
+
++ `>apis_mellifera_2018 PRJNA471592 version Amel_Hac3.1`
++ `>Apis_cerana  PRJNA235974`
++ `>Apis_cerana_mitochondrion PRJNA235974`
++ `>Apis_florea PRJNA45871`
++ `>Apis_dorsata PRJNA174631`
 
 <!-- To get started with this pipeline you will need the following files.
 
@@ -647,7 +672,7 @@ Run orthofinder on the genomes grouped by phylotype. The -og flag says to stop a
 
 Next, filter and continue to re run core cov and then proceed to snv calling and filtering! -->
 
-# Description of pipeline methods
+<!-- # Description of pipeline methods
 
 Run entire snakemake pipeline using:
 
@@ -659,9 +684,9 @@ and if resuming a failed or stopped run, use:
 
 conda environments are all specified in `envs/` and built by snakemake under various names in `/work/FAC/FBM/DMF/pengel/spirit/aprasad/snakemake-conda-envs`
 
-Run the pipeline in the conda environment called `snakmake_with_samtools` in the cluster (`import yaml` needs to work for the pipeline to start). It is a clone of the snakemake environment made as recommended by Snakemake [docs](https://snakemake.readthedocs.io/en/stable/getting_started/installation.html#installation-via-conda-mamba) followed by `conda install biopython` and later `conda install samtools` in it. This is so that Kirsten's core_cov script works (specific conda environments can only be specified for rules using bash).
+Run the pipeline in the conda environment called `snakmake_with_samtools` in the cluster (`import yaml` needs to work for the pipeline to start). It is a clone of the snakemake environment made as recommended by Snakemake [docs](https://snakemake.readthedocs.io/en/stable/getting_started/installation.html#installation-via-conda-mamba) followed by `conda install biopython` and later `conda install samtools` in it. This is so that Kirsten's core_cov script works (specific conda environments can only be specified for rules using bash). -->
 
-## Description of directory structure
+<!-- ## Description of directory structure
 
 Directory names are largely self-explanatory.
 
@@ -683,11 +708,11 @@ The **results** of the core coverage estimation are stored in,
 + rulegraph.pdf - summary DAG of rules in the pipeline (made using `snakemake --forceall --rulegraph | dot -Tpdf > Figuers/rulegraph.pdf`)
 + Report.Rmd - this report !
 + Report.html - this report compiled !
-+ Snakefile - the pipipeline !!!
++ Snakefile - the pipipeline !!! -->
 
-# Next steps
+<!-- # Next steps
 
-It is clear that the database is not best suited for some SDPs found especially in host species other than _Apis mellifera_. So, the next step would be to implement a MAG based analysis to compare these samples. However, as the database was already shown to be well-suited for _Apis mellifera_ and _Apis cerana_, another set of analysis would compare these samples from the [publication](https://www.sciencedirect.com/science/article/pii/S0960982220305868) ([zenodo](https://zenodo.org/record/3747314#.YcGkvRPMK3I)) with the samples from India.
+It is clear that the database is not best suited for some SDPs found especially in host species other than _Apis mellifera_. So, the next step would be to implement a MAG based analysis to compare these samples. However, as the database was already shown to be well-suited for _Apis mellifera_ and _Apis cerana_, another set of analysis would compare these samples from the [publication](https://www.sciencedirect.com/science/article/pii/S0960982220305868) ([zenodo](https://zenodo.org/record/3747314#.YcGkvRPMK3I)) with the samples from India. -->
 
 <!-- ## Choosing representative genomes
 
@@ -698,21 +723,7 @@ $$A * Completeness - B * Contamination + C * (Contamination * frac{strainheterog
 "It makes no sense to perform bootstrap with less than 4 sequences" from IQTree
 -->
 
-## Databases
-
-The host database is named **host_databse/apis_bees_db.fasta**.
-
-A [paper](https://academic.oup.com/gbe/article/12/1/3677/5682415) published in Dec. 2019 a high quality [_Apis dorsata_ genome](https://www.ncbi.nlm.nih.gov/assembly/GCA_009792835.1/) as an improvement over a previous submission in 2013. The paper also mentioned studies that had previously sequenced the [_Apis florea_ genome](https://www.ncbi.nlm.nih.gov/assembly/GCA_000184785.2) in 2012, [_Apis cerana_ genome](https://www.ncbi.nlm.nih.gov/assembly/GCF_001442555.1) in 2015 (other assemblies submitted found [here](https://www.ncbi.nlm.nih.gov/assembly/organism/7460/latest/)) and [_Apis mellifera_ genome](https://www.ncbi.nlm.nih.gov/assembly/GCF_003254395.2) in 2018 (other assemblies submitted listed here). So far I have not found any whole genome assemblies of _Apis adreniformis_.
-
-These assemblies were downloaded and concatenated to make the **4_host_db**. It contains,
-
-+ `>apis_mellifera_2018 PRJNA471592 version Amel_Hac3.1`
-+ `>Apis_cerana  PRJNA235974`
-+ `>Apis_cerana_mitochondrion PRJNA235974`
-+ `>Apis_florea PRJNA45871`
-+ `>Apis_dorsata PRJNA174631`
-
-## Extra info to be curated later
+<!-- ## Extra info to be curated later
 
 meaning of benchmark output
 
@@ -726,7 +737,7 @@ max_pss | float (MB) | “Proportional Set Size”, is the amount of memory shar
 io_in | float (MB) | the number of MB read (cumulative).
 io_out | float (MB) | the number of MB written (cumulative).
 mean_load | float (-) | CPU usage over time, divided by the total running time (first row)
-cpu_time | float(-) | CPU time summed for user and system
+cpu_time | float(-) | CPU time summed for user and system -->
 
 
 <!-- ### Information about MAGs to report (MIMAG)
