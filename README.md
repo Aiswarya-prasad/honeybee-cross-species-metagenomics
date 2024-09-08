@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.13732978.svg)](https://doi.org/10.5281/zenodo.13732978)
+
 This pipeline is not intended to be run independently without prior set-up. If you would like to use it or its parts and have questions or require clarification, contact Aiswarya Prasad .
 
 # Honeybee-MAGs
