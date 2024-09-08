@@ -4,7 +4,7 @@ source ~/.bashrc
 conda activate macse-env
 
 # align nucleotides
-root="/work/FAC/FBM/DMF/pengel/spirit/aprasad/BACKUP_current/20230313_apis_species_comparison"
+root="...<project_dir_path>.../20230313_apis_species_comparison"
 cd $root
 input_dir="results/11_phylogenies/05_MAG_bac120_nucleotide_trees/bac120_sequences"
 output_dir="results/11_phylogenies/05_MAG_bac120_nucleotide_trees/bac120_sequences_aligned"

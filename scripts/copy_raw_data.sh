@@ -4,9 +4,9 @@
 # directory if nas recherche is mounted, it would no longer be necessary but this is not the case
 # for the copute nodes
 
-prefix_destination="/work/FAC/FBM/DMF/pengel/spirit/aprasad/"
-prefix_source="/nas/FAC/FBM/DMF/pengel/general_data/D2c/datasets/"
-# prefix_source="aiswarya@130.223.110.124:/home/aiswarya/mnt/nas/ToBeTransferred_nas_recherche/datasets"
+prefix_destination="/...<project_dir_path>.../"
+prefix_source="/...<project_dir_path>.../"
+# prefix_source="aiswarya@xx.xxxx.xxx.x.xx.:/...<project_dir_path>.../datasets"
 
 mkdir -p ${prefix_destination}/NGS_data/20230120_HMK2GDSX3_Malaysia_samples_run1
 

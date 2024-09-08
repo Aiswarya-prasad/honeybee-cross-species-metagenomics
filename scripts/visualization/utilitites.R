@@ -4,7 +4,7 @@
 # load libraries
 ##############
 
-working_dir <- "/work/FAC/FBM/DMF/pengel/spirit/aprasad/BACKUP_current/20230313_apis_species_comparison"
+working_dir <- "/...<project_dir_path>.../20230313_apis_species_comparison"
 setwd(working_dir)
 
 library(ggplot2)

@@ -160,7 +160,7 @@ rule gtdb_annotate:
         tax_info = "results/09_MAGs_collection/gtdb_output/classify/20230313_MAGs.bac120.summary.tsv",
         tax_info_ar = "results/09_MAGs_collection/gtdb_output/classify/20230313_MAGs.ar53.summary.tsv",
     params:
-        path_to_db="/work/FAC/FBM/DMF/pengel/spirit/aprasad/gtdb/release214/", # new db
+        path_to_db="/...<gtdb_dir_path>.../gtdb/release214/", # new db
         prefix = "20230313_MAGs",
         mash_path = "results/09_MAGs_collection/gtdb_output/mash_sketch/cli/mash_db.msh",
         mailto="aiswarya.prasad@unil.ch",

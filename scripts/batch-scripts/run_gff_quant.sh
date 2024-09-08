@@ -9,8 +9,8 @@
 #SBATCH --cpus-per-task 4
 #SBATCH --mem 100G
 #SBATCH --time 10:00:00 
-#SBATCH --error /work/FAC/FBM/DMF/pengel/spirit/aprasad/BACKUP_current/20230313_apis_species_comparison/results/08_gene_content/08_gff_quant/logs/08_gff_quant.err
-#SBATCH --output /work/FAC/FBM/DMF/pengel/spirit/aprasad/BACKUP_current/20230313_apis_species_comparison/results/08_gene_content/08_gff_quant/logs/08_gff_quant.out
+#SBATCH --error /...<project_dir_path>.../20230313_apis_species_comparison/results/08_gene_content/08_gff_quant/logs/08_gff_quant.err
+#SBATCH --output /...<project_dir_path>.../20230313_apis_species_comparison/results/08_gene_content/08_gff_quant/logs/08_gff_quant.out
 
 # Doesn't work. Not using.
 

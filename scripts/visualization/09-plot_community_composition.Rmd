@@ -3309,8 +3309,6 @@ cor.test(dissimilarities_df_median$dist_h, dissimilarities_df_median$median_b, m
 # number of reads used for profiling and rarefaction curves
 
 ```{r}
-# # save.image("/scratch/aprasad/20230313_apis_species_comparison/results/figures/workspace_generaldata_chunks_20230611.RData")
-# load("/scratch/aprasad/20230313_apis_species_comparison/results/figures/workspace_generaldata_chunks_20230611.RData")
 # abundance_df_matrix_copies_int <- abundance_df_matrix_copies %>% as.matrix %>% as.data.frame %>% mutate_all(as.integer)
 # S <- specnumber(abundance_df_matrix_copies_int)
 # raremax <- min(rowSums(abundance_df_matrix_copies_int))

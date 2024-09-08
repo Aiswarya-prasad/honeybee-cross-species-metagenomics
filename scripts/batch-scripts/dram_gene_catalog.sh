@@ -9,8 +9,8 @@
 #SBATCH --cpus-per-task 20
 #SBATCH --mem 512G
 #SBATCH --time 70:00:00 
-#SBATCH --error /scratch/aprasad/20230313_apis_species_comparison/results/08_gene_content/dram_annotation.err
-#SBATCH --output /scratch/aprasad/20230313_apis_species_comparison/results/08_gene_content/dram_annotation.out
+#SBATCH --error /...<project_dir_path>.../20230313_apis_species_comparison/results/08_gene_content/dram_annotation.err
+#SBATCH --output /...<project_dir_path>.../20230313_apis_species_comparison/results/08_gene_content/dram_annotation.out
 
 source ~/.bashrc
 # conda activate 20230313_dram_env
@@ -21,7 +21,7 @@ module load gcc/9.3.0 python
 module load hmmer mmseqs2 prodigal infernal trnascan-se barrnap
 which DRAM.py
 
-cd /scratch/aprasad/20230313_apis_species_comparison
+cd /...<project_dir_path>.../20230313_apis_species_comparison
 
 gene_catalog_faa="results/08_gene_content/gene_catalog_all.faa"
 cdhit_genes="results/08_gene_content/gene_catalog_cdhit9590.fasta"

@@ -9,13 +9,13 @@
 #SBATCH --cpus-per-task 16
 #SBATCH --mem 512G
 #SBATCH --time 70:00:00 
-#SBATCH --error /scratch/aprasad/20230313_apis_species_comparison/results/08_gene_content/cdhit_clustering.err
-#SBATCH --output /scratch/aprasad/20230313_apis_species_comparison/results/08_gene_content/cdhit_clustering.out
+#SBATCH --error /...<project_dir_path>.../20230313_apis_species_comparison/results/08_gene_content/cdhit_clustering.err
+#SBATCH --output /...<project_dir_path>.../20230313_apis_species_comparison/results/08_gene_content/cdhit_clustering.out
 
 source ~/.bashrc
 conda activate 20230313_genes_env
 
-cd /scratch/aprasad/20230313_apis_species_comparison
+cd /...<project_dir_path>.../20230313_apis_species_comparison
 
 gene_catalog_ffn="results/08_gene_content/gene_catalog_all.ffn"
 gene_catalog_faa="results/08_gene_content/gene_catalog_all.faa"

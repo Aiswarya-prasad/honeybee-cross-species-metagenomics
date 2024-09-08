@@ -22,7 +22,7 @@ from scipy.spatial.distance import pdist, squareform
 # from sklearn.decomposition import PCA
 # from Bio.KEGG import REST
 # from Bio.KEGG.KGML import KGML_parser
-# os.chdir('/work/FAC/FBM/DMF/pengel/spirit/aprasad/BACKUP_current/20230313_apis_species_comparison')
+# os.chdir('...<project_dir_path>...')
 
 '''
 The goal of this script is to summarize the gene content of the samples

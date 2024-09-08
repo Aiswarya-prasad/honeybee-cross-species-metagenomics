@@ -63,12 +63,12 @@ drep_S = args.drep_S
 outfile = args.outfile
 gtdb_ar = "".join(gtdb.split(".bac120.summary.tsv")[0]) + ".ar53.summary.tsv"
 
-# gtdb = "/scratch/aprasad/20230313_apis_species_comparison/results/09_MAGs_collection/All_mags_sub/gtdb_output/classify/All_mags_sub.bac120.summary.tsv"
+# gtdb = "/...<project_dir_path>.../20230313_apis_species_comparison/results/09_MAGs_collection/All_mags_sub/gtdb_output/classify/All_mags_sub.bac120.summary.tsv"
 # gtdb_ar = "".join(gtdb.split(".bac120.summary.tsv")[0]) + ".ar53.summary.tsv"
 # checkm = "results/09_MAGs_collection/All_mags_sub/checkm_merged.tsv"
-# drep_gI = "/scratch/aprasad/20230313_apis_species_comparison/results/09_MAGs_collection/All_mags_sub/drep_results/data_tables/genomeInfo.csv"
-# drep_Wi = "/scratch/aprasad/20230313_apis_species_comparison/results/09_MAGs_collection/All_mags_sub/drep_results/data_tables/Widb.csv"
-# drep_S = "/scratch/aprasad/20230313_apis_species_comparison/results/09_MAGs_collection/All_mags_sub/drep_results/data_tables/Sdb.csv"
+# drep_gI = "/...<project_dir_path>.../20230313_apis_species_comparison/results/09_MAGs_collection/All_mags_sub/drep_results/data_tables/genomeInfo.csv"
+# drep_Wi = "/...<project_dir_path>.../20230313_apis_species_comparison/results/09_MAGs_collection/All_mags_sub/drep_results/data_tables/Widb.csv"
+# drep_S = "/...<project_dir_path>.../20230313_apis_species_comparison/results/09_MAGs_collection/All_mags_sub/drep_results/data_tables/Sdb.csv"
 
 info_df = pd.DataFrame()
 checkm_info = pd.read_csv(checkm, sep="\t", header=0)

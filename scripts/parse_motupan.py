@@ -19,7 +19,7 @@ First column, OG (name of orthogroup) - this column can be unnamed
 each subsequent column has genome name and the number of 
     genes of that OG in that genome
 Usage:
-python3 genecounts_from_motupan.py --input /scratch/aprasad/211018_Medgenome_india_samples/15_FurtherProcessing/motupan_test/g__Lactobacillus/mOTUpan.tsv --output_genecounts /scratch/aprasad/211018_Medgenome_india_samples/15_FurtherProcessing/motupan_test/g__Lactobacillus/mOTUpan_gene_counts.tsv --output_cores "/scratch/aprasad/211018_Medgenome_india_samples/15_FurtherProcessing/motupan_test/g__Lactobacillus/g__g__Lactobacillus_single_ortho.txt"
+python3 genecounts_from_motupan.py --input /...<project_dir_path>.../211018_Medgenome_india_samples/15_FurtherProcessing/motupan_test/g__Lactobacillus/mOTUpan.tsv --output_genecounts /...<project_dir_path>.../211018_Medgenome_india_samples/15_FurtherProcessing/motupan_test/g__Lactobacillus/mOTUpan_gene_counts.tsv --output_cores "/...<project_dir_path>.../211018_Medgenome_india_samples/15_FurtherProcessing/motupan_test/g__Lactobacillus/g__g__Lactobacillus_single_ortho.txt"
 """
 
 parser  = argparse.ArgumentParser()
@@ -31,10 +31,6 @@ args = parser.parse_args()
 
 input_orthofile = args.input
 output_orthofile = args.output
-
-input_orthofile = "/scratch/aprasad/211018_Medgenome_india_samples/15_FurtherProcessing/motupan_test/g__Lactobacillus/mOTUpan.tsv"
-output_genecounts = "/scratch/aprasad/211018_Medgenome_india_samples/15_FurtherProcessing/motupan_test/g__Lactobacillus/mOTUpan_gene_counts.tsv"
-output_cores = "/scratch/aprasad/211018_Medgenome_india_samples/15_FurtherProcessing/motupan_test/g__Lactobacillus/g__g__Lactobacillus_single_ortho.txt"
 
 def genome_from_gene_name(gene):
     genome = "_".join(gene.split("_")[:-1])

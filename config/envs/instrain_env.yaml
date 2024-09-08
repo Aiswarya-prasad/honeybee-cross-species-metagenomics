@@ -13,4 +13,4 @@ dependencies:
   - pysam
   - biopython=1.74
   - instrain
-  - bowtie # for now added to with mambe install to /work/FAC/FBM/DMF/pengel/spirit/aprasad/snakemake-conda-envs/8d7f28bda79869f4321c2fbc637261f0_
+  - bowtie # for now added to with mambe install to /work/....../snakemake-conda-envs/8d7f28bda79869f4321c2fbc637261f0_

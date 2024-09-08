@@ -1,5 +1,5 @@
-# packages in environment at /work/FAC/FBM/DMF/pengel/spirit/aprasad/miniconda3/envs/20230313_scripts_env:
-#
+# packages in environment at /...<conda_dir_path>...envs/20230313_scripts_env:
+# used for all the python scripts
 # Name                    Version                   Build  Channel
 _libgcc_mutex             0.1                 conda_forge    conda-forge
 _openmp_mutex             4.5                       2_gnu    conda-forge

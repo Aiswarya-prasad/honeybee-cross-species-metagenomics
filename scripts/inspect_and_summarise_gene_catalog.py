@@ -22,7 +22,6 @@ as the result paths are hard coded in here
 At the moment it was run by hand, but might be integrated into the pipeline later
 '''
 
-# os.chdir('/scratch/aprasad/20230313_apis_species_comparison')
 catalog_ffn = 'results/08_gene_content/20230313_gene_catalog.ffn'
 catalog_faa = 'results/08_gene_content/20230313_gene_catalog.faa'
 cdhit_clustering = 'results/08_gene_content/00_cdhit_clustering/20230313_gene_catalog_cdhit9590.fasta.clstr'
@@ -335,10 +334,6 @@ print('Writing filtered records to file...')
 with open('results/08_gene_content/05_parse_catalog/20230313_gene_catalog_filtered.ffn', 'w+') as fh:
     SeqIO.write(filtered_records, fh, 'fasta')
 
-# # reading from /scratch/aprasad/backups/.. just for now because
-# # 11_phylogenies is not run yet
-# original = '/scratch/aprasad/backups/11_phylogenies/00_genomes/D1-1_24/D1-1_24_original.ffn'
-# renamed = '/scratch/aprasad/backups/11_phylogenies/00_genomes/D1-1_24/D1-1_24.ffn'
 # prodigal_ffn = 'results/06_metagenomicORFs/D1-1/prodigal_out/D1-1.ffn'
 # dict_name_pos = {}
 # for rec in SeqIO.parse(prodigal_ffn, 'fasta'):

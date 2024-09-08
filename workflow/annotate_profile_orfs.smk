@@ -479,8 +479,8 @@ rule run_kaiju_genes:
     output:
         kaiju_out = "results/08_gene_content/04_kaiju_on_genes/nr/20230313_gene_catalog.kaiju",
     params:
-        kaiju_db_nodes = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/kaiju_db/nr/nodes.dmp",
-        kaiju_db_fmi = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/kaiju_db/nr/nr/kaiju_db_nr.fmi",
+        kaiju_db_nodes = "/...<kaiju_dir_path>.../kaiju_db/nr/nodes.dmp",
+        kaiju_db_fmi = "/...<kaiju_dir_path>.../kaiju_db/nr/nr/kaiju_db_nr.fmi",
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         account="pengel_spirit",
@@ -505,8 +505,8 @@ rule run_kaiju_genes_taxonomy:
         kaiju_names = "results/08_gene_content/04_kaiju_on_genes/nr/20230313_gene_catalog_taxa.txt",
         kaiju_names_full = "results/08_gene_content/04_kaiju_on_genes/nr/20230313_gene_catalog_taxa_full.txt",
     params:
-        kaiju_db_nodes = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/kaiju_db/nr/nodes.dmp",
-        kaiju_db_names = "/work/FAC/FBM/DMF/pengel/spirit/aprasad/kaiju_db/nr/names.dmp",
+        kaiju_db_nodes = "/...<kaiju_dir_path>.../kaiju_db/nr/nodes.dmp",
+        kaiju_db_names = "/...<kaiju_dir_path>.../kaiju_db/nr/names.dmp",
         mailto="aiswarya.prasad@unil.ch",
         mailtype="BEGIN,END,FAIL,TIME_LIMIT_80",
         account="pengel_spirit",
@@ -577,8 +577,6 @@ rule cayman_profiling:
     conda: "../config/envs/cayman-env.yaml"
     shell:
         """
-        # pip3 installed into /work/FAC/FBM/DMF/pengel/spirit/aprasad/snakemake-conda-envs/ed99f9781f3071c19a86cec650b3a864_
-        # # pip3 installed into /work/FAC/FBM/DMF/pengel/spirit/aprasad/snakemake-conda-envs/2180282797a509891b25d4637ca406cc_
         # better yet check if it is in path and if not, set it up
         # for now this fix is ok
         cayman -t {threads} --db_separator , --db_coordinates hmmer \

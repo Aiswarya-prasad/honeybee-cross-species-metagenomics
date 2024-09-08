@@ -30,8 +30,8 @@ args = parser.parse_args()
 input_orthofile = args.input
 output_cogfile = args.output
 
-input_orthofile = "/scratch/aprasad/211018_Medgenome_india_samples/database/MAGs_database_Orthofinder/g__Lactobacillus/OrthoFinder/Results_g__Lactobacillus/Orthogroups/Orthogroups.GeneCount.tsv"
-output_cogfile = "/scratch/aprasad/211018_Medgenome_india_samples/15_FurtherProcessing/motupan_test/g__Lactobacillus/motupan_cog.tsv" 
+input_orthofile = "/...<project_dir_path>.../211018_Medgenome_india_samples/database/MAGs_database_Orthofinder/g__Lactobacillus/OrthoFinder/Results_g__Lactobacillus/Orthogroups/Orthogroups.GeneCount.tsv"
+output_cogfile = "/...<project_dir_path>.../211018_Medgenome_india_samples/15_FurtherProcessing/motupan_test/g__Lactobacillus/motupan_cog.tsv" 
 
 ortho_df = pd.read_csv(input_orthofile, sep = "\t")
 ortho_df = ortho_df.set_index('Orthogroup')
