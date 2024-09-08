@@ -2,7 +2,7 @@ This pipeline is not intended to be run independently without prior set-up. If y
 
 # Honeybee-MAGs
 
-The aim of this repository is to document the steps used to process raw shotgun metagenomic data (R1 and R2 fastq reads), assemble and bin scaffolds into MAGs, cluster them into magOTUs, estimate the coverage of each of the magOTUs and then finally also SNP profiling across samples based on the high quality MAGs chosen. Downstream analysis is performed using independent scripts and documented in their respective directories. All scripts are present in the scripts directory in general.
+The code referred to below can be found in the [Github repository](https://github.com/Aiswarya-prasad/honeybee-MAGs) The aim of this repository is to document the steps used to process raw shotgun metagenomic data (R1 and R2 fastq reads), assemble and bin scaffolds into MAGs, cluster them into magOTUs, estimate the coverage of each of the magOTUs and then finally also SNP profiling across samples based on the high quality MAGs chosen. Downstream analysis is performed using independent scripts and documented in their respective directories. All scripts are present in the scripts directory in general.
 
 ## Overview
 
@@ -18,18 +18,57 @@ Workflow was parallelized at the computation cluster at UNIL with the setup desc
 
 Refer to the `targets` rule in the Snakefile to get the list of the outputs generated using the workflow. Further processing was done by the scripts found in `scripts/`. Refer to the respective scripts of interest for further information about the parameters used. The final summaries of outputs used for Figures are loaded into R by `scripts/visualization/Load_data.Rmd` where the paths to all the files of interest can be found.
 
-## Location of important files
+## Raw data
 
-Large files are not included here but can be found in the accompanying [Zenodo](zenondo.com) repository.
+Raw data for this project was sequenced in two different facilities. For 50 samples from India, all collection, analysis and sequencing was done at the collaborating lab in India and sequenced at Medgenome, India. Th other 150 samples collected from Malaysia were sequenced at the GTF facility at UNIL. The files can be accessed through NCBI SRA (PRJNA1157353). Sample names reflect the species (first letter) followed by colony number and then individual number. For example, A1-1 is the first individual from the first colony of A. andreniformis and C2-3 is the third individual from the second colony of A. cerana. The files name then includes R1 or R2 indicating the forward or reverse read set and for some samples, there are multiple files for each read set from different runs and lanes as indicated in the file name.
 
-+ Trimmed and cleaned files used for downstream analyses are in `results/01_cleanreads/{sample}_R{n}_repaired.fastq.gz`
-+ Assembled scaffold are in `results/05_assembly/all_reads_assemblies/{sample}_scaffolds.fasta`
-+ All MAGs are in `results/09_MAGs_collection/MAGs/{mag}.fa` with other directories within `results/09_MAGs_collection/` containing various filtering, annotation and depreplication results
-+ The MAG database used for community profiling and SNV inference are in `results/10_instrain/00_prepare_mags/mag_rep_database.fa`
-+ The results of filtering and annotation of ORFs combined with gene coverage information obtained by mapping clean reads back to the assemblies can be found in `results/figures/08-summarize_functions/gene_info_tables/{sample}_df_detected_genes_info.csv` and `results/figures/08-summarize_functions/gene_info_tables/{sample}_df_detected_genes_cov.csv` by the scripts `scripts/visualization/make_gene_info_summaries.py` and `scripts/visualization/summarize_gene_functions.py` respctively.
+## Code Overview
+
+### Snakemake workflow
+
+* `workflow/Snakefile` - This Snakefile orchestrates the honeybee-MAGs pipeline, handling QC, assembly, binning, and downstream steps by defining the target files.
+* `workflow/common.smk` - This file contains utility functions for the Snakemake pipeline, handling conversions, file path manipulations, and metadata processing.
+* `workflow/trim-qc.smk` - This Snakemake file handles trimming and quality control (QC) of sequencing reads before and after trimming. It includes rules for concatenating trimmed reads and mapping reads to host and MAGs.
+* `workflow/motus-profiling.smk` - This Snakemake file runs mOTUs profiling on cleaned reads to get an initial picture of the community profile.
+* `workflow/assemble-qc.smk` - This Snakemake file orchestrates the assembly of metagenomes, mapping of reads, and various quality control (QC) steps. It includes rules for normalizing read coverage, mapping reads to the host genome, extracting non-host reads, and summarizing assembly statistics. Additionally, it performs taxonomic classification of contigs using Kaiju and Kraken2.
+* `workflow/annotate_profile_orfs.smk` - This Snakemake file annotates and profiles open reading frames (ORFs) predicted from the assembled scaffolds. It includes rules for predicting ORFs, annotating them using various databases, and profiling their abundance across samples. The workflow ensures comprehensive functional annotation and quantification of ORFs, facilitating downstream analysis of metagenomic data.
+`workflow/backmapping-binning.smk` - This Snakemake file handles backmapping of reads to assemblies and binning of metagenomic contigs into metagenome-assembled genomes (MAGs). It includes rules for backmapping reads to assemblies, binning contigs using MetaBAT2, and summarizing binning statistics.
+`workflow/binning_summary_annotation.smk` - This Snakemake file summarizes binning results, annotates MAGs, and evaluates their quality. It includes rules for summarizing binning statistics, evaluating MAG quality using CheckM, and annotating MAGs using GTDB-Tk and DRAM.
+`workflow/mag_db_instrain.smk` - This Snakemake file profiles MAGs using InStrain to identify strain-level variation and track MAGs across samples. It includes rules for preparing MAG databases, mapping reads to MAGs, and profiling strain-level variation using InStrain.
+`workflow/mag_phylogenies.smk` - This Snakemake file infers phylogenetic trees of MAGs and external genomes to understand their evolutionary relationships. It includes rules for preparing genomes, running OrthoFinder, inferring orthologous groups, aligning orthologs, and building phylogenetic trees.
+
+### Scripts
+
+* `scripts/` - This directory contains scripts for use in the Snakemake workflow and for processing and analyzing data generated by the Snakemake pipeline.
+* `scripts/visualization/` - This subdirectory contains R scripts others for visualizing data, generating figures, and summarizing results. It includes scripts for loading data, creating plots, and generating tables for the final report and some python scripts for parsing outputs and summarizing results.
+
+
+## Some useful intermediate files
+
+Large files are not included in the git repository but can be found in the accompanying [Zenodo](zenondo.com) repository.
+
++ Assembled scaffold are in `results/05_assembly/all_reads_assemblies/{sample}_scaffolds.fasta` and `results/05_assembly/contig_fates/` contains the output of whokaryote, Kaiju etc. on the scaffolds
++ The directory `results/06_metagenomicORFs` contains the output of prodigal gene prediction on the scaffolds and filtered ORFs using the script `scripts/filt_orfs.py` which in turn uses files in `results/05_assembly/contig_fates/`
++ All MAGs are in `results/09_MAGs_collection/MAGs/{mag}.fa` with other directories within `results/09_MAGs_collection/` containing various checkM, GTDB annotation and dRep depreplication results
+  - `results/09_MAGs_collection/drep_output` contains the output of drep dereplication
+  - `results/09_MAGs_collection/gtdb_output` contains the output of GTDB annotation
+  - `results/09_MAGs_collection/MAGs`contains all the MAGs
+  - `results/09_MAGs_collection/MAGs_high_medium` contains the high and medium quality MAGs
+  - `results/09_MAGs_collection/prodigal_output` contains the output of prodigal gene prediction
+  - `results/09_MAGs_collection/dram_distill` contains the output of DRAM distill
+  - `results/09_MAGs_collection/dram_output` contains the output of DRAM
+  - `results/09_MAGs_collection/functions_list` contains a parsed list of all KOs identified by DRAM listed on column 2 with the species name appended to MAG ID as column 1
+  - `results/09_MAGs_collection/MAGs_metadata_summary.tsv` contains the metadata of all MAGs collected in one file and used in downstream analysis
++ The `results/figures` directory contains all the figures many of which were further edited and arranged to make final figures for the report and tables for summaries and further processing
+  - The results of filtering and annotation of ORFs combined with gene coverage information obtained by mapping clean reads back to the assemblies can be found in `results/figures/08-summarize_functions/gene_info_tables/{sample}_df_detected_genes_info.csv` and `results/figures/08-summarize_functions/gene_info_tables/{sample}_df_detected_genes_cov.csv` by the scripts `scripts/visualization/make_gene_info_summaries.py` and `scripts/visualization/summarize_gene_functions.py` respctively
 + Phylogenies are in `results/11_phylogenies/03_iqtree_trees` and its neighbouring and subdirectories
+  - The directory 11_phylogenies contains `results/11_phylogenies/00_genomes` with nucleotide (.ffn) and aminoacid (.faa) sequences of genes from all the MAGs and external genomes previously published (mostly used as outgroups) as listed in `results/11_phylogenies/phylo_genomes_metadata.tsv`
+  - `results/11_phylogenies/01_orthofinder_input` contains the files for genomes corresponding to each genus collected together and their OrthoFinder results are in `results/11_phylogenies/02_orthofinder_results`
+  - The directory `results/11_phylogenies/03_iqtree_trees` contains concate aminoacid sequence trees of core genes for each genus
+  - `results/11_phylogenies/04_MAGs_gtdb` contains a tree of all MAGs made with the aminoacid sequences of the 120 bacterial genes identified and aligned by GTDB-tk
+  - `results/11_phylogenies/05_MAG_bac120_nucleotide_trees`contain the trees made with the nucleotide sequences of the 120 bacterial genes identified by GTDB-tk collected and aligned using a codon-aware aligner (macse)
 
-## Databases
+## Host Database
 
 The host database is named **host_databse/apis_bees_db.fasta**.
 
