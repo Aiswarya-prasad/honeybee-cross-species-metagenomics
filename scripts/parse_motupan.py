@@ -31,6 +31,7 @@ args = parser.parse_args()
 
 input_orthofile = args.input
 output_orthofile = args.output
+output_genecounts = args.output_genecounts
 
 def genome_from_gene_name(gene):
     genome = "_".join(gene.split("_")[:-1])
