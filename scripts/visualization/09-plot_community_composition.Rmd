@@ -747,7 +747,7 @@ ggplot() +
                x_size = 15, y_size = 15, axis_x_title = 20, axis_y_title = 20,
                guide_nrow = 20
               )
-      ggsave("results/figures/3-magotu_rohdes_by_magotu_across.pdf", width = 12, height = 15)
+      ggsave("results/figures/09-figures/3-magotu_rohdes_by_magotu_across.pdf", width = 12, height = 15)
 
 
 df_rohdes_across_hosts_plot <- abundance_df %>% filter(!is.na(magOTU)) %>%
@@ -996,7 +996,7 @@ ggplot() +
                          labeller = function(x) round(exp(x))
   ) +
   coord_equal()
-  ggsave("results/figures/3-magotu_rohdes_scatter_pie_radius.pdf", width = 15, height = 10)
+  ggsave("results/figures/09-figures/3-magotu_rohdes_scatter_pie_radius.pdf", width = 15, height = 10)
 
 ggplot() +
   geom_scatterpie(aes(x = Genus,
@@ -2238,7 +2238,7 @@ ggplot(df_box_plot) +
   make_theme(leg_pos = "none", setCol = F, setFill = F,
              axis_x_title = 16, axis_y_title = 16,
              guide_nrow = 1)
-  ggsave("results/figures/09-Species_per_sample_boxplot.pdf")
+  ggsave("results/figures/09-figures/09-Species_per_sample_boxplot.pdf")
 
 shared_magotus <- df_plot %>% group_by(magOTU) %>% filter(n_distinct(Host) > 1) %>% pull(magOTU) %>% unique
 
@@ -2493,7 +2493,7 @@ ado_res = adonis2(dist_obj ~ Species,
         mutate(Location = Vectorize(get_location_from_sample_name)(.))
 )
 # adonis_OmegaSq(ado_res)
-pdf("results/figures/09-PCoA_sorensen_microbiome_turnover.pdf", width = 10, height = 15)
+pdf("results/figures/09-figures/09-PCoA_sorensen_microbiome_turnover.pdf", width = 10, height = 15)
 pcoa_plot(dist_matrix_betapart$beta.sim, df_meta_complete %>% select(ID, Species), variable = "Species", color_add=T, color_list=host_order_color_dark) +
   annotate("text", x = -0.1,
                       y = 0.5,

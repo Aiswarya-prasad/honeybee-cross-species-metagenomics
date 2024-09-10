@@ -93,8 +93,8 @@ If there are any specific changes to functions be sure to re-write the RData obj
 # library(ggpubr) - version confilct
 # Previously saved env data not clean - redo next time
 # save.image("/...<project_dir_path>.../20230313_apis_species_comparison/results/figures/workspace_generaldata_chunks_20230611.RData")
-load("/...<project_dir_path>.../20230313_apis_species_comparison/results/figures/workspace_generaldata_chunks_20230611.RData")
-source("/...<project_dir_path>.../20230313_apis_species_comparison/scripts/visualization/utilitites.R")
+load("results/figures/workspace_generaldata_chunks_20230611.RData")
+source("scripts/visualization/utilitites.R")
 ```
 
 ### Read metadata and parse into dataframe

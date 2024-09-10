@@ -675,7 +675,7 @@ ggplot(plot_mag_info %>% filter(type != "None")) +
                     labels = c("This_DB" = "MAG (This study)", "Isolate" = "GTDB+Isolate", "MAG" = "GTDB+MAG/SAG")) +
   labs(y = "Host", x = "Number of MAGs", fill = "Type") +
   make_theme(setFill = F, guide_nrow = 1)
-ggsave("results/figures/06-mag_by_host_ref_vs_nonref_monochrome.pdf")
+ggsave("results/figures/06-figures/06-mag_by_host_ref_vs_nonref_monochrome.pdf")
 
 ```
 

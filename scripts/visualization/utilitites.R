@@ -4,8 +4,8 @@
 # load libraries
 ##############
 
-working_dir <- "/...<project_dir_path>.../20230313_apis_species_comparison"
-setwd(working_dir)
+# working_dir <- "/...<project_dir_path>.../20230313_apis_species_comparison"
+# setwd(working_dir)
 
 library(ggplot2)
 library(readxl)
@@ -24,7 +24,7 @@ library(ggrepel)
 library(gridExtra)
 # library(randomForest)
 library(emmeans)
-library(microbiome)
+# library(microbiome)
 library(ape)
 library(phyloseq)
 library(ComplexHeatmap)
@@ -35,13 +35,13 @@ library(circlize)
 library(magrittr)
 library(tidyverse)
 library(corrplot)
-library(ggkegg)
+# library(ggkegg)
 library(ggfx)
 library(igraph)
 library(tidygraph)
 library(ggdendro)
 library(dendextend)
-library(ggVennDiagram)
+# library(ggVennDiagram)
 library(ggpubr)
 library(scatterpie)
 library(gggenes)

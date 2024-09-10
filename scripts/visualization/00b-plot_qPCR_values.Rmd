@@ -68,7 +68,7 @@ ggplot(qpcr_plot_df,
                                     #  c("Apis mellifera", "Apis florea")
                                     ), 
               map_signif_level=TRUE, step_increase=0.05)
-      ggsave("results/figures/00b-qPCR_copy_numbers.pdf")
+      ggsave("results/figures/00-figures/00b-qPCR_copy_numbers.pdf")
 ```
 ```{r plot2a}
 ggplot(qpcr_plot_df,

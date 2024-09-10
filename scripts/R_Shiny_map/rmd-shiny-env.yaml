@@ -1,0 +1,21 @@
+name: rmd-shiny-env
+
+channels:
+  - conda-forge
+  - bioconda
+
+dependencies:
+  - r-xlsx
+  - r-ggplot2
+  - r-dplyr
+  - r-tidyverse
+  - r-magrittr
+  - r-lubridate
+  - r-ggthemes
+  - r-RColorBrewer
+  - r-shiny
+  - r-DT
+  - r-leaflet
+  - r-rmdformats
+  - r-prettydoc
+  - r-plotly

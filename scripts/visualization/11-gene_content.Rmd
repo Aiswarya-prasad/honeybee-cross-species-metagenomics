@@ -264,7 +264,7 @@ pcoa_plot(dist_mat$beta.jtu, df_meta_complete, "Species", color_add = T, color_l
 ggsave("results/figures/08-gene_content_plots/KO_pcoa_host_species_pa_jac_turnover.pdf")
 
 ko_matrix_norm <- decostand(ko_matrix, method = "normalize")
-dist_mat <- vegdist(ko_matrix_norm, method = "robust.aitchison")
+dist_mat <- vegdist(ko_matrix, method = "robust.aitchison")
 ado_res <- adonis2(dist_mat ~ Species, 
           rownames(as.matrix(dist_mat)) %>% as.data.frame() %>%
             mutate(Species = Vectorize(get_host_from_sample_name)(.)))

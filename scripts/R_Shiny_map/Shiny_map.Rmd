@@ -1,0 +1,402 @@
+---
+title: "Metadata Summary"
+author: "Aiswarya Prasad"
+date: "`r Sys.Date()`"
+runtime: shiny
+output:
+#     Features matrix
+#     Responsive	Dynamic TOC	Dark mode	Thumbnails / Lightbox	Code folding	Tabsets	Bad joke
+#     html_docco	x			x	x	x
+#     html_clean	x	x		x	x	x
+#     readthedown	x	x			x	x
+#     material				x	x	x
+#         robobook	x	x		x	x	x
+#     downcute	x	x	x	x	x	x
+#     lockdown							x
+# for more info see https://juba.github.io/rmdformats/
+ rmdformats::downcute:
+  #     fig_width : figures width, in inches
+  #     fig_height : figures height, in inches
+  #     fig_caption : toggle figure caption rendering
+  #     highlight : syntax highlighting
+  #     thumbnails : if TRUE, display content images as thumbnails
+  #     lightbox : if TRUE, add lightbox effect to content images
+  #     gallery : if TRUE, add navigation between images when displayed in lightbox
+  #     use_bookdown : if TRUE, will use bookdown instead of rmarkdown for HTML rendering, thus providing section numbering and cross references.
+  #     embed_fonts : if TRUE (default), use local files for fonts used in the template instead of links to Google Web fonts. This leads to bigger files but ensures that the fonts are available
+  # additional aguments are passed to the base html_document RMarkdown template
+  fig_caption : true
+  lightbox: true
+  code_folding: hide
+  df_print: paged
+  toc_float:
+    collapsed: false
+    smooth_scroll: true
+---
+
+```{r setup, include=F, echo=F}
+# set the root directory up correctly
+ROOT = getwd()
+# load libraries
+library(xlsx)
+library(ggplot2)
+library(dplyr)
+library(tidyverse)
+library(magrittr)
+library(lubridate)
+library(ggthemes)
+library(RColorBrewer)
+library(shiny)
+library(DT)
+library(leaflet)
+library(plotly)
+```
+
+```{r function_and_defs, echo=F}
+#########################################
+# set colors and theme
+#########################################
+# maxcolors category colorblind
+# BrBG            11      div       TRUE
+# PiYG            11      div       TRUE
+# PRGn            11      div       TRUE
+# PuOr            11      div       TRUE
+# RdBu            11      div       TRUE
+# RdGy            11      div      FALSE
+# RdYlBu          11      div       TRUE
+# RdYlGn          11      div      FALSE
+# Spectral        11      div      FALSE
+# Accent           8     qual      FALSE
+# Dark2            8     qual       TRUE
+# Paired          12     qual       TRUE
+# Pastel1          9     qual      FALSE
+# Pastel2          8     qual      FALSE
+# Set1             9     qual      FALSE
+# Set2             8     qual       TRUE
+# Set3            12     qual      FALSE
+# Blues            9      seq       TRUE
+# BuGn             9      seq       TRUE
+# BuPu             9      seq       TRUE
+# GnBu             9      seq       TRUE
+# Greens           9      seq       TRUE
+# Greys            9      seq       TRUE
+# Oranges          9      seq       TRUE
+# OrRd             9      seq       TRUE
+# PuBu             9      seq       TRUE
+# PuBuGn           9      seq       TRUE
+# PuRd             9      seq       TRUE
+# Purples          9      seq       TRUE
+# RdPu             9      seq       TRUE
+# Reds             9      seq       TRUE
+# YlGn             9      seq       TRUE
+# YlGnBu           9      seq       TRUE
+# YlOrBr           9      seq       TRUE
+# YlOrRd           9      seq       TRUE
+#       maxcolors category colorblind
+# Blues         9      seq       TRUE
+# [1] 9
+make_theme <- function(theme_name=theme_classic() ,max_colors=0, palettefill="Pastel1", palettecolor="Dark2",
+                        setFill=TRUE, setCol=TRUE,
+                        guide_nrow=2, guide_nrow_byrow=TRUE, leg_pos="top", leg_size=12,
+                        x_angle=0 ,x_vj=0, x_hj=0, x_size=12,
+                        y_angle=0 ,y_vj=0, y_hj=0, y_size=12){
+  n_11 = c("BrBG", "PiYG", "PRGn", "PuOr", "RdBu", "RdGy", "RdYlBu", "RdYlGn", "Spectral")
+  n_12 = c("Paired", "Set3")
+  n_8 = c("Accent", "Dark2", "Pastel2", "Set2")
+  if (palettefill %in% n_12) {
+    n_f = 12
+  } else {
+    if (palettefill %in% n_11) {
+      n_f = 11
+    } else {
+      if (palettefill %in% n_8) {
+        n_f  = 8
+      } else {
+        n_f = 9
+      }
+    }
+  }
+  if (palettecolor %in% n_12) {
+    n_c = 12
+  } else {
+    if (palettecolor %in% n_11) {
+      n_c = 11
+    } else {
+      if (palettecolor %in% n_8) {
+        n_c  = 8
+      } else {
+        n_c = 9
+      }
+    }
+  }
+  getFill = colorRampPalette(brewer.pal(n_f, palettefill))
+  getColor = colorRampPalette(brewer.pal(n_c, palettecolor))
+  theme_params <- theme(axis.text.x = element_text(angle = x_angle,
+    vjust = x_vj, hjust=x_hj,
+    size = x_size),
+    axis.text.y = element_text(angle = y_angle,
+      vjust = y_vj, hjust=y_hj,
+      size = y_size),
+      # axis.title.x = element_text(margin=margin(t=5)),
+      # axis.title.y = element_text(margin=margin(r=10)),
+      legend.position=leg_pos,
+      legend.text = element_text(size=leg_size)
+    )
+  guide_params <- guides(fill = guide_legend(
+                                  nrow=guide_nrow,
+                                  byrow=guide_nrow_byrow
+                                ),
+                        col = guide_legend(
+                                  nrow=guide_nrow,
+                                  byrow=guide_nrow_byrow
+                                )
+                  )
+  my_theme <- list(
+                theme_name,
+                theme_params,
+                guide_params
+              )
+  if(setFill) {
+    if (n_f < max_colors) {
+      my_theme <- list(
+                    my_theme,
+                    scale_fill_manual(values = getFill(max_colors))
+                  )
+    } else {
+      my_theme <- list(
+                    my_theme,
+                    scale_fill_brewer(palette=palettefill)
+                  )
+    }
+  }
+  if(setCol) {
+    if (n_c < max_colors) {
+      my_theme <- list(
+                    my_theme,
+                    scale_color_manual(values = getColor(max_colors))
+                  )
+    } else {
+      my_theme <- list(
+                    my_theme,
+                    scale_color_brewer(palette=palettecolor)
+                  )
+    }
+  }
+  return(my_theme)
+}
+#########################################
+# next function
+#########################################
+parse_ID <- function(ID){
+  ID = as.character(ID)
+  date = strsplit(ID, split = "_")[[1]][1]
+  person = strsplit(ID, split = "_")[[1]][2]
+  tmp = strsplit(ID, split = "_")[[1]][3]
+  colony = strsplit(tmp, split = "-")[[1]][1]
+  bee = strsplit(tmp, split = "-")[[1]][2]
+  info = list(
+    "date" = date,
+    "person" = person,
+    "colony" = colony,
+    "bee" = bee
+  )
+  return(info)
+}
+```
+
+```{css echo=F}
+/* To make hoverable links. (does not have to be called hint) Usage: */
+/* [Message to show on hover]{.hint} */
+.hint {
+  visibility: hidden;
+}
+.hint::before {
+  visibility: visible;
+  content: "Hint";
+  color: blue;
+}
+.hint:hover {
+  visibility: visible;
+  font-weight: bold;
+}
+.hint:hover::before {
+  display: none;
+}
+```
+
+```{r read_data}
+df <- read.xlsx(paste0(ROOT, "/221108_metadata_compiled.xlsx"), 1, header=TRUE)
+df$Colony_ID <- as.character(df$Colony_ID)
+df <- df %>%
+        filter(!is.na(Species))
+```
+
+# View on map
+
+```{r map}
+metadata_shiny <- df
+metadata_shiny <- metadata_shiny[!duplicated(metadata_shiny$Colony_ID),]
+metadata_shiny <- as.data.frame(metadata_shiny)
+metadata_shiny$Location_latitude <- as.numeric(metadata_shiny$Location_latitude)
+metadata_shiny$Location_longitude <- as.numeric(metadata_shiny$Location_longitude)
+metadata_shiny <- metadata_shiny[which(!is.na(metadata_shiny$Location_latitude)), ]
+metadata_shiny <- metadata_shiny[which(!is.na(metadata_shiny$Location_longitude)), ]
+# new column for the popup label
+metadata_shiny <- dplyr::mutate(metadata_shiny, cntnt=paste0('<strong>Name (eg. individual): </strong>',ID,
+                                        '<br><strong>Species:</strong> ',Species,
+                                        '<br><strong>Colony_type:</strong> ',Colony_type,
+                                        '<br><strong>Location_name:</strong> ',Location_name,
+                                        '<br><strong>Collected by:</strong> ',parse_ID(ID)$person,
+                                        '<br><strong>Collected on:</strong> ',paste0(Collection_date_d,"/", Collection_date_m,"/", Collection_date_y),
+                                        '<br><strong>Colony_ID:</strong> ', Colony_ID,
+                                        '<br><strong>Extraction:</strong> ',DNA_extracted,
+                                        '<br><strong>Short_Name:</strong> ', Short_name,
+                                        '<br><strong>Hive_description:</strong> ',Hive_description,
+                                        '<br><strong>Altitude:</strong> ',Location_altitude,
+                                        '<br><strong>Location type:</strong> ',Location_type,
+                                        '<br><strong>Location latitude:</strong> ',Location_latitude,
+                                        '<br><strong>Location longitude:</strong> ',Location_longitude,
+                                        '<br><strong>Sequenced on:</strong> ',Sequenced_on,
+                                        '<br><strong>Notes:</strong> ',Notes_1))
+pal <- colorFactor(pal = c("#ff8c00", "#e81123", "#ec008c", "#68217a", "#00188f", "#00bcf2", "#00b294", "#009e49", "#bad80a", "#fff100"), domain = unique(metadata_shiny$Species))
+# filter based on slider input
+my_icons <- iconList(
+"W" <- makeIcon(iconUrl = "https://www.freeiconspng.com/uploads/black-circle-icon-23.png",
+                        iconWidth = 18, iconHeight = 18),
+"M" <- makeIcon(iconUrl = "https://www.freeiconspng.com/uploads/black-square-frame-23.png",
+                        iconWidth = 18, iconHeight = 18),
+"SW" <- makeIcon(iconUrl = "https://www.freeiconspng.com/uploads/triangle-png-28.png",
+                          iconWidth = 18, iconHeight = 18)
+    )
+
+
+min_date <- min(df$Collection_date)
+max_date <- max(df$Collection_date)
+
+dateRangeInput("dateRange", "Date range:", start = min_date,
+               end = max_date, min = min_date, max = max_date,
+               format = "yyyy-mm-dd", startview = "month", weekstart = 0,
+               language = "en", separator = " to ", width = "100%"
+)
+
+# metadata_shiny_filt <- reactive({metadata_shiny})
+metadata_shiny_filt <- reactive({
+  metadata_shiny$Collection_date_y <- as.numeric(metadata_shiny$Collection_date_y)
+  df <- metadata_shiny[which(metadata_shiny$Collection_date >= input$dateRange[1] & metadata_shiny$Collection_date <= input$dateRange[2]),]
+  df
+})
+
+
+renderLeaflet({
+      leaflet(metadata_shiny_filt()) %>%
+      addCircles(lng = ~Location_longitude, lat = ~Location_latitude) %>%
+      addTiles() %>%
+      addCircleMarkers(data = metadata_shiny_filt(), lat =  ~Location_latitude, lng = ~Location_longitude,
+                       radius = 4, popup = ~as.character(cntnt),
+                       color = ~pal(Species),
+                       fill = ~pal(Species),
+                       stroke = FALSE, fillOpacity = 0.8)%>%
+      addLegend(pal=pal, values=metadata_shiny_filt()$Species, opacity=1, na.label = "Not Available")%>%
+      addEasyButton(easyButton(
+        icon="fa-crosshairs", title="ME",
+        onClick=JS("function(btn, map){ map.locate({setView: true}); }")))
+    })
+
+#create a data object to display data
+```
+
+# Summarise data
+
+## Number of individuals sampled
+
+```{r summarise_data_numberindividuals}
+df_plot <- df %>%
+            group_by(Species) %>%
+              summarise(number_of_samples = n_distinct(ID), .groups = "keep")
+
+plot <- ggplot(df_plot, aes(x = Species, y = number_of_samples, fill = Species)) +
+          geom_bar(stat = "identity") +
+            labs(x = "Species / Subspecies name",
+                 y = "Number of individuals sampled") +
+                 geom_text(aes(label = number_of_samples, y = number_of_samples + 15)) +
+                make_theme(theme_few(), leg_pos="none", setFill=T,
+                             x_angle=60, x_size=15, x_hj=1, x_vj=1,
+                             y_size=15, max_colors = length(unique(df_plot$Species)))
+plot
+```
+
+## Number of individuals per colony
+
+```{r summarise_data_numbercoloniesper}
+df_plot <- df %>%
+            group_by(Colony_ID, Species) %>%
+              summarise(Colony_ID, number_of_samples = n_distinct(ID), .groups = "keep")
+
+plot <- ggplot(df_plot, aes(y = Colony_ID, x = number_of_samples, fill = Species)) +
+          geom_bar(stat = "identity") +
+            labs(y = "Colony ID",
+                 x = "Number of samples per colony",
+                 fill = "Number of individuals per colony") +
+                 # geom_text(aes(label = number_of_samples, y = number_of_samples + 15)) +
+                make_theme(theme_few(), leg_pos="right", setFill=T, guide_nrow = length(unique(df_plot$Species)),
+                             y_size=8, max_colors = length(unique(df_plot$Species)))
+plot
+```
+
+## Number of colonies per subspecies
+
+```{r summarise_data_numbercolonies}
+df_plot <- df %>%
+            group_by(Species) %>%
+              summarise(number_of_colonies = n_distinct(Colony_ID), .groups = "keep")
+
+plot <- ggplot(df_plot, aes(x = Species, y = number_of_colonies, fill = Species)) +
+          geom_bar(stat = "identity") +
+            labs(x = "Species / Subspecies name",
+                 y = "Number of colonies sampled")  +
+                 geom_text(aes(label = number_of_colonies, y = number_of_colonies + 0.5)) +
+                make_theme(theme_few(), leg_pos="none", setFill=T,
+                             x_angle=60, x_size=15, x_hj=1, x_vj=1,
+                             y_size=15, max_colors = length(unique(df_plot$Species)))
+plot
+```
+
+## Number of colonies per type
+
+```{r summarise_data_numbercoloniestype}
+df_plot <- df %>%
+            filter(!grepl("florea|dorsata|cerana", Species)) %>%
+              mutate(Type = ifelse(Colony_type == "W/SM/M", "Unknown", Colony_type)) %>%
+              mutate(Type = ifelse(Colony_type == "M", "Managed", Type)) %>%
+              mutate(Type = ifelse(Colony_type == "W", "Wild", Type)) %>%
+              mutate(Type = ifelse(Colony_type == "SM", "Semi-managed", Type)) %>%
+                group_by(Species, Type) %>%
+                  summarise(number_of_colonies = n_distinct(Colony_ID), .groups = "keep")
+df_plot$Type <- as.factor(df_plot$Type)
+plot <- ggplot(df_plot, aes(x = Species, y = number_of_colonies, fill = Type)) +
+          geom_bar(stat = "identity") +
+            labs(x = "Species / Subspecies name",
+                 y = "Number of individuals sampled") +
+                 # geom_text(aes(label = number_of_colonies, y = number_of_colonies + 0.5)) +
+                make_theme(theme_few(), leg_pos="right", setFill=T, guide_nrow = length(unique(df_plot$Type)),
+                             x_angle=60, x_size=15, x_hj=1, x_vj=1,
+                             y_size=15, max_colors = length(unique(df_plot$Type)))
+plot
+# ggplotly(plot)
+```
+
+# Display raw data by colony
+
+```{r show_raw_data_byColony}
+renderDataTable({
+  select(metadata_shiny_filt(), ID, Species, Colony_type, DNA_extracted, Short_name, Location_name, Location_type, Hive_description)
+}, filter = "top", rownames = F)
+```
+
+# Display raw data
+
+```{r show_raw_data}
+renderDataTable({
+  select(df, ID, Species, Colony_type, DNA_extracted, Short_name, Location_name, Location_type, Hive_description)
+}, filter = "top", rownames = F)
+```
