@@ -4,7 +4,7 @@ This pipeline is not intended to be run independently without prior set-up. If y
 
 # Honeybee-MAGs
 
-The code referred to below can be found in the [GitHub repository](https://github.com/Aiswarya-prasad/honeybee-MAGs) The aim of this repository is to document the steps used to process raw shotgun metagenomic data (R1 and R2 fastq reads), assemble and bin scaffolds into MAGs, cluster them into magOTUs, estimate the coverage of each of the magOTUs and then finally also SNP profiling across samples based on the high quality MAGs chosen. Downstream analysis is performed using independent scripts and documented in their respective directories. All scripts are present in the scripts directory in general.
+The code referred to below can be found in this [GitHub repository](https://github.com/Aiswarya-prasad/honeybee-MAGs) The aim of this repository is to document the steps used to process raw shotgun metagenomic data (R1 and R2 fastq reads), assemble and bin scaffolds into MAGs, cluster them into magOTUs, estimate the coverage of each of the magOTUs and then finally also SNP profiling across samples based on the high quality MAGs chosen. Downstream analysis is performed using independent scripts and documented in their respective directories. All scripts are present in the scripts directory in general.
 
 ## Overview
 
