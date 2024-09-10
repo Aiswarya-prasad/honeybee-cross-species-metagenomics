@@ -5,7 +5,7 @@
 # use command,
 # conda env create -f rmd-shiny-env.yaml
 # or
-# cd /Users/aiswarya/NAS_recherche/spirit/D2c/aprasad/20211018_aprasad_ApisCrossSpeciesAnalysis/DataCollection/R_Shiny_map
+# cd /...<project_path>.../20211018_aprasad_ApisCrossSpeciesAnalysis/DataCollection/R_Shiny_map
 # if (!require("shiny")) install.packages("shiny")
 # if (!require("dplyr")) install.packages("dplyr")
 # if (!require("leaflet")) install.packages("leaflet")
