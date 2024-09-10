@@ -1,30 +1,28 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.13732977.svg)](https://doi.org/10.5281/zenodo.13732977)
 
-https://zenodo.org/doi/10.5281/zenodo.13732977
-
-This pipeline is not intended to be run independently without prior set-up. If you would like to use it or its parts and have questions or require clarification, contact Aiswarya Prasad .
+This pipeline is not intended to be run independently without prior set-up. If you would like to use it or its parts and have questions or require clarification, contact Aiswarya Prasad.
 
 # Honeybee-MAGs
 
-The code referred to below can be found in the [Github repository](https://github.com/Aiswarya-prasad/honeybee-MAGs) The aim of this repository is to document the steps used to process raw shotgun metagenomic data (R1 and R2 fastq reads), assemble and bin scaffolds into MAGs, cluster them into magOTUs, estimate the coverage of each of the magOTUs and then finally also SNP profiling across samples based on the high quality MAGs chosen. Downstream analysis is performed using independent scripts and documented in their respective directories. All scripts are present in the scripts directory in general.
+The code referred to below can be found in the [GitHub repository](https://github.com/Aiswarya-prasad/honeybee-MAGs) The aim of this repository is to document the steps used to process raw shotgun metagenomic data (R1 and R2 fastq reads), assemble and bin scaffolds into MAGs, cluster them into magOTUs, estimate the coverage of each of the magOTUs and then finally also SNP profiling across samples based on the high quality MAGs chosen. Downstream analysis is performed using independent scripts and documented in their respective directories. All scripts are present in the scripts directory in general.
 
 ## Overview
 
-The code used can be found in the `scripts` and `workflow` directory. Most of the bioinformatic processing was done using the snakemake rules found in the files of the `workflow` directory. Outputs from the workflow were processed using python and R scripts found in the `scripts` directory. Figures were made using the R and Rmd scripts found within `scripts/visualization`.
+The code used can be found in the `scripts` and `workflow` directory. Most of the bioinformatic processing was done using the Snakemake rules found in the files of the `workflow` directory. Outputs from the workflow were processed using python and R scripts found in the `scripts` directory. Figures were made using the R and Rmd scripts found within `scripts/visualization`.
 
-The `config` directory contains files including metadata and parameter specification used in various scripts. It also contains the `config/envs` directory with YAML files specifying the packes used as conda environment specifications.
+The `config` directory contains files including metadata and parameter specifications used in various scripts. It also contains the `config/envs` directory with YAML files specifying the packages used as conda environment specifications.
 
 The `data` directory contains host genomes, database information etc. used by various scripts. All outputs are written among the various subdirectories of `results/`.
 
 All paths are specified with respect to the working directory unless absolute paths are necessary (sometimes within some scripts).
 
-Workflow was parallelized at the computation cluster at UNIL with the setup described here: [how to setup snakemake profile](https://github.com/RomainFeron/snakemake-slurm)
+Workflow was parallelized at the computation cluster at UNIL with the setup described here: [how to setup Snakemake profile](https://github.com/RomainFeron/snakemake-slurm)
 
 Refer to the `targets` rule in the Snakefile to get the list of the outputs generated using the workflow. Further processing was done by the scripts found in `scripts/`. Refer to the respective scripts of interest for further information about the parameters used. The final summaries of outputs used for Figures are loaded into R by `scripts/visualization/Load_data.Rmd` where the paths to all the files of interest can be found.
 
 ## Raw data
 
-Raw data for this project was sequenced in two different facilities. For 50 samples from India, all collection, analysis and sequencing was done at the collaborating lab in India and sequenced at Medgenome, India. Th other 150 samples collected from Malaysia were sequenced at the GTF facility at UNIL. The files can be accessed through NCBI SRA (PRJNA1157353). Sample names reflect the species (first letter) followed by colony number and then individual number. For example, A1-1 is the first individual from the first colony of A. andreniformis and C2-3 is the third individual from the second colony of A. cerana. The files name then includes R1 or R2 indicating the forward or reverse read set and for some samples, there are multiple files for each read set from different runs and lanes as indicated in the file name.
+Raw data for this project was sequenced in two different facilities. For 50 samples from India, all collection, analysis and sequencing was done at the collaborating lab in India and sequenced at Medgenome, India. The other 150 samples collected from Malaysia were sequenced at the GTF facility at UNIL. The files can be accessed through NCBI SRA (PRJNA1157353). Sample names reflect the species (first letter) followed by colony number and then individual number. For example, A1-1 is the first individual from the first colony of A. andreniformis and C2-3 is the third individual from the second colony of A. cerana. The files name then includes R1 or R2 indicating the forward or reverse read set and for some samples, there are multiple files for each read set from different runs and lanes as indicated in the file name.
 
 ## Code Overview
 
@@ -40,6 +38,10 @@ Raw data for this project was sequenced in two different facilities. For 50 samp
 * `workflow/binning_summary_annotation.smk` - This Snakemake file summarizes binning results, annotates MAGs, and evaluates their quality. It includes rules for summarizing binning statistics, evaluating MAG quality using CheckM, and annotating MAGs using GTDB-Tk and DRAM.
 * `workflow/mag_db_instrain.smk` - This Snakemake file profiles MAGs using InStrain to identify strain-level variation and track MAGs across samples. It includes rules for preparing MAG databases, mapping reads to MAGs, and profiling strain-level variation using InStrain.
 * `workflow/mag_phylogenies.smk` - This Snakemake file infers phylogenetic trees of MAGs and external genomes to understand their evolutionary relationships. It includes rules for preparing genomes, running OrthoFinder, inferring orthologous groups, aligning orthologs, and building phylogenetic trees.
+
+The rulegraph below summarized some of the rules including the ones involved in the steps after assembly up to taxonomic profiling.
+
+!(rulegraph)[rulegraph.pdf]
 
 ### Scripts
 
@@ -65,9 +67,9 @@ Raw data for this project was sequenced in two different facilities. For 50 samp
 
 #### Host Database
 
-The host database is named **host_databse/apis_bees_db.fasta**.
+The host database is named **host_database/apis_bees_db.fasta**.
 
-A [paper](https://academic.oup.com/gbe/article/12/1/3677/5682415) published in Dec. 2019 a high quality [_Apis dorsata_ genome](https://www.ncbi.nlm.nih.gov/assembly/GCA_009792835.1/) as an improvement over a previous submission in 2013. The paper also mentioned studies that had previously sequenced the [_Apis florea_ genome](https://www.ncbi.nlm.nih.gov/assembly/GCA_000184785.2) in 2012, [_Apis cerana_ genome](https://www.ncbi.nlm.nih.gov/assembly/GCF_001442555.1) in 2015 (other assemblies submitted found [here](https://www.ncbi.nlm.nih.gov/assembly/organism/7460/latest/)) and [_Apis mellifera_ genome](https://www.ncbi.nlm.nih.gov/assembly/GCF_003254395.2) in 2018 (other assemblies submitted listed here). So far I have not found any whole genome assemblies of _Apis adreniformis_.
+A [paper](https://academic.oup.com/gbe/article/12/1/3677/5682415) published in Dec. 2019 a high quality [_Apis dorsata_ genome](https://www.ncbi.nlm.nih.gov/assembly/GCA_009792835.1/) as an improvement over a previous submission in 2013. The paper also mentioned studies that had previously sequenced the [_Apis florea_ genome](https://www.ncbi.nlm.nih.gov/assembly/GCA_000184785.2) in 2012, [_Apis cerana_ genome](https://www.ncbi.nlm.nih.gov/assembly/GCF_001442555.1) in 2015 (other assemblies submitted found [here](https://www.ncbi.nlm.nih.gov/assembly/organism/7460/latest/)) and [_Apis mellifera_ genome](https://www.ncbi.nlm.nih.gov/assembly/GCF_003254395.2) in 2018 (other assemblies submitted listed here). So far I have not found any whole genome assemblies of _Apis andreniformis_.
 
 These assemblies were downloaded and concatenated to make the **4_host_db**. It contains,
 
@@ -96,7 +98,7 @@ Several large files and directories containing results are referenced in the cod
   - `results/09_MAGs_collection/MAGs_metadata_summary.tsv` contains the metadata of all MAGs collected in one file and used in downstream analysis
 + The `results/figures` directory contains all the figures many of which were further edited and arranged to make final figures for the report and tables for summaries and further processing
   - The results of filtering and annotation of ORFs combined with gene coverage information obtained by mapping clean reads back to the assemblies can be found in `results/figures/08-summarize_functions/gene_info_tables/{sample}_df_detected_genes_info.csv` and `results/figures/08-summarize_functions/gene_info_tables/{sample}_df_detected_genes_cov.csv` by the scripts `scripts/visualization/make_gene_info_summaries.py` and `scripts/visualization/summarize_gene_functions.py` respctively
-  - Tip: If exploring this directory, search for the file name in the Github repository to find the scripts that processed and generated the files.
+  - Tip: If exploring this directory, search for the file name in the GitHub repository to find the scripts that processed and generated the files.
 + Phylogenies are in `results/11_phylogenies/03_iqtree_trees` and its neighbouring and subdirectories
   - The directory 11_phylogenies contains `results/11_phylogenies/00_genomes` with nucleotide (.ffn) and aminoacid (.faa) sequences of genes from all the MAGs and external genomes previously published (mostly used as outgroups) as listed in `results/11_phylogenies/phylo_genomes_metadata.tsv`
   - `results/11_phylogenies/01_orthofinder_input` contains the files for genomes corresponding to each genus collected together and their OrthoFinder results are in `results/11_phylogenies/02_orthofinder_results`
@@ -105,7 +107,7 @@ Several large files and directories containing results are referenced in the cod
   - `results/11_phylogenies/05_MAG_bac120_nucleotide_trees`contain the trees made with the nucleotide sequences of the 120 bacterial genes identified by GTDB-tk collected and aligned using a codon-aware aligner (macse)
 
 
-Below is a collection of manuscript figures and the corresponding plots that were used in making them (searching for this path / filename in the Github repository will provide to the script that generated the plot):
+Below is a collection of manuscript figures and the corresponding plots that were used in making them (searching for this path / filename in the GitHub repository will provide to the script that generated the plot):
 
 * Fig. 1 (Relevant scripts are `scripts/visualization/09-plot_community_composition.Rmd` and `scripts/visualization/06-plot_and_summarize_MAGs.Rmd` and )
   - B: `results/figures/06-figures/06-mag_by_host_ref_vs_nonref_monochrome.pdf`
