@@ -18,12 +18,12 @@ deposition_data = response.json()
 bucket_url = deposition_data['links']['bucket']
 
 paths = [
-    # '/work/FAC/FBM/DMF/pengel/spirit/aprasad/BACKUP_current/20230313_apis_species_comparison_zips/README.md',
-    # '/work/FAC/FBM/DMF/pengel/spirit/aprasad/BACKUP_current/20230313_apis_species_comparison_zips/05_assembly.zip',
-    # '/work/FAC/FBM/DMF/pengel/spirit/aprasad/BACKUP_current/20230313_apis_species_comparison_zips/06_metagenomicORFs.zip',
-    # '/work/FAC/FBM/DMF/pengel/spirit/aprasad/BACKUP_current/20230313_apis_species_comparison_zips/11_phylogenies.zip',
-    '/work/FAC/FBM/DMF/pengel/spirit/aprasad/BACKUP_current/20230313_apis_species_comparison_zips/figures.zip',
-    '/work/FAC/FBM/DMF/pengel/spirit/aprasad/BACKUP_current/20230313_apis_species_comparison_zips/09_MAGs_collection.zip'
+    # '<path-to-zips>/README.md',
+    # '<path-to-zips>/05_assembly.zip',
+    # '<path-to-zips>/06_metagenomicORFs.zip',
+    # '<path-to-zips>/11_phylogenies.zip',
+    '<path-to-zips>/figures.zip',
+    '<path-to-zips>/09_MAGs_collection.zip'
     ]
 
 
