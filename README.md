@@ -41,9 +41,7 @@ Raw data for this project was sequenced in two different facilities. For 50 samp
 * `workflow/mag_db_instrain.smk` - This Snakemake file profiles MAGs using InStrain to identify strain-level variation and track MAGs across samples. It includes rules for preparing MAG databases, mapping reads to MAGs, and profiling strain-level variation using InStrain.
 * `workflow/mag_phylogenies.smk` - This Snakemake file infers phylogenetic trees of MAGs and external genomes to understand their evolutionary relationships. It includes rules for preparing genomes, running OrthoFinder, inferring orthologous groups, aligning orthologs, and building phylogenetic trees.
 
-The rulegraph below summarized some of the rules including the ones involved in the steps after assembly up to taxonomic profiling.
-
-![rulegraph](rulegraph.pdf)
+The [rulegraph](rulegraph.pdf) summarizes some of the rules including the ones involved in the steps after assembly up to taxonomic profiling.
 
 ### Scripts
 
