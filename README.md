@@ -1,10 +1,12 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.13732977.svg)](https://doi.org/10.5281/zenodo.13732977)
 
-This pipeline requires prior set-up and the installation of appropriate tools and packages to be installed (typically using conda or mamba which is much faster). If you would like to use it or its parts and have questions or require clarification, contact Aiswarya Prasad. To explore the data or replot the figures, intermediate files and a .Rdata file containing R objects including functions and dataframes can be found in the [Zenodo](https://doi.org/10.5281/zenodo.13732978) repository. The code is provided for transparency and reproducibility of the analysis. The raw data files are publicly available at NCBI SRA ([PRJNA1157353](https://www.ncbi.nlm.nih.gov/bioproject/PRJNA1157353/)).
+This pipeline requires prior set-up and the installation of appropriate tools and packages to be installed (typically using conda or mamba which is much faster). If you would like to use it or its parts and have questions or require clarification, contact Aiswarya Prasad. To explore the data or replot the figures, intermediate files and a .RData file containing R objects including functions and dataframes can be found in the [Zenodo](https://doi.org/10.5281/zenodo.13732978) repository. The code is provided for transparency and reproducibility of the analysis. The raw data files are publicly available at NCBI SRA ([PRJNA1157353](https://www.ncbi.nlm.nih.gov/bioproject/PRJNA1157353/)).
 
 # Honeybee Cross-Species Metagenomics
 
-The code referred to below can be found in this [GitHub repository](https://github.com/Aiswarya-prasad/honeybee-MAGs) The aim of this repository is to document the steps used to process raw shotgun metagenomic data (R1 and R2 fastq reads), assemble and bin scaffolds into MAGs, cluster them into magOTUs, estimate the coverage of each of the magOTUs and then finally also SNP profiling across samples based on the high quality MAGs chosen. Downstream analysis is performed using independent scripts and documented in their respective directories. All scripts are present in the scripts directory in general.
+The code referred to below can be found in this [GitHub repository](https://github.com/Aiswarya-prasad/honeybee-MAGs) The aim of this repository is to document the steps used to process raw shotgun metagenomic data (R1 and R2 fastq reads), assemble and bin scaffolds into MAGs, cluster them into magOTUs, estimate the coverage of each of the magOTUs and then finally also SNP profiling across samples based on the high quality MAGs chosen. Downstream analysis is performed using independent scripts and documented in their respective directories.
+
+The pipeline outlined here was run using snakemake v7.28.1 and parallelized on the UNIL computing cluster, Curnagl (kernel: Linux 4.18.0-477.64.1.el8_8.x86_64). Information about the packages and versions used for each part of the pipeline are found in the environment specification files and the detailed list of packages in the conda environments used for downstream processing and plotting are found in the `config/envs` directory described in _Config_ section below.
 
 ## Overview
 
@@ -172,5 +174,3 @@ For other plots not used in figures, since the figures in results/figures were m
   - `results/figures/01-figures/01-Sequencing_depth_summary_IN_MY`
 
 For any dataframes or files not loaded in the script of interest, the data is likely loaded in the script `scripts/visualization/Load_data.Rmd` which loads all the data used in the figures and tables of the manuscript. The saved `results/figures/workspace_generaldata_chunks_20230611.RData` should contain all the important dataframes used in the manuscript and allow the repetition of most of the code in the other scripts. The environment as described in `config/envs/rmd-env.yaml` was used for R and Rmd code and the one in `config/envs/scripts-env.yaml` was used for python code.
-
- <!-- mOTUlize.py --fnas {params.annotations_dir}/*/*.fna -o {output.outfile} --checkm {output.checkm_concat} --similarities {output.ani_parsed} --MAG-completeness {params.seed_completeness} --prefix \"magOTU_\" -->
