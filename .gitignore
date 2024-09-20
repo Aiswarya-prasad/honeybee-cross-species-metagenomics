@@ -91,3 +91,6 @@ results/._.DS_Store
 results/.DS_Store
 results/figures/*
 archive/*
+
+node_modules/*
+package*

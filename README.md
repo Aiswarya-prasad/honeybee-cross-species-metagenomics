@@ -90,8 +90,6 @@ Several large files and directories containing results are referenced in the cod
   - `results/09_MAGs_collection/drep_output` contains the output of drep dereplication
   - `results/09_MAGs_collection/gtdb_output` contains the output of GTDB annotation
   - `results/09_MAGs_collection/MAGs`contains all the MAGs
-  - `results/09_MAGs_collection/MAGs_high_medium` contains the high and medium quality MAGs
-  - `results/09_MAGs_collection/prodigal_output` contains the output of prodigal gene prediction
   - `results/09_MAGs_collection/dram_distill` contains the output of DRAM distill
   - `results/09_MAGs_collection/dram_output` contains the output of DRAM
   - `results/09_MAGs_collection/functions_list` contains a parsed list of all KOs identified by DRAM listed on column 2 with the species name appended to MAG ID as column 1
