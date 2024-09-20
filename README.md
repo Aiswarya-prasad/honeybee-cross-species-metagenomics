@@ -1,8 +1,8 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.13732977.svg)](https://doi.org/10.5281/zenodo.13732977)
 
-This pipeline is not intended to be run independently without prior set-up. If you would like to use it or its parts and have questions or require clarification, contact Aiswarya Prasad.
+This pipeline requires prior set-up and the installation of appropriate tools and packages to be installed (typically using conda or mamba which is much faster). If you would like to use it or its parts and have questions or require clarification, contact Aiswarya Prasad. To explore the data or replot the figures, intermediate files and a .Rdata file containing R objects including functions and dataframes can be found in the [Zenodo](https://doi.org/10.5281/zenodo.13732978) repository. The code is provided for transparency and reproducibility of the analysis. The raw data files are publicly available at NCBI SRA ([PRJNA1157353](https://www.ncbi.nlm.nih.gov/bioproject/PRJNA1157353/)).
 
-# Honeybee-MAGs
+# Honeybee Cross-Species Metagenomics
 
 The code referred to below can be found in this [GitHub repository](https://github.com/Aiswarya-prasad/honeybee-MAGs) The aim of this repository is to document the steps used to process raw shotgun metagenomic data (R1 and R2 fastq reads), assemble and bin scaffolds into MAGs, cluster them into magOTUs, estimate the coverage of each of the magOTUs and then finally also SNP profiling across samples based on the high quality MAGs chosen. Downstream analysis is performed using independent scripts and documented in their respective directories. All scripts are present in the scripts directory in general.
 
@@ -22,7 +22,7 @@ Refer to the `targets` rule in the Snakefile to get the list of the outputs gene
 
 ## Raw data
 
-Raw data for this project was sequenced in two different facilities. For 50 samples from India, all collection, analysis and sequencing was done at the collaborating lab in India and sequenced at Medgenome, India. The other 150 samples collected from Malaysia were sequenced at the GTF facility at UNIL. The files can be accessed through NCBI SRA (PRJNA1157353). Sample names reflect the species (first letter) followed by colony number and then individual number. For example, A1-1 is the first individual from the first colony of A. andreniformis and C2-3 is the third individual from the second colony of A. cerana. The files name then includes R1 or R2 indicating the forward or reverse read set and for some samples, there are multiple files for each read set from different runs and lanes as indicated in the file name.
+Raw data for this project was sequenced in two different facilities. For 50 samples from India, all collection, analysis and sequencing was done at the collaborating lab in India and sequenced at Medgenome, India. The other 150 samples collected from Malaysia were sequenced at the GTF facility at UNIL. The files can be accessed through NCBI SRA (PRJNA1157353). Sample names reflect the species (first letter) followed by colony number and then individual number. For example, A1-1 is the first individual from the first colony of A. andreniformis and C2-3 is the third individual from the second colony of A. cerana. The files name then includes R1 or R2 indicating the forward or reverse read set and for some samples, there are multiple files for each read set from different runs and lanes as indicated in the file name. All further files (including MAGs) and figures can be created using the raw reads and the snakemake pipeline. However, for most purposes of exploration this may not be feasible. Hence MAGs, trees and some other intermediate files are included in the [zenodo](https://zenodo.org/doi/10.5281/zenodo.13732977) repository.
 
 ## Code Overview
 
@@ -41,7 +41,7 @@ Raw data for this project was sequenced in two different facilities. For 50 samp
 
 The rulegraph below summarized some of the rules including the ones involved in the steps after assembly up to taxonomic profiling.
 
-!(rulegraph)[rulegraph.pdf]
+![rulegraph](rulegraph.pdf)
 
 ### Scripts
 
@@ -91,7 +91,7 @@ Several large files and directories containing results are referenced in the cod
   - `results/09_MAGs_collection/gtdb_output` contains the output of GTDB annotation
   - `results/09_MAGs_collection/MAGs`contains all the MAGs
   - `results/09_MAGs_collection/dram_distill` contains the output of DRAM distill
-  - `results/09_MAGs_collection/dram_output` contains the output of DRAM
+  - `results/09_MAGs_collection/dram_output` contains the output of DRAM including a genes file (.faa)
   - `results/09_MAGs_collection/functions_list` contains a parsed list of all KOs identified by DRAM listed on column 2 with the species name appended to MAG ID as column 1
   - `results/09_MAGs_collection/MAGs_metadata_summary.tsv` contains the metadata of all MAGs collected in one file and used in downstream analysis
 + The `results/figures` directory contains all the figures many of which were further edited and arranged to make final figures for the report and tables for summaries and further processing
