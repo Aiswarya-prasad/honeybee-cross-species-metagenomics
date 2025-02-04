@@ -84,6 +84,8 @@ These assemblies were downloaded and concatenated to make the **4_host_db**. It 
 
 Several large files and directories containing results are referenced in the code but not included in the repository. The repository includes the code and scripts used to process the data and generate the results. The code is provided for transparency and reproducibility of the analysis. The raw data files are publicly available and some useful intermediate files for exploration and can be found in the accompanying [Zenodo](https://doi.org/10.5281/zenodo.13732978) repository.
 
+Note that in order to avoid zipping entire directories together which exceed 10GB even after compression, we moved some sub-directories out of their original locations. In order to aid identification they are now names as parentDirName--subDirName. For example, the directory `05_assembly/all_reads_assemblies` was moved and is now named `05_assembly--all_reads_assemblies`. The original directories were then zipped and uploaded to Zenodo. This was done to improve accessibility of some important files and directories which would otherwise have been part of huge zipped files containing several other directories that may not be of interest.
+
 + Assembled scaffold are in `results/05_assembly/all_reads_assemblies/{sample}_scaffolds.fasta` and `results/05_assembly/contig_fates/` contains the output of whokaryote, Kaiju etc. on the scaffolds
 + The directory `results/06_metagenomicORFs` contains the output of prodigal gene prediction on the scaffolds and filtered ORFs using the script `scripts/filt_orfs.py` which in turn uses files in `results/05_assembly/contig_fates/`
 + All MAGs are in `results/09_MAGs_collection/MAGs/{mag}.fa` with other directories within `results/09_MAGs_collection/` containing various checkM, GTDB annotation and dRep depreplication results
@@ -117,11 +119,11 @@ Below is a collection of manuscript figures and the corresponding plots that wer
   - H: `results/figures/09-figures/09-Microbe_host_dissimilarities_sorenson_turnover.pdf`
 * Fig. 2 (Relevant scripts are `scripts/visualization/09-plot_community_composition.Rmd` and` scripts/visualization/10-plot_instrain_results.Rmd`)
   - A: `results/figures/09-figures/3-magotu_rohdes_scatter_pie_radius.pdf` and `results/figures/09-figures/3-magotu_rohdes_by_magotu_across.pdf`
-  - B: `results/figures/10-figures/barplot_strain_level_p_value_by_genus.pdf`
+  - B: `results/figures/10-figures/barplot_species_specificity_by_genus.pdf`
   - C: `"results/figures/10-strain_nmds_IN_MY/", spec,"_nmds.pdf"` # where spec is the species name
-* Fig. 3 (Relevant script is `scripts/visualization/12-phylogenies.py` and the phylogeny rules of the Snakemake workflow)
-  - trees may be found in `results/11_phylogenies/03_iqtree_trees/\*/\*.treefile`
-  - codiversity tests were using the code in `scripts/visualization/12-phylogenies.py`
+* Fig. 3 (Relevant script is `additional_analyses/scripts/12-phylogenies.py` and the phylogeny rules of the Snakemake workflow)
+  - A: trees found in `results/11_phylogenies/03_iqtree_trees/\*/\*.treefile`
+  - B: `additional_analyses/results/12-cophylogeny_test_repeat/number_of_nodes_in_permutations.pdf`
 * Fig. 4 (Relevant script `scripts/visualization/11-gene_content.Rmd`)
   - A: `results/figures/08-gene_content_plots/Number_of_kos_per_sample.pdf`
   - B: `results/figures/08-gene_content_plots/KO_pcoa_host_species_norm_aitchison.pdf`
@@ -135,40 +137,58 @@ For other plots not used in figures, since the figures in results/figures were m
 * Fig. S1:
   - Map created using the scripts in `scripts/R_Shiny_map/`
 * Fig. S2:
-  - `06-mags_filt_contam_vs_completeness_w_shape.pdf`
-  - `06-Genome_sizes_by_genus.pdf`
+  - `results/figures/06-figures/06-mags_filt_contam_vs_completeness_w_shape.pdf`
+  - `results/figures/06-figures/06-Genome_sizes_by_genus.pdf`
 * Fig. S3:
-  - `"results/figures/06-ANI_heatmaps/06-", genus_iter, "_ANI_heatmap_values.pdf"`
+  - `"results/figures/06-figures/06-ANI_heatmaps/06-", genus_iter, "_ANI_heatmap_values.pdf"`
 * Fig. S4:
-  - `09-Cumulative_curve_by_location.pdf`
-  - `09-Cumulative_curve.pdf`
+  - Trees were drawn using iTOL and the generated trees in `additional_analyses/results/add_isolates/g__*/SpeciesTree_renamed.txt`
 * Fig. S5:
-  - `results/figures/3-magotu_shared.pdf`
+  - `results/figures/10-instrain_plots/2-mapped_reads_by_magOTU_w_coverage_16.pdf`
 * Fig. S6:
-  - `results/figures/10-figures/SNV_perc_all_species.pdf`
+  - `results/figures/09-Cumulative_curve_by_location.pdf`
+  - `results/figures/09-Cumulative_curve.pdf`
 * Fig. S7:
-  - `results/figures/09-relative_abundance_sep.pdf` and `results/figures/09-relative_abundance_sep_legend.pdf`
+  - `results/figures/3-magotu_shared.pdf`
 * Fig. S8:
-  - `results/figures/Species_Relative_abundance/*.pdf`
+  - `results/figures/10-figures/SNV_perc_all_species.pdf`
 * Fig. S9:
-  - `09-PCoA_sorensen_microbiome.pdf`
-  - `09-PCoA_sorensen_microbiome_w_colony_and_country.pdf`
-  - `09-PCoA_sorensen_microbiome_nestedness.pdf`
-  - `09-PCoA_sorensen_microbiome_turnover.pdf`
-  - `09-PCoA_sorensen_microbiome_location_noAndreMelli.pdf`
-  - `09-PCoA_sorensen_microbiome_location.pdf`
-  - `09-PCoA_jaccard_microbiome_turnover.pdf`
-  - `09-PCoA_jaccard_microbiome.pdf`
-  - `09-PCoA_jaccard_microbiome_nestedness.pdf`
-  - `09-PCoA_atchinson_relative_ab_microbiome.pdf`
-  - `09-PCoA_atchinson_microbiome.pdf`
+  - `results/figures/09-relative_abundance_sep.pdf` and `results/figures/09-relative_abundance_sep_legend.pdf`
 * Fig. S10:
-  - `08-gene_content_plots/KO_*.pdf`
+  - `results/figures/Species_Relative_abundance/*.pdf`
 * Fig. S11:
-  - `results/figures/11-figures/tax_func_plots/*.pdf`
+  - `results/figures/09-PCoA_sorensen_microbiome.pdf`
+  - `results/figures/09-PCoA_sorensen_microbiome_w_colony_and_country.pdf`
+  - `results/figures/09-PCoA_sorensen_microbiome_nestedness.pdf`
+  - `results/figures/09-PCoA_sorensen_microbiome_turnover.pdf`
+  - `results/figures/09-PCoA_sorensen_microbiome_location_noAndreMelli.pdf`
+  - `results/figures/09-PCoA_sorensen_microbiome_location.pdf`
+  - `results/figures/09-PCoA_jaccard_microbiome_turnover.pdf`
+  - `results/figures/09-PCoA_jaccard_microbiome.pdf`
+  - `results/figures/09-PCoA_jaccard_microbiome_nestedness.pdf`
+  - `results/figures/09-PCoA_atchinson_relative_ab_microbiome.pdf`
+  - `results/figures/09-PCoA_atchinson_microbiome.pdf`
 * Fig. S12:
-  - `08-gene_content_plots/cazyme_*.pdf`
+  - Trees were drawn using iTOL and the data was prepared using the script `scripts/visualization/12-phylogenies.py`
 * Fig. S13:
-  - `results/figures/01-figures/01-Sequencing_depth_summary_IN_MY`
+  - `results/figures/08-gene_content_plots/KO_*.pdf`
+* Fig. S14:
+  - `additional_analyses/figures/minpath_presence_heatmap_all_genera.pdf`
+* Fig. S15:
+  - `results/figures/11-figures/tax_func_plots/*.pdf`
+* Fig. S16:
+  - `results/figures/08-gene_content_plots/cazyme_*.pdf`
+* Fig. S17:
+  - `additional_analyses/figures/cazyme_discovery_dot_plot.pdf`
+* Fig. S18:
+  - `results/figures/01-figures/01-Sequencing_depth_summary_IN_MY.pdf`
+* Fig. S19:
+  - Schematic drawn by hand to represent the approach implemented in `additional_analyses/scripts/12-phylogenies.py`
+
+<!-- `additional_analyses/figures/minpath_presence_heatmap_snod_saez_gilli_entomo.pdf` -->
 
 For any dataframes or files not loaded in the script of interest, the data is likely loaded in the script `scripts/visualization/Load_data.Rmd` which loads all the data used in the figures and tables of the manuscript. The saved `results/figures/workspace_generaldata_chunks_20230611.RData` should contain all the important dataframes used in the manuscript and allow the repetition of most of the code in the other scripts. The environment as described in `config/envs/rmd-env.yaml` was used for R and Rmd code and the one in `config/envs/scripts-env.yaml` was used for Python code.
+
+## Additional analysis
+
+Following comments received during the peer-review process, additional analysis was conducted. For some additional figures (mentioned below) and updated version of earlier figures existing code was used. In that case, the code will be found within the respective scripts and the resulting plots within  `additional_analyses/figures`. Additional scripts writted for the updated or added figures are found in the `additional_analyses/scripts` directory.

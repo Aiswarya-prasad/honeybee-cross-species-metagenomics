@@ -208,9 +208,16 @@ get_sample_name <- function(magname){
 }
 
 samples_to_exclude <- c("F4-5", "F5-1", "M6-2", "D9-5", "F7-5")
+
+# excluded due to ambiguous host identity
+# F5-1
+# F4-5
+# M6-2
+# excluded due to low coverage
 # D9-5(18,026)
 # F7-5(32,896)
 
+# # not excluded
 # F8-4(74,504)
 # F1-1(852,878)
 
@@ -681,6 +688,17 @@ location_order <- c("Malaysia", "India", "Switzerland", "Japan")
 location_order_color <- c("Malaysia" = "#1f78b4", "India" = "#ff7f00", "Switzerland" = "#e31a1c", "Japan" = "#fb9a99")
 host_order <- c("Apis mellifera", "Apis cerana", "Apis dorsata", "Apis florea", "Apis andreniformis")
 host_order_color <- c("Apis mellifera" = brewer.pal(9, "Pastel1")[2], "Apis cerana" = brewer.pal(9, "Pastel1")[1], "Apis dorsata" = brewer.pal(9, "Pastel1")[4], "Apis florea" = brewer.pal(9, "Pastel1")[3], "Apis andreniformis" = brewer.pal(9, "Pastel1")[5])
+host_order_color_figures <- c("Apis mellifera" = "#63C6ED",
+                      "Apis cerana" = "#E74D89",
+                      "Apis dorsata" = "#7A58A0",
+                      "Apis florea" = "#3FB075",
+                      "Apis andreniformis" = "#F8B128")
+# In Figures:
+# #63C6ED
+# #E74D89
+# #7A58A0
+# #3FB075
+# #F8B128
 host_order_color_dark <- c("Apis mellifera" = brewer.pal(9, "Set1")[2], "Apis cerana" = brewer.pal(9, "Set1")[1], "Apis dorsata" = brewer.pal(9, "Set1")[4], "Apis florea" = brewer.pal(9, "Set1")[3], "Apis andreniformis" = brewer.pal(9, "Set1")[5])
 location_country_colors <- c("India" = brewer.pal(9, "Set3")[1], "Switzerland" = brewer.pal(9, "Pastel1")[8], "Malaysia" = brewer.pal(9, "Pastel1")[6], "Japan" = brewer.pal(9, "Pastel1")[7])
 colony_order <- c("M_1", "M_Iu", "M_Ai", "M_DrY2_F", "C_1", "C_2", "C_3", "C_Kn", "C_Ch", "D_1", "D_2", "D_3", "F_1", "F_2", "F_3")

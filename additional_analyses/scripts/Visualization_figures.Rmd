@@ -1,0 +1,31 @@
+
+
+## Figures for the revision
+
+### visualize frequency of each #sig nodes across genus
+```{r}
+csv_files <- list.files("/work/FAC/FBM/DMF/pengel/spirit/aprasad/BACKUP_current/20230313_apis_species_comparison/additional_analyses/results/12-cophylogeny_test_repeat/", pattern = "\\.csv$", full.names = TRUE, recursive = TRUE)
+df_freqs <- data.frame()
+for (file in csv_files) {
+    df_iter <- read.csv(file) %>% select(!X)
+    df_freqs <- rbind(df_freqs, df_iter)
+}
+df_freqs <- df_freqs %>%
+                filter(clade %in% c("Lactobacillus", "Bifidobacterium", "Bombilactobacillus", "Frischella", "Gilliamella", "Snodgrassella", "Dysgonomonas"))
+df_total_actual <- read.csv("additional_analyses/results/12-cophylogeny_test_repeat/total_and_actual_nodes.csv") %>%
+                    filter(clade %in% c("Lactobacillus", "Bifidobacterium", "Bombilactobacillus", "Frischella", "Gilliamella", "Snodgrassella", "Dysgonomonas")) %>%
+                    mutate(type = ifelse(type == "actual", "in actual comparison", "tested (after filtering)"))
+ggplot() +
+    geom_point(data = df_freqs, aes(x = clade, y = size, size = frequency)) +
+    geom_point(data = df_total_actual, aes(x = clade, y = nodes, color = type), shape = 3, size = 4, stroke = 2) +
+    labs(x = "Genus", y = "Number of significant nodes (in randomized permutations)", size = "Frequency", color = "Number of Nodes") +
+    scale_color_manual(values=c("in actual comparison"="#FF0000", "tested (after filtering)"="#000000")) +
+    scale_size_continuous(range=c(1,8)) +
+    make_theme(setFill = F, setCol = F,
+               x_angle = 30, x_hj = 1, x_vj = 1,
+               x_size = 15
+    ) +
+    theme(axis.title.x = element_text(size=16),
+          axis.title.y = element_text(size=16))
+    ggsave("additional_analyses/results/12-cophylogeny_test_repeat/number_of_nodes_in_permutations.pdf", width = 15, height = 10)
+```

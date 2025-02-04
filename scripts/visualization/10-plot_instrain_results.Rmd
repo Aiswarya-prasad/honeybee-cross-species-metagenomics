@@ -2063,9 +2063,9 @@ for (spec in long_species_list) {
   ggsave(paste0("results/figures/10-strain_nmds_IN_MY_nested_stats/", spec,"_nmds.pdf"), width = 10, height = 10)
   print(paste0(spec, "   DONE"))
 }
-# cat results/figures/10-strain_nmds_IN_MY_nested_stats/*.csv | head -1 > results/figures/10-strain_nmds_IN_MY_nested_stats/all_stats.csv
-# Now the same with "all" samples
-# for file in results/figures/10-strain_nmds_IN_MY_nested_stats/*.csv; do cat "$file" | tail -n +2 >> results/figures/results/figures/10-strain_nmds_IN_MY_nested_stats/all_stats.csv; done
+# cat results/figures/10-strain_nmds_IN_MY_nested_stats/*_stats.csv | head -1 > results/figures/10-strain_nmds_IN_MY_nested_stats/all_stats.csv
+# # Now the same with "all" samples
+# for file in results/figures/10-strain_nmds_IN_MY_nested_stats/*_stats.csv; do cat "$file" | tail -n +2 >> results/figures/10-strain_nmds_IN_MY_nested_stats/all_stats.csv; done
 
 ```
 
@@ -2104,8 +2104,8 @@ df_adonis_data <- read.csv("results/figures/10-strain_nmds_IN_MY_nested_stats/al
                     mutate(Genus = strsplit(species, " ") %>% sapply(`[`, 1)) %>%
                     arrange(Genus, specificity)
                     # arrange(specificity, species)
-genera_clean_sub <- c("Bombilactobacillus", "Lactobacillus", "Bifidobacterium", "Gilliamella", "Snodgrassella", "Bartonella", "Frischella", "Dysgonomonas", "Apilactobacillus", "Apibacter", "Commensalibacter", "CALYQJ01",
-"CALYQQ01", "Pectinatus", "Entomomonas", "Saezia", "WRHT01", "Parolsanella", "Pluralibacter")
+genera_clean_sub <- c("Bombilactobacillus", "Lactobacillus", "Bifidobacterium", "Gilliamella", "Snodgrassella", "Bartonella_A", "Frischella", "Dysgonomonas", "Apilactobacillus", "Apibacter", "Commensalibacter", "CALYQJ01",
+"CALYQQ01", "Pectinatus", "Entomomonas", "Saezia", "WRHT01", "Parolsenella", "Pluralibacter")
 ggplot(df_adonis_data %>%
         filter(type == "P.species") %>%
         filter(Genus %in% genera_clean_sub) %>%
@@ -2142,4 +2142,23 @@ ggplot(df_adonis_data %>%
                 x_angle = 60, x_size = 12, x_hj = 1, x_vj = 1,
     guide_nrow = 10, leg_size = 8, leg_pos =  "right")
   ggsave("results/figures/10-figures/barplot_strain_level_p_value_by_genus.pdf", width = 15, height = 10)
+
+
+df_species_specs <- read.csv("results/figures/species-specificity.tsv", sep = "\t")
+
+ggplot(df_species_specs %>%
+        filter(Genus %in% genera_clean_sub)
+      ) +
+    geom_bar(aes(x = factor(Genus, genera_clean_sub), fill = Specificity), position = "stack") +
+    scale_fill_manual(values = c("specialist" = "#bdbdbd",
+                                 "shared (strain level specialist)" = "#084594",
+                                 "generalist" = "#9ecae1")) +
+    labs(y = "Number of species", fill = "Specificity") +
+    scale_y_reverse() +
+    make_theme(setFill = F, setCol = F, 
+                y_hj = 1,
+                x_angle = 60, x_size = 12, x_hj = 1, x_vj = 1,
+    guide_nrow = 10, leg_size = 8, leg_pos =  "right")
+  ggsave("results/figures/10-figures/barplot_species_specificity_by_genus.pdf", width = 15, height = 10)
+
 ```

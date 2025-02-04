@@ -75,6 +75,8 @@ results/figures/visualize_temp*
 results/figures/11-*
 results/figures/08-summarize_functions/*
 results/figures/08-summarize_functions*
+additional_analyses/results/*
+additional_analyses/figures/*
 *magotu_shared_same_diff_all_pairs.csv
 results/figures/12-cophylogeny_test/*/intermediate_files/*
 results/figures/10-*
@@ -94,3 +96,6 @@ archive/*
 
 node_modules/*
 package*
+node_modules
+
+*assembly_summary.txt*
