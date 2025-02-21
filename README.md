@@ -169,23 +169,24 @@ For other plots not used in figures, since the figures in results/figures were m
   - `results/figures/09-PCoA_atchinson_relative_ab_microbiome.pdf`
   - `results/figures/09-PCoA_atchinson_microbiome.pdf`
 * Fig. S12:
-  - Trees were drawn using iTOL and the data was prepared using the script `scripts/visualization/12-phylogenies.py`
+  - Trees were drawn using iTOL from nwk strings summarized in `additional_analyses/results/12-cophylogeny_test_repeat/*/host_signodes.txt` and the data was prepared using the host tree from Fig. 1 and arranged together on Affinity designer.
 * Fig. S13:
-  - `results/figures/08-gene_content_plots/KO_*.pdf`
+  - Trees were drawn using iTOL from nwk strings summarized in `additional_analyses/results/12-cophylogeny_test_repeat/Lactobacillus` and the data was prepared using the host tree from Fig. 1 and arranged together on Affinity designer.
 * Fig. S14:
-  - `additional_analyses/figures/minpath_presence_heatmap_all_genera.pdf`
+  - `results/figures/08-gene_content_plots/KO_*.pdf`
 * Fig. S15:
-  - `results/figures/11-figures/tax_func_plots/*.pdf`
+  - `additional_analyses/figures/minpath_presence_heatmap_all_genera.pdf`
 * Fig. S16:
-  - `results/figures/08-gene_content_plots/cazyme_*.pdf`
+  - `results/figures/11-figures/tax_func_plots/*.pdf`
 * Fig. S17:
-  - `additional_analyses/figures/cazyme_discovery_dot_plot.pdf`
+  - `results/figures/08-gene_content_plots/cazyme_*.pdf`
 * Fig. S18:
-  - `results/figures/01-figures/01-Sequencing_depth_summary_IN_MY.pdf`
+  - `additional_analyses/figures/cazyme_discovery_dot_plot.pdf`
 * Fig. S19:
+  - `results/figures/01-figures/01-Sequencing_depth_summary_IN_MY.pdf`
+* Fig. S20:
   - Schematic drawn by hand to represent the approach implemented in `additional_analyses/scripts/12-phylogenies.py`
 
-<!-- `additional_analyses/figures/minpath_presence_heatmap_snod_saez_gilli_entomo.pdf` -->
 
 For any dataframes or files not loaded in the script of interest, the data is likely loaded in the script `scripts/visualization/Load_data.Rmd` which loads all the data used in the figures and tables of the manuscript. The saved `results/figures/workspace_generaldata_chunks_20230611.RData` should contain all the important dataframes used in the manuscript and allow the repetition of most of the code in the other scripts. The environment as described in `config/envs/rmd-env.yaml` was used for R and Rmd code and the one in `config/envs/scripts-env.yaml` was used for Python code.
 

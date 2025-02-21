@@ -17,13 +17,42 @@ response = requests.get(url, headers=headers)
 deposition_data = response.json()
 bucket_url = deposition_data['links']['bucket']
 
+
+
+# zip -r additional_analyses--figures.zip /work/FAC/FBM/DMF/pengel/spirit/aprasad/BACKUP_current/20230313_apis_species_comparison_zenodo/additional_analyses/additional_analyses--figures
+# zip -r additional_analyses--results.zip /work/FAC/FBM/DMF/pengel/spirit/aprasad/BACKUP_current/20230313_apis_species_comparison_zenodo/additional_analyses/additional_analyses--results
+# zip -r 05_assembly.zip /work/FAC/FBM/DMF/pengel/spirit/aprasad/BACKUP_current/20230313_apis_species_comparison_zenodo/results/05_assembly
+# zip -r 09_MAGs_collection--drep_output.zip /work/FAC/FBM/DMF/pengel/spirit/aprasad/BACKUP_current/20230313_apis_species_comparison_zenodo/results/09_MAGs_collection--drep_output
+# zip -r figures.zip /work/FAC/FBM/DMF/pengel/spirit/aprasad/BACKUP_current/20230313_apis_species_comparison_zenodo/results/figures
+# zip -r figures--visualize_temp--KO_collections.zip /work/FAC/FBM/DMF/pengel/spirit/aprasad/BACKUP_current/20230313_apis_species_comparison_zenodo/results/figures--visualize_temp--KO_collections
+# zip -r 05_assembly--all_reads_assemblies.zip /work/FAC/FBM/DMF/pengel/spirit/aprasad/BACKUP_current/20230313_apis_species_comparison_zenodo/results/05_assembly--all_reads_assemblies
+# zip -r 09_MAGs_collection--gtdb_output.zip /work/FAC/FBM/DMF/pengel/spirit/aprasad/BACKUP_current/20230313_apis_species_comparison_zenodo/results/09_MAGs_collection--gtdb_output # figure out how to get the tsvs
+# zip -r figures--08-summarize_functions.zip /work/FAC/FBM/DMF/pengel/spirit/aprasad/BACKUP_current/20230313_apis_species_comparison_zenodo/results/figures--08-summarize_functions
+# zip -r 06_metagenomicORFs.zip /work/FAC/FBM/DMF/pengel/spirit/aprasad/BACKUP_current/20230313_apis_species_comparison_zenodo/results/06_metagenomicORFs
+# zip -r 09_MAGs_collection--MAGs.zip /work/FAC/FBM/DMF/pengel/spirit/aprasad/BACKUP_current/20230313_apis_species_comparison_zenodo/results/09_MAGs_collection--MAGs
+# zip -r figures--10-instrain_SNP_summaries.zip /work/FAC/FBM/DMF/pengel/spirit/aprasad/BACKUP_current/20230313_apis_species_comparison_zenodo/results/figures--10-instrain_SNP_summaries
+# zip -r 09_MAGs_collection.zip /work/FAC/FBM/DMF/pengel/spirit/aprasad/BACKUP_current/20230313_apis_species_comparison_zenodo/results/09_MAGs_collection
+# zip -r 11_phylogenies.zip /work/FAC/FBM/DMF/pengel/spirit/aprasad/BACKUP_current/20230313_apis_species_comparison_zenodo/results/11_phylogenies
+# zip -r figures--11-figures.zip /work/FAC/FBM/DMF/pengel/spirit/aprasad/BACKUP_current/20230313_apis_species_comparison_zenodo/results/figures--11-figures
+
+path_to_zips = '/work/FAC/FBM/DMF/pengel/spirit/aprasad/BACKUP_current/20230313_apis_species_comparison_zenodo_zips'
+
 paths = [
-    # '<path-to-zips>/README.md',
-    # '<path-to-zips>/05_assembly.zip',
-    # '<path-to-zips>/06_metagenomicORFs.zip',
-    # '<path-to-zips>/11_phylogenies.zip',
-    '<path-to-zips>/figures.zip',
-    '<path-to-zips>/09_MAGs_collection.zip'
+    f'{path_to_zips}/additional_analyses--figures.zip'
+    f'{path_to_zips}/additional_analyses--results.zip'
+    f'{path_to_zips}/05_assembly.zip'
+    f'{path_to_zips}/09_MAGs_collection--drep_output.zip'
+    f'{path_to_zips}/figures.zip'
+    f'{path_to_zips}/figures--visualize_temp--KO_collections.zip'
+    f'{path_to_zips}/05_assembly--all_reads_assemblies.zip'
+    f'{path_to_zips}/09_MAGs_collection--gtdb_output.zip'
+    f'{path_to_zips}/figures--08-summarize_functions.zip'
+    f'{path_to_zips}/06_metagenomicORFs.zip'
+    f'{path_to_zips}/09_MAGs_collection--MAGs.zip'
+    f'{path_to_zips}/figures--10-instrain_SNP_summaries.zip'
+    f'{path_to_zips}/09_MAGs_collection.zip'
+    f'{path_to_zips}/11_phylogenies.zip'
+    f'{path_to_zips}/figures--11-figures.zip'
     ]
 
 
